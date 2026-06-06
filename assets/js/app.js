@@ -49,6 +49,11 @@
     window.VinylDexMissions.render(container, params);
   });
 
+  // AI Generator (Feature 9)
+  router.addRoute('ai-gen', (container, params) => {
+    window.VinylDexAIGenerator.render(container, params);
+  });
+
   // ---- Route Change Callback ----
   router.onRouteChange = (route, params) => {
     // Pulisce timer della home
