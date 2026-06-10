@@ -7,10 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/*
-  Minimal Prisma schema for VinylDex MVP backend (SQLite for local dev).
-  Portable to PostgreSQL by changing datasource provider & DATABASE_URL.
-*/
 
 model User {
   id             String       @id @default(uuid())

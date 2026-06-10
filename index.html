@@ -1,59 +1,86 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VinylDex - Colleziona, Combatti, Vibra</title>
-
-    <!-- CSS -->
-    <link rel="stylesheet" href="assets/css/style.css">
-
-    <!-- JavaScript - Utils first (no deps), then models, then data, then services, then ui, then app -->
-    <script src="assets/js/utils/random.js" defer></script>
-    <script src="assets/js/utils/router.js" defer></script>
-    <script src="assets/js/models/Card.js" defer></script>
-    <script src="assets/js/models/Pack.js" defer></script>
-    <script src="assets/js/data/artists.js" defer></script>
-    <script src="assets/js/data/packs.js" defer></script>
-    <script src="assets/js/services/storage.js" defer></script>
-    <script src="assets/js/services/ai.js" defer></script>
-    <script src="assets/js/ui/home.js" defer></script>
-    <script src="assets/js/ui/pack-opening.js" defer></script>
-    <script src="assets/js/ui/collection.js" defer></script>
-    <script src="assets/js/ui/vinyl-dex.js" defer></script>
-    <script src="assets/js/ui/debug.js" defer></script>
-    <script src="assets/js/ui/battle.js" defer></script>
-    <script src="assets/js/ui/missions.js" defer></script>
-    <script src="assets/js/ui/ai-generator.js" defer></script>
-    <script src="assets/js/app.js" defer></script>
-</head>
-<body>
-    <!-- Header / Navigation -->
-    <header id="app-header">
-        <div class="header-inner">
-            <h1 class="logo">VinylDex</h1>
-            <nav id="main-nav">
-                <a href="#home" class="nav-link active">Home</a>
-                <a href="#packs" class="nav-link">Pacchetti</a>
-                <a href="#battle" class="nav-link">⚔️ Battaglia</a>
-                <a href="#missions" class="nav-link">🎯 Missioni</a>
-                <a href="#collection" class="nav-link">Collezione</a>
-                <a href="#vinyl-dex" class="nav-link">VinylDex</a>
-                <a href="#ai-gen" class="nav-link">🤖 AI</a>
-            </nav>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>VinylLegends — Home</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/Favicon-vynil.png">
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+  <body>
+    <header class="site-header" id="app-header">
+      <div class="container header-inner">
+        <div class="header-top-row">
+          <div class="brand">
+            <a href="#home" id="logo" data-route="home" class="nav-link">VinylLegends</a>
+          </div>
+          <div class="header-top-actions">
+            <button id="btn-signin" class="btn small">Accedi</button>
+            <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu" onclick="toggleMobileMenu()">
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
+          </div>
         </div>
+        <nav class="main-nav" id="main-nav" aria-label="Main navigation">
+          <ul>
+            <li><a href="#home" data-route="home" class="nav-link active">Home</a></li>
+            <li><a href="#packs" data-route="packs" class="nav-link">Apri pacchetti</a></li>
+            <li><a href="#collection" data-route="collection" class="nav-link">Collezione</a></li>
+            <li><a href="#vinyl-dex" data-route="vinyl-dex" class="nav-link">VinylLegends</a></li>
+            <li><a href="#missions" data-route="missions" class="nav-link">Missioni</a></li>
+            <li><a href="#battle" data-route="battle" class="nav-link">Battaglie</a></li>
+          </ul>
+        </nav>
+      </div>
     </header>
 
-    <!-- Main Content Area (SPA views render here) -->
-    <main id="app-main">
-        <div id="app-view"></div>
-    </main>
+    <main id="app-view" class="container main-app" role="main" aria-live="polite"></main>
 
-    <!-- Footer -->
-    <footer id="app-footer">
-        <div class="footer-inner">
-            <p>&copy; 2026 VinylDex. Tutti i personaggi sono IP originali.</p>
-        </div>
+    <footer class="site-footer">
+      <div class="container">
+        <small>VinylLegends — MVP • Contenuti originali</small>
+      </div>
     </footer>
-</body>
+
+    <!-- Application scripts -->
+    <script src="assets/js/data/artists.js"></script>
+    <script src="assets/js/data/packs.js"></script>
+    <script src="assets/js/models/Card.js"></script>
+    <script src="assets/js/models/Pack.js"></script>
+    <script src="assets/js/utils/random.js"></script>
+    <script src="assets/js/utils/router.js"></script>
+    <script src="assets/js/services/storage.js"></script>
+    <script src="assets/js/services/api.js"></script>
+    <script src="assets/js/services/generator.js"></script>
+    <script src="assets/js/services/ai.js"></script>
+    <script src="assets/js/services/syncQueue.js"></script>
+    <script src="assets/js/ui/home.js"></script>
+    <script src="assets/js/ui/pack-opening.js"></script>
+    <script src="assets/js/ui/collection.js"></script>
+    <script src="assets/js/ui/vinyl-dex.js"></script>
+    <script src="assets/js/ui/missions.js"></script>
+    <script src="assets/js/ui/battle.js"></script>
+    <script src="assets/js/ui/ai-generator.js"></script>
+    <script src="assets/js/ui/debug.js"></script>
+    <script src="assets/js/app.js"></script>
+    <script>
+      function toggleMobileMenu() {
+        const nav = document.getElementById('main-nav');
+        const hamburger = document.getElementById('hamburger-btn');
+        nav.classList.toggle('main-nav-open');
+        hamburger.classList.toggle('hamburger-open');
+      }
+      // Chiudi il menu mobile al click su un link
+      document.addEventListener('click', function(e) {
+        const nav = document.getElementById('main-nav');
+        const hamburger = document.getElementById('hamburger-btn');
+        if (e.target.closest('.nav-link') && nav.classList.contains('main-nav-open')) {
+          nav.classList.remove('main-nav-open');
+          hamburger.classList.remove('hamburger-open');
+        }
+      });
+    </script>
+  </body>
 </html>

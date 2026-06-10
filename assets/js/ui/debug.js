@@ -123,6 +123,8 @@ const VinylDexDebug = {
             <button class="debug-btn debug-btn-pack" onclick="VinylDexDebug.openFreePack()">🎁 Pacchetto Gratis</button>
             <button class="debug-btn debug-btn-pack" onclick="VinylDexDebug.openDeluxePack()">💎 Pacchetto Deluxe</button>
             <button class="debug-btn debug-btn-pack" onclick="VinylDexDebug.openPremiumPack()">👑 Pacchetto Premium</button>
+            <button class="debug-btn debug-btn-primary" onclick="VinylDexDebug.addSantanaCard()" style="background:linear-gradient(135deg,#FFD700,#FF8C00);color:#000;">🎸 Aggiungi Carlos Santana</button>
+            <button class="debug-btn debug-btn-primary" onclick="VinylDexDebug.addJacksonCard()" style="background:linear-gradient(135deg,#FFD700,#FF8C00);color:#000;">👑 Aggiungi Michael Jackson</button>
           </div>
         </div>
 
@@ -264,6 +266,58 @@ const VinylDexDebug = {
    */
   openPremiumPack() {
     this._debugOpenPack(2);
+  },
+
+  /**
+   * Aggiunge la carta Carlos Santana alla collezione (debug).
+   */
+  addSantanaCard() {
+    const artistData = window.VinylDexArtists.find(a => a.id === 'virtuoso-000');
+    if (!artistData) {
+      alert('Carta Carlos Santana non trovata nel database!');
+      return;
+    }
+
+    const storage = new window.VinylDexStorage();
+    storage.addCardToCollection({
+      ...artistData,
+      img: 'assets/img/Carlos_Santana_VynilLegends.webp'
+    });
+
+    // Aggiorna stats
+    const stats = storage.getStats();
+    stats.legendaryCount = (stats.legendaryCount || 0) + 1;
+    stats.totalCardsObtained = (stats.totalCardsObtained || 0) + 1;
+    storage.updateStats(stats);
+
+    alert('✅ Carlos Santana aggiunto alla collezione!');
+    this._refresh();
+  },
+
+  /**
+   * Aggiunge la carta Michael Jackson alla collezione (debug).
+   */
+  addJacksonCard() {
+    const artistData = window.VinylDexArtists.find(a => a.name === 'Michael Jackson');
+    if (!artistData) {
+      alert('Carta Michael Jackson non trovata nel database!');
+      return;
+    }
+
+    const storage = new window.VinylDexStorage();
+    storage.addCardToCollection({
+      ...artistData,
+      img: 'assets/img/Michael_Jackson.webp'
+    });
+
+    // Aggiorna stats
+    const stats = storage.getStats();
+    stats.legendaryCount = (stats.legendaryCount || 0) + 1;
+    stats.totalCardsObtained = (stats.totalCardsObtained || 0) + 1;
+    storage.updateStats(stats);
+
+    alert('✅ Michael Jackson aggiunto alla collezione!');
+    this._refresh();
   },
 
   /**

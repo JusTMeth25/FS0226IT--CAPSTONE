@@ -66,8 +66,8 @@ const VinylDexHome = {
               </span>
             `).join('')}
           </div>
-          <h2 class="home-title text-gradient">Benvenuto su VinylDex</h2>
-          <p class="home-subtitle">Colleziona, Combatti, Vibra</p>
+          <h2 class="home-title text-gradient">Benvenuto su VinylLegends</h2>
+          <p class="home-subtitle">Music card game</p>
           <button class="btn btn-primary btn-large" onclick="window.location.hash='#packs'">
             🎵 Apri un Pacchetto
           </button>
@@ -94,14 +94,14 @@ const VinylDexHome = {
           <div class="stat-card glass-panel">
             <div class="stat-icon">📊</div>
             <div class="stat-value">${ownedCards.size}/${totalCards}</div>
-            <div class="stat-label">VinylDex</div>
+            <div class="stat-label">VinylLegends</div>
           </div>
         </div>
 
         <!-- Progress Bar -->
         <div class="progress-section glass-panel">
           <div class="progress-header">
-            <h3>Progresso VinylDex</h3>
+            <h3>Progresso VinylLegends</h3>
             <span class="progress-text">${progressPercent}%</span>
           </div>
           <div class="progress-bar">
@@ -123,7 +123,7 @@ const VinylDexHome = {
             </a>
             <a href="#vinyl-dex" class="action-card">
               <span class="action-icon">📖</span>
-              <span class="action-label">VinylDex</span>
+              <span class="action-label">VinylLegends</span>
             </a>
           </div>
         </div>

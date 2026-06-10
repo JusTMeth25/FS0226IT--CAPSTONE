@@ -135,7 +135,7 @@ const VinylDexPackOpening = {
    * Avvia l'apertura del pacchetto selezionato.
    * @param {string} packId
    */
-  openPack(packId) {
+  async openPack(packId) {
     const packConfig = window.VinylDexPacks.find(p => p.id === packId);
     if (!packConfig) return;
 
@@ -161,20 +161,127 @@ const VinylDexPackOpening = {
       storage.setLastFreePackTime(Date.now());
     }
 
-    // Apri il pacchetto
-    const cards = pack.open(window.VinylDexArtists);
+    // Prova prima l'apertura tramite API (se disponibile), altrimenti fallback locale
+    let cards;
+    const api = window.VinylDexApiService || null;
+    if (api && navigator.onLine) {
+      try {
+        const res = await api.openPack(packId);
+        // Il backend dovrebbe restituire { cards: [...] } con DTO compatibili
+        if (res && Array.isArray(res.cards) && res.cards.length) {
+          cards = res.cards.map(c => new window.VinylDexCard(c));
+        } else {
+          cards = pack.open(window.VinylDexArtists);
+        }
+      } catch (err) {
+        console.warn('API openPack failed, fallback to local pack.open()', err);
+        cards = pack.open(window.VinylDexArtists);
+      }
+    } else {
+      cards = pack.open(window.VinylDexArtists);
+    }
+    
     this._lastCards = [];
-
-    // Salva le carte nella collezione
-    const cardDataArray = cards.map(c => c.toJSON());
+    
+    // ====== AI Artwork Generation (best-effort) ======
+    // Generiamo artwork via VinylDexAI per le carte significative (es: rare/epic/legendary)
+    try {
+      const ai = window.VinylDexAI || null;
+      // Rarità per le quali vogliamo forzare la generazione (configurabile)
+      const GENERATE_RARITIES = ['rare', 'epic', 'legendary'];
+    
+      // Normalizza in istanze VinylDexCard
+      const cardObjs = cards.map(c => (c instanceof window.VinylDexCard ? c : new window.VinylDexCard(c)));
+    
+      // Se manca API key o servizio, skip generation (silenzioso)
+      if (ai && ai.hasApiKey && ai.hasApiKey()) {
+        // Seleziona solo le carte che rientrano nelle rarità target e non hanno immagine custom
+        const toGenerate = cardObjs.filter(c => {
+          const hasImg = c.img && typeof c.img === 'string' && c.img.length > 10 && !c.img.includes('placeholder');
+          return GENERATE_RARITIES.includes(c.rarity) && !hasImg;
+        });
+    
+        if (toGenerate.length > 0) {
+          // Prepara payload per il batch: passiamo oggetti leggeri con i campi necessari
+          const batchInput = toGenerate.map(c => ({
+            id: c.id,
+            name: c.name,
+            artistClass: c.artistClass,
+            rarity: c.rarity,
+            stats: c.stats || {}
+          }));
+    
+          // Chiamata di generazione batch (best-effort). Se fallisce, proseguiamo senza bloccare l'utente.
+          const results = await ai.generateBatch(batchInput, { style: 'anime', size: '512x512' }, (i, total) => {
+            // Non abbiamo ancora UI per il progresso in questa schermata: log per debug
+            console.debug(`[AI] Generating artwork ${i}/${total}`);
+          });
+    
+          // Applica i risultati alle istanze corrispondenti
+          results.forEach(res => {
+            if (res && res.success && res.url) {
+              // Trova la carta corrispondente per id e assegna l'immagine generata
+              const idx = cardObjs.findIndex(cc => cc.id === res.card.id || cc.id === res.cardId || cc.id === res.card?.id);
+              // Fallback: match by name se non troviamo per id
+              const foundByName = idx === -1 ? cardObjs.findIndex(cc => cc.name === res.card.name || cc.name === res.cardName) : idx;
+              const targetIndex = idx !== -1 ? idx : foundByName;
+              if (targetIndex !== -1) {
+                cardObjs[targetIndex].img = res.url;
+    
+                // Salva anche nella history delle immagini generate (per UI generator)
+                try {
+                  const images = storage.get('generatedImages', []);
+                  images.unshift({
+                    url: res.url,
+                    cardId: cardObjs[targetIndex].id,
+                    cardName: cardObjs[targetIndex].name,
+                    artistClass: cardObjs[targetIndex].artistClass,
+                    style: 'anime',
+                    prompt: res.revisedPrompt || '',
+                    timestamp: Date.now()
+                  });
+                  if (images.length > 50) images.splice(50);
+                  storage.set('generatedImages', images);
+                } catch (e) {
+                  console.warn('[AI] Could not save generated image to history', e);
+                }
+              }
+            } else {
+              console.warn('[AI] Generation failed for one card:', res && res.error);
+            }
+          });
+    
+          // Sostituisci l'array originale con le istanze aggiornate per le fasi successive
+          cards = cardObjs;
+        }
+      } else {
+        console.info('[AI] No API key or AI service unavailable — skipping artwork generation.');
+      }
+    } catch (e) {
+      console.warn('[AI] Error during batch generation:', e);
+      // Non bloccare l'apertura se l'AI fallisce
+    }
+    
+    // Salva le carte nella collezione (salva DTO) — usiamo oggetti aggiornati (con eventuale img AI)
+    const cardDataArray = cards.map(c => (c instanceof window.VinylDexCard ? c.toJSON() : c));
     storage.addCardsToCollection(cardDataArray);
+
+    // Tentativo best-effort di sincronizzazione col server (non bloccante)
+    if (api && navigator.onLine) {
+      try {
+        // Endpoint di sincronizzazione lato server (best-effort). Ignora errori.
+        api.post('/sync/cards', { cards: cardDataArray }).catch(() => {});
+      } catch (e) {
+        // Ignora
+      }
+    }
 
     // Aggiorna stats
     const stats = storage.getStats();
     stats.totalPacksOpened = (stats.totalPacksOpened || 0) + 1;
     stats.totalCardsObtained = (stats.totalCardsObtained || 0) + cards.length;
     cards.forEach(c => {
-      const r = c.rarity;
+      const r = c.rarity || (c instanceof window.VinylDexCard ? c.rarity : c.rarity);
       if (r === 'legendary') stats.legendaryCount = (stats.legendaryCount || 0) + 1;
       else if (r === 'epic') stats.epicCount = (stats.epicCount || 0) + 1;
       else if (r === 'rare') stats.rareCount = (stats.rareCount || 0) + 1;
@@ -304,22 +411,35 @@ const VinylDexPackOpening = {
         const color = cardObj.getRarityColor();
         const stars = cardObj.getStars();
 
-        // Sostituisci placeholder con carta reale
-        slot.innerHTML = `
-          <div class="pack-reveal-card ${rarityClass} pack-reveal-flip">
-            <div class="pack-reveal-card-inner">
-              <div class="pack-reveal-art">
-                <img src="${cardObj.img}" alt="${cardObj.name}" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;">
-              </div>
-              <div class="pack-reveal-info">
-                <span class="pack-reveal-badge" style="background:${color};">${cardObj.getRarityName()}</span>
-                <span class="pack-reveal-name">${cardObj.name}</span>
-                <span class="pack-reveal-class">${cardObj.artistClass}</span>
-                <span class="pack-reveal-stars" style="color:${color};">${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}</span>
+        let cardHTML;
+        if (cardObj.fullImage) {
+          cardHTML = `
+            <div class="pack-reveal-card ${rarityClass} pack-reveal-flip"
+                 style="overflow:hidden;border-radius:12px;position:relative;">
+              <img src="${cardObj.img}" alt="${cardObj.name}" 
+                   onerror="this.style.display='none'" 
+                   style="width:100%;height:100%;object-fit:cover;border-radius:12px;">
+              <span class="pack-reveal-badge" style="background:${color};position:absolute;top:8px;left:8px;z-index:2;font-size:0.7rem;padding:2px 6px;border-radius:4px;">${cardObj.getRarityName()}</span>
+            </div>
+          `;
+        } else {
+          cardHTML = `
+            <div class="pack-reveal-card ${rarityClass} pack-reveal-flip">
+              <div class="pack-reveal-card-inner">
+                <div class="pack-reveal-art">
+                  <img src="${cardObj.img}" alt="${cardObj.name}" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                <div class="pack-reveal-info">
+                  <span class="pack-reveal-badge" style="background:${color};">${cardObj.getRarityName()}</span>
+                  <span class="pack-reveal-name">${cardObj.name}</span>
+                  <span class="pack-reveal-class">${cardObj.artistClass}</span>
+                  <span class="pack-reveal-stars" style="color:${color};">${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}</span>
+                </div>
               </div>
             </div>
-          </div>
-        `;
+          `;
+        }
+        slot.innerHTML = cardHTML;
 
         // Aggiungi effetto sparkle per leggendarie
         if (cardObj.rarity === 'legendary') {

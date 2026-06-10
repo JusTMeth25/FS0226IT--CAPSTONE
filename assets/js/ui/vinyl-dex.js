@@ -36,8 +36,8 @@ const VinylDexPage = {
 
     container.innerHTML = `
       <section class="vinyl-dex-page">
-        <h2 class="section-title text-gradient">📖 VinylDex</h2>
-        <p class="text-center vinyl-dex-subtitle">Catalogo completo degli artisti dell'universo VinylDex</p>
+        <h2 class="section-title text-gradient">📖 VinylLegends</h2>
+        <p class="text-center vinyl-dex-subtitle">Catalogo completo degli artisti dell'universo VinylLegends</p>
 
         <!-- Progress Card -->
         <div class="glass-panel vinyl-dex-progress-card">
@@ -200,20 +200,34 @@ const VinylDexPage = {
       const card = new window.VinylDexCard(artistData);
 
       if (isOwned) {
-        // Carta scoperta
+        const cardObj = card;
+
+        if (cardObj.fullImage) {
+          return `
+            <div class="card ${cardObj.getRarityCSSClass()} card-full-image"
+                 onclick="VinylDexPage.showCardDetail('${cardObj.id}')">
+              <img src="${cardObj.img}" alt="${cardObj.name}" 
+                   onerror="this.style.display='none'" 
+                   style="width:100%;height:100%;object-fit:cover;border-radius:12px;">
+              <span class="card-rarity-badge" style="position:absolute;top:8px;left:8px;z-index:2;">${cardObj.getRarityName()}</span>
+            </div>
+          `;
+        }
+
+        // Carta scoperta (layout normale)
         return `
-          <div class="card ${card.getRarityCSSClass()}"
-               onclick="VinylDexPage.showCardDetail('${card.id}')">
-            <span class="card-rarity-badge">${card.getRarityName()}</span>
+          <div class="card ${cardObj.getRarityCSSClass()}"
+               onclick="VinylDexPage.showCardDetail('${cardObj.id}')">
+            <span class="card-rarity-badge">${cardObj.getRarityName()}</span>
             <div class="card-artwork">
-              <img src="${card.img}" alt="${card.name}" 
+              <img src="${cardObj.img}" alt="${cardObj.name}" 
                    onerror="this.style.display='none'" 
                    style="width:100%;height:100%;object-fit:cover;">
             </div>
             <div class="card-info">
-              <div class="card-name">${card.name}</div>
-              <div class="card-class">${card.artistClass}</div>
-              <div class="card-stars">${card.getStarsHTML()}</div>
+              <div class="card-name">${cardObj.name}</div>
+              <div class="card-class">${cardObj.artistClass}</div>
+              <div class="card-stars">${cardObj.getStarsHTML()}</div>
             </div>
           </div>
         `;

@@ -63,7 +63,11 @@ const VinylDexBattle = {
     const storage = new window.VinylDexStorage();
     const collection = storage.getCollection();
     this._state = 'select';
-    this._reset();
+    // Resetta solo se non ci sono già carte nel team (per evitare di cancellare le selezioni)
+    if (!this._team || this._team.every(t => t === null)) {
+      this._team = [null, null, null];
+      this._selectedSlot = 0;
+    }
 
     // Prendi carte uniche dalla collezione
     const seen = new Set();

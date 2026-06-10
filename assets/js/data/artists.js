@@ -59,6 +59,17 @@ const VinylDexArtists = [
     stats: { fans: 65, style: 70, influence: 60, energy: 62 },
     description: 'Il palcoscenico è la sua casa. Ogni esibizione è un\'esplosione di passione cremisi.'
   },
+  {
+    id: 'showman-extra-001',
+    name: 'Michael Jackson',
+    artistClass: 'The Showman',
+    variant: 'King of Pop',
+    rarity: 'legendary',
+    img: 'assets/img/Michael_Jackson.webp',
+    fullImage: true,
+    stats: { fans: 100, style: 100, influence: 100, energy: 95 },
+    description: 'Il Re del Pop. La sua musica ha attraversato ogni confine, unendo il mondo con un\'unica, inconfondibile voce. Leggenda assoluta della musica.'
+  },
 
   // ============================================
   // THE REBEL
@@ -117,6 +128,17 @@ const VinylDexArtists = [
   // ============================================
   // THE VIRTUOSO
   // ============================================
+  {
+    id: 'virtuoso-000',
+    name: 'Carlos Santana',
+    artistClass: 'The Virtuoso',
+    variant: 'VynilLegends',
+    rarity: 'legendary',
+    img: 'assets/img/Carlos_Santana_VynilLegends.webp',
+    fullImage: true,
+    stats: { fans: 98, style: 96, influence: 95, energy: 92 },
+    description: 'Leggenda vivente della chitarra. Ogni nota attraversa decenni di storia, fondendo rock, blues e latin soul in un\'unica voce eterna.'
+  },
   {
     id: 'virtuoso-001',
     name: 'Virtuoso\'s Soul',

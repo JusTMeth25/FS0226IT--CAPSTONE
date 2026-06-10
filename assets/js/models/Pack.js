@@ -37,75 +37,20 @@ class Pack {
    * @returns {Array<Card>} Carte ottenute
    */
   open(allCards) {
-    const cards = [];
-    const guaranteedCards = [];
-    const remainingCards = [...allCards];
-
-    // 1. Assicura le garanzie
-    if (this.guarantees.legendary > 0) {
-      const legendaryCards = remainingCards.filter(c => c.rarity === 'legendary');
-      for (let i = 0; i < this.guarantees.legendary && legendaryCards.length > 0; i++) {
-        const idx = Math.floor(Math.random() * legendaryCards.length);
-        guaranteedCards.push(legendaryCards.splice(idx, 1)[0]);
-        // Rimuovi anche da remainingCards
-        const remIdx = remainingCards.findIndex(c => c.id === guaranteedCards[guaranteedCards.length - 1].id);
-        if (remIdx >= 0) remainingCards.splice(remIdx, 1);
+    // Refactor: delega la logica di selezione/garanzie al VinylDexGenerator.
+    // Se viene passato un pool custom (allCards) lo usiamo temporaneamente per la generazione.
+    const originalPool = window.VinylDexArtists;
+    try {
+      if (Array.isArray(allCards) && allCards.length > 0) {
+        window.VinylDexArtists = allCards;
       }
+      // generatePackSimulated restituisce istanze di Card già marcate obtainedAt
+      const generated = window.VinylDexGenerator.generatePackSimulated(this.cardCount, this.dropRates, this.guarantees);
+      return generated;
+    } finally {
+      // Ripristina il pool globale
+      window.VinylDexArtists = originalPool;
     }
-
-    if (this.guarantees.epic > 0) {
-      const epicCards = remainingCards.filter(c => c.rarity === 'epic');
-      for (let i = 0; i < this.guarantees.epic && epicCards.length > 0; i++) {
-        const idx = Math.floor(Math.random() * epicCards.length);
-        guaranteedCards.push(epicCards.splice(idx, 1)[0]);
-        const remIdx = remainingCards.findIndex(c => c.id === guaranteedCards[guaranteedCards.length - 1].id);
-        if (remIdx >= 0) remainingCards.splice(remIdx, 1);
-      }
-    }
-
-    if (this.guarantees.rare > 0) {
-      const rareCards = remainingCards.filter(c => c.rarity === 'rare');
-      for (let i = 0; i < this.guarantees.rare && rareCards.length > 0; i++) {
-        const idx = Math.floor(Math.random() * rareCards.length);
-        guaranteedCards.push(rareCards.splice(idx, 1)[0]);
-        const remIdx = remainingCards.findIndex(c => c.id === guaranteedCards[guaranteedCards.length - 1].id);
-        if (remIdx >= 0) remainingCards.splice(remIdx, 1);
-      }
-    }
-
-    // Aggiungi le carte garantite al risultato
-    guaranteedCards.forEach(c => cards.push(new Card(c)));
-
-    // 2. Riempie il resto con weighted random
-    const remainingSlots = this.cardCount - cards.length;
-    for (let i = 0; i < remainingSlots && remainingCards.length > 0; i++) {
-      // Prepara weighted choices per rarità
-      const rarityChoices = Object.entries(this.dropRates).map(([rarity, weight]) => ({
-        item: rarity,
-        weight: weight
-      }));
-
-      // Seleziona una rarità
-      const selectedRarity = window.VinylDexRandom.weightedRandom(rarityChoices);
-
-      // Filtra carte della rarità selezionata ancora disponibili
-      const availableCards = remainingCards.filter(c => c.rarity === selectedRarity);
-
-      if (availableCards.length > 0) {
-        const idx = Math.floor(Math.random() * availableCards.length);
-        const selectedCard = availableCards[idx];
-        cards.push(new Card(selectedCard));
-        // Rimuovi la carta selezionata dal pool
-        const remIdx = remainingCards.findIndex(c => c.id === selectedCard.id);
-        if (remIdx >= 0) remainingCards.splice(remIdx, 1);
-      } else {
-        // Se nessuna carta della rarità selezionata è disponibile, riprova
-        i--;
-        continue;
-      }
-    }
-
-    return cards;
   }
 
   /**

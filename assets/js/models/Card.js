@@ -26,6 +26,7 @@ class Card {
     this.stats = data.stats || { fans: 0, style: 0, influence: 0, energy: 0 };
     this.description = data.description || '';
     this.obtainedAt = data.obtainedAt || null;
+    this.fullImage = data.fullImage === true;
   }
 
   /**

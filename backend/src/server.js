@@ -50,6 +50,9 @@ app.use('/api/auth', authRouter);
 const apiRouter = require('./routes/api');
 app.use('/api', apiRouter);
 
+const aiRouter = require('./routes/ai');
+app.use('/api/ai', aiRouter);
+
 // Global error handler
 app.use((err, req, res, next) => {
   console.error(err);

@@ -12,6 +12,19 @@
 
   // ---- Init Storage ----
   const storage = new window.VinylDexStorage();
+  // Condividi l'istanza di Storage con ApiService per evitare istanze duplicate
+  if (window.VinylDexApiService && !window.VinylDexApiService.storage) {
+    window.VinylDexApiService.storage = storage;
+  }
+
+  // ---- Init Sync Queue (background offline sync) ----
+  if (window.VinylDexSyncQueue) {
+    // Assicura che la SyncQueue utilizzi la stessa istanza di storage e l'ApiService corrente
+    window.VinylDexSyncQueue.storage = storage;
+    window.VinylDexSyncQueue.api = window.VinylDexApiService || null;
+    // Avvia il processing periodico / on-online
+    window.VinylDexSyncQueue.start();
+  }
 
   // ---- Init Router ----
   const router = new window.VinylDexRouter();
@@ -91,7 +104,8 @@
     packs: window.VinylDexPacks,
     Card: window.VinylDexCard,
     Pack: window.VinylDexPack,
-    Random: window.VinylDexRandom
+    Random: window.VinylDexRandom,
+    syncQueue: window.VinylDexSyncQueue
   };
 
 })();
