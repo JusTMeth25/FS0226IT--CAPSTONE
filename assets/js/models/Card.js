@@ -136,7 +136,8 @@ class Card {
       img: this.img,
       stats: { ...this.stats },
       description: this.description,
-      obtainedAt: this.obtainedAt
+      obtainedAt: this.obtainedAt,
+      fullImage: this.fullImage
     };
   }
 

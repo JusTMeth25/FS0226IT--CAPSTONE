@@ -304,135 +304,76 @@ const VinylDexCollection = {
     const classProgress = classCards.filter(c => ownedClassIds.has(c.id)).length;
     const classTotal = classCards.length;
 
+    // Blocca scroll in background
+    document.body.style.overflow = 'hidden';
+
     const overlay = document.createElement('div');
     overlay.className = 'pack-overlay';
 
-    if (card.fullImage) {
-      // Dettaglio per carta full-image: mostra l'immagine intera grande + stats sotto
-      overlay.innerHTML = `
-        <div class="card-detail-modal glass-panel" style="max-width:500px;text-align:center;">
-          <button class="card-detail-close" onclick="this.closest('.pack-overlay').remove()">✕</button>
-          <div class="card-detail-layout" style="flex-direction:column;align-items:center;">
-            <div class="card-detail-card" style="width:100%;max-width:400px;position:relative;">
-              <img src="${card.img}" alt="${card.name}" 
-                   onerror="this.style.display='none'" 
-                   style="width:100%;height:auto;border-radius:12px;box-shadow:0 0 40px rgba(255,215,0,0.5);">
-              <span class="card-rarity-badge" style="position:absolute;top:16px;left:16px;background:linear-gradient(135deg,#FFD700,#FFA500);color:#000;padding:4px 12px;border-radius:6px;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;z-index:2;">${card.getRarityName()}</span>
+    /**
+     * Ripristina lo scroll del body e rimuove l'overlay.
+     */
+    const closeOverlay = () => {
+      document.body.style.overflow = '';
+      overlay.remove();
+      document.removeEventListener('keydown', closeHandler);
+    };
+
+    // Dettaglio in fullscreen full-image: mostra l'immagine grande + stats sotto per TUTTE le carte
+    overlay.innerHTML = `
+      <div class="card-detail-modal glass-panel" style="max-width:500px;text-align:center;">
+        <button class="card-detail-close" onclick="document.body.style.overflow='';this.closest('.pack-overlay').remove()">✕</button>
+        <div class="card-detail-layout" style="flex-direction:column;align-items:center;">
+          <div class="card-detail-card" style="width:100%;max-width:400px;position:relative;">
+            <img src="${card.img}" alt="${card.name}" 
+                 onerror="this.style.display='none'" 
+                 style="width:100%;height:auto;border-radius:12px;box-shadow:0 0 40px rgba(255,215,0,0.5);">
+            <span class="card-rarity-badge" style="position:absolute;top:16px;left:16px;background:${color};color:#fff;padding:4px 12px;border-radius:6px;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;z-index:2;">${card.getRarityName()}</span>
+            ${quantity > 1 ? `<span class="card-quantity-badge" style="position:absolute;bottom:16px;right:16px;z-index:2;background:rgba(0,0,0,0.7);padding:4px 10px;border-radius:6px;font-size:0.85rem;font-weight:700;">×${quantity}</span>` : ''}
+          </div>
+          <div class="card-detail-info" style="text-align:center;margin-top:var(--space-lg);">
+            <h2 class="card-detail-title" style="color:${color};">${card.name}</h2>
+            <span class="card-detail-class">${card.artistClass} — ${card.getRarityName()}</span>
+            <p class="card-detail-desc">${card.description}</p>
+            <div class="card-detail-stats">
+              <h3>Statistiche</h3>
+              ${this._renderStatBar('🎤 Fans', card.stats.fans, maxStat, color)}
+              ${this._renderStatBar('💃 Style', card.stats.style, maxStat, color)}
+              ${this._renderStatBar('📢 Influence', card.stats.influence, maxStat, color)}
+              ${this._renderStatBar('⚡ Energy', card.stats.energy, maxStat, color)}
+              <div class="stat-total">
+                <span>Punteggio Totale</span>
+                <span class="stat-total-value">${card.getTotalScore()}/400</span>
+              </div>
             </div>
-            <div class="card-detail-info" style="text-align:center;margin-top:var(--space-lg);">
-              <h2 class="card-detail-title" style="color:${color};">${card.name}</h2>
-              <span class="card-detail-class">${card.artistClass} — ${card.getRarityName()}</span>
-              <p class="card-detail-desc">${card.description}</p>
-              <div class="card-detail-stats">
-                <h3>Statistiche</h3>
-                ${this._renderStatBar('🎤 Fans', card.stats.fans, maxStat, color)}
-                ${this._renderStatBar('💃 Style', card.stats.style, maxStat, color)}
-                ${this._renderStatBar('📢 Influence', card.stats.influence, maxStat, color)}
-                ${this._renderStatBar('⚡ Energy', card.stats.energy, maxStat, color)}
-                <div class="stat-total">
-                  <span>Punteggio Totale</span>
-                  <span class="stat-total-value">${card.getTotalScore()}/400</span>
-                </div>
+            <div class="card-detail-meta">
+              <div class="card-detail-meta-item">
+                <span class="meta-label">Ottenuta il</span>
+                <span class="meta-value">${dateStr}</span>
               </div>
-              <div class="card-detail-meta">
-                <div class="card-detail-meta-item">
-                  <span class="meta-label">Ottenuta il</span>
-                  <span class="meta-value">${dateStr}</span>
-                </div>
-                <div class="card-detail-meta-item">
-                  <span class="meta-label">Quantità</span>
-                  <span class="meta-value">×${quantity}</span>
-                </div>
-                <div class="card-detail-meta-item">
-                  <span class="meta-label">Classe completata</span>
-                  <span class="meta-value">${classProgress}/${classTotal}</span>
-                </div>
+              <div class="card-detail-meta-item">
+                <span class="meta-label">Quantità</span>
+                <span class="meta-value">×${quantity}</span>
               </div>
-              <div class="progress-bar" style="margin-top:var(--space-md)">
-                <div class="progress-fill" style="width:${(classProgress/classTotal)*100}%;background:linear-gradient(90deg,${color},${color}88)"></div>
+              <div class="card-detail-meta-item">
+                <span class="meta-label">Classe completata</span>
+                <span class="meta-value">${classProgress}/${classTotal}</span>
               </div>
+            </div>
+            <div class="progress-bar" style="margin-top:var(--space-md)">
+              <div class="progress-fill" style="width:${(classProgress/classTotal)*100}%;background:linear-gradient(90deg,${color},${color}88)"></div>
             </div>
           </div>
         </div>
-      `;
-    } else {
-      // Dettaglio standard per carte normali
-      overlay.innerHTML = `
-        <div class="card-detail-modal glass-panel">
-          <button class="card-detail-close" onclick="this.closest('.pack-overlay').remove()">✕</button>
-          
-          <div class="card-detail-layout">
-            <!-- Left: Big Card -->
-            <div class="card-detail-card">
-              <div class="card ${rarityClass}" style="width:200px;height:290px;cursor:default;">
-                <span class="card-rarity-badge">${card.getRarityName()}</span>
-                ${quantity > 1 ? `<span class="card-quantity-badge" style="top:auto;bottom:8px;right:8px;">×${quantity}</span>` : ''}
-                <div class="card-artwork">
-                  <img src="${card.img}" alt="${card.name}" 
-                       onerror="this.style.display='none'" 
-                       style="width:100%;height:100%;object-fit:cover;">
-                </div>
-                <div class="card-info">
-                  <div class="card-name">${card.name}</div>
-                  <div class="card-class">${card.artistClass}</div>
-                  <div class="card-stars">${card.getStarsHTML()}</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Right: Details -->
-            <div class="card-detail-info">
-              <h2 class="card-detail-title" style="color:${color};">${card.name}</h2>
-              <span class="card-detail-class">${card.artistClass} — ${card.getRarityName()}</span>
-              
-              <p class="card-detail-desc">${card.description}</p>
-
-              <!-- Stats Bars -->
-              <div class="card-detail-stats">
-                <h3>Statistiche</h3>
-                ${this._renderStatBar('🎤 Fans', card.stats.fans, maxStat, color)}
-                ${this._renderStatBar('💃 Style', card.stats.style, maxStat, color)}
-                ${this._renderStatBar('📢 Influence', card.stats.influence, maxStat, color)}
-                ${this._renderStatBar('⚡ Energy', card.stats.energy, maxStat, color)}
-                <div class="stat-total">
-                  <span>Punteggio Totale</span>
-                  <span class="stat-total-value">${card.getTotalScore()}/400</span>
-                </div>
-              </div>
-
-              <!-- Meta -->
-              <div class="card-detail-meta">
-                <div class="card-detail-meta-item">
-                  <span class="meta-label">Ottenuta il</span>
-                  <span class="meta-value">${dateStr}</span>
-                </div>
-                <div class="card-detail-meta-item">
-                  <span class="meta-label">Quantità</span>
-                  <span class="meta-value">×${quantity}</span>
-                </div>
-                <div class="card-detail-meta-item">
-                  <span class="meta-label">Classe completata</span>
-                  <span class="meta-value">${classProgress}/${classTotal}</span>
-                </div>
-              </div>
-
-              <!-- Progress bar classe -->
-              <div class="progress-bar" style="margin-top:var(--space-md);">
-                <div class="progress-fill" style="width:${(classProgress/classTotal)*100}%;background:linear-gradient(90deg,${color},${color}88);"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-    }
+      </div>
+    `;
 
     document.getElementById('app-view').appendChild(overlay);
 
     // Chiudi con Escape
     const closeHandler = (e) => {
       if (e.key === 'Escape') {
-        overlay.remove();
-        document.removeEventListener('keydown', closeHandler);
+        closeOverlay();
       }
     };
     document.addEventListener('keydown', closeHandler);
@@ -440,7 +381,7 @@ const VinylDexCollection = {
     // Chiudi cliccando fuori dal modal
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) {
-        overlay.remove();
+        closeOverlay();
       }
     });
   },
