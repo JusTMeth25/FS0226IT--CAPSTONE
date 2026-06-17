@@ -15,6 +15,7 @@ class Card {
    * @param {string} data.img - Nome file immagine (es. 'showman-royal-echo.png')
    * @param {Object} data.stats - Statistiche { fans, style, influence, energy }
    * @param {string} data.description - Descrizione del personaggio
+   * @param {string} [data.group] - Nome del gruppo/banda (opzionale, mostrato nella card hero se presente)
    */
   constructor(data) {
     this.id = data.id;
@@ -25,6 +26,7 @@ class Card {
     this.img = data.img || this._generatePlaceholderImg();
     this.stats = data.stats || { fans: 0, style: 0, influence: 0, energy: 0 };
     this.description = data.description || '';
+    this.group = data.group || null;
     this.obtainedAt = data.obtainedAt || null;
     this.fullImage = data.fullImage === true;
   }
@@ -88,6 +90,15 @@ class Card {
   }
 
   /**
+   * Restituisce il nome (senza prefisso "ph-") di un'icona Phosphor rappresentativa della rarità.
+   * @returns {string}
+   */
+  getRarityIcon() {
+    const icons = { common: 'circle', uncommon: 'shield', rare: 'diamond', epic: 'fire', legendary: 'crown' };
+    return icons[this.rarity] || 'circle';
+  }
+
+  /**
    * Calcola il punteggio totale (somma stats).
    * @returns {number}
    */
@@ -136,6 +147,7 @@ class Card {
       img: this.img,
       stats: { ...this.stats },
       description: this.description,
+      group: this.group,
       obtainedAt: this.obtainedAt,
       fullImage: this.fullImage
     };

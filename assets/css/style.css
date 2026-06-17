@@ -506,12 +506,44 @@ ul, ol { list-style: none; }
 .card-detail-close { position: absolute; top: var(--space-sm); right: var(--space-sm); width: 32px; height: 32px; border-radius: 50%; background: rgba(0, 0, 0, 0.5); color: var(--text-primary); font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; transition: all var(--transition-fast); border: 1px solid var(--border-color); }
 .card-detail-close:hover { background: var(--neon-purple); transform: scale(1.1); }
 .card-detail-layout { display: flex; flex-direction: column; align-items: center; gap: var(--space-md); }
-.card-detail-card { flex-shrink: 0; }
 .card-detail-info { flex: 1; display: flex; flex-direction: column; gap: var(--space-md); width: 100%; }
 .card-detail-title { font-size: 1.3rem; font-weight: 900; margin-bottom: var(--space-xs); text-align: center; }
 .card-detail-class { font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-align: center; }
-.card-detail-desc { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; padding: var(--space-md); background: rgba(0, 0, 0, 0.2); border-radius: var(--radius-sm); font-style: italic; }
 .card-detail-stats h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: var(--space-sm); color: var(--text-primary); }
+
+/* Card "hero": vista di dettaglio singola carta (artwork piena + nome + classe/gruppo + statistiche).
+   Usata nei modal di dettaglio di Collezione e VinylLegends. */
+.card-hero { display: flex; flex-direction: column; width: 100%; border-radius: var(--radius-lg); overflow: hidden; border: 2px solid var(--border-color); background: var(--bg-card); }
+.card-hero-art-wrap { position: relative; width: 100%; aspect-ratio: 3 / 4; overflow: hidden; background: var(--bg-tertiary); }
+.card-hero-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.card-hero-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.1) 45%, rgba(0, 0, 0, 0.88) 100%); }
+.card-hero-rarity-badge { position: absolute; top: var(--space-md); left: var(--space-md); z-index: 2; background: rgba(0, 0, 0, 0.6); border: 1px solid; padding: 3px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; letter-spacing: 1px; display: inline-flex; align-items: center; gap: 4px; }
+.card-hero-qty-badge { position: absolute; top: var(--space-md); right: var(--space-md); z-index: 2; background: rgba(0, 0, 0, 0.6); color: var(--text-primary); padding: 3px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+.card-hero-heading { position: absolute; left: var(--space-md); bottom: var(--space-md); right: var(--space-md); z-index: 2; }
+.card-hero-name { font-size: 1.4rem; font-weight: 900; color: white; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); line-height: 1.15; text-transform: uppercase; }
+.card-hero-variant { font-size: 0.85rem; font-weight: 700; color: var(--neon-magenta); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6); margin-top: 2px; }
+.card-hero-body { padding: var(--space-md); display: flex; flex-direction: column; gap: var(--space-md); }
+.card-hero-quote { font-size: 0.85rem; font-style: italic; color: var(--text-secondary); line-height: 1.4; margin: 0; }
+.card-hero-tags { display: flex; flex-direction: column; gap: var(--space-xs); }
+.card-hero-tag { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-xs) var(--space-sm); background: rgba(0, 0, 0, 0.25); border-radius: var(--radius-sm); font-size: 1.1rem; }
+.card-hero-tag > i { flex-shrink: 0; }
+.card-hero-tag-label { display: block; font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.card-hero-tag-value { display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
+.card-hero-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-sm); }
+.card-hero-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: var(--space-sm); background: rgba(0, 0, 0, 0.25); border: 1px solid var(--stat-color, var(--border-color)); border-radius: var(--radius-sm); }
+.card-hero-stat > i { color: var(--stat-color, var(--text-secondary)); font-size: 1rem; }
+.card-hero-stat-value { font-size: 1.3rem; font-weight: 900; color: var(--text-primary); }
+.card-hero-stat-label { font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+.card-hero-stat-total { grid-column: 1 / -1; background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15)); border-color: var(--neon-purple); }
+.card-hero-stat-total .card-hero-stat-value { color: var(--neon-purple); }
+.card-hero-stat-sublabel { font-size: 0.6rem; color: var(--text-muted); }
+
+/* Variante per artwork "già completa" (badge/nome/statistiche disegnati nell'immagine stessa):
+   nessun overlay nostro, si vede solo l'immagine a piena larghezza. */
+.card-hero-full { position: relative; }
+.card-hero-full .card-hero-art { position: static; width: 100%; height: auto; display: block; object-fit: contain; }
+.card-hero-full .card-hero-qty-badge { position: absolute; top: var(--space-md); right: var(--space-md); z-index: 2; }
+
 .stat-bar-row { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm); }
 .stat-bar-label { width: 70px; font-size: 0.75rem; color: var(--text-muted); flex-shrink: 0; }
 .stat-bar-track { flex: 1; height: 8px; background: var(--bg-tertiary); border-radius: 5px; overflow: hidden; }
@@ -855,6 +887,11 @@ ul, ol { list-style: none; }
   .card-detail-layout { flex-direction: row; align-items: flex-start; }
   .card-detail-title { text-align: left; }
   .card-detail-class { text-align: left; }
+
+  .card-hero-tags { flex-direction: row; }
+  .card-hero-tag { flex: 1; }
+  .card-hero-stats-grid { grid-template-columns: repeat(5, 1fr); }
+  .card-hero-stat-total { grid-column: auto; }
 
   .vinyl-dex-rewards { grid-template-columns: repeat(4, 1fr); }
 

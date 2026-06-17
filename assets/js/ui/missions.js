@@ -167,7 +167,7 @@ const VinylDexMissions = {
     const progressMissions = [
       { id: 'progress-10', target: 10, title: 'Prime 10 Carte!', rewardGold: 100, rewardXP: 150 },
       { id: 'progress-25', target: 25, title: 'Collezionista', rewardGold: 200, rewardXP: 300 },
-      { id: 'progress-40', target: 40, title: 'Completista!', rewardGold: 500, rewardXP: 1000, pack: 'pack-premium' }
+      { id: 'progress-40', target: window.VinylDexArtists.length, title: 'Completista!', rewardGold: 500, rewardXP: 1000, pack: 'pack-premium' }
     ];
 
     progressMissions.forEach(pm => {

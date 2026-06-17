@@ -125,6 +125,7 @@ const VinylDexDebug = {
             <button class="debug-btn debug-btn-pack" onclick="VinylDexDebug.openPremiumPack()"><i class="ph-fill ph-crown"></i> Pacchetto Premium</button>
             <button class="debug-btn debug-btn-primary" onclick="VinylDexDebug.addSantanaCard()" style="background:linear-gradient(135deg,#FFD700,#FF8C00);color:#000;"><i class="ph-fill ph-guitar"></i> Aggiungi Carlos Santana</button>
             <button class="debug-btn debug-btn-primary" onclick="VinylDexDebug.addJacksonCard()" style="background:linear-gradient(135deg,#FFD700,#FF8C00);color:#000;"><i class="ph-fill ph-crown"></i> Aggiungi Michael Jackson</button>
+            <button class="debug-btn debug-btn-primary" onclick="VinylDexDebug.addWhiskerRiotCard()" style="background:linear-gradient(135deg,#8B5CF6,#EC4899);color:#fff;"><i class="ph-fill ph-cat"></i> Aggiungi Whisker Riot</button>
           </div>
         </div>
 
@@ -317,6 +318,29 @@ const VinylDexDebug = {
     storage.updateStats(stats);
 
     alert('✅ Michael Jackson aggiunto alla collezione!');
+    this._refresh();
+  },
+
+  /**
+   * Aggiunge la carta Whisker Riot alla collezione (debug).
+   */
+  addWhiskerRiotCard() {
+    const artistData = window.VinylDexArtists.find(a => a.id === 'rebel-extra-001');
+    if (!artistData) {
+      alert('Carta Whisker Riot non trovata nel database!');
+      return;
+    }
+
+    const storage = new window.VinylDexStorage();
+    storage.addCardToCollection({ ...artistData });
+
+    // Aggiorna stats
+    const stats = storage.getStats();
+    stats.legendaryCount = (stats.legendaryCount || 0) + 1;
+    stats.totalCardsObtained = (stats.totalCardsObtained || 0) + 1;
+    storage.updateStats(stats);
+
+    alert('✅ Whisker Riot aggiunto alla collezione!');
     this._refresh();
   },
 

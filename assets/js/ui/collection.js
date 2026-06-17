@@ -284,11 +284,7 @@ const VinylDexCollection = {
     const quantity = collection.filter(c => c.id === cardId).length;
 
     const card = new window.VinylDexCard(cardData);
-    const rarityClass = card.getRarityCSSClass();
     const color = card.getRarityColor();
-
-    // Stats per barre (max possibile è 100)
-    const maxStat = 100;
 
     // Formatta data
     const dateStr = cardData.obtainedAt 
@@ -319,50 +315,28 @@ const VinylDexCollection = {
       document.removeEventListener('keydown', closeHandler);
     };
 
-    // Dettaglio in fullscreen full-image: mostra l'immagine grande + stats sotto per TUTTE le carte
+    // Dettaglio in fullscreen: card "hero" (artwork + nome + classe/gruppo + statistiche) + meta collezione
     overlay.innerHTML = `
-      <div class="card-detail-modal glass-panel" style="max-width:500px;text-align:center;">
+      <div class="card-detail-modal glass-panel" style="max-width:420px;">
         <button class="card-detail-close" onclick="document.body.style.overflow='';this.closest('.pack-overlay').remove()"><i class="ph ph-x"></i></button>
         <div class="card-detail-layout" style="flex-direction:column;align-items:center;">
-          <div class="card-detail-card" style="width:100%;max-width:400px;position:relative;">
-            <img src="${card.img}" alt="${card.name}" 
-                 onerror="this.style.display='none'" 
-                 style="width:100%;height:auto;border-radius:12px;box-shadow:0 0 40px rgba(255,215,0,0.5);">
-            <span class="card-rarity-badge" style="position:absolute;top:16px;left:16px;background:${color};color:#fff;padding:4px 12px;border-radius:6px;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;z-index:2;">${card.getRarityName()}</span>
-            ${quantity > 1 ? `<span class="card-quantity-badge" style="position:absolute;bottom:16px;right:16px;z-index:2;background:rgba(0,0,0,0.7);padding:4px 10px;border-radius:6px;font-size:0.85rem;font-weight:700;">×${quantity}</span>` : ''}
+          ${this.renderCardHero(card, { quantity })}
+          <div class="card-detail-meta" style="width:100%;margin-top:var(--space-md);">
+            <div class="card-detail-meta-item">
+              <span class="meta-label">Ottenuta il</span>
+              <span class="meta-value">${dateStr}</span>
+            </div>
+            <div class="card-detail-meta-item">
+              <span class="meta-label">Quantità</span>
+              <span class="meta-value">×${quantity}</span>
+            </div>
+            <div class="card-detail-meta-item">
+              <span class="meta-label">Classe completata</span>
+              <span class="meta-value">${classProgress}/${classTotal}</span>
+            </div>
           </div>
-          <div class="card-detail-info" style="text-align:center;margin-top:var(--space-lg);">
-            <h2 class="card-detail-title" style="color:${color};">${card.name}</h2>
-            <span class="card-detail-class">${card.artistClass} — ${card.getRarityName()}</span>
-            <p class="card-detail-desc">${card.description}</p>
-            <div class="card-detail-stats">
-              <h3>Statistiche</h3>
-              ${this._renderStatBar('<i class="ph-fill ph-microphone-stage"></i> Fans', card.stats.fans, maxStat, color)}
-              ${this._renderStatBar('<i class="ph-fill ph-palette"></i> Style', card.stats.style, maxStat, color)}
-              ${this._renderStatBar('<i class="ph-fill ph-megaphone"></i> Influence', card.stats.influence, maxStat, color)}
-              ${this._renderStatBar('<i class="ph-fill ph-lightning"></i> Energy', card.stats.energy, maxStat, color)}
-              <div class="stat-total">
-                <span>Punteggio Totale</span>
-                <span class="stat-total-value">${card.getTotalScore()}/400</span>
-              </div>
-            </div>
-            <div class="card-detail-meta">
-              <div class="card-detail-meta-item">
-                <span class="meta-label">Ottenuta il</span>
-                <span class="meta-value">${dateStr}</span>
-              </div>
-              <div class="card-detail-meta-item">
-                <span class="meta-label">Quantità</span>
-                <span class="meta-value">×${quantity}</span>
-              </div>
-              <div class="card-detail-meta-item">
-                <span class="meta-label">Classe completata</span>
-                <span class="meta-value">${classProgress}/${classTotal}</span>
-              </div>
-            </div>
-            <div class="progress-bar" style="margin-top:var(--space-md)">
-              <div class="progress-fill" style="width:${(classProgress/classTotal)*100}%;background:linear-gradient(90deg,${color},${color}88)"></div>
-            </div>
+          <div class="progress-bar" style="margin-top:var(--space-md); width:100%;">
+            <div class="progress-fill" style="width:${(classProgress/classTotal)*100}%;background:linear-gradient(90deg,${color},${color}88)"></div>
           </div>
         </div>
       </div>
@@ -398,6 +372,87 @@ const VinylDexCollection = {
           <div class="stat-bar-fill" style="width:${percent}%;background:${color};"></div>
         </div>
         <span class="stat-bar-value" style="color:${color};">${value}</span>
+      </div>
+    `;
+  },
+
+  /**
+   * Renderizza la card "hero" di dettaglio: artwork a tutta larghezza, badge rarità,
+   * nome + variante, citazione (descrizione), tag Classe/Gruppo e box statistiche + Totale.
+   * Usata sia dal modal di dettaglio della Collezione che da quello della VinylLegends.
+   * @param {Card} card - Istanza VinylDexCard
+   * @param {Object} [options]
+   * @param {number} [options.quantity] - Se > 1, mostra il badge quantità sull'artwork
+   * @returns {string} HTML
+   */
+  renderCardHero(card, options = {}) {
+    const quantity = options.quantity || 1;
+
+    // Carte con artwork "già completa" (badge/nome/statistiche disegnati dentro l'immagine
+    // stessa, come per Carlos Santana/Michael Jackson): mostriamo solo l'immagine, senza
+    // sovrapporre di nuovo testo/box che sarebbero duplicati.
+    if (card.fullImage) {
+      return `
+        <div class="card-hero card-hero-full ${card.getRarityCSSClass()}">
+          <img class="card-hero-art" src="${card.img}" alt="${card.name}" onerror="this.style.display='none'">
+          ${quantity > 1 ? `<span class="card-hero-qty-badge">×${quantity}</span>` : ''}
+        </div>
+      `;
+    }
+
+    const color = card.getRarityColor();
+    const total = card.getTotalScore();
+
+    const stats = [
+      { key: 'fans', label: 'Fans', icon: 'ph-users-three', color: 'var(--neon-purple)' },
+      { key: 'style', label: 'Style', icon: 'ph-star', color: 'var(--neon-gold)' },
+      { key: 'influence', label: 'Influence', icon: 'ph-megaphone', color: 'var(--neon-magenta)' },
+      { key: 'energy', label: 'Energy', icon: 'ph-lightning', color: '#FF5252' }
+    ];
+
+    return `
+      <div class="card-hero ${card.getRarityCSSClass()}">
+        <div class="card-hero-art-wrap">
+          <img class="card-hero-art" src="${card.img}" alt="${card.name}" onerror="this.style.display='none'">
+          <div class="card-hero-scrim"></div>
+          <span class="card-hero-rarity-badge" style="color:${color};border-color:${color};">
+            ${card.getRarityName().toUpperCase()} <i class="ph-fill ph-${card.getRarityIcon()}"></i>
+          </span>
+          ${quantity > 1 ? `<span class="card-hero-qty-badge">×${quantity}</span>` : ''}
+          <div class="card-hero-heading">
+            <h2 class="card-hero-name">${card.name}</h2>
+            ${card.variant && card.variant !== card.name ? `<p class="card-hero-variant">${card.variant}</p>` : ''}
+          </div>
+        </div>
+        <div class="card-hero-body">
+          ${card.description ? `<p class="card-hero-quote">"${card.description}"</p>` : ''}
+          <div class="card-hero-tags">
+            <div class="card-hero-tag">
+              <i class="ph-fill ph-identification-badge"></i>
+              <div><span class="card-hero-tag-label">Classe</span><span class="card-hero-tag-value">${card.artistClass}</span></div>
+            </div>
+            ${card.group ? `
+              <div class="card-hero-tag">
+                <i class="ph-fill ph-users-three"></i>
+                <div><span class="card-hero-tag-label">Gruppo</span><span class="card-hero-tag-value">${card.group}</span></div>
+              </div>
+            ` : ''}
+          </div>
+          <div class="card-hero-stats-grid">
+            ${stats.map(s => `
+              <div class="card-hero-stat" style="--stat-color:${s.color};">
+                <i class="ph-fill ${s.icon}"></i>
+                <span class="card-hero-stat-value">${card.stats[s.key] || 0}</span>
+                <span class="card-hero-stat-label">${s.label}</span>
+              </div>
+            `).join('')}
+            <div class="card-hero-stat card-hero-stat-total">
+              <span class="card-hero-stat-value">${total}</span>
+              <span class="card-hero-stat-label">Totale</span>
+              <span class="card-hero-stat-sublabel">Somma Statistiche</span>
+            </div>
+          </div>
+        </div>
       </div>
     `;
   },

@@ -2,7 +2,8 @@
  * VinylDex - Artists Database
  * 
  * Database completo di tutte le carte disponibili nel gioco.
- * 8 classi × 5 carte ciascuna = 40 carte totali.
+ * 8 classi × 5 carte ciascuna = 40 carte base, più alcune carte speciali
+ * (es. Michael Jackson, Whisker Riot) affiancate al roster principale.
  * Ogni classe ha: 1 Legendary, 1 Epic, 1 Rare, 1 Uncommon, 1 Common.
  */
 const VinylDexArtists = [
@@ -123,6 +124,18 @@ const VinylDexArtists = [
     img: 'rebel-broken-chains.png',
     stats: { fans: 62, style: 58, influence: 70, energy: 68 },
     description: 'Catene spezzate, spirito libero. La ribellione è il suo unico credo.'
+  },
+  {
+    id: 'rebel-extra-001',
+    name: 'Whisker Riot',
+    artistClass: 'The Rebel',
+    variant: 'The Nine Lives Legend',
+    group: 'Stray Cats',
+    rarity: 'legendary',
+    img: 'assets/img/whisker.webp',
+    fullImage: true,
+    stats: { fans: 98, style: 95, influence: 97, energy: 94 },
+    description: 'Nove vite, una sola missione: far tremare il palco.'
   },
 
   // ============================================
