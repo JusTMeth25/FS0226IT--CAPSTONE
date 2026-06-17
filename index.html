@@ -6,43 +6,72 @@
     <title>VinylLegends — Home</title>
     <link rel="icon" type="image/png" sizes="32x32" href="assets/img/Favicon-vynil.png">
     <link rel="stylesheet" href="assets/css/style.css" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
   </head>
   <body>
-    <header class="site-header" id="app-header">
-      <div class="container header-inner">
-        <div class="header-top-row">
-          <div class="brand">
-            <a href="#home" id="logo" data-route="home" class="nav-link">VinylLegends</a>
+    <div class="app-shell">
+      <!-- Overlay mobile per chiudere la sidebar cliccando fuori -->
+      <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+      <aside class="sidebar" id="app-sidebar">
+        <div class="sidebar-brand">
+          <a href="#home" id="logo" data-route="home" class="nav-link">VinylLegends</a>
+        </div>
+
+        <div class="sidebar-user">
+          <div class="sidebar-avatar"><i class="ph-fill ph-vinyl-record"></i></div>
+          <div class="sidebar-user-info">
+            <span class="sidebar-username" id="sidebar-username">Ospite</span>
+            <span class="sidebar-level" id="sidebar-level">Livello 1</span>
           </div>
-          <div class="header-top-actions">
-            <button id="btn-signin" class="btn small">Accedi</button>
-            <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu" onclick="toggleMobileMenu()">
+        </div>
+
+        <div class="sidebar-xp">
+          <div class="progress-bar sidebar-xp-bar">
+            <div class="progress-fill" id="sidebar-xp-fill" style="width: 0%"></div>
+          </div>
+          <span class="sidebar-xp-text" id="sidebar-xp-text">0 / 100 XP</span>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Main navigation">
+          <ul>
+            <li><a href="#home" data-route="home" class="nav-link active"><i class="ph-fill ph-house"></i> Home</a></li>
+            <li><a href="#packs" data-route="packs" class="nav-link"><i class="ph-fill ph-gift"></i> Apri pacchetti</a></li>
+            <li><a href="#collection" data-route="collection" class="nav-link"><i class="ph-fill ph-cards"></i> Collezione</a></li>
+            <li><a href="#vinyl-dex" data-route="vinyl-dex" class="nav-link"><i class="ph-fill ph-book-open"></i> VinylLegends</a></li>
+            <li><a href="#missions" data-route="missions" class="nav-link"><i class="ph-fill ph-target"></i> Missioni</a></li>
+            <li><a href="#battle" data-route="battle" class="nav-link"><i class="ph-fill ph-sword"></i> Battaglie</a></li>
+          </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+          <span class="sidebar-gold-pill"><i class="ph-fill ph-coin"></i> <span id="sidebar-gold">0</span></span>
+        </div>
+      </aside>
+
+      <div class="app-content">
+        <header class="topbar" id="app-header">
+          <div class="header-inner">
+            <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
               <span></span>
               <span></span>
               <span></span>
             </button>
+            <a href="#home" data-route="home" class="nav-link topbar-brand">VinylLegends</a>
+            <span class="topbar-gold-pill"><i class="ph-fill ph-coin"></i> <span id="topbar-gold">0</span></span>
+            <button id="btn-signin" class="btn small" onclick="window.location.hash='#login'">Accedi</button>
           </div>
-        </div>
-        <nav class="main-nav" id="main-nav" aria-label="Main navigation">
-          <ul>
-            <li><a href="#home" data-route="home" class="nav-link active">Home</a></li>
-            <li><a href="#packs" data-route="packs" class="nav-link">Apri pacchetti</a></li>
-            <li><a href="#collection" data-route="collection" class="nav-link">Collezione</a></li>
-            <li><a href="#vinyl-dex" data-route="vinyl-dex" class="nav-link">VinylLegends</a></li>
-            <li><a href="#missions" data-route="missions" class="nav-link">Missioni</a></li>
-            <li><a href="#battle" data-route="battle" class="nav-link">Battaglie</a></li>
-          </ul>
-        </nav>
-      </div>
-    </header>
+        </header>
 
-    <main id="app-view" class="container main-app" role="main" aria-live="polite"></main>
+        <main id="app-view" class="app-main" role="main" aria-live="polite"></main>
 
-    <footer class="site-footer">
-      <div class="container">
-        <small>VinylLegends — MVP • Contenuti originali</small>
+        <footer id="app-footer">
+          <div class="footer-inner">
+            <small>VinylLegends — MVP • Contenuti originali</small>
+          </div>
+        </footer>
       </div>
-    </footer>
+    </div>
 
     <!-- Application scripts -->
     <script src="assets/js/data/artists.js"></script>
@@ -54,7 +83,6 @@
     <script src="assets/js/services/storage.js"></script>
     <script src="assets/js/services/api.js"></script>
     <script src="assets/js/services/generator.js"></script>
-    <script src="assets/js/services/ai.js"></script>
     <script src="assets/js/services/syncQueue.js"></script>
     <script src="assets/js/ui/home.js"></script>
     <script src="assets/js/ui/pack-opening.js"></script>
@@ -62,25 +90,10 @@
     <script src="assets/js/ui/vinyl-dex.js"></script>
     <script src="assets/js/ui/missions.js"></script>
     <script src="assets/js/ui/battle.js"></script>
-    <script src="assets/js/ui/ai-generator.js"></script>
+    <script src="assets/js/ui/auth.js"></script>
+    <script src="assets/js/ui/sync-status.js"></script>
     <script src="assets/js/ui/debug.js"></script>
+    <script src="assets/js/ui/shell.js"></script>
     <script src="assets/js/app.js"></script>
-    <script>
-      function toggleMobileMenu() {
-        const nav = document.getElementById('main-nav');
-        const hamburger = document.getElementById('hamburger-btn');
-        nav.classList.toggle('main-nav-open');
-        hamburger.classList.toggle('hamburger-open');
-      }
-      // Chiudi il menu mobile al click su un link
-      document.addEventListener('click', function(e) {
-        const nav = document.getElementById('main-nav');
-        const hamburger = document.getElementById('hamburger-btn');
-        if (e.target.closest('.nav-link') && nav.classList.contains('main-nav-open')) {
-          nav.classList.remove('main-nav-open');
-          hamburger.classList.remove('hamburger-open');
-        }
-      });
-    </script>
   </body>
 </html>

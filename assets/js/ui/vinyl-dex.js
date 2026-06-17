@@ -36,7 +36,7 @@ const VinylDexPage = {
 
     container.innerHTML = `
       <section class="vinyl-dex-page">
-        <h2 class="section-title text-gradient">📖 VinylLegends</h2>
+        <h2 class="section-title text-gradient"><i class="ph-fill ph-book-open"></i> VinylLegends</h2>
         <p class="text-center vinyl-dex-subtitle">Catalogo completo degli artisti dell'universo VinylLegends</p>
 
         <!-- Progress Card -->
@@ -110,10 +110,10 @@ const VinylDexPage = {
    */
   _renderRewards(ownedCount, totalCards) {
     const milestones = [
-      { percent: 25, count: Math.ceil(totalCards * 0.25), reward: '100 Gold', icon: '🪙', gold: 100 },
-      { percent: 50, count: Math.ceil(totalCards * 0.50), reward: 'Pacchetto Deluxe', icon: '💎', pack: 'pack-deluxe' },
-      { percent: 75, count: Math.ceil(totalCards * 0.75), reward: '200 Gold', icon: '🪙', gold: 200 },
-      { percent: 100, count: totalCards, reward: 'Trofeo Collezionista', icon: '🏆', title: 'Collezionista Assoluto' }
+      { percent: 25, count: Math.ceil(totalCards * 0.25), reward: '100 Gold', icon: '<i class="ph-fill ph-coin"></i>', gold: 100 },
+      { percent: 50, count: Math.ceil(totalCards * 0.50), reward: 'Pacchetto Deluxe', icon: '<i class="ph-fill ph-diamond"></i>', pack: 'pack-deluxe' },
+      { percent: 75, count: Math.ceil(totalCards * 0.75), reward: '200 Gold', icon: '<i class="ph-fill ph-coin"></i>', gold: 200 },
+      { percent: 100, count: totalCards, reward: 'Trofeo Collezionista', icon: '<i class="ph-fill ph-trophy"></i>', title: 'Collezionista Assoluto' }
     ];
 
     return milestones.map(m => {
@@ -123,7 +123,7 @@ const VinylDexPage = {
       return `
         <div class="vinyl-dex-reward ${reached ? 'reward-reached' : ''} ${claimed ? 'reward-claimed' : ''}"
              onclick="${reached && !claimed ? `VinylDexPage.claimReward(${m.percent}, this)` : ''}">
-          <span class="reward-icon">${claimed ? '✅' : reached ? m.icon : '🔒'}</span>
+          <span class="reward-icon">${claimed ? '<i class="ph-fill ph-check-circle"></i>' : reached ? m.icon : '<i class="ph-fill ph-lock"></i>'}</span>
           <div class="reward-info">
             <span class="reward-label">${m.percent}% — ${m.reward}</span>
             <span class="reward-status">
@@ -172,7 +172,7 @@ const VinylDexPage = {
     if (element) {
       element.classList.add('reward-claimed');
       const status = element.querySelector('.reward-status');
-      if (status) status.textContent = '✅ Reclamato!';
+      if (status) status.innerHTML = '<i class="ph-fill ph-check-circle"></i> Reclamato!';
     }
 
     // Se 100%, bonus confetti
@@ -245,13 +245,13 @@ const VinylDexPage = {
               ${rarityHint}
             </span>
             <div class="card-artwork">
-              <div style="font-size:2.5rem;opacity:0.3;filter:blur(1px);">❓</div>
+              <div style="font-size:2.5rem;opacity:0.3;filter:blur(1px);"><i class="ph ph-question"></i></div>
             </div>
             <div class="card-info">
               <div class="card-name" style="color:${rarityColor};">???</div>
               <div class="card-class" style="color:#666;">${classHint}</div>
               <div class="card-stars" style="color:#333;">
-                ${'★'.repeat(card.getStars())}${'☆'.repeat(5 - card.getStars())}
+                ${'<i class="ph-fill ph-star"></i>'.repeat(card.getStars())}${'<i class="ph ph-star"></i>'.repeat(5 - card.getStars())}
               </div>
             </div>
           </div>
@@ -302,11 +302,11 @@ const VinylDexPage = {
     overlay.className = 'pack-overlay';
     overlay.innerHTML = `
       <div class="card-detail-modal glass-panel" style="max-width:500px;">
-        <button class="card-detail-close" onclick="this.closest('.pack-overlay').remove()">✕</button>
-        
+        <button class="card-detail-close" onclick="this.closest('.pack-overlay').remove()"><i class="ph ph-x"></i></button>
+
         <div class="card-detail-layout" style="flex-direction:column;align-items:center;">
           <!-- Unknown placeholder -->
-          <div style="font-size:4rem;opacity:0.3;margin:var(--space-lg) 0;">❓</div>
+          <div style="font-size:4rem;opacity:0.3;margin:var(--space-lg) 0;"><i class="ph ph-question"></i></div>
 
           <div class="card-detail-info" style="text-align:center;">
             <h2 class="card-detail-title" style="color:${color};">???</h2>
@@ -328,7 +328,7 @@ const VinylDexPage = {
                 </div>
                 <div class="card-detail-meta-item">
                   <span class="meta-label">Stelle rarità</span>
-                  <span class="meta-value" style="color:${color};">${'★'.repeat(card.getStars())}</span>
+                  <span class="meta-value">${card.getStarsHTML()}</span>
                 </div>
                 ${guaranteeText ? `
                 <div class="card-detail-meta-item">
@@ -341,15 +341,15 @@ const VinylDexPage = {
 
             <div class="glass-panel" style="margin-top:var(--space-md);background:rgba(0,0,0,0.3);">
               <p style="margin-bottom:var(--space-sm);">
-                💡 <strong>Suggerimento:</strong> Prova ad aprire
+                <i class="ph-fill ph-lightbulb"></i> <strong>Suggerimento:</strong> Prova ad aprire
               </p>
               <p style="color:var(--neon-cyan);font-weight:700;">${bestPack}</p>
               <p style="font-size:0.8rem;color:var(--text-muted);">
                 Drop rate: <span style="color:${color};">${bestRate}%</span>
               </p>
-              <button class="btn btn-primary" style="margin-top:var(--space-md);" 
+              <button class="btn btn-primary" style="margin-top:var(--space-md);"
                       onclick="this.closest('.pack-overlay').remove();window.location.hash='#packs'">
-                🎁 Apri Pacchetti
+                <i class="ph-fill ph-gift"></i> Apri Pacchetti
               </button>
             </div>
           </div>

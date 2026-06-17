@@ -43,7 +43,7 @@ const VinylDexCollection = {
 
     container.innerHTML = `
       <section class="collection-page">
-        <h2 class="section-title text-gradient">🃏 La Mia Collezione</h2>
+        <h2 class="section-title text-gradient"><i class="ph-fill ph-cards"></i> La Mia Collezione</h2>
         
         <!-- Stats Bar -->
         <div class="collection-stats glass-panel">
@@ -102,7 +102,7 @@ const VinylDexCollection = {
             <div class="filter-group">
               <label class="filter-label">Ordine</label>
               <button class="btn btn-secondary btn-small" onclick="VinylDexCollection.toggleSortDir()">
-                ${this._sortDir === 'desc' ? '⬇ Decrescente' : '⬆ Crescente'}
+                ${this._sortDir === 'desc' ? '<i class="ph-fill ph-sort-descending"></i> Decrescente' : '<i class="ph-fill ph-sort-ascending"></i> Crescente'}
               </button>
             </div>
           </div>
@@ -114,11 +114,11 @@ const VinylDexCollection = {
               ${this._renderFilteredCards(collection, cardCounts, uniqueCardIds)}
              </div>`
           : `<div class="empty-state glass-panel text-center" style="margin-top: 2rem;">
-              <div class="empty-state-icon">🎤</div>
+              <div class="empty-state-icon"><i class="ph-fill ph-microphone-stage"></i></div>
               <div class="empty-state-title">Collezione vuota</div>
               <p>Non hai ancora nessuna carta.</p>
               <button class="btn btn-primary" onclick="window.location.hash='#packs'">
-                🎵 Apri il Primo Pacchetto
+                <i class="ph-fill ph-vinyl-record"></i> Apri il Primo Pacchetto
               </button>
              </div>`
         }
@@ -217,11 +217,11 @@ const VinylDexCollection = {
     if (filtered.length === 0) {
       return `
         <div class="empty-state glass-panel text-center" style="margin-top: 2rem; grid-column: 1/-1;">
-          <div class="empty-state-icon">🔍</div>
+          <div class="empty-state-icon"><i class="ph-fill ph-magnifying-glass"></i></div>
           <div class="empty-state-title">Nessun risultato</div>
           <p>Nessuna carta corrisponde ai filtri selezionati.</p>
           <button class="btn btn-secondary" onclick="VinylDexCollection.resetFilters()">
-            🔄 Resetta Filtri
+            <i class="ph-fill ph-arrows-clockwise"></i> Resetta Filtri
           </button>
         </div>
       `;
@@ -322,7 +322,7 @@ const VinylDexCollection = {
     // Dettaglio in fullscreen full-image: mostra l'immagine grande + stats sotto per TUTTE le carte
     overlay.innerHTML = `
       <div class="card-detail-modal glass-panel" style="max-width:500px;text-align:center;">
-        <button class="card-detail-close" onclick="document.body.style.overflow='';this.closest('.pack-overlay').remove()">✕</button>
+        <button class="card-detail-close" onclick="document.body.style.overflow='';this.closest('.pack-overlay').remove()"><i class="ph ph-x"></i></button>
         <div class="card-detail-layout" style="flex-direction:column;align-items:center;">
           <div class="card-detail-card" style="width:100%;max-width:400px;position:relative;">
             <img src="${card.img}" alt="${card.name}" 
@@ -337,10 +337,10 @@ const VinylDexCollection = {
             <p class="card-detail-desc">${card.description}</p>
             <div class="card-detail-stats">
               <h3>Statistiche</h3>
-              ${this._renderStatBar('🎤 Fans', card.stats.fans, maxStat, color)}
-              ${this._renderStatBar('💃 Style', card.stats.style, maxStat, color)}
-              ${this._renderStatBar('📢 Influence', card.stats.influence, maxStat, color)}
-              ${this._renderStatBar('⚡ Energy', card.stats.energy, maxStat, color)}
+              ${this._renderStatBar('<i class="ph-fill ph-microphone-stage"></i> Fans', card.stats.fans, maxStat, color)}
+              ${this._renderStatBar('<i class="ph-fill ph-palette"></i> Style', card.stats.style, maxStat, color)}
+              ${this._renderStatBar('<i class="ph-fill ph-megaphone"></i> Influence', card.stats.influence, maxStat, color)}
+              ${this._renderStatBar('<i class="ph-fill ph-lightning"></i> Energy', card.stats.energy, maxStat, color)}
               <div class="stat-total">
                 <span>Punteggio Totale</span>
                 <span class="stat-total-value">${card.getTotalScore()}/400</span>

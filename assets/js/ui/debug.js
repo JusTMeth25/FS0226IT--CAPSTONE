@@ -80,13 +80,13 @@ const VinylDexDebug = {
     this._panel.className = 'debug-panel';
     this._panel.innerHTML = `
       <div class="debug-panel-header">
-        <span class="debug-panel-title">🐛 Debug Panel</span>
-        <button class="debug-panel-close" onclick="VinylDexDebug.toggle()">✕</button>
+        <span class="debug-panel-title"><i class="ph-fill ph-bug"></i> Debug Panel</span>
+        <button class="debug-panel-close" onclick="VinylDexDebug.toggle()"><i class="ph ph-x"></i></button>
       </div>
       <div class="debug-panel-body">
         <!-- Info Section -->
         <div class="debug-section">
-          <h4>📊 Stato Corrente</h4>
+          <h4><i class="ph-fill ph-chart-bar"></i> Stato Corrente</h4>
           <div class="debug-info-grid">
             <div class="debug-info-item"><span class="debug-label">Carte in collezione</span><span class="debug-value">${collection.length}</span></div>
             <div class="debug-info-item"><span class="debug-label">Carte uniche</span><span class="debug-value">${new Set(collection.map(c => c.id)).size}</span></div>
@@ -99,7 +99,7 @@ const VinylDexDebug = {
 
         <!-- Stats -->
         <div class="debug-section">
-          <h4>📈 Statistiche</h4>
+          <h4><i class="ph-fill ph-chart-line"></i> Statistiche</h4>
           <div class="debug-info-grid">
             <div class="debug-info-item"><span class="debug-label">Pacchetti aperti</span><span class="debug-value">${stats.totalPacksOpened || 0}</span></div>
             <div class="debug-info-item"><span class="debug-label">Carte ottenute</span><span class="debug-value">${stats.totalCardsObtained || 0}</span></div>
@@ -113,24 +113,24 @@ const VinylDexDebug = {
 
         <!-- Actions -->
         <div class="debug-section">
-          <h4>⚡ Azioni Rapide</h4>
+          <h4><i class="ph-fill ph-lightning"></i> Azioni Rapide</h4>
           <div class="debug-actions">
             <button class="debug-btn debug-btn-gold" onclick="VinylDexDebug.addGold(9999)">+9999 Gold</button>
             <button class="debug-btn debug-btn-gold" onclick="VinylDexDebug.addGold(1000)">+1000 Gold</button>
             <button class="debug-btn debug-btn-xp" onclick="VinylDexDebug.addXP(5000)">+5000 XP</button>
-            <button class="debug-btn debug-btn-danger" onclick="VinylDexDebug.resetCollection()">🗑 Reset Collezione</button>
-            <button class="debug-btn debug-btn-danger" onclick="VinylDexDebug.resetAll()">⚠ Reset Completo</button>
-            <button class="debug-btn debug-btn-pack" onclick="VinylDexDebug.openFreePack()">🎁 Pacchetto Gratis</button>
-            <button class="debug-btn debug-btn-pack" onclick="VinylDexDebug.openDeluxePack()">💎 Pacchetto Deluxe</button>
-            <button class="debug-btn debug-btn-pack" onclick="VinylDexDebug.openPremiumPack()">👑 Pacchetto Premium</button>
-            <button class="debug-btn debug-btn-primary" onclick="VinylDexDebug.addSantanaCard()" style="background:linear-gradient(135deg,#FFD700,#FF8C00);color:#000;">🎸 Aggiungi Carlos Santana</button>
-            <button class="debug-btn debug-btn-primary" onclick="VinylDexDebug.addJacksonCard()" style="background:linear-gradient(135deg,#FFD700,#FF8C00);color:#000;">👑 Aggiungi Michael Jackson</button>
+            <button class="debug-btn debug-btn-danger" onclick="VinylDexDebug.resetCollection()"><i class="ph-fill ph-trash"></i> Reset Collezione</button>
+            <button class="debug-btn debug-btn-danger" onclick="VinylDexDebug.resetAll()"><i class="ph-fill ph-warning"></i> Reset Completo</button>
+            <button class="debug-btn debug-btn-pack" onclick="VinylDexDebug.openFreePack()"><i class="ph-fill ph-gift"></i> Pacchetto Gratis</button>
+            <button class="debug-btn debug-btn-pack" onclick="VinylDexDebug.openDeluxePack()"><i class="ph-fill ph-diamond"></i> Pacchetto Deluxe</button>
+            <button class="debug-btn debug-btn-pack" onclick="VinylDexDebug.openPremiumPack()"><i class="ph-fill ph-crown"></i> Pacchetto Premium</button>
+            <button class="debug-btn debug-btn-primary" onclick="VinylDexDebug.addSantanaCard()" style="background:linear-gradient(135deg,#FFD700,#FF8C00);color:#000;"><i class="ph-fill ph-guitar"></i> Aggiungi Carlos Santana</button>
+            <button class="debug-btn debug-btn-primary" onclick="VinylDexDebug.addJacksonCard()" style="background:linear-gradient(135deg,#FFD700,#FF8C00);color:#000;"><i class="ph-fill ph-crown"></i> Aggiungi Michael Jackson</button>
           </div>
         </div>
 
         <!-- Drop Rate Simulation -->
         <div class="debug-section">
-          <h4>🎲 Simulazione Drop Rate</h4>
+          <h4><i class="ph-fill ph-dice-five"></i> Simulazione Drop Rate</h4>
           <div class="debug-sim-controls">
             <label>Pacchetto:
               <select id="debug-sim-pack" class="debug-select">
@@ -146,17 +146,17 @@ const VinylDexDebug = {
                 <option value="10000">10.000</option>
               </select>
             </label>
-            <button class="debug-btn debug-btn-primary" onclick="VinylDexDebug.runSimulation()">▶ Esegui Simulazione</button>
+            <button class="debug-btn debug-btn-primary" onclick="VinylDexDebug.runSimulation()"><i class="ph-fill ph-play"></i> Esegui Simulazione</button>
           </div>
           <div id="debug-sim-results" class="debug-sim-results"></div>
         </div>
 
         <!-- Export/Import -->
         <div class="debug-section">
-          <h4>💾 Backup Dati</h4>
+          <h4><i class="ph-fill ph-floppy-disk"></i> Backup Dati</h4>
           <div class="debug-actions">
-            <button class="debug-btn debug-btn-primary" onclick="VinylDexDebug.exportData()">📤 Esporta JSON</button>
-            <button class="debug-btn debug-btn-secondary" onclick="VinylDexDebug.importData()">📥 Importa JSON</button>
+            <button class="debug-btn debug-btn-primary" onclick="VinylDexDebug.exportData()"><i class="ph-fill ph-upload-simple"></i> Esporta JSON</button>
+            <button class="debug-btn debug-btn-secondary" onclick="VinylDexDebug.importData()"><i class="ph-fill ph-download-simple"></i> Importa JSON</button>
             <input type="file" id="debug-import-input" accept=".json" style="display:none" onchange="VinylDexDebug.handleImport(event)">
           </div>
         </div>
@@ -368,7 +368,7 @@ const VinylDexDebug = {
     if (!packConfig) return;
 
     const resultsContainer = document.getElementById('debug-sim-results');
-    resultsContainer.innerHTML = '<p class="debug-sim-running">⏳ Simulazione in corso...</p>';
+    resultsContainer.innerHTML = '<p class="debug-sim-running"><i class="ph-fill ph-hourglass"></i> Simulazione in corso...</p>';
 
     // Usa setTimeout per non bloccare la UI
     setTimeout(() => {
@@ -403,9 +403,9 @@ const VinylDexDebug = {
 
       let html = `
         <div class="debug-sim-summary">
-          <span>📦 ${packConfig.name}</span>
-          <span>🎲 ${trials.toLocaleString()} aperture</span>
-          <span>🃏 ${totalCardsSim.toLocaleString()} carte totali</span>
+          <span><i class="ph-fill ph-package"></i> ${packConfig.name}</span>
+          <span><i class="ph-fill ph-dice-five"></i> ${trials.toLocaleString()} aperture</span>
+          <span><i class="ph-fill ph-cards"></i> ${totalCardsSim.toLocaleString()} carte totali</span>
         </div>
         <div class="debug-sim-chart">
       `;

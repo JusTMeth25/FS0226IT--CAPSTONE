@@ -26,6 +26,11 @@
     window.VinylDexSyncQueue.start();
   }
 
+  // ---- Init App Shell (sidebar + topbar) ----
+  if (window.VinylDexShell) {
+    window.VinylDexShell.init();
+  }
+
   // ---- Init Router ----
   const router = new window.VinylDexRouter();
 
@@ -62,9 +67,9 @@
     window.VinylDexMissions.render(container, params);
   });
 
-  // AI Generator (Feature 9)
-  router.addRoute('ai-gen', (container, params) => {
-    window.VinylDexAIGenerator.render(container, params);
+  // Login / Register (client-only MVP)
+  router.addRoute('login', (container, params) => {
+    window.VinylDexAuth.render(container, params);
   });
 
   // ---- Route Change Callback ----
@@ -76,6 +81,10 @@
     // Pulisce timer del pack opening
     if (window.VinylDexPackOpening && typeof window.VinylDexPackOpening.destroy === 'function') {
       window.VinylDexPackOpening.destroy();
+    }
+    // Aggiorna sidebar/topbar (gold, XP, livello possono essere cambiati nella route precedente)
+    if (window.VinylDexShell) {
+      window.VinylDexShell.update();
     }
     // Re-triggera la fade-in animation sulla view
     const view = document.getElementById('app-view');

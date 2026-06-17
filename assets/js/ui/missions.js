@@ -81,7 +81,7 @@ const VinylDexMissions = {
       title: 'Apri un pacchetto',
       description: 'Apri 1 pacchetto oggi',
       type: 'daily',
-      icon: '🎁',
+      icon: '<i class="ph-fill ph-gift"></i>',
       target: 1,
       progress: isNewDay ? 0 : Math.min(stats.totalPacksOpened || 0, 1),
       rewardGold: 25,
@@ -95,7 +95,7 @@ const VinylDexMissions = {
       title: 'Colleziona carte',
       description: 'Ottieni 3 carte oggi',
       type: 'daily',
-      icon: '🃏',
+      icon: '<i class="ph-fill ph-cards"></i>',
       target: 3,
       progress: isNewDay ? 0 : Math.min(stats.totalCardsObtained || 0, 3),
       rewardGold: 30,
@@ -109,9 +109,9 @@ const VinylDexMissions = {
       title: 'Combatti!',
       description: 'Completa 1 battaglia',
       type: 'daily',
-      icon: '⚔️',
+      icon: '<i class="ph-fill ph-sword"></i>',
       target: 1,
-      progress: 0, // Verrà tracciato da battaglia
+      progress: isNewDay ? 0 : Math.min(stats.totalBattlesPlayed || 0, 1),
       rewardGold: 35,
       rewardXP: 70,
       completed: false,
@@ -124,7 +124,7 @@ const VinylDexMissions = {
       title: 'Apri 5 pacchetti',
       description: 'Apri 5 pacchetti questa settimana',
       type: 'weekly',
-      icon: '🎁',
+      icon: '<i class="ph-fill ph-gift"></i>',
       target: 5,
       progress: Math.min(stats.totalPacksOpened || 0, 5),
       rewardGold: 100,
@@ -138,7 +138,7 @@ const VinylDexMissions = {
       title: 'Caccia alla Leggendaria',
       description: 'Ottieni 1 carta Leggendaria',
       type: 'weekly',
-      icon: '👑',
+      icon: '<i class="ph-fill ph-crown"></i>',
       target: 1,
       progress: Math.min(stats.legendaryCount || 0, 1),
       rewardGold: 150,
@@ -153,9 +153,9 @@ const VinylDexMissions = {
       title: 'Vittorie Strepitose',
       description: 'Vinci 3 battaglie',
       type: 'weekly',
-      icon: '🏆',
+      icon: '<i class="ph-fill ph-trophy"></i>',
       target: 3,
-      progress: 0, // Tracciato da battaglia
+      progress: Math.min(stats.totalBattlesWon || 0, 3),
       rewardGold: 200,
       rewardXP: 400,
       pack: 'pack-premium',
@@ -177,7 +177,7 @@ const VinylDexMissions = {
         title: pm.title,
         description: `Colleziona ${pm.target} carte uniche`,
         type: 'progress',
-        icon: '📖',
+        icon: '<i class="ph-fill ph-book-open"></i>',
         target: pm.target,
         progress: Math.min(ownedIds.size, pm.target),
         rewardGold: pm.rewardGold || 0,
@@ -216,7 +216,7 @@ const VinylDexMissions = {
 
     container.innerHTML = `
       <section class="missions-page">
-        <h2 class="section-title text-gradient">🎯 Missioni e Livelli</h2>
+        <h2 class="section-title text-gradient"><i class="ph-fill ph-target"></i> Missioni e Livelli</h2>
 
         <!-- Level Card -->
         <div class="missions-level-card glass-panel">
@@ -227,11 +227,11 @@ const VinylDexMissions = {
             </div>
             <div class="missions-level-stats">
               <div class="missions-level-stat">
-                <span>🪙</span>
+                <span><i class="ph-fill ph-coin"></i></span>
                 <span>${gold}</span>
               </div>
               <div class="missions-level-stat">
-                <span>⚡</span>
+                <span><i class="ph-fill ph-lightning"></i></span>
                 <span>${totalXP} XP</span>
               </div>
             </div>
@@ -246,7 +246,7 @@ const VinylDexMissions = {
           <!-- Level Rewards non reclamate -->
           ${unclaimedLevels.length > 0 ? `
             <div class="missions-level-rewards">
-              <span>🎁 Ricompense livello da reclamare:</span>
+              <span><i class="ph-fill ph-gift"></i> Ricompense livello da reclamare:</span>
               ${unclaimedLevels.map(lv => `
                 <button class="btn btn-gold btn-small" onclick="VinylDexMissions.claimLevelReward(${lv})">
                   Livello ${lv} — Reclama
@@ -259,19 +259,19 @@ const VinylDexMissions = {
         <!-- Login Giornaliero -->
         <div class="missions-login-card glass-panel ${canClaimLogin ? 'missions-login-available' : ''}"
              onclick="${canClaimLogin ? 'VinylDexMissions.claimLoginReward()' : ''}">
-          <span class="missions-login-icon">${canClaimLogin ? '🎁' : '✅'}</span>
+          <span class="missions-login-icon">${canClaimLogin ? '<i class="ph-fill ph-gift"></i>' : '<i class="ph-fill ph-check-circle"></i>'}</span>
           <div class="missions-login-info">
             <span class="missions-login-title">Login Giornaliero</span>
             <span class="missions-login-desc">
               ${canClaimLogin ? 'Clicca per ritirare la tua ricompensa giornaliera!' : 'Già reclamato oggi. Torna domani!'}
             </span>
           </div>
-          <span class="missions-login-streak">🔥 Giorno ${loginStreak + (canClaimLogin ? 1 : 0)}</span>
+          <span class="missions-login-streak"><i class="ph-fill ph-fire"></i> Giorno ${loginStreak + (canClaimLogin ? 1 : 0)}</span>
         </div>
 
         <!-- Daily Missions -->
         <div class="glass-panel">
-          <h3 class="missions-section-title">📅 Daily</h3>
+          <h3 class="missions-section-title"><i class="ph-fill ph-calendar"></i> Daily</h3>
           <div class="missions-list">
             ${this._renderMissionsByType('daily')}
           </div>
@@ -279,7 +279,7 @@ const VinylDexMissions = {
 
         <!-- Weekly Missions -->
         <div class="glass-panel">
-          <h3 class="missions-section-title">📆 Settimanali</h3>
+          <h3 class="missions-section-title"><i class="ph-fill ph-calendar-dots"></i> Settimanali</h3>
           <div class="missions-list">
             ${this._renderMissionsByType('weekly')}
           </div>
@@ -287,7 +287,7 @@ const VinylDexMissions = {
 
         <!-- Progress Missions -->
         <div class="glass-panel">
-          <h3 class="missions-section-title">🏆 Progresso</h3>
+          <h3 class="missions-section-title"><i class="ph-fill ph-trophy"></i> Progresso</h3>
           <div class="missions-list">
             ${this._renderMissionsByType('progress')}
           </div>
@@ -311,7 +311,7 @@ const VinylDexMissions = {
 
       return `
         <div class="missions-item ${completed ? 'missions-completed' : ''} ${claimed ? 'missions-claimed' : ''}">
-          <span class="missions-item-icon">${claimed ? '✅' : (completed ? m.icon : '🔒')}</span>
+          <span class="missions-item-icon">${claimed ? '<i class="ph-fill ph-check-circle"></i>' : (completed ? m.icon : '<i class="ph-fill ph-lock"></i>')}</span>
           <div class="missions-item-info">
             <span class="missions-item-title">${m.title}</span>
             <span class="missions-item-desc">${m.description}</span>
@@ -323,9 +323,9 @@ const VinylDexMissions = {
             </div>
           </div>
           <div class="missions-item-rewards">
-            ${m.rewardGold > 0 ? `<span class="missions-reward">🪙 ${m.rewardGold}</span>` : ''}
-            ${m.rewardXP > 0 ? `<span class="missions-reward">⚡ ${m.rewardXP}</span>` : ''}
-            ${m.pack ? `<span class="missions-reward">🎁 ${m.pack === 'pack-premium' ? 'Premium' : 'Deluxe'}</span>` : ''}
+            ${m.rewardGold > 0 ? `<span class="missions-reward"><i class="ph-fill ph-coin"></i> ${m.rewardGold}</span>` : ''}
+            ${m.rewardXP > 0 ? `<span class="missions-reward"><i class="ph-fill ph-lightning"></i> ${m.rewardXP}</span>` : ''}
+            ${m.pack ? `<span class="missions-reward"><i class="ph-fill ph-gift"></i> ${m.pack === 'pack-premium' ? 'Premium' : 'Deluxe'}</span>` : ''}
             ${completed && !claimed ? `<button class="btn btn-gold btn-small" onclick="VinylDexMissions.claimMission('${m.id}', this)">Reclama</button>` : ''}
             ${claimed ? '<span class="missions-claimed-badge">Reclamato</span>' : ''}
           </div>

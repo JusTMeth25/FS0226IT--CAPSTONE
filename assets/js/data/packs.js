@@ -9,7 +9,7 @@ const VinylDexPacks = [
     id: 'pack-base',
     name: 'Pacchetto Base',
     description: '5 carte con 1 Rara garantita. Perfetto per iniziare la collezione!',
-    price: 0,         // Gratuito (con cooldown)
+    price: 50,        // Sempre acquistabile in gold; in più, gratuito periodicamente (vedi isFree/cooldown)
     cardCount: 5,
     dropRates: {
       common: 0.50,

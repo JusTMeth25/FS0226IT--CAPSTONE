@@ -71,9 +71,9 @@ class Card {
     let html = '';
     for (let i = 0; i < maxStars; i++) {
       if (i < stars) {
-        html += '<span class="star-filled" style="color: ' + this.getRarityColor() + ';">★</span>';
+        html += '<span class="star-filled" style="color: ' + this.getRarityColor() + ';"><i class="ph-fill ph-star"></i></span>';
       } else {
-        html += '<span class="star-empty" style="color: #333;">★</span>';
+        html += '<span class="star-empty" style="color: #333;"><i class="ph ph-star"></i></span>';
       }
     }
     return html;

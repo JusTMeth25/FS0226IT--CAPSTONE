@@ -38,12 +38,12 @@ const VinylDexPackOpening = {
 
     container.innerHTML = `
       <section class="packs-page">
-        <h2 class="section-title text-gradient">🎁 Apri un Pacchetto</h2>
+        <h2 class="section-title text-gradient"><i class="ph-fill ph-gift"></i> Apri un Pacchetto</h2>
         <p class="text-center packs-subtitle">Scegli il pacchetto che vuoi aprire</p>
 
         <!-- Gold Display -->
         <div class="gold-display glass-panel">
-          <span class="gold-icon">🪙</span>
+          <span class="gold-icon"><i class="ph-fill ph-coin"></i></span>
           <span class="gold-amount">${gold}</span>
           <span class="gold-label">Gold disponibili</span>
         </div>
@@ -66,67 +66,101 @@ const VinylDexPackOpening = {
   _renderPackCard(packConfig, storage, isFreeAvailable) {
     const pack = new window.VinylDexPack(packConfig);
     const gold = storage.getGold();
-    const canAfford = packConfig.price <= gold || packConfig.isFree;
-    const isAvailable = packConfig.isFree ? isFreeAvailable : canAfford;
+    const canAffordPaid = gold >= packConfig.price;
 
-    // Calcola cooldown rimanente per free pack
-    let cooldownHTML = '';
+    // Calcola cooldown rimanente per il pacchetto gratuito (invariato)
+    let cooldownText = '';
     if (packConfig.isFree && !isFreeAvailable) {
       const remaining = pack.getFreeCooldownRemaining(storage);
       const hours = Math.floor(remaining / (1000 * 60 * 60));
       const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-      cooldownHTML = `<span class="pack-cooldown">⏳ ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}</span>`;
+      cooldownText = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
     }
 
     // Simbolo basato sul tipo
-    let icon = '🎁';
-    if (packConfig.id === 'pack-deluxe') icon = '💎';
-    if (packConfig.id === 'pack-premium') icon = '👑';
+    let icon = '<i class="ph-fill ph-gift"></i>';
+    if (packConfig.id === 'pack-deluxe') icon = '<i class="ph-fill ph-diamond"></i>';
+    if (packConfig.id === 'pack-premium') icon = '<i class="ph-fill ph-crown"></i>';
 
     // Gradiente colore basato sul tipo
     let gradient = 'linear-gradient(135deg, var(--neon-purple), var(--neon-magenta))';
     if (packConfig.id === 'pack-deluxe') gradient = 'linear-gradient(135deg, var(--neon-blue), var(--neon-cyan))';
     if (packConfig.id === 'pack-premium') gradient = 'linear-gradient(135deg, #FFD700, #FFA500)';
 
-    // Bottone
-    let buttonText = 'Apri Gratis';
-    if (!packConfig.isFree) buttonText = `Apri (${packConfig.price} 🪙)`;
-    if (packConfig.isFree && !isFreeAvailable) buttonText = 'Non disponibile';
+    // Badge sopra l'artwork: per i pacchetti con opzione gratuita mostra lo stato del timer
+    // (invariato — gratis disponibile o countdown), per gli altri il prezzo in gold.
+    let priceBadgeHTML;
+    if (packConfig.isFree) {
+      priceBadgeHTML = isFreeAvailable
+        ? `<span class="pack-card-price-badge pack-card-price-free"><i class="ph-fill ph-sparkle"></i> Gratis</span>`
+        : `<span class="pack-card-price-badge"><i class="ph-fill ph-hourglass"></i> ${cooldownText}</span>`;
+    } else {
+      priceBadgeHTML = `<span class="pack-card-price-badge"><i class="ph-fill ph-coin"></i> ${packConfig.price}</span>`;
+    }
+
+    // Bottoni azione: i pacchetti con opzione gratuita (solo Base) mostrano DUE bottoni
+    // (apri gratis, se disponibile + compra sempre con gold); gli altri solo l'acquisto.
+    // Il bottone d'acquisto non è mai "disabled": se i gold non bastano resta cliccabile
+    // per mostrare il messaggio di credito insufficiente.
+    let actionsHTML;
+    if (packConfig.isFree) {
+      const freeBtnHTML = isFreeAvailable
+        ? `<button class="btn btn-primary" onclick="event.stopPropagation();VinylDexPackOpening.openPack('${packConfig.id}','free')">
+             <i class="ph-fill ph-sparkle"></i> Apri Gratis
+           </button>`
+        : `<button class="btn btn-secondary" disabled>
+             <i class="ph-fill ph-hourglass"></i> Gratis tra ${cooldownText}
+           </button>`;
+      // Se il gratis è disponibile il "compra" resta secondario (il gratis è la scelta ovvia);
+      // se il gratis è in cooldown, diventa l'azione primaria (se i gold bastano).
+      const buyBtnClass = (!isFreeAvailable && canAffordPaid) ? 'btn-primary' : 'btn-secondary';
+      const buyBtnHTML = `
+        <button class="btn ${buyBtnClass}" onclick="event.stopPropagation();VinylDexPackOpening.openPack('${packConfig.id}','paid')">
+          <i class="ph-fill ph-coin"></i> Compra (${packConfig.price})
+        </button>`;
+      actionsHTML = `<div class="pack-card-actions">${freeBtnHTML}${buyBtnHTML}</div>`;
+    } else {
+      actionsHTML = `
+        <button class="btn ${canAffordPaid ? (packConfig.id === 'pack-premium' ? 'btn-gold' : 'btn-primary') : 'btn-secondary'}"
+                onclick="event.stopPropagation();VinylDexPackOpening.openPack('${packConfig.id}','paid')">
+          <i class="ph-fill ph-coin"></i> Apri Pacchetto (${packConfig.price})
+        </button>`;
+    }
 
     return `
-      <div class="pack-card glass-panel ${!isAvailable ? 'pack-disabled' : ''}" 
-           data-pack-id="${packConfig.id}"
-           onclick="${isAvailable ? `VinylDexPackOpening.openPack('${packConfig.id}')` : ''}">
+      <div class="pack-card glass-panel" data-pack-id="${packConfig.id}">
         <div class="pack-card-header" style="background: ${gradient}">
-          <span class="pack-icon">${icon}</span>
+          <span class="pack-card-zigzag"></span>
+          <span class="pack-card-brand"><i class="ph-fill ph-lightning"></i> VinylLegends</span>
           <span class="pack-card-count">${packConfig.cardCount} carte</span>
+          <span class="pack-icon">${icon}</span>
+          <h3 class="pack-card-name">${packConfig.name}</h3>
+          ${priceBadgeHTML}
         </div>
         <div class="pack-card-body">
-          <h3 class="pack-card-name">${packConfig.name}</h3>
           <p class="pack-card-desc">${packConfig.description}</p>
-          <div class="pack-card-details">
-            <div class="pack-detail">
-              <span class="pack-detail-label">Garanzie</span>
-              <span class="pack-detail-value">
-                ${packConfig.guarantees.legendary > 0 ? '🏆 Leggendaria' : ''}
-                ${packConfig.guarantees.epic > 0 ? '💜 Epica' : ''}
-                ${packConfig.guarantees.rare > 0 ? '🔮 1+ Rara' : ''}
-                ${packConfig.guarantees.legendary === 0 && packConfig.guarantees.epic === 0 && packConfig.guarantees.rare === 0 ? 'Nessuna' : ''}
-              </span>
-            </div>
-            <div class="pack-detail">
-              <span class="pack-detail-label">Drop Leggendaria</span>
-              <span class="pack-detail-value" style="color: var(--rarity-legendary);">
-                ${(packConfig.dropRates.legendary * 100).toFixed(0)}%
-              </span>
-            </div>
-          </div>
-          ${cooldownHTML}
-          <button class="btn ${isAvailable ? (packConfig.id === 'pack-premium' ? 'btn-gold' : 'btn-primary') : 'btn-secondary'}" 
-                  ${isAvailable ? '' : 'disabled'}>
-            ${buttonText}
-          </button>
+          ${this._renderRarityLadder()}
+          ${actionsHTML}
+          <div class="pack-card-barcode"></div>
+          <span class="pack-card-barcode-text">VDX-${packConfig.id.replace('pack-', '').toUpperCase().padEnd(3, 'X')}-${packConfig.cardCount}${packConfig.price.toString().padStart(3, '0')}</span>
         </div>
+      </div>
+    `;
+  },
+
+  /**
+   * Renderizza la lista delle rarità ottenibili (stile "retro bustina"),
+   * ciascuna colorata con il colore di rarità già usato in tutta l'app.
+   * @returns {string} HTML
+   */
+  _renderRarityLadder() {
+    const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+    return `
+      <div class="pack-card-rarity-list">
+        ${rarities.map(key => {
+          const data = window.VinylDexCard.RARITIES[key];
+          return `<span style="color:${data.color}">${data.name.toUpperCase()}</span>`;
+        }).join('')}
       </div>
     `;
   },
@@ -134,8 +168,10 @@ const VinylDexPackOpening = {
   /**
    * Avvia l'apertura del pacchetto selezionato.
    * @param {string} packId
+   * @param {string} mode - 'free' (solo per pacchetti con isFree, se il cooldown lo consente) o 'paid'
+   *                         (sempre disponibile, consuma gold). Default 'paid'.
    */
-  async openPack(packId) {
+  async openPack(packId, mode = 'paid') {
     const packConfig = window.VinylDexPacks.find(p => p.id === packId);
     if (!packConfig) return;
 
@@ -143,22 +179,22 @@ const VinylDexPackOpening = {
     const storage = new window.VinylDexStorage();
     const gold = storage.getGold();
 
-    // Verifica se può permetterselo
-    if (!packConfig.isFree && gold < packConfig.price) {
+    const useFree = packConfig.isFree && mode === 'free';
+
+    if (useFree) {
+      // Cooldown non ancora scaduto: il bottone gratis è già disabilitato in questo caso
+      if (!pack.isFreeAvailable(storage)) return;
+    } else if (gold < packConfig.price) {
+      // Percorso a pagamento (sempre disponibile, anche per il pacchetto Base) ma gold insufficienti
       this._showNotEnoughGold();
       return;
     }
 
-    // Verifica cooldown free pack
-    if (packConfig.isFree && !pack.isFreeAvailable(storage)) {
-      return; // Il pulsante è già disabilitato
-    }
-
-    // Consuma gold o aggiorna cooldown
-    if (!packConfig.isFree) {
-      storage.addGold(-packConfig.price);
-    } else {
+    // Consuma gold o aggiorna il cooldown del gratuito
+    if (useFree) {
       storage.setLastFreePackTime(Date.now());
+    } else {
+      storage.addGold(-packConfig.price);
     }
 
     // Prova prima l'apertura tramite API (se disponibile), altrimenti fallback locale
@@ -182,86 +218,8 @@ const VinylDexPackOpening = {
     }
     
     this._lastCards = [];
-    
-    // ====== AI Artwork Generation (best-effort) ======
-    // Generiamo artwork via VinylDexAI per le carte significative (es: rare/epic/legendary)
-    try {
-      const ai = window.VinylDexAI || null;
-      // Rarità per le quali vogliamo forzare la generazione (configurabile)
-      const GENERATE_RARITIES = ['rare', 'epic', 'legendary'];
-    
-      // Normalizza in istanze VinylDexCard
-      const cardObjs = cards.map(c => (c instanceof window.VinylDexCard ? c : new window.VinylDexCard(c)));
-    
-      // Se manca API key o servizio, skip generation (silenzioso)
-      if (ai && ai.hasApiKey && ai.hasApiKey()) {
-        // Seleziona solo le carte che rientrano nelle rarità target e non hanno immagine custom
-        const toGenerate = cardObjs.filter(c => {
-          const hasImg = c.img && typeof c.img === 'string' && c.img.length > 10 && !c.img.includes('placeholder');
-          return GENERATE_RARITIES.includes(c.rarity) && !hasImg;
-        });
-    
-        if (toGenerate.length > 0) {
-          // Prepara payload per il batch: passiamo oggetti leggeri con i campi necessari
-          const batchInput = toGenerate.map(c => ({
-            id: c.id,
-            name: c.name,
-            artistClass: c.artistClass,
-            rarity: c.rarity,
-            stats: c.stats || {}
-          }));
-    
-          // Chiamata di generazione batch (best-effort). Se fallisce, proseguiamo senza bloccare l'utente.
-          const results = await ai.generateBatch(batchInput, { style: 'anime', size: '512x512' }, (i, total) => {
-            // Non abbiamo ancora UI per il progresso in questa schermata: log per debug
-            console.debug(`[AI] Generating artwork ${i}/${total}`);
-          });
-    
-          // Applica i risultati alle istanze corrispondenti
-          results.forEach(res => {
-            if (res && res.success && res.url) {
-              // Trova la carta corrispondente per id e assegna l'immagine generata
-              const idx = cardObjs.findIndex(cc => cc.id === res.card.id || cc.id === res.cardId || cc.id === res.card?.id);
-              // Fallback: match by name se non troviamo per id
-              const foundByName = idx === -1 ? cardObjs.findIndex(cc => cc.name === res.card.name || cc.name === res.cardName) : idx;
-              const targetIndex = idx !== -1 ? idx : foundByName;
-              if (targetIndex !== -1) {
-                cardObjs[targetIndex].img = res.url;
-    
-                // Salva anche nella history delle immagini generate (per UI generator)
-                try {
-                  const images = storage.get('generatedImages', []);
-                  images.unshift({
-                    url: res.url,
-                    cardId: cardObjs[targetIndex].id,
-                    cardName: cardObjs[targetIndex].name,
-                    artistClass: cardObjs[targetIndex].artistClass,
-                    style: 'anime',
-                    prompt: res.revisedPrompt || '',
-                    timestamp: Date.now()
-                  });
-                  if (images.length > 50) images.splice(50);
-                  storage.set('generatedImages', images);
-                } catch (e) {
-                  console.warn('[AI] Could not save generated image to history', e);
-                }
-              }
-            } else {
-              console.warn('[AI] Generation failed for one card:', res && res.error);
-            }
-          });
-    
-          // Sostituisci l'array originale con le istanze aggiornate per le fasi successive
-          cards = cardObjs;
-        }
-      } else {
-        console.info('[AI] No API key or AI service unavailable — skipping artwork generation.');
-      }
-    } catch (e) {
-      console.warn('[AI] Error during batch generation:', e);
-      // Non bloccare l'apertura se l'AI fallisce
-    }
-    
+
+
     // Salva le carte nella collezione (salva DTO) — usiamo oggetti aggiornati (con eventuale img AI)
     const cardDataArray = cards.map(c => (c instanceof window.VinylDexCard ? c.toJSON() : c));
     storage.addCardsToCollection(cardDataArray);
@@ -304,7 +262,7 @@ const VinylDexPackOpening = {
     overlay.className = 'pack-overlay';
     overlay.innerHTML = `
       <div class="pack-modal glass-panel">
-        <div class="pack-modal-icon">😅</div>
+        <div class="pack-modal-icon"><i class="ph-fill ph-warning-circle"></i></div>
         <h3>Gold insufficienti!</h3>
         <p>Non hai abbastanza gold per questo pacchetto.</p>
         <p class="text-muted">Completa missioni e battaglie per guadagnare gold!</p>
@@ -325,9 +283,9 @@ const VinylDexPackOpening = {
     const container = document.getElementById('app-view');
 
     // Prendi un'icona per il pacchetto
-    let icon = '🎁';
-    if (this._selectedPack.id === 'pack-deluxe') icon = '💎';
-    if (this._selectedPack.id === 'pack-premium') icon = '👑';
+    let icon = '<i class="ph-fill ph-gift"></i>';
+    if (this._selectedPack.id === 'pack-deluxe') icon = '<i class="ph-fill ph-diamond"></i>';
+    if (this._selectedPack.id === 'pack-premium') icon = '<i class="ph-fill ph-crown"></i>';
 
     container.innerHTML = `
       <section class="pack-opening-page">
@@ -340,7 +298,7 @@ const VinylDexPackOpening = {
                 <span class="pack-box-label">${this._selectedPack.name}</span>
               </div>
               <div class="pack-box-back">
-                <span class="pack-box-sparkle">✨</span>
+                <span class="pack-box-sparkle"><i class="ph-fill ph-sparkle"></i></span>
               </div>
             </div>
           </div>
@@ -353,7 +311,7 @@ const VinylDexPackOpening = {
             <div class="pack-reveal-slot" id="pack-slot-${i}">
               <div class="pack-reveal-card pack-reveal-placeholder">
                 <div class="pack-reveal-card-inner">
-                  <div class="pack-reveal-front">❓</div>
+                  <div class="pack-reveal-front"><i class="ph ph-question"></i></div>
                   <div class="pack-reveal-back"></div>
                 </div>
               </div>
@@ -363,11 +321,11 @@ const VinylDexPackOpening = {
 
         <!-- Summary Button (hidden until all revealed) -->
         <div class="pack-summary-actions" id="pack-summary-actions" style="display:none;">
-          <button class="btn btn-primary" onclick="window.location.hash='#packs'">
-            🎁 Apri un Altro
+          <button class="btn btn-primary" onclick="window.VinylDexPackOpening.render(document.getElementById('app-view'), {})">
+            <i class="ph-fill ph-gift"></i> Apri un Altro
           </button>
           <button class="btn btn-secondary" onclick="window.location.hash='#collection'">
-            🃏 Vai alla Collezione
+            <i class="ph-fill ph-cards"></i> Vai alla Collezione
           </button>
         </div>
       </section>
@@ -379,14 +337,14 @@ const VinylDexPackOpening = {
 
     setTimeout(() => {
       packBox.classList.add('pack-box-open');
-      openingText.textContent = '✨ Le carte stanno per essere rivelate...';
+      openingText.innerHTML = '<i class="ph-fill ph-sparkle"></i> Le carte stanno per essere rivelate...';
     }, 300);
 
     // Step 2: Mostra griglia carte (dopo animazione scatola)
     setTimeout(() => {
       const revealGrid = document.getElementById('pack-reveal-grid');
       revealGrid.style.display = 'grid';
-      openingText.textContent = '🎵 Ecco le tue nuove carte!';
+      openingText.innerHTML = '<i class="ph-fill ph-vinyl-record"></i> Ecco le tue nuove carte!';
       
       // Step 3: Rivela carte una alla volta con ritardo
       this._revealCardsOneByOne(cards);
@@ -409,7 +367,6 @@ const VinylDexPackOpening = {
         const cardObj = card instanceof window.VinylDexCard ? card : new window.VinylDexCard(card);
         const rarityClass = cardObj.getRarityCSSClass();
         const color = cardObj.getRarityColor();
-        const stars = cardObj.getStars();
 
         let cardHTML;
         if (cardObj.fullImage) {
@@ -433,7 +390,7 @@ const VinylDexPackOpening = {
                   <span class="pack-reveal-badge" style="background:${color};">${cardObj.getRarityName()}</span>
                   <span class="pack-reveal-name">${cardObj.name}</span>
                   <span class="pack-reveal-class">${cardObj.artistClass}</span>
-                  <span class="pack-reveal-stars" style="color:${color};">${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}</span>
+                  <span class="pack-reveal-stars">${cardObj.getStarsHTML()}</span>
                 </div>
               </div>
             </div>
@@ -471,11 +428,11 @@ const VinylDexPackOpening = {
    * @param {HTMLElement} slot
    */
   _addSparkleEffect(slot) {
-    const sparkles = ['✨', '⭐', '🌟', '💫'];
+    const sparkles = ['ph-sparkle', 'ph-star', 'ph-confetti'];
     for (let i = 0; i < 6; i++) {
       const spark = document.createElement('span');
       spark.className = 'pack-sparkle';
-      spark.textContent = sparkles[i % sparkles.length];
+      spark.innerHTML = `<i class="ph-fill ${sparkles[i % sparkles.length]}"></i>`;
       spark.style.left = `${10 + Math.random() * 80}%`;
       spark.style.top = `${10 + Math.random() * 60}%`;
       spark.style.animationDelay = `${Math.random() * 1}s`;
