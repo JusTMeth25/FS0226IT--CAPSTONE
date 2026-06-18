@@ -27,7 +27,8 @@ const VinylDexArtists = [
     artistClass: 'The Showman',
     variant: 'Golden Voice',
     rarity: 'epic',
-    img: '',
+    img: 'assets/img/GoldenVoice.webp',
+    fullImage: true,
     stats: { fans: 88, style: 85, influence: 80, energy: 74 },
     description: 'Una voce talmente pura da far brillare l\'oro. Ogni performance è una sinfonia di luce e suono.'
   },
@@ -429,7 +430,8 @@ const VinylDexArtists = [
     artistClass: 'The Synth Master',
     variant: 'Digital God',
     rarity: 'legendary',
-    img: '',
+    img: 'assets/img/DigitalGod.webp',
+    fullImage: true,
     stats: { fans: 92, style: 98, influence: 94, energy: 96 },
     description: 'Dio digitale del suono. Ogni frequenza è sotto il suo controllo divino.'
   },
@@ -439,7 +441,8 @@ const VinylDexArtists = [
     artistClass: 'The Synth Master',
     variant: 'Cyberwave',
     rarity: 'epic',
-    img: '',
+    img: 'assets/img/CyberWave.webp',
+    fullImage: true,
     stats: { fans: 86, style: 92, influence: 88, energy: 90 },
     description: 'Onda cibernetica che travolge tutto. Il futuro è adesso, e suona elettronico.'
   },
@@ -449,7 +452,8 @@ const VinylDexArtists = [
     artistClass: 'The Synth Master',
     variant: 'Pulse Matrix',
     rarity: 'rare',
-    img: '',
+    img: 'assets/img/PulseMatrix.webp',
+    fullImage: true,
     stats: { fans: 78, style: 84, influence: 80, energy: 82 },
     description: 'Matrice pulsante di suoni sintetici. La realtà è simulata, la musica è vera.'
   },
@@ -459,7 +463,8 @@ const VinylDexArtists = [
     artistClass: 'The Synth Master',
     variant: 'Voltage Beat',
     rarity: 'uncommon',
-    img: '',
+    img: 'assets/img/VoltageBeat.webp',
+    fullImage: true,
     stats: { fans: 70, style: 76, influence: 72, energy: 74 },
     description: 'Battiti ad alto voltaggio. L\'elettricità scorre in ogni singolo beat.'
   },
@@ -469,7 +474,8 @@ const VinylDexArtists = [
     artistClass: 'The Synth Master',
     variant: 'Neon Synth',
     rarity: 'common',
-    img: '',
+    img: 'assets/img/NeonSynth.webp',
+    fullImage: true,
     stats: { fans: 62, style: 68, influence: 64, energy: 66 },
     description: 'Sintetizzatore al neon. Luci aliene e suoni che vengono dal futuro.'
   }
