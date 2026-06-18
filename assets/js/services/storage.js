@@ -167,7 +167,17 @@ class StorageService {
   // ===== METODI CONVENIENZA =====
 
   getCollection() {
-    return this.get(StorageService.COLLECTION_KEY, []);
+    const stored = this.get(StorageService.COLLECTION_KEY, []);
+
+    // "Ibrida" ogni carta posseduta con la versione più recente del database (assets/js/data/artists.js),
+    // mantenendo solo il dato di possesso (obtainedAt). Senza questo, una carta ottenuta PRIMA di un
+    // aggiornamento ai dati (es. nuova artwork, stats corrette) resterebbe per sempre con i dati vecchi,
+    // anche se la stessa carta ottenuta oggi avrebbe quelli nuovi.
+    if (!window.VinylDexArtists) return stored;
+    return stored.map(entry => {
+      const canonical = window.VinylDexArtists.find(a => a.id === entry.id);
+      return canonical ? { ...canonical, obtainedAt: entry.obtainedAt } : entry;
+    });
   }
 
   setCollection(cards) {
