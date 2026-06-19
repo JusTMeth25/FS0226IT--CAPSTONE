@@ -30,6 +30,7 @@ const VinylDexPackOpening = {
   render(container, params) {
     const storage = new window.VinylDexStorage();
     const gold = storage.getGold();
+    const freePacks = storage.getFreePacks();
 
     // Verifica stato pacchetto gratuito
     const basePackConfig = window.VinylDexPacks[0];
@@ -50,7 +51,7 @@ const VinylDexPackOpening = {
 
         <!-- Packs Grid -->
         <div class="packs-grid">
-          ${window.VinylDexPacks.map(packConfig => this._renderPackCard(packConfig, storage, isFreeAvailable)).join('')}
+          ${window.VinylDexPacks.map(packConfig => this._renderPackCard(packConfig, storage, isFreeAvailable, freePacks[packConfig.id] || 0)).join('')}
         </div>
       </section>
     `;
@@ -63,7 +64,7 @@ const VinylDexPackOpening = {
    * @param {boolean} isFreeAvailable
    * @returns {string} HTML
    */
-  _renderPackCard(packConfig, storage, isFreeAvailable) {
+  _renderPackCard(packConfig, storage, isFreeAvailable, giftedCount = 0) {
     const pack = new window.VinylDexPack(packConfig);
     const gold = storage.getGold();
     const canAffordPaid = gold >= packConfig.price;
@@ -98,6 +99,18 @@ const VinylDexPackOpening = {
       priceBadgeHTML = `<span class="pack-card-price-badge"><i class="ph-fill ph-coin"></i> ${packConfig.price}</span>`;
     }
 
+    // Badge pacchetti regalati (ricompense missioni/livelli), in aggiunta al badge prezzo.
+    const giftBadgeHTML = giftedCount > 0
+      ? `<span class="pack-card-price-badge pack-card-price-free"><i class="ph-fill ph-gift"></i> x${giftedCount} Regalati</span>`
+      : '';
+
+    // Bottone per aprire un pacchetto regalato (mai a pagamento, consuma l'inventario regali).
+    const giftBtnHTML = giftedCount > 0
+      ? `<button class="btn btn-primary" onclick="event.stopPropagation();VinylDexPackOpening.openPack('${packConfig.id}','gift')">
+           <i class="ph-fill ph-gift"></i> Apri Regalo (x${giftedCount})
+         </button>`
+      : '';
+
     // Bottoni azione: i pacchetti con opzione gratuita (solo Base) mostrano DUE bottoni
     // (apri gratis, se disponibile + compra sempre con gold); gli altri solo l'acquisto.
     // Il bottone d'acquisto non è mai "disabled": se i gold non bastano resta cliccabile
@@ -118,13 +131,16 @@ const VinylDexPackOpening = {
         <button class="btn ${buyBtnClass}" onclick="event.stopPropagation();VinylDexPackOpening.openPack('${packConfig.id}','paid')">
           <i class="ph-fill ph-coin"></i> Compra (${packConfig.price})
         </button>`;
-      actionsHTML = `<div class="pack-card-actions">${freeBtnHTML}${buyBtnHTML}</div>`;
+      actionsHTML = `<div class="pack-card-actions">${giftBtnHTML}${freeBtnHTML}${buyBtnHTML}</div>`;
     } else {
-      actionsHTML = `
+      const buyBtnHTML = `
         <button class="btn ${canAffordPaid ? (packConfig.id === 'pack-premium' ? 'btn-gold' : 'btn-primary') : 'btn-secondary'}"
                 onclick="event.stopPropagation();VinylDexPackOpening.openPack('${packConfig.id}','paid')">
           <i class="ph-fill ph-coin"></i> Apri Pacchetto (${packConfig.price})
         </button>`;
+      actionsHTML = giftedCount > 0
+        ? `<div class="pack-card-actions">${giftBtnHTML}${buyBtnHTML}</div>`
+        : buyBtnHTML;
     }
 
     return `
@@ -136,6 +152,7 @@ const VinylDexPackOpening = {
           <span class="pack-icon">${icon}</span>
           <h3 class="pack-card-name">${packConfig.name}</h3>
           ${priceBadgeHTML}
+          ${giftBadgeHTML}
         </div>
         <div class="pack-card-body">
           <p class="pack-card-desc">${packConfig.description}</p>
@@ -168,8 +185,9 @@ const VinylDexPackOpening = {
   /**
    * Avvia l'apertura del pacchetto selezionato.
    * @param {string} packId
-   * @param {string} mode - 'free' (solo per pacchetti con isFree, se il cooldown lo consente) o 'paid'
-   *                         (sempre disponibile, consuma gold). Default 'paid'.
+   * @param {string} mode - 'free' (solo per pacchetti con isFree, se il cooldown lo consente),
+   *                         'gift' (consuma un pacchetto regalato da missioni/livelli, gratuito)
+   *                         o 'paid' (sempre disponibile, consuma gold). Default 'paid'.
    */
   async openPack(packId, mode = 'paid') {
     const packConfig = window.VinylDexPacks.find(p => p.id === packId);
@@ -180,19 +198,19 @@ const VinylDexPackOpening = {
     const gold = storage.getGold();
 
     const useFree = packConfig.isFree && mode === 'free';
+    const useGift = mode === 'gift';
 
-    if (useFree) {
+    if (useGift) {
+      // Consuma un pacchetto regalato dall'inventario; se non disponibile (es. doppio click), interrompi
+      if (!storage.consumeFreePack(packId)) return;
+    } else if (useFree) {
       // Cooldown non ancora scaduto: il bottone gratis è già disabilitato in questo caso
       if (!pack.isFreeAvailable(storage)) return;
+      storage.setLastFreePackTime(Date.now());
     } else if (gold < packConfig.price) {
       // Percorso a pagamento (sempre disponibile, anche per il pacchetto Base) ma gold insufficienti
       this._showNotEnoughGold();
       return;
-    }
-
-    // Consuma gold o aggiorna il cooldown del gratuito
-    if (useFree) {
-      storage.setLastFreePackTime(Date.now());
     } else {
       storage.addGold(-packConfig.price);
     }
@@ -224,16 +242,6 @@ const VinylDexPackOpening = {
     const cardDataArray = cards.map(c => (c instanceof window.VinylDexCard ? c.toJSON() : c));
     storage.addCardsToCollection(cardDataArray);
 
-    // Tentativo best-effort di sincronizzazione col server (non bloccante)
-    if (api && navigator.onLine) {
-      try {
-        // Endpoint di sincronizzazione lato server (best-effort). Ignora errori.
-        api.post('/sync/cards', { cards: cardDataArray }).catch(() => {});
-      } catch (e) {
-        // Ignora
-      }
-    }
-
     // Aggiorna stats
     const stats = storage.getStats();
     stats.totalPacksOpened = (stats.totalPacksOpened || 0) + 1;
@@ -257,6 +265,7 @@ const VinylDexPackOpening = {
    * Mostra schermata "non abbastanza gold".
    */
   _showNotEnoughGold() {
+    window.VinylDexSound.error();
     const container = document.getElementById('app-view');
     const overlay = document.createElement('div');
     overlay.className = 'pack-overlay';
@@ -338,6 +347,7 @@ const VinylDexPackOpening = {
     setTimeout(() => {
       packBox.classList.add('pack-box-open');
       openingText.innerHTML = '<i class="ph-fill ph-sparkle"></i> Le carte stanno per essere rivelate...';
+      window.VinylDexSound.packOpen();
     }, 300);
 
     // Step 2: Mostra griglia carte (dopo animazione scatola)
@@ -397,6 +407,7 @@ const VinylDexPackOpening = {
           `;
         }
         slot.innerHTML = cardHTML;
+        window.VinylDexSound.cardReveal(cardObj.rarity);
 
         // Aggiungi effetto sparkle per leggendarie
         if (cardObj.rarity === 'legendary') {

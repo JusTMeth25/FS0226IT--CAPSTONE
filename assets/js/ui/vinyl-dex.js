@@ -157,8 +157,7 @@ const VinylDexPage = {
       storage.addGold(milestone.gold);
     }
     if (milestone.pack) {
-      // Aggiunge un pacchetto bonus (simulato come gold extra per ora)
-      storage.addGold(150); // Valore equivalente
+      storage.addFreePack(milestone.pack);
     }
     if (milestone.title) {
       storage.update({ title: milestone.title });
@@ -175,9 +174,12 @@ const VinylDexPage = {
       if (status) status.innerHTML = '<i class="ph-fill ph-check-circle"></i> Reclamato!';
     }
 
-    // Se 100%, bonus confetti
+    // Se 100%, bonus confetti + fanfara da trofeo finale, altrimenti chime ricompensa standard
     if (percent === 100) {
+      window.VinylDexSound.levelUp();
       this._startConfetti();
+    } else {
+      window.VinylDexSound.reward();
     }
   },
 

@@ -164,9 +164,11 @@
       if (!res.ok) {
         msg.textContent = res.err === 'invalid_credentials' ? 'Credenziali non valide' : 'Compila tutti i campi';
         msg.className = 'auth-message auth-message-error';
+        window.VinylDexSound.error();
       } else {
         msg.textContent = 'Login effettuato';
         msg.className = 'auth-message auth-message-success';
+        window.VinylDexSound.success();
         // Update header e naviga alla home
         updateHeaderForUser();
         if (window.VinylDexRouter) window.location.hash = '#home';
@@ -205,9 +207,11 @@
       if (!res.ok) {
         msg.textContent = res.err === 'user_exists' ? 'Utente già esistente' : 'Compila tutti i campi';
         msg.className = 'auth-message auth-message-error';
+        window.VinylDexSound.error();
       } else {
         msg.textContent = 'Registrazione effettuata. Benvenuto!';
         msg.className = 'auth-message auth-message-success';
+        window.VinylDexSound.success();
         updateHeaderForUser();
         if (window.VinylDexRouter) window.location.hash = '#home';
       }

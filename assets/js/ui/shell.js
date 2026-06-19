@@ -32,6 +32,8 @@ const VinylDexShell = {
     this._setWidth('sidebar-xp-fill', xpPercent);
     this._setText('sidebar-gold', gold);
     this._setText('topbar-gold', gold);
+
+    if (window.VinylDexSound) window.VinylDexSound._updateToggleButton();
   },
 
   /**
@@ -73,10 +75,11 @@ const VinylDexShell = {
       overlay.addEventListener('click', () => this.closeSidebar());
     }
 
-    // Chiudi il menu mobile al click su un link di navigazione
+    // Chiudi il menu mobile al click su un link di navigazione + feedback sonoro leggero
     document.addEventListener('click', (e) => {
       if (e.target.closest('.nav-link')) {
         this.closeSidebar();
+        if (window.VinylDexSound) window.VinylDexSound.click();
       }
     });
 

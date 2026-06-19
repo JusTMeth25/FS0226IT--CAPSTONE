@@ -59,6 +59,9 @@
             </button>
             <a href="#home" data-route="home" class="nav-link topbar-brand">VinylLegends</a>
             <span class="topbar-gold-pill"><i class="ph-fill ph-coin"></i> <span id="topbar-gold">0</span></span>
+            <button id="sound-toggle-btn" class="btn small" aria-label="Attiva/disattiva audio" title="Disattiva audio" onclick="VinylDexSound.toggle()">
+              <i class="ph-fill ph-speaker-high"></i>
+            </button>
             <button id="btn-signin" class="btn small" onclick="window.location.hash='#login'">Accedi</button>
           </div>
         </header>
@@ -83,7 +86,7 @@
     <script src="assets/js/services/storage.js"></script>
     <script src="assets/js/services/api.js"></script>
     <script src="assets/js/services/generator.js"></script>
-    <script src="assets/js/services/syncQueue.js"></script>
+    <script src="assets/js/services/sound.js"></script>
     <script src="assets/js/ui/home.js"></script>
     <script src="assets/js/ui/pack-opening.js"></script>
     <script src="assets/js/ui/collection.js"></script>
@@ -91,7 +94,6 @@
     <script src="assets/js/ui/missions.js"></script>
     <script src="assets/js/ui/battle.js"></script>
     <script src="assets/js/ui/auth.js"></script>
-    <script src="assets/js/ui/sync-status.js"></script>
     <script src="assets/js/ui/debug.js"></script>
     <script src="assets/js/ui/shell.js"></script>
     <script src="assets/js/app.js"></script>

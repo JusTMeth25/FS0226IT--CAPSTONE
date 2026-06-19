@@ -665,6 +665,10 @@ const VinylDexBattle = {
     const playerWon = playerStat > aiStat;
     const aiWon = aiStat > playerStat;
 
+    if (playerWon) window.VinylDexSound.roundWin();
+    else if (aiWon) window.VinylDexSound.roundLose();
+    else window.VinylDexSound.roundDraw();
+
     this._roundHistory.push({
       round: this._currentRound,
       category,
@@ -816,6 +820,10 @@ const VinylDexBattle = {
     const goldReward = playerWon ? 50 : (draw ? 20 : 10);
     const xpReward = playerWon ? 100 : (draw ? 40 : 20);
 
+    if (playerWon) window.VinylDexSound.battleWin();
+    else if (draw) window.VinylDexSound.battleDraw();
+    else window.VinylDexSound.battleLose();
+
     this._recordBattleStats(playerWon, draw);
     this._grantRewards(goldReward, xpReward);
 
@@ -877,6 +885,11 @@ const VinylDexBattle = {
 
     const wonAllStages = playerWon && this._tournamentStage === this.TOURNAMENT_ORDER.length - 1;
     const eliminated = !playerWon;
+
+    if (eliminated) window.VinylDexSound.battleLose();
+    else if (wonAllStages) window.VinylDexSound.battleWin();
+    else window.VinylDexSound.roundWin();
+
     const container = document.getElementById('app-view');
 
     if (eliminated || wonAllStages) {

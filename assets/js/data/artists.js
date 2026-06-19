@@ -406,7 +406,8 @@ const VinylDexArtists = [
     artistClass: 'The Dreamer',
     variant: 'Lunar Echo',
     rarity: 'uncommon',
-    img: '',
+    img: 'assets/img/LunarEcho.webp',
+    fullImage: true,
     stats: { fans: 66, style: 70, influence: 64, energy: 56 },
     description: 'Eco lunare che danza nella notte. Sussurri d\'argento sotto la luna.'
   },
@@ -416,7 +417,8 @@ const VinylDexArtists = [
     artistClass: 'The Dreamer',
     variant: 'Daydreamer',
     rarity: 'common',
-    img: '',
+    img: 'assets/img/DayDreamer.webp',
+    fullImage: true,
     stats: { fans: 58, style: 64, influence: 58, energy: 52 },
     description: 'Sognatore ad occhi aperti. La realtà è solo un suggerimento.'
   },

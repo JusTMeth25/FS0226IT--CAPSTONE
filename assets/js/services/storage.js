@@ -164,6 +164,9 @@ class StorageService {
   /** Chiave per le statistiche utente */
   static get STATS_KEY() { return 'stats'; }
 
+  /** Chiave per l'inventario di pacchetti regalati (ricompense missioni/livelli) */
+  static get FREE_PACKS_KEY() { return 'freePacksInventory'; }
+
   // ===== METODI CONVENIENZA =====
 
   getCollection() {
@@ -259,6 +262,38 @@ class StorageService {
   updateStats(updates) {
     const stats = this.getStats();
     return this.set(StorageService.STATS_KEY, { ...stats, ...updates });
+  }
+
+  /**
+   * Inventario pacchetti regalati (es. da ricompense missioni/livelli),
+   * mappa { packId: quantità }.
+   */
+  getFreePacks() {
+    return this.get(StorageService.FREE_PACKS_KEY, {});
+  }
+
+  /**
+   * Aggiunge un pacchetto regalato all'inventario.
+   * @param {string} packId
+   * @param {number} amount
+   */
+  addFreePack(packId, amount = 1) {
+    const inventory = this.getFreePacks();
+    inventory[packId] = (inventory[packId] || 0) + amount;
+    return this.set(StorageService.FREE_PACKS_KEY, inventory);
+  }
+
+  /**
+   * Consuma un pacchetto regalato dall'inventario, se disponibile.
+   * @param {string} packId
+   * @returns {boolean} true se consumato, false se non disponibile
+   */
+  consumeFreePack(packId) {
+    const inventory = this.getFreePacks();
+    if (!inventory[packId] || inventory[packId] <= 0) return false;
+    inventory[packId] -= 1;
+    this.set(StorageService.FREE_PACKS_KEY, inventory);
+    return true;
   }
 }
 

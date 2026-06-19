@@ -17,15 +17,6 @@
     window.VinylDexApiService.storage = storage;
   }
 
-  // ---- Init Sync Queue (background offline sync) ----
-  if (window.VinylDexSyncQueue) {
-    // Assicura che la SyncQueue utilizzi la stessa istanza di storage e l'ApiService corrente
-    window.VinylDexSyncQueue.storage = storage;
-    window.VinylDexSyncQueue.api = window.VinylDexApiService || null;
-    // Avvia il processing periodico / on-online
-    window.VinylDexSyncQueue.start();
-  }
-
   // ---- Init App Shell (sidebar + topbar) ----
   if (window.VinylDexShell) {
     window.VinylDexShell.init();
@@ -113,8 +104,7 @@
     packs: window.VinylDexPacks,
     Card: window.VinylDexCard,
     Pack: window.VinylDexPack,
-    Random: window.VinylDexRandom,
-    syncQueue: window.VinylDexSyncQueue
+    Random: window.VinylDexRandom
   };
 
 })();

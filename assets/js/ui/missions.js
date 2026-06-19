@@ -60,6 +60,19 @@ const VinylDexMissions = {
   },
 
   /**
+   * Recupera gli id delle missioni già reclamate, ripulendo quelle
+   * daily se è iniziato un nuovo giorno.
+   */
+  _getClaimedMissionIds(storage, isNewDay) {
+    let ids = storage.get('claimedMissions', []);
+    if (isNewDay) {
+      ids = ids.filter(id => !id.startsWith('daily-'));
+      storage.set('claimedMissions', ids);
+    }
+    return new Set(ids);
+  },
+
+  /**
    * Genera le missioni daily/weekly/progress in base allo stato corrente.
    */
   _generateMissions(storage) {
@@ -73,6 +86,7 @@ const VinylDexMissions = {
     const isNewDay = lastDaily !== today;
     if (isNewDay) storage.set('lastDailyReset', today);
 
+    const claimedIds = this._getClaimedMissionIds(storage, isNewDay);
     const missions = [];
 
     // === DAILY (resettano ogni giorno) ===
@@ -87,7 +101,7 @@ const VinylDexMissions = {
       rewardGold: 25,
       rewardXP: 50,
       completed: false,
-      claimed: false
+      claimed: claimedIds.has('daily-open-pack')
     });
 
     missions.push({
@@ -101,7 +115,7 @@ const VinylDexMissions = {
       rewardGold: 30,
       rewardXP: 60,
       completed: false,
-      claimed: false
+      claimed: claimedIds.has('daily-collect-cards')
     });
 
     missions.push({
@@ -115,7 +129,7 @@ const VinylDexMissions = {
       rewardGold: 35,
       rewardXP: 70,
       completed: false,
-      claimed: false
+      claimed: claimedIds.has('daily-fight')
     });
 
     // === WEEKLY ===
@@ -130,7 +144,7 @@ const VinylDexMissions = {
       rewardGold: 100,
       rewardXP: 200,
       completed: false,
-      claimed: false
+      claimed: claimedIds.has('weekly-open-5')
     });
 
     missions.push({
@@ -145,7 +159,7 @@ const VinylDexMissions = {
       rewardXP: 300,
       pack: 'pack-deluxe',
       completed: false,
-      claimed: false
+      claimed: claimedIds.has('weekly-legendary')
     });
 
     missions.push({
@@ -160,7 +174,7 @@ const VinylDexMissions = {
       rewardXP: 400,
       pack: 'pack-premium',
       completed: false,
-      claimed: false
+      claimed: claimedIds.has('weekly-battle-win')
     });
 
     // === PROGRESS (una tantum) ===
@@ -184,7 +198,7 @@ const VinylDexMissions = {
         rewardXP: pm.rewardXP || 0,
         pack: pm.pack || null,
         completed,
-        claimed: false
+        claimed: claimedIds.has(pm.id)
       });
     });
 
@@ -358,11 +372,12 @@ const VinylDexMissions = {
     if (claimedLevels.includes(level)) return;
 
     if (rewards.gold > 0) storage.addGold(rewards.gold);
-    if (rewards.pack) storage.addGold(150); // Valore pacchetto
+    if (rewards.pack) storage.addFreePack(rewards.pack);
 
     claimedLevels.push(level);
     storage.set('claimedLevelRewards', claimedLevels);
 
+    window.VinylDexSound.levelUp();
     this._reRender();
   },
 
@@ -390,6 +405,7 @@ const VinylDexMissions = {
     const goldReward = 10 + streak * 2;
     const xpReward = 20 + streak * 3;
 
+    const prevLevel = storage.getLevel();
     storage.addGold(goldReward);
     storage.addXP(xpReward);
     storage.set('lastLoginDate', today);
@@ -399,6 +415,9 @@ const VinylDexMissions = {
     const totalXP = storage.getXP();
     const { level } = this._calcLevel(totalXP);
     storage.setLevel(level);
+
+    if (level > prevLevel) window.VinylDexSound.levelUp();
+    else window.VinylDexSound.reward();
 
     this._reRender();
   },
@@ -410,18 +429,30 @@ const VinylDexMissions = {
     const storage = new window.VinylDexStorage();
     const mission = this._missions.find(m => m.id === missionId);
     if (!mission || mission.claimed) return;
+    if (Math.min(mission.progress, mission.target) < mission.target) return;
 
     mission.claimed = true;
 
+    // Persiste la missione come reclamata (evita reclami multipli al refresh)
+    const claimedIds = storage.get('claimedMissions', []);
+    if (!claimedIds.includes(missionId)) {
+      claimedIds.push(missionId);
+      storage.set('claimedMissions', claimedIds);
+    }
+
     // Applica ricompense
+    const prevLevel = storage.getLevel();
     if (mission.rewardGold > 0) storage.addGold(mission.rewardGold);
     if (mission.rewardXP > 0) storage.addXP(mission.rewardXP);
-    if (mission.pack) storage.addGold(150); // Valore pacchetto
+    if (mission.pack) storage.addFreePack(mission.pack);
 
     // Calcola e aggiorna livello
     const totalXP = storage.getXP();
     const { level } = this._calcLevel(totalXP);
     storage.setLevel(level);
+
+    if (level > prevLevel) window.VinylDexSound.levelUp();
+    else window.VinylDexSound.reward();
 
     // Feedback visivo
     if (btnElement) {
