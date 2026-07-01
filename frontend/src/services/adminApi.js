@@ -1,0 +1,37 @@
+import { apiClient } from './apiClient.js';
+
+export const adminApi = {
+  // Utenti
+  async getUsers() { return apiClient.get('/admin/users'); },
+  async banUser(userId) { return apiClient.post(`/admin/users/${userId}/ban`); },
+  async unbanUser(userId) { return apiClient.post(`/admin/users/${userId}/unban`); },
+  async setUserGold(userId, gold) { return apiClient.patch(`/admin/users/${userId}/gold`, { gold }); },
+
+  // Carte / pacchetti / drop-rate / garanzie
+  async getCards() { return apiClient.get('/admin/cards'); },
+  async createCard(payload) { return apiClient.post('/admin/cards', payload); },
+  async updateCard(cardId, payload) { return apiClient.patch(`/admin/cards/${cardId}`, payload); },
+  async getPacks() { return apiClient.get('/admin/packs'); },
+  async createPack(payload) { return apiClient.post('/admin/packs', payload); },
+  async updatePack(packId, payload) { return apiClient.patch(`/admin/packs/${packId}`, payload); },
+  async setDropRates(packId, dropRates) { return apiClient.put(`/admin/packs/${packId}/drop-rates`, { dropRates }); },
+  async setGuarantees(packId, guarantees) { return apiClient.put(`/admin/packs/${packId}/guarantees`, { guarantees }); },
+
+  // Import carte da API esterne
+  async importPokemon(payload) { return apiClient.post('/admin/import/pokemon', payload); },
+  async importScryfall(payload) { return apiClient.post('/admin/import/scryfall', payload); },
+  async importYugioh(payload) { return apiClient.post('/admin/import/yugioh', payload); },
+
+  // Missioni / eventi
+  async getMissions() { return apiClient.get('/admin/missions'); },
+  async createMission(payload) { return apiClient.post('/admin/missions', payload); },
+  async updateMission(missionId, payload) { return apiClient.patch(`/admin/missions/${missionId}`, payload); },
+  async getEvents() { return apiClient.get('/admin/events'); },
+  async createEvent(payload) { return apiClient.post('/admin/events', payload); },
+  async updateEvent(eventId, payload) { return apiClient.patch(`/admin/events/${eventId}`, payload); },
+
+  // Log
+  async getPackOpeningLogs() { return apiClient.get('/admin/logs/pack-openings'); },
+  async getMarketListings() { return apiClient.get('/admin/market/listings'); },
+  async getTrades() { return apiClient.get('/admin/trades'); }
+};

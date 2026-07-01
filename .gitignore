@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+dist-ssr/
+build/
+
+# Prisma
+backend/prisma/dev.db
+backend/prisma/*.db
+
+# Capacitor (Fase mobile)
+ios/
+android/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.local

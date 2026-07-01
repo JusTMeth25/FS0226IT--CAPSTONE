@@ -1,14 +1,12 @@
 /**
- * VinylDex - Minimal Express server (step 2)
- * - SQLite + Prisma client
- * - Basic middleware: dotenv, cors, rate-limit, json
- * - Placeholder routes for health & api
+ * VinylLegends - Express server
  *
  * To run (locally):
  * 1) cd backend && npm install
  * 2) npx prisma generate
  * 3) npx prisma db push
- * 4) npm run dev
+ * 4) node seed.js
+ * 5) npm run dev
  */
 
 require('dotenv').config();
@@ -21,22 +19,19 @@ const prisma = require('./prismaClient');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Basic middlewares
 app.use(cors());
 app.use(express.json());
 app.use(
   rateLimit({
-    windowMs: 60_000, // 1 minute
-    max: 200, // limit requests per windowMs
+    windowMs: 60_000,
+    max: 200,
     standardHeaders: true,
     legacyHeaders: false,
   })
 );
 
-// Health
 app.get('/health', async (req, res) => {
   try {
-    // quick DB check
     await prisma.$queryRaw`SELECT 1`;
     res.json({ status: 'ok', db: 'connected' });
   } catch (err) {
@@ -44,14 +39,19 @@ app.get('/health', async (req, res) => {
   }
 });
 
-const authRouter = require('./routes/auth');
-app.use('/api/auth', authRouter);
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/ai', require('./routes/ai'));
+app.use('/api', require('./routes/packs'));
+app.use('/api', require('./routes/collection'));
+app.use('/api', require('./routes/market'));
+app.use('/api', require('./routes/trades'));
+app.use('/api', require('./routes/missions'));
+app.use('/api', require('./routes/events'));
+app.use('/api', require('./routes/leaderboard'));
+app.use('/api/admin', require('./routes/admin'));
 
-const apiRouter = require('./routes/api');
-app.use('/api', apiRouter);
-
-const aiRouter = require('./routes/ai');
-app.use('/api/ai', aiRouter);
+// 404 per rotte /api non riconosciute
+app.use('/api', (req, res) => res.status(404).json({ error: 'not_found' }));
 
 // Global error handler
 app.use((err, req, res, next) => {
@@ -59,7 +59,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'internal_server_error' });
 });
 
-// Start
 app.listen(PORT, () => {
-  console.log(`VinylDex backend listening on http://localhost:${PORT}`);
+  console.log(`VinylLegends backend listening on http://localhost:${PORT}`);
 });

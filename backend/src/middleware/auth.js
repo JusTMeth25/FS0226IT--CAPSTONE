@@ -3,13 +3,18 @@
  * JWT auth middleware for VinylDex backend
  *
  * Exports:
- * - verifyToken: Express middleware that validates Bearer token and sets req.user
- * - optional decodeToken: helper to decode without attaching to request
+ * - verifyToken: valida il Bearer token e imposta req.user (payload JWT: sub/username/email)
+ * - loadCurrentUser: da usare dopo verifyToken, carica l'utente reale dal DB in req.currentUser
+ *   (mai fidarsi di gold/ruolo dal payload JWT, possono essere cambiati dopo l'emissione del token)
+ *   e blocca l'accesso se l'utente è bannato o è stato cancellato.
+ * - requireAdmin: da usare dopo loadCurrentUser, richiede ruolo ADMIN
+ * - decodeToken: helper per decodificare senza attaccare alla request
  *
  * Requires process.env.JWT_SECRET
  */
 
 const jwt = require('jsonwebtoken');
+const prisma = require('../prismaClient');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
 
@@ -28,6 +33,29 @@ function verifyToken(req, res, next) {
   }
 }
 
+async function loadCurrentUser(req, res, next) {
+  try {
+    const userId = req.user?.sub;
+    if (!userId) return res.status(401).json({ error: 'unauthorized' });
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(401).json({ error: 'user_not_found' });
+    if (user.banned) return res.status(403).json({ error: 'user_banned', reason: user.banReason || null });
+
+    req.currentUser = user;
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
+
+function requireAdmin(req, res, next) {
+  if (!req.currentUser || req.currentUser.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'forbidden' });
+  }
+  next();
+}
+
 function decodeToken(token) {
   try {
     return jwt.verify(token, JWT_SECRET);
@@ -36,4 +64,4 @@ function decodeToken(token) {
   }
 }
 
-module.exports = { verifyToken, decodeToken };
+module.exports = { verifyToken, loadCurrentUser, requireAdmin, decodeToken };

@@ -53,7 +53,7 @@ router.post('/register', async (req, res, next) => {
 
     const user = await prisma.user.create({
       data: { username, email, passwordHash },
-      select: { id: true, username: true, email: true, gold: true, xp: true, level: true, createdAt: true },
+      select: { id: true, username: true, email: true, gold: true, xp: true, level: true, role: true, createdAt: true },
     });
 
     const token = generateToken(user);
@@ -77,6 +77,7 @@ router.post('/login', async (req, res, next) => {
 
     const match = await bcrypt.compare(password, user.passwordHash);
     if (!match) return res.status(401).json({ error: 'invalid_credentials' });
+    if (user.banned) return res.status(403).json({ error: 'user_banned', reason: user.banReason || null });
 
     const publicUser = {
       id: user.id,
@@ -85,6 +86,7 @@ router.post('/login', async (req, res, next) => {
       gold: user.gold,
       xp: user.xp,
       level: user.level,
+      role: user.role,
     };
 
     const token = generateToken(publicUser);
@@ -112,12 +114,15 @@ router.get('/profile', verifyToken, async (req, res, next) => {
         gold: true,
         xp: true,
         level: true,
+        role: true,
+        banned: true,
         createdAt: true,
         updatedAt: true,
       },
     });
 
     if (!user) return res.status(404).json({ error: 'not_found' });
+    if (user.banned) return res.status(403).json({ error: 'user_banned' });
     res.json({ user });
   } catch (err) {
     next(err);
