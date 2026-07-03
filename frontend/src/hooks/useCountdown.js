@@ -1,25 +1,32 @@
 import { useEffect, useState } from 'react';
 
+function remainingFrom(targetTimestamp) {
+  if (!targetTimestamp) return 0;
+  return Math.max(0, targetTimestamp - Date.now());
+}
+
 /**
- * Ricalcola `remainingMs` ogni secondo finché non arriva a 0.
- * `getRemaining` viene richiamato ad ogni tick (permette al valore sorgente di cambiare).
+ * Conto alla rovescia fino a `targetTimestamp` (epoch ms assoluto, o falsy se non attivo),
+ * aggiornato ogni secondo. Riceve un VALORE primitivo (non una funzione): passare invece una
+ * closure ricreata ad ogni render romperebbe la dependency array dell'effect e causerebbe un
+ * loop di render infinito, perché il valore calcolato cambia di continuo (basato su Date.now()).
  */
-export function useCountdown(getRemaining) {
-  const [remaining, setRemaining] = useState(getRemaining());
+export function useCountdown(targetTimestamp) {
+  const [remaining, setRemaining] = useState(() => remainingFrom(targetTimestamp));
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- risincronizza subito il countdown quando cambia la sorgente
-    setRemaining(getRemaining());
-    if (getRemaining() <= 0) return undefined;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- risincronizza subito il countdown quando cambia il target
+    setRemaining(remainingFrom(targetTimestamp));
+    if (remainingFrom(targetTimestamp) <= 0) return undefined;
 
     const interval = setInterval(() => {
-      const next = getRemaining();
+      const next = remainingFrom(targetTimestamp);
       setRemaining(next);
       if (next <= 0) clearInterval(interval);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [getRemaining]);
+  }, [targetTimestamp]);
 
   return remaining;
 }

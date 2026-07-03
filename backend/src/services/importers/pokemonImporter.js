@@ -31,19 +31,24 @@ function normalize(card) {
   };
 }
 
-/** @param {{ limit?: number }} [opts] */
+/**
+ * @param {{ limit?: number, page?: number }} [opts] - limit: max 250 (limite dell'API per pagina).
+ * Se `page` non è specificato viene scelta una pagina casuale tra le ~80 disponibili, così
+ * click ripetuti dal pannello admin importano carte diverse invece di riscrivere sempre le stesse.
+ */
 async function importPokemonCards(opts = {}) {
-  const limit = opts.limit || 20;
-  const headers = {};
+  const limit = Math.min(opts.limit || 100, 250);
+  const page = opts.page || Math.floor(Math.random() * 80) + 1;
+  const headers = { 'User-Agent': 'VinylLegends/1.0', Accept: 'application/json' };
   if (process.env.POKEMONTCG_API_KEY) headers['X-Api-Key'] = process.env.POKEMONTCG_API_KEY;
 
   try {
-    const res = await fetch(`https://api.pokemontcg.io/v2/cards?pageSize=${limit}`, { headers, signal: AbortSignal.timeout(10000) });
+    const res = await fetch(`https://api.pokemontcg.io/v2/cards?pageSize=${limit}&page=${page}`, { headers, signal: AbortSignal.timeout(15000) });
     if (!res.ok) throw new Error(`pokemontcg_api_${res.status}`);
     const body = await res.json();
     const normalized = (body.data || []).map(normalize);
     const imported = await persistImportedCards(SOURCE, normalized);
-    return { source: SOURCE, imported, usedFallback: false };
+    return { source: SOURCE, imported, usedFallback: false, page, totalAvailable: body.totalCount };
   } catch (err) {
     const imported = await persistImportedCards(SOURCE, DEMO_CARDS.map((c) => ({ ...c, code: `pokemon-${c.externalId}`, metadata: { demo: true } })), err.message);
     return { source: SOURCE, imported, usedFallback: true, error: err.message };

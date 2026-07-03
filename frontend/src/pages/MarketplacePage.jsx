@@ -4,18 +4,12 @@ import { useGame } from '../hooks/useGame.js';
 import { useApiResource } from '../hooks/useApiResource.js';
 import { marketApi } from '../services/marketApi.js';
 import { getRarityColor, resolveCardImage } from '../utils/cardUtils.js';
+import { dedupeCollection } from '../utils/collectionUtils.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 
 function uniqueOwnedCards(collection) {
-  const counts = new Map();
-  collection.forEach((c) => counts.set(c.id, (counts.get(c.id) || 0) + 1));
-  const seen = new Set();
-  const result = [];
-  [...collection].reverse().forEach((c) => {
-    if (!seen.has(c.id)) { seen.add(c.id); result.push({ ...c, owned: counts.get(c.id) }); }
-  });
-  return result;
+  return dedupeCollection(collection).map((c) => ({ ...c, owned: c.quantity }));
 }
 
 export default function MarketplacePage() {

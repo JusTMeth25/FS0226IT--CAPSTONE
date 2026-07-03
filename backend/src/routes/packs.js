@@ -1,6 +1,6 @@
 const express = require('express');
 const prisma = require('../prismaClient');
-const { verifyToken, loadCurrentUser } = require('../middleware/auth');
+const { verifyToken, loadCurrentUser, optionalCurrentUser } = require('../middleware/auth');
 const { generatePackCards } = require('../utils/packGenerator');
 const { adjustGold, InsufficientGoldError } = require('../utils/wallet');
 const { incrementMissionsByType, recomputeAbsoluteMissions } = require('../utils/missions');
@@ -10,12 +10,19 @@ const router = express.Router();
 
 const FREE_PACK_COOLDOWN_MS_PER_HOUR = 60 * 60 * 1000;
 
-router.get('/packs', async (req, res, next) => {
+router.get('/packs', optionalCurrentUser, async (req, res, next) => {
   try {
     const packs = await prisma.pack.findMany({
       where: { isActive: true },
       include: { packDropRates: true, packGuarantees: true }
     });
+
+    let creditsByCode = {};
+    if (req.currentUser) {
+      const credits = await prisma.userPackCredit.findMany({ where: { userId: req.currentUser.id, quantity: { gt: 0 } } });
+      creditsByCode = Object.fromEntries(credits.map((c) => [c.packCode, c.quantity]));
+    }
+
     res.json({
       packs: packs.map((p) => ({
         id: p.code,
@@ -26,8 +33,10 @@ router.get('/packs', async (req, res, next) => {
         isFree: p.isFree,
         freeCooldownHours: p.freeCooldownHours,
         dropRates: Object.fromEntries(p.packDropRates.map((dr) => [dr.rarity, dr.weight])),
-        guarantees: Object.fromEntries(p.packGuarantees.map((g) => [g.rarity, g.count]))
-      }))
+        guarantees: Object.fromEntries(p.packGuarantees.map((g) => [g.rarity, g.count])),
+        giftedCount: creditsByCode[p.code] || 0
+      })),
+      lastFreePackAt: req.currentUser?.lastFreePackAt || null
     });
   } catch (err) {
     next(err);
@@ -89,27 +98,32 @@ router.post('/open-pack', verifyToken, loadCurrentUser, async (req, res, next) =
         }
       });
 
-      for (const card of cards) {
-        await tx.userCard.upsert({
-          where: { userId_cardId: { userId, cardId: card.id } },
-          update: { quantity: { increment: 1 }, obtainedAt: new Date() },
-          create: { userId, cardId: card.id, quantity: 1 }
-        });
-        await tx.packOpeningCard.create({
-          data: { packOpeningId: packOpening.id, cardId: card.id, rarity: card.rarity }
-        });
-      }
+      // Le carte di un'apertura sono sempre distinte (generatePackCards esclude i duplicati), quindi
+      // ogni upsert tocca una riga diversa: possiamo eseguirli in parallelo invece che in sequenza.
+      // Con un database remoto ogni query ha una latenza di rete non trascurabile: farle in sequenza
+      // per pacchetti da 10 carte rischiava di superare il timeout di transazione di Prisma.
+      await Promise.all(cards.map((card) => tx.userCard.upsert({
+        where: { userId_cardId: { userId, cardId: card.id } },
+        update: { quantity: { increment: 1 }, obtainedAt: new Date() },
+        create: { userId, cardId: card.id, quantity: 1 }
+      })));
+      await Promise.all(cards.map((card) => tx.packOpeningCard.create({
+        data: { packOpeningId: packOpening.id, cardId: card.id, rarity: card.rarity }
+      })));
+
+      const rarityCounts = {};
+      cards.forEach((card) => { rarityCounts[card.rarity] = (rarityCounts[card.rarity] || 0) + 1; });
 
       await incrementMissionsByType(tx, userId, 'open_packs', 1);
       await incrementMissionsByType(tx, userId, 'collect_cards', cards.length);
-      for (const card of cards) {
-        await incrementMissionsByType(tx, userId, 'collect_rarity', 1, { rarity: card.rarity });
-      }
+      await Promise.all(
+        Object.entries(rarityCounts).map(([rarity, count]) => incrementMissionsByType(tx, userId, 'collect_rarity', count, { rarity }))
+      );
       await recomputeAbsoluteMissions(tx, userId);
 
       const freshUser = await tx.user.findUnique({ where: { id: userId } });
       return { cards, gold: freshUser.gold };
-    });
+    }, { timeout: 20000 });
 
     res.json({ cards: result.cards.map(serializeCard), gold: result.gold });
   } catch (err) {

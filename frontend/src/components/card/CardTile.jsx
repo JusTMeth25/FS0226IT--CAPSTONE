@@ -1,4 +1,5 @@
 import { getRarityCSSClass, getRarityColor, getRarityName, getStars, resolveCardImage } from '../../utils/cardUtils.js';
+import CardHoloFrame from './CardHoloFrame.jsx';
 
 function Stars({ count, color }) {
   return (
@@ -9,6 +10,21 @@ function Stars({ count, color }) {
         </span>
       ))}
     </span>
+  );
+}
+
+/** Riflesso olografico + sparkle (solo rarità alte, gestito via CSS) che segue il puntatore. */
+function HoloLayers() {
+  return (
+    <>
+      <div className="card-holo-glare" />
+      <div className="card-holo-rainbow" />
+      <div className="card-holo-sparkles">
+        {Array.from({ length: 8 }, (_, i) => (
+          <div key={i} className={`card-sparkle card-sparkle-${i + 1}`} />
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -38,16 +54,29 @@ export default function CardTile({ card, quantity, unknown = false, onClick }) {
 
   if (card.fullImage) {
     return (
-      <div className={`card ${rarityClass} card-full-image`} title={`${card.name} - ${getRarityName(card.rarity)}`} onClick={onClick}>
+      <CardHoloFrame
+        rarity={card.rarity}
+        maxTilt={8}
+        className={`card ${rarityClass} card-full-image`}
+        title={`${card.name} - ${getRarityName(card.rarity)}`}
+        onClick={onClick}
+      >
         <img src={resolveCardImage(card)} alt={card.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }} />
+        <HoloLayers />
         <span className="card-rarity-badge" style={{ position: 'absolute', top: 8, left: 8, zIndex: 2 }}>{getRarityName(card.rarity)}</span>
         {quantity > 1 && <span className="card-quantity-badge" style={{ position: 'absolute', bottom: 8, right: 8, zIndex: 2 }}>×{quantity}</span>}
-      </div>
+      </CardHoloFrame>
     );
   }
 
   return (
-    <div className={`card ${rarityClass}`} title={`${card.name} - ${getRarityName(card.rarity)}`} onClick={onClick}>
+    <CardHoloFrame
+      rarity={card.rarity}
+      maxTilt={8}
+      className={`card ${rarityClass}`}
+      title={`${card.name} - ${getRarityName(card.rarity)}`}
+      onClick={onClick}
+    >
       <span className="card-rarity-badge">{getRarityName(card.rarity)}</span>
       {quantity > 1 && <span className="card-quantity-badge">×{quantity}</span>}
       <div className="card-artwork">
@@ -58,6 +87,7 @@ export default function CardTile({ card, quantity, unknown = false, onClick }) {
         <div className="card-class">{card.artistClass}</div>
         <Stars count={getStars(card.rarity)} color={color} />
       </div>
-    </div>
+      <HoloLayers />
+    </CardHoloFrame>
   );
 }

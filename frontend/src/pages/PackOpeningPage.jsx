@@ -23,7 +23,7 @@ function RarityLadder() {
   );
 }
 
-function PackSelectCard({ pack, gold, isFreeAvailable, cooldownRemaining, giftedCount, onOpen }) {
+function PackSelectCard({ pack, gold, isFreeAvailable, cooldownRemaining, giftedCount, onOpen, submitting }) {
   const canAffordPaid = gold >= pack.price;
   let priceBadge;
   if (pack.isFree) {
@@ -50,20 +50,21 @@ function PackSelectCard({ pack, gold, isFreeAvailable, cooldownRemaining, gifted
         <RarityLadder />
         <div className="pack-card-actions">
           {giftedCount > 0 && (
-            <button className="btn btn-primary" onClick={() => onOpen(pack.id, 'gift')}>
+            <button className="btn btn-primary" disabled={submitting} onClick={() => onOpen(pack.id, 'gift')}>
               <i className="ph-fill ph-gift" /> Apri Regalo (x{giftedCount})
             </button>
           )}
           {pack.isFree && (
             isFreeAvailable
-              ? <button className="btn btn-primary" onClick={() => onOpen(pack.id, 'free')}><i className="ph-fill ph-sparkle" /> Apri Gratis</button>
+              ? <button className="btn btn-primary" disabled={submitting} onClick={() => onOpen(pack.id, 'free')}><i className="ph-fill ph-sparkle" /> Apri Gratis</button>
               : <button className="btn btn-secondary" disabled><i className="ph-fill ph-hourglass" /> Gratis tra {formatDuration(cooldownRemaining).slice(0, 5)}</button>
           )}
           <button
             className={`btn ${canAffordPaid ? (pack.id === 'pack-premium' ? 'btn-gold' : 'btn-primary') : 'btn-secondary'}`}
+            disabled={submitting}
             onClick={() => onOpen(pack.id, 'paid')}
           >
-            <i className="ph-fill ph-coin" /> {pack.isFree ? `Compra (${pack.price})` : `Apri Pacchetto (${pack.price})`}
+            <i className="ph-fill ph-coin" /> {submitting ? 'Apertura…' : pack.isFree ? `Compra (${pack.price})` : `Apri Pacchetto (${pack.price})`}
           </button>
         </div>
         <div className="pack-card-barcode" />
@@ -134,6 +135,7 @@ export default function PackOpeningPage() {
   const [revealedCount, setRevealedCount] = useState(0);
   const [boxOpen, setBoxOpen] = useState(false);
   const [notice, setNotice] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const basePack = PACKS.find((p) => p.isFree);
   const cooldownRemaining = game.getFreeCooldownRemaining(basePack);
@@ -164,21 +166,35 @@ export default function PackOpeningPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, cards]);
 
+  const ERROR_MESSAGES = {
+    insufficient_gold: 'Non hai abbastanza gold per questo pacchetto.',
+    cooldown: 'Il pacchetto gratuito non è ancora disponibile.',
+    no_gift_available: 'Non hai più pacchetti regalo di questo tipo.',
+    open_pack_failed: 'Non è stato possibile aprire il pacchetto. Riprova.'
+  };
+
   async function handleOpen(packId, mode) {
+    // Guardia anti doppio-click: senza, un secondo click mentre la richiesta è in corso
+    // avviava una seconda apertura che, arrivando in ritardo, faceva ripartire da capo
+    // l'animazione di reveal già avviata dalla prima.
+    if (submitting) return;
+
     const pack = PACKS.find((p) => p.id === packId);
     if (mode === 'paid' && game.gold < pack.price) {
       sound.error();
-      setNotice('Non hai abbastanza gold per questo pacchetto.');
+      setNotice(ERROR_MESSAGES.insufficient_gold);
       setTimeout(() => setNotice(null), 3000);
       return;
     }
+
+    setSubmitting(true);
     const res = await game.openPack(packId, mode);
+    setSubmitting(false);
+
     if (res.error) {
-      if (res.error === 'insufficient_gold') {
-        sound.error();
-        setNotice('Non hai abbastanza gold per questo pacchetto.');
-        setTimeout(() => setNotice(null), 3000);
-      }
+      sound.error();
+      setNotice(ERROR_MESSAGES[res.error] || ERROR_MESSAGES.open_pack_failed);
+      setTimeout(() => setNotice(null), 3000);
       return;
     }
     setSelectedPack(pack);
@@ -215,6 +231,7 @@ export default function PackOpeningPage() {
               cooldownRemaining={cooldownRemaining}
               giftedCount={game.freePacks[pack.id] || 0}
               onOpen={handleOpen}
+              submitting={submitting}
             />
           ))}
         </div>

@@ -9,7 +9,7 @@ const DEMO_CARDS = [
 
 function mapRarity(raw) {
   const r = (raw || '').toLowerCase();
-  if (r.includes('secret') || r.includes('ultimate') || r.includes('ghost') || r.includes('collector')) return 'legendary';
+  if (r.includes('secret') || r.includes('ultimate') || r.includes('ghost') || r.includes('collector') || r.includes('starlight') || r.includes('quarter century')) return 'legendary';
   if (r.includes('ultra')) return 'epic';
   if (r.includes('super')) return 'rare';
   if (r.includes('rare')) return 'uncommon';
@@ -32,17 +32,25 @@ function normalize(card) {
   };
 }
 
-/** @param {{ limit?: number }} [opts] */
+/**
+ * @param {{ limit?: number, offset?: number }} [opts] - Se `offset` non è specificato viene scelto
+ * un punto casuale nel database (~14000 carte), così click ripetuti dal pannello admin importano
+ * carte diverse invece di riscrivere sempre le stesse prime N.
+ */
 async function importYugiohCards(opts = {}) {
-  const limit = opts.limit || 20;
+  const limit = Math.min(opts.limit || 100, 200);
+  const offset = opts.offset ?? Math.floor(Math.random() * 14000);
 
   try {
-    const res = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?num=${limit}&offset=0`, { signal: AbortSignal.timeout(10000) });
+    const res = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?num=${limit}&offset=${offset}`, {
+      headers: { 'User-Agent': 'VinylLegends/1.0', Accept: 'application/json' },
+      signal: AbortSignal.timeout(15000)
+    });
     if (!res.ok) throw new Error(`ygoprodeck_api_${res.status}`);
     const body = await res.json();
     const normalized = (body.data || []).map(normalize);
     const imported = await persistImportedCards(SOURCE, normalized);
-    return { source: SOURCE, imported, usedFallback: false };
+    return { source: SOURCE, imported, usedFallback: false, offset, totalAvailable: body.meta?.total_rows };
   } catch (err) {
     const imported = await persistImportedCards(SOURCE, DEMO_CARDS.map((c) => ({ ...c, code: `yugioh-${c.externalId}`, metadata: { demo: true } })), err.message);
     return { source: SOURCE, imported, usedFallback: true, error: err.message };

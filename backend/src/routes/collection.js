@@ -60,6 +60,17 @@ router.get('/collection', verifyToken, loadCurrentUser, async (req, res, next) =
   }
 });
 
+/** GET /api/cards/:id - lookup pubblico di una singola carta dal catalogo (id = code) */
+router.get('/cards/:id', async (req, res, next) => {
+  try {
+    const card = await prisma.card.findUnique({ where: { code: req.params.id }, include: { artistClass: true } });
+    if (!card || !card.isActive) return res.status(404).json({ error: 'card_not_found' });
+    res.json({ card: serializeCard(card) });
+  } catch (err) {
+    next(err);
+  }
+});
+
 /** POST /api/collection/:cardId/favorite - cardId è il code pubblico della carta */
 router.post('/collection/:cardId/favorite', verifyToken, loadCurrentUser, async (req, res, next) => {
   try {

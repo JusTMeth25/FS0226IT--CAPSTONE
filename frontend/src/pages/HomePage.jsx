@@ -6,6 +6,7 @@ import { PACKS } from '../data/packs.js';
 import { findPackById } from '../data/packs.js';
 import { getRarityColor, getTotalScore, RARITY_ORDER } from '../utils/cardUtils.js';
 import { generateMissions } from '../utils/missionUtils.js';
+import { dedupeCollection } from '../utils/collectionUtils.js';
 import { useCountdown, formatDuration } from '../hooks/useCountdown.js';
 import CardTile from '../components/card/CardTile.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
@@ -27,29 +28,22 @@ export default function HomePage() {
   const basePack = findPackById('pack-base');
   const otherPacks = PACKS.filter((p) => !p.isFree);
 
-  const remaining = useCountdown(() => game.getFreeCooldownRemaining(basePack));
+  const lastFreePackAtMs = game.lastFreePackAt
+    ? (typeof game.lastFreePackAt === 'number' ? game.lastFreePackAt : new Date(game.lastFreePackAt).getTime())
+    : 0;
+  const cooldownMs = (basePack.freeCooldownHours || 4) * 60 * 60 * 1000;
+  const freePackTargetAt = lastFreePackAtMs ? lastFreePackAtMs + cooldownMs : 0;
+  const remaining = useCountdown(freePackTargetAt);
   const isFreeAvailable = game.isFreeAvailable(basePack);
 
   const { recentCards, featuredCard, progressPercent, ownedCount } = useMemo(() => {
-    const collection = game.collection;
-    const counts = new Map();
-    collection.forEach((c) => counts.set(c.id, (counts.get(c.id) || 0) + 1));
-
-    const seen = new Set();
-    const unique = [...collection]
-      .sort((a, b) => (b.obtainedAt || 0) - (a.obtainedAt || 0))
-      .filter((c) => {
-        if (seen.has(c.id)) return false;
-        seen.add(c.id);
-        return true;
-      })
-      .map((c) => ({ ...c, quantity: counts.get(c.id) || 1 }));
+    const unique = dedupeCollection(game.collection);
 
     let featured = null;
     let bestWeight = -1;
-    collection.forEach((c) => {
+    unique.forEach((c) => {
       const weight = RARITY_ORDER[c.rarity] || 0;
-      if (weight > bestWeight || (weight === bestWeight && (c.obtainedAt || 0) > (featured?.obtainedAt || 0))) {
+      if (weight > bestWeight || (weight === bestWeight && new Date(c.obtainedAt || 0) > new Date(featured?.obtainedAt || 0))) {
         featured = c;
         bestWeight = weight;
       }
@@ -58,8 +52,8 @@ export default function HomePage() {
     return {
       recentCards: unique.slice(0, 8),
       featuredCard: featured,
-      ownedCount: seen.size,
-      progressPercent: CARDS.length > 0 ? Math.round((seen.size / CARDS.length) * 100) : 0
+      ownedCount: unique.length,
+      progressPercent: CARDS.length > 0 ? Math.round((unique.length / CARDS.length) * 100) : 0
     };
   }, [game.collection]);
 

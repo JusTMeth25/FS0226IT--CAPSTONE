@@ -49,6 +49,27 @@ async function loadCurrentUser(req, res, next) {
   }
 }
 
+/**
+ * Come loadCurrentUser, ma non blocca la richiesta se il token manca o non è valido:
+ * imposta req.currentUser solo se un token valido e non bannato è presente.
+ * Utile per endpoint pubblici che si arricchiscono di dati personalizzati se l'utente è loggato.
+ */
+async function optionalCurrentUser(req, res, next) {
+  const auth = req.headers.authorization || req.headers.Authorization;
+  if (!auth || !auth.startsWith('Bearer ')) return next();
+
+  const payload = decodeToken(auth.split(' ')[1]);
+  if (!payload?.sub) return next();
+
+  try {
+    const user = await prisma.user.findUnique({ where: { id: payload.sub } });
+    if (user && !user.banned) req.currentUser = user;
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
+
 function requireAdmin(req, res, next) {
   if (!req.currentUser || req.currentUser.role !== 'ADMIN') {
     return res.status(403).json({ error: 'forbidden' });
@@ -64,4 +85,4 @@ function decodeToken(token) {
   }
 }
 
-module.exports = { verifyToken, loadCurrentUser, requireAdmin, decodeToken };
+module.exports = { verifyToken, loadCurrentUser, optionalCurrentUser, requireAdmin, decodeToken };

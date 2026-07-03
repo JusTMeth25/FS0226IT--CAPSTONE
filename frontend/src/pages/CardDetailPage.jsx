@@ -4,24 +4,41 @@ import { useGame } from '../hooks/useGame.js';
 import { CARDS, findCardById } from '../data/cards.js';
 import { PACKS } from '../data/packs.js';
 import { getRarityColor, getRarityName } from '../utils/cardUtils.js';
+import { cardApi } from '../services/cardApi.js';
+import { useApiResource } from '../hooks/useApiResource.js';
 import CardHero from '../components/card/CardHero.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
+import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 
 export default function CardDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { collection, favorites, toggleFavorite } = useGame();
 
-  const masterCard = findCardById(id);
+  // Catalogo statico locale (le 43 carte originali): copre subito il flusso "carta non ancora
+  // scoperta" dell'Album. Le carte importate da API esterne non ci sono e vanno cercate lato server.
+  const localCard = findCardById(id);
 
   const ownedEntry = useMemo(() => {
     const matches = collection.filter((c) => c.id === id);
     if (!matches.length) return null;
-    const mostRecent = [...matches].sort((a, b) => (b.obtainedAt || 0) - (a.obtainedAt || 0))[0];
-    return { ...mostRecent, quantity: matches.length };
+    const mostRecent = [...matches].sort((a, b) => new Date(b.obtainedAt || 0) - new Date(a.obtainedAt || 0))[0];
+    // Il server restituisce già la quantità reale sull'entry; l'ospite ha una entry per copia.
+    return { ...mostRecent, quantity: 'quantity' in mostRecent ? mostRecent.quantity : matches.length };
   }, [collection, id]);
 
-  if (!masterCard) {
+  // Se la carta non è né nel catalogo locale né tra quelle possedute, potrebbe comunque esistere
+  // nel catalogo backend (es. importata da Pokémon/Scryfall/Yu-Gi-Oh! ma non ancora posseduta).
+  const needsRemoteLookup = !localCard && !ownedEntry;
+  const remote = useApiResource(
+    () => (needsRemoteLookup ? cardApi.getCard(id) : Promise.resolve(null)),
+    [id, needsRemoteLookup]
+  );
+
+  const referenceCard = ownedEntry || localCard || remote.data?.card || null;
+
+  if (!referenceCard) {
+    if (needsRemoteLookup && remote.loading) return <LoadingSpinner label="Carico la carta…" />;
     return (
       <EmptyState
         icon="ph-question"
@@ -33,24 +50,24 @@ export default function CardDetailPage() {
   }
 
   if (!ownedEntry) {
-    const color = getRarityColor(masterCard.rarity);
+    const color = getRarityColor(referenceCard.rarity);
     let bestPack = PACKS[0];
-    let bestRate = PACKS[0].dropRates[masterCard.rarity] || 0;
+    let bestRate = PACKS[0].dropRates[referenceCard.rarity] || 0;
     PACKS.forEach((p) => {
-      const rate = p.dropRates[masterCard.rarity] || 0;
+      const rate = p.dropRates[referenceCard.rarity] || 0;
       if (rate > bestRate) { bestRate = rate; bestPack = p; }
     });
 
     let guaranteeText = '';
-    if (masterCard.rarity === 'legendary') guaranteeText = 'Garantita nei Pacchetti Premium!';
-    else if (masterCard.rarity === 'epic') guaranteeText = 'Garantita nei Pacchetti Deluxe!';
-    else if (masterCard.rarity === 'rare') guaranteeText = 'Garantita in tutti i pacchetti!';
+    if (referenceCard.rarity === 'legendary') guaranteeText = 'Garantita nei Pacchetti Premium!';
+    else if (referenceCard.rarity === 'epic') guaranteeText = 'Garantita nei Pacchetti Deluxe!';
+    else if (referenceCard.rarity === 'rare') guaranteeText = 'Garantita in tutti i pacchetti!';
 
     return (
       <section className="card-detail-page">
         <div style={{ fontSize: '4rem', opacity: 0.3, margin: 'var(--space-lg) 0' }}><i className="ph ph-question" /></div>
         <h2 style={{ color }}>???</h2>
-        <span className="card-detail-class">{masterCard.artistClass} — {getRarityName(masterCard.rarity)}</span>
+        <span className="card-detail-class">{referenceCard.artistClass || referenceCard.source} — {getRarityName(referenceCard.rarity)}</span>
 
         <div className="glass-panel" style={{ marginTop: 'var(--space-md)', background: 'rgba(0,0,0,0.3)', width: '100%' }}>
           <p style={{ fontStyle: 'italic', color: 'var(--text-secondary)', marginBottom: 'var(--space-md)' }}>
@@ -76,11 +93,13 @@ export default function CardDetailPage() {
     );
   }
 
-  const classCards = CARDS.filter((c) => c.artistClass === masterCard.artistClass);
+  // Carta posseduta: usiamo sempre i dati reali di `ownedEntry` (collezione), mai il catalogo
+  // locale — così funziona anche per le carte importate, che non sono nel catalogo statico.
+  const classCards = ownedEntry.artistClass ? CARDS.filter((c) => c.artistClass === ownedEntry.artistClass) : [];
   const ownedIds = new Set(collection.map((c) => c.id));
   const classProgress = classCards.filter((c) => ownedIds.has(c.id)).length;
   const classTotal = classCards.length;
-  const color = getRarityColor(masterCard.rarity);
+  const color = getRarityColor(ownedEntry.rarity);
   const isFavorite = favorites.includes(id);
 
   const dateStr = ownedEntry.obtainedAt
@@ -100,15 +119,24 @@ export default function CardDetailPage() {
           <span className="meta-label">Quantità</span>
           <span className="meta-value">×{ownedEntry.quantity}</span>
         </div>
-        <div className="card-detail-meta-item">
-          <span className="meta-label">Classe completata</span>
-          <span className="meta-value">{classProgress}/{classTotal}</span>
-        </div>
+        {classTotal > 0 ? (
+          <div className="card-detail-meta-item">
+            <span className="meta-label">Classe completata</span>
+            <span className="meta-value">{classProgress}/{classTotal}</span>
+          </div>
+        ) : (
+          <div className="card-detail-meta-item">
+            <span className="meta-label">Fonte</span>
+            <span className="meta-value">{ownedEntry.source === 'original' ? 'VinylLegends' : ownedEntry.source}</span>
+          </div>
+        )}
       </div>
 
-      <div className="progress-bar" style={{ width: '100%' }}>
-        <div className="progress-fill" style={{ width: `${(classProgress / classTotal) * 100}%`, background: `linear-gradient(90deg, ${color}, ${color}88)` }} />
-      </div>
+      {classTotal > 0 && (
+        <div className="progress-bar" style={{ width: '100%' }}>
+          <div className="progress-fill" style={{ width: `${(classProgress / classTotal) * 100}%`, background: `linear-gradient(90deg, ${color}, ${color}88)` }} />
+        </div>
+      )}
 
       <button className={`btn ${isFavorite ? 'btn-gold' : 'btn-secondary'}`} onClick={() => toggleFavorite(id)}>
         <i className={isFavorite ? 'ph-fill ph-star' : 'ph ph-star'} /> {isFavorite ? 'Preferita' : 'Aggiungi ai preferiti'}

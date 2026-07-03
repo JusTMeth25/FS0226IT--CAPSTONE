@@ -32,18 +32,30 @@ function normalize(card) {
   };
 }
 
-/** @param {{ limit?: number, query?: string }} [opts] */
+/**
+ * @param {{ limit?: number, query?: string, page?: number }} [opts] - limit: max ~175 (dimensione
+ * pagina Scryfall). `query` di default molto ampia (qualunque carta Magic reale dal 1993 ad oggi).
+ * Se `page` non è specificato viene scelta una pagina casuale: Scryfall mette in cache le risposte
+ * per query+pagina, quindi variare la pagina (non l'ordine) è ciò che dà risultati diversi ad ogni
+ * click ripetuto dal pannello admin, invece di riscrivere sempre le stesse carte.
+ */
 async function importScryfallCards(opts = {}) {
-  const limit = opts.limit || 20;
-  const query = opts.query || 't:creature';
+  const limit = Math.min(opts.limit || 100, 175);
+  const query = opts.query || 'year>=1993';
+  const page = opts.page || Math.floor(Math.random() * 180) + 1;
 
   try {
-    const res = await fetch(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&order=edhrec`, { signal: AbortSignal.timeout(10000) });
+    // Scryfall rifiuta le richieste con uno User-Agent generico da libreria HTTP:
+    // richiede un User-Agent personalizzato che identifichi l'applicazione chiamante.
+    const res = await fetch(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&page=${page}`, {
+      headers: { 'User-Agent': 'VinylLegends/1.0', Accept: 'application/json' },
+      signal: AbortSignal.timeout(15000)
+    });
     if (!res.ok) throw new Error(`scryfall_api_${res.status}`);
     const body = await res.json();
     const normalized = (body.data || []).slice(0, limit).map(normalize);
     const imported = await persistImportedCards(SOURCE, normalized);
-    return { source: SOURCE, imported, usedFallback: false };
+    return { source: SOURCE, imported, usedFallback: false, page, totalAvailable: body.total_cards };
   } catch (err) {
     const imported = await persistImportedCards(SOURCE, DEMO_CARDS.map((c) => ({ ...c, code: `scryfall-${c.externalId}`, metadata: { demo: true } })), err.message);
     return { source: SOURCE, imported, usedFallback: true, error: err.message };

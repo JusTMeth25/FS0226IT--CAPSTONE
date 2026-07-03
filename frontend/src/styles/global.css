@@ -508,6 +508,92 @@ ul, ol { list-style: none; }
 .card-hero-full .card-hero-art { position: static; width: 100%; height: auto; display: block; object-fit: contain; }
 .card-hero-full .card-hero-qty-badge { position: absolute; top: var(--space-md); right: var(--space-md); z-index: 2; }
 
+/* ========================================
+   CARD HOLO EFFECT — tilt 3D + riflesso olografico che segue il puntatore
+   (mouse o touch), stile foil delle TCG fisiche. Guidato da useCardTilt:
+   imposta inline le custom property --x/--y/--holo-opacity e il transform.
+   ======================================== */
+.card-holo {
+  position: relative;
+  transition: transform 0.15s ease-out;
+  will-change: transform;
+}
+
+.card-holo-glare,
+.card-holo-rainbow,
+.card-holo-sparkles {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--holo-opacity, 0);
+  transition: opacity 0.4s ease;
+}
+
+.card-holo-glare {
+  z-index: 3;
+  background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255, 255, 255, 0.4), transparent 55%);
+  mix-blend-mode: overlay;
+}
+
+.card-holo-rainbow {
+  z-index: 3;
+  background-image: repeating-linear-gradient(
+    115deg,
+    rgba(255, 0, 120, 0.35) 0%,
+    rgba(255, 215, 0, 0.35) 8%,
+    rgba(0, 255, 160, 0.35) 16%,
+    rgba(0, 180, 255, 0.35) 24%,
+    rgba(180, 60, 255, 0.35) 32%,
+    rgba(255, 0, 120, 0.35) 40%
+  );
+  background-size: 250% 250%;
+  background-position: var(--x, 50%) var(--y, 50%);
+  mix-blend-mode: soft-light;
+  opacity: calc(var(--holo-opacity, 0) * 0.6);
+}
+/* Il foil arcobaleno è tipico solo delle rarità alte: comune/non comune restano opache. */
+.card-holo-common .card-holo-rainbow,
+.card-holo-uncommon .card-holo-rainbow { display: none; }
+.card-holo-rare .card-holo-rainbow { filter: saturate(0.55) brightness(0.85); }
+.card-holo-epic .card-holo-rainbow { filter: saturate(0.8) brightness(0.95); }
+.card-holo-legendary .card-holo-rainbow { filter: saturate(1.05) brightness(1.05); }
+
+.card-holo-sparkles { z-index: 4; }
+/* Gli sparkle animati sono riservati alle leggendarie, come highlight massimo di rarità. */
+.card-holo-common .card-holo-sparkles,
+.card-holo-uncommon .card-holo-sparkles,
+.card-holo-rare .card-holo-sparkles,
+.card-holo-epic .card-holo-sparkles { display: none; }
+
+.card-sparkle {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.9);
+  animation: cardSparkleTwinkle 1.8s ease-in-out infinite;
+}
+.card-sparkle-1 { top: 14%; left: 22%; animation-delay: 0s; }
+.card-sparkle-2 { top: 28%; left: 74%; animation-delay: 0.25s; }
+.card-sparkle-3 { top: 52%; left: 12%; animation-delay: 0.5s; }
+.card-sparkle-4 { top: 68%; left: 62%; animation-delay: 0.75s; }
+.card-sparkle-5 { top: 42%; left: 44%; animation-delay: 1s; }
+.card-sparkle-6 { top: 18%; left: 88%; animation-delay: 1.25s; }
+.card-sparkle-7 { top: 82%; left: 28%; animation-delay: 1.5s; }
+.card-sparkle-8 { top: 8%; left: 55%; animation-delay: 1.75s; }
+
+@keyframes cardSparkleTwinkle {
+  0%, 100% { opacity: 0; transform: scale(0.3); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-holo { transition: none; }
+  .card-sparkle { animation: none; opacity: 0; }
+}
+
 .stat-bar-row { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm); }
 .stat-bar-label { width: 70px; font-size: 0.75rem; color: var(--text-muted); flex-shrink: 0; }
 .stat-bar-track { flex: 1; height: 8px; background: var(--bg-tertiary); border-radius: 5px; overflow: hidden; }

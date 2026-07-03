@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { authApi } from '../services/authApi.js';
 import { getToken, setToken } from '../services/apiClient.js';
 import { AuthContext } from './auth-context.js';
@@ -58,15 +58,28 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
-  const value = {
+  /** Ri-legge il profilo dal server (gold/xp/level/lastLoginDate cambiano dopo azioni di gioco). */
+  const refreshUser = useCallback(async () => {
+    if (!getToken()) return null;
+    try {
+      const res = await authApi.profile();
+      setUser(res?.user || null);
+      return res?.user || null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const value = useMemo(() => ({
     user,
     loading,
     error,
     isAuthenticated: !!user,
     login,
     register,
-    logout
-  };
+    logout,
+    refreshUser
+  }), [user, loading, error, login, register, logout, refreshUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

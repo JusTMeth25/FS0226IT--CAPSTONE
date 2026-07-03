@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
 import { CARDS, getArtistClasses } from '../data/cards.js';
 import { RARITIES, RARITY_ORDER, getTotalScore } from '../utils/cardUtils.js';
+import { dedupeCollection } from '../utils/collectionUtils.js';
 import CardTile from '../components/card/CardTile.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 
@@ -19,18 +20,7 @@ export default function CollectionPage() {
   const uniqueCount = useMemo(() => new Set(collection.map((c) => c.id)).size, [collection]);
 
   const filteredCards = useMemo(() => {
-    const counts = new Map();
-    collection.forEach((c) => counts.set(c.id, (counts.get(c.id) || 0) + 1));
-
-    const seen = new Set();
-    let unique = [...collection]
-      .sort((a, b) => (b.obtainedAt || 0) - (a.obtainedAt || 0))
-      .filter((c) => {
-        if (seen.has(c.id)) return false;
-        seen.add(c.id);
-        return true;
-      })
-      .map((c) => ({ ...c, quantity: counts.get(c.id) || 1 }));
+    let unique = dedupeCollection(collection);
 
     if (classFilter) unique = unique.filter((c) => c.artistClass === classFilter);
     if (rarityFilter) unique = unique.filter((c) => c.rarity === rarityFilter);
@@ -42,7 +32,7 @@ export default function CollectionPage() {
         case 'rarity': cmp = (RARITY_ORDER[b.rarity] || 0) - (RARITY_ORDER[a.rarity] || 0); break;
         case 'stats': cmp = getTotalScore(b) - getTotalScore(a); break;
         case 'date':
-        default: cmp = (b.obtainedAt || 0) - (a.obtainedAt || 0);
+        default: cmp = new Date(b.obtainedAt || 0) - new Date(a.obtainedAt || 0);
       }
       return sortDir === 'desc' ? cmp : -cmp;
     });

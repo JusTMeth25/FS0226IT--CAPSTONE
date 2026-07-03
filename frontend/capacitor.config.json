@@ -1,0 +1,25 @@
+{
+  "appId": "com.vinyllegends.app",
+  "appName": "VinylLegends",
+  "webDir": "dist",
+  "backgroundColor": "#050816",
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false,
+      "backgroundColor": "#050816",
+      "showSpinner": false,
+      "androidScaleType": "CENTER_CROP"
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#050816"
+    }
+  },
+  "android": {
+    "backgroundColor": "#050816"
+  },
+  "ios": {
+    "backgroundColor": "#050816",
+    "contentInset": "automatic"
+  }
+}

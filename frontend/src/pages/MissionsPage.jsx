@@ -1,6 +1,16 @@
 import { useMemo } from 'react';
 import { useGame } from '../hooks/useGame.js';
+import { useAuth } from '../hooks/useAuth.js';
+import { useApiResource } from '../hooks/useApiResource.js';
+import { missionApi } from '../services/missionApi.js';
 import { generateMissions, todayString } from '../utils/missionUtils.js';
+import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
+
+function missionGroup(missionId) {
+  if (missionId.startsWith('daily-')) return 'daily';
+  if (missionId.startsWith('weekly-')) return 'weekly';
+  return 'progress';
+}
 
 function MissionRow({ mission, onClaim }) {
   const progress = Math.min(mission.progress, mission.target);
@@ -10,7 +20,7 @@ function MissionRow({ mission, onClaim }) {
   return (
     <div className={`missions-item ${completed ? 'missions-completed' : ''} ${mission.claimed ? 'missions-claimed' : ''}`}>
       <span className="missions-item-icon">
-        <i className={`ph-fill ${mission.claimed ? 'ph-check-circle' : completed ? mission.icon : 'ph-lock'}`} />
+        <i className={`ph-fill ${mission.claimed ? 'ph-check-circle' : completed ? mission.icon || 'ph-target' : 'ph-lock'}`} />
       </span>
       <div className="missions-item-info">
         <span className="missions-item-title">{mission.title}</span>
@@ -33,7 +43,15 @@ function MissionRow({ mission, onClaim }) {
 
 export default function MissionsPage() {
   const game = useGame();
-  const missions = useMemo(() => generateMissions(game), [game]);
+  const { isAuthenticated } = useAuth();
+
+  const guestMissions = useMemo(() => generateMissions(game), [game]);
+  const server = useApiResource(
+    () => (isAuthenticated ? missionApi.getMissions() : Promise.resolve(null)),
+    [isAuthenticated, game.collection, game.stats]
+  );
+
+  const missions = isAuthenticated ? (server.data?.missions || []) : guestMissions;
 
   const unclaimedLevels = useMemo(() => {
     const result = [];
@@ -44,6 +62,16 @@ export default function MissionsPage() {
   }, [game.levelInfo.level, game.claimedLevelRewards]);
 
   const canClaimLogin = game.lastLoginDate !== todayString();
+
+  async function handleClaim(mission) {
+    await game.claimMission(mission);
+    if (isAuthenticated) server.reload();
+  }
+
+  async function handleClaimLogin() {
+    await game.claimLoginReward();
+    if (isAuthenticated) server.reload();
+  }
 
   return (
     <section className="missions-page">
@@ -65,7 +93,7 @@ export default function MissionsPage() {
           <span className="missions-xp-text">{game.levelInfo.xpRemaining} / {game.levelInfo.xpForNext} XP</span>
         </div>
 
-        {unclaimedLevels.length > 0 && (
+        {!isAuthenticated && unclaimedLevels.length > 0 && (
           <div className="missions-level-rewards">
             <span><i className="ph-fill ph-gift" /> Ricompense livello da reclamare:</span>
             {unclaimedLevels.map((lv) => (
@@ -75,7 +103,7 @@ export default function MissionsPage() {
         )}
       </div>
 
-      <div className={`missions-login-card glass-panel ${canClaimLogin ? 'missions-login-available' : ''}`} onClick={() => canClaimLogin && game.claimLoginReward()}>
+      <div className={`missions-login-card glass-panel ${canClaimLogin ? 'missions-login-available' : ''}`} onClick={() => canClaimLogin && handleClaimLogin()}>
         <span className="missions-login-icon"><i className={`ph-fill ${canClaimLogin ? 'ph-gift' : 'ph-check-circle'}`} /></span>
         <div className="missions-login-info">
           <span className="missions-login-title">Login Giornaliero</span>
@@ -84,19 +112,25 @@ export default function MissionsPage() {
         <span className="missions-login-streak"><i className="ph-fill ph-fire" /> Giorno {game.loginStreak + (canClaimLogin ? 1 : 0)}</span>
       </div>
 
-      {['daily', 'weekly', 'progress'].map((type) => (
-        <div className="glass-panel" key={type}>
-          <h3 className="missions-section-title">
-            <i className={`ph-fill ${type === 'daily' ? 'ph-calendar' : type === 'weekly' ? 'ph-calendar-dots' : 'ph-trophy'}`} />
-            {' '}{type === 'daily' ? 'Daily' : type === 'weekly' ? 'Settimanali' : 'Progresso'}
-          </h3>
-          <div className="missions-list">
-            {missions.filter((m) => m.type === type).map((m) => (
-              <MissionRow key={m.id} mission={m} onClaim={game.claimMission} />
-            ))}
+      {isAuthenticated && server.loading ? (
+        <LoadingSpinner label="Carico le missioni…" />
+      ) : (
+        ['daily', 'weekly', 'progress'].map((type) => (
+          <div className="glass-panel" key={type}>
+            <h3 className="missions-section-title">
+              <i className={`ph-fill ${type === 'daily' ? 'ph-calendar' : type === 'weekly' ? 'ph-calendar-dots' : 'ph-trophy'}`} />
+              {' '}{type === 'daily' ? 'Daily' : type === 'weekly' ? 'Settimanali' : 'Progresso'}
+            </h3>
+            <div className="missions-list">
+              {missions
+                .filter((m) => (isAuthenticated ? missionGroup(m.id) === type : m.type === type))
+                .map((m) => (
+                  <MissionRow key={m.id} mission={m} onClaim={handleClaim} />
+                ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ))
+      )}
     </section>
   );
 }

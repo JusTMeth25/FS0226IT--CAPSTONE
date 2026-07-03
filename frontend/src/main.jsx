@@ -6,6 +6,9 @@ import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { GameProvider } from './context/GameContext.jsx'
 import { SoundProvider } from './context/SoundContext.jsx'
+import { initNativeApp } from './services/nativeInit.js'
+
+initNativeApp()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

@@ -115,25 +115,46 @@ function PacksTab() {
 
 function ImportTab() {
   const [status, setStatus] = useState({});
+  const [count, setCount] = useState(100);
 
   async function runImport(key, fn) {
     setStatus((s) => ({ ...s, [key]: { loading: true } }));
     try {
       const res = await fn();
-      setStatus((s) => ({ ...s, [key]: { loading: false, ok: true, message: `Importate ${res?.imported ?? 0} carte.` } }));
+      const detail = res?.usedFallback
+        ? `Servizio non raggiungibile (${res.error}): importate ${res?.imported ?? 0} carte demo di fallback.`
+        : `Importate ${res?.imported ?? 0} carte nuove/aggiornate${res?.totalAvailable ? ` (su ${res.totalAvailable} disponibili nella fonte)` : ''}.`;
+      setStatus((s) => ({ ...s, [key]: { loading: false, ok: !res?.usedFallback, message: detail } }));
     } catch (err) {
       setStatus((s) => ({ ...s, [key]: { loading: false, ok: false, message: err.message } }));
     }
   }
 
   const sources = [
-    { key: 'pokemon', label: 'Pokémon TCG', fn: () => adminApi.importPokemon({}) },
-    { key: 'scryfall', label: 'Magic (Scryfall)', fn: () => adminApi.importScryfall({}) },
-    { key: 'yugioh', label: 'Yu-Gi-Oh!', fn: () => adminApi.importYugioh({}) }
+    { key: 'pokemon', label: 'Pokémon TCG', fn: () => adminApi.importPokemon({ limit: count }) },
+    { key: 'scryfall', label: 'Magic (Scryfall)', fn: () => adminApi.importScryfall({ limit: count }) },
+    { key: 'yugioh', label: 'Yu-Gi-Oh!', fn: () => adminApi.importYugioh({ limit: count }) }
   ];
 
   return (
     <div className="admin-list">
+      <div className="admin-form-row glass-panel">
+        <div className="filter-group">
+          <label className="filter-label">Carte da importare per click (max ~200)</label>
+          <input
+            className="ai-input"
+            type="number"
+            min="1"
+            max="250"
+            value={count}
+            onChange={(e) => setCount(Math.max(1, Math.min(250, Number(e.target.value) || 1)))}
+          />
+        </div>
+      </div>
+      <p className="page-subtitle">
+        Ogni fonte ha migliaia di carte: ogni click importa un blocco da un punto casuale del database esterno,
+        così click ripetuti aggiungono carte nuove invece di riscrivere sempre le stesse.
+      </p>
       {sources.map((s) => (
         <div className="admin-list-item glass-panel" key={s.key}>
           <div className="listing-item-info">

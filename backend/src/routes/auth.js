@@ -53,7 +53,7 @@ router.post('/register', async (req, res, next) => {
 
     const user = await prisma.user.create({
       data: { username, email, passwordHash },
-      select: { id: true, username: true, email: true, gold: true, xp: true, level: true, role: true, createdAt: true },
+      select: { id: true, username: true, email: true, gold: true, xp: true, level: true, role: true, lastLoginDate: true, loginStreak: true, createdAt: true },
     });
 
     const token = generateToken(user);
@@ -87,6 +87,8 @@ router.post('/login', async (req, res, next) => {
       xp: user.xp,
       level: user.level,
       role: user.role,
+      lastLoginDate: user.lastLoginDate,
+      loginStreak: user.loginStreak,
     };
 
     const token = generateToken(publicUser);
@@ -116,6 +118,8 @@ router.get('/profile', verifyToken, async (req, res, next) => {
         level: true,
         role: true,
         banned: true,
+        lastLoginDate: true,
+        loginStreak: true,
         createdAt: true,
         updatedAt: true,
       },
