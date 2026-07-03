@@ -9,12 +9,14 @@ async function persistImportedCards(source, normalizedCards, errorMessage = null
       update: {
         name: c.name, rarity: c.rarity, imgUrl: c.imgUrl, description: c.description,
         setName: c.setName, setCode: c.setCode, number: c.number, metadata: c.metadata,
-        code: c.code
+        code: c.code, fullImage: true
       },
       create: {
         code: c.code, source, externalId: c.externalId, name: c.name, rarity: c.rarity,
         imgUrl: c.imgUrl, description: c.description, setName: c.setName, setCode: c.setCode,
         number: c.number, metadata: c.metadata,
+        // Le carte importate mostrano l'artwork esterno a piena pagina, come le carte originali fullImage.
+        fullImage: true,
         // Le carte importate partono con stat neutre: un admin può bilanciarle manualmente dal pannello.
         fans: 50, style: 50, influence: 50, energy: 50
       }
