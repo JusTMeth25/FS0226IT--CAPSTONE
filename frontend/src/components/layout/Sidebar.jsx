@@ -1,6 +1,7 @@
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
 import { useGame } from '../../hooks/useGame.js';
+import { useCountUp } from '../../hooks/useCountUp.js';
 
 const NAV_ITEMS = [
   { to: '/home', label: 'Home', icon: 'ph-house' },
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
 export default function Sidebar({ open, onNavigate }) {
   const { user } = useAuth();
   const { gold, levelInfo } = useGame();
+  const displayGold = useCountUp(gold);
   const xpPercent = levelInfo.xpForNext > 0 ? Math.round((levelInfo.xpRemaining / levelInfo.xpForNext) * 100) : 100;
 
   return (
@@ -66,7 +68,7 @@ export default function Sidebar({ open, onNavigate }) {
       </nav>
 
       <div className="sidebar-footer">
-        <span className="sidebar-gold-pill"><i className="ph-fill ph-coin" /> {gold}</span>
+        <span className="sidebar-gold-pill"><i className="ph-fill ph-coin" /> {displayGold}</span>
       </div>
     </aside>
   );

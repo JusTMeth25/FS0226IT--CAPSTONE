@@ -2,10 +2,12 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
 import { useGame } from '../../hooks/useGame.js';
 import { useSound } from '../../hooks/useSound.js';
+import { useCountUp } from '../../hooks/useCountUp.js';
 
 export default function Topbar({ sidebarOpen, onToggleSidebar }) {
   const { isAuthenticated, user, logout } = useAuth();
   const { gold } = useGame();
+  const displayGold = useCountUp(gold);
   const { enabled, toggle } = useSound();
 
   return (
@@ -21,7 +23,7 @@ export default function Topbar({ sidebarOpen, onToggleSidebar }) {
 
         <Link to="/home" className="nav-link topbar-brand">VinylLegends</Link>
 
-        <span className="topbar-gold-pill"><i className="ph-fill ph-coin" /> {gold}</span>
+        <span className="topbar-gold-pill"><i className="ph-fill ph-coin" /> {displayGold}</span>
 
         <button
           className="btn small"

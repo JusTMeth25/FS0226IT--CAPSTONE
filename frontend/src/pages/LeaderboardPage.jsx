@@ -37,9 +37,9 @@ export default function LeaderboardPage() {
       ) : rows.length === 0 ? (
         <EmptyState icon="ph-trophy" title="Classifica vuota" description="Non ci sono ancora dati sufficienti per questa classifica." />
       ) : (
-        <div className="glass-panel">
+        <div className="glass-panel" key={type}>
           {rows.map((row, i) => (
-            <div className="leaderboard-row" key={row.userId || i}>
+            <div className="leaderboard-row" style={{ animationDelay: `${Math.min(i, 20) * 0.04}s` }} key={row.userId || i}>
               <span className={`leaderboard-rank ${i < 3 ? `rank-${i + 1}` : ''}`}>{i + 1}</span>
               <span className="leaderboard-name">{row.username}</span>
               <span className="leaderboard-value">{row.value}</span>
