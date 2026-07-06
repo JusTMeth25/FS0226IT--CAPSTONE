@@ -21,6 +21,11 @@ export const adminApi = {
   async importPokemon(payload) { return apiClient.post('/admin/import/pokemon', payload); },
   async importScryfall(payload) { return apiClient.post('/admin/import/scryfall', payload); },
   async importYugioh(payload) { return apiClient.post('/admin/import/yugioh', payload); },
+  async importOnePiece(payload) { return apiClient.post('/admin/import/onepiece', payload); },
+  async importDigimon(payload) { return apiClient.post('/admin/import/digimon', payload); },
+  async importLorcana(payload) { return apiClient.post('/admin/import/lorcana', payload); },
+  async importRiftbound(payload) { return apiClient.post('/admin/import/riftbound', payload); },
+  async importGundam(payload) { return apiClient.post('/admin/import/gundam', payload); },
 
   // Missioni / eventi
   async getMissions() { return apiClient.get('/admin/missions'); },

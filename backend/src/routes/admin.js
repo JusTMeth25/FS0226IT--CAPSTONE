@@ -6,6 +6,11 @@ const { adjustGold } = require('../utils/wallet');
 const { importPokemonCards } = require('../services/importers/pokemonImporter');
 const { importScryfallCards } = require('../services/importers/scryfallImporter');
 const { importYugiohCards } = require('../services/importers/yugiohImporter');
+const { importOnePieceCards } = require('../services/importers/onePieceImporter');
+const { importDigimonCards } = require('../services/importers/digimonImporter');
+const { importLorcanaCards } = require('../services/importers/lorcanaImporter');
+const { importRiftboundCards } = require('../services/importers/riftboundImporter');
+const { importGundamCards } = require('../services/importers/gundamImporter');
 
 const router = express.Router();
 router.use(verifyToken, loadCurrentUser, requireAdmin);
@@ -163,6 +168,21 @@ router.post('/import/scryfall', async (req, res, next) => {
 });
 router.post('/import/yugioh', async (req, res, next) => {
   try { res.json(await importYugiohCards(req.body || {})); } catch (err) { next(err); }
+});
+router.post('/import/onepiece', async (req, res, next) => {
+  try { res.json(await importOnePieceCards(req.body || {})); } catch (err) { next(err); }
+});
+router.post('/import/digimon', async (req, res, next) => {
+  try { res.json(await importDigimonCards(req.body || {})); } catch (err) { next(err); }
+});
+router.post('/import/lorcana', async (req, res, next) => {
+  try { res.json(await importLorcanaCards(req.body || {})); } catch (err) { next(err); }
+});
+router.post('/import/riftbound', async (req, res, next) => {
+  try { res.json(await importRiftboundCards(req.body || {})); } catch (err) { next(err); }
+});
+router.post('/import/gundam', async (req, res, next) => {
+  try { res.json(await importGundamCards(req.body || {})); } catch (err) { next(err); }
 });
 
 // ---------- Missioni ----------

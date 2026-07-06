@@ -133,7 +133,12 @@ function ImportTab() {
   const sources = [
     { key: 'pokemon', label: 'Pokémon TCG', fn: () => adminApi.importPokemon({ limit: count }) },
     { key: 'scryfall', label: 'Magic (Scryfall)', fn: () => adminApi.importScryfall({ limit: count }) },
-    { key: 'yugioh', label: 'Yu-Gi-Oh!', fn: () => adminApi.importYugioh({ limit: count }) }
+    { key: 'yugioh', label: 'Yu-Gi-Oh!', fn: () => adminApi.importYugioh({ limit: count }) },
+    { key: 'onepiece', label: 'One Piece TCG', fn: () => adminApi.importOnePiece({ limit: count }) },
+    { key: 'digimon', label: 'Digimon Card Game', fn: () => adminApi.importDigimon({ limit: count }) },
+    { key: 'lorcana', label: 'Disney Lorcana', fn: () => adminApi.importLorcana({ limit: count }) },
+    { key: 'riftbound', label: 'Riftbound (LoL TCG)', fn: () => adminApi.importRiftbound({ limit: count }) },
+    { key: 'gundam', label: 'Gundam Card Game', fn: () => adminApi.importGundam({ limit: count }) }
   ];
 
   return (
