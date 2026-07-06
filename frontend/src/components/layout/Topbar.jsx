@@ -26,7 +26,7 @@ export default function Topbar({ sidebarOpen, onToggleSidebar }) {
         <span className="topbar-gold-pill"><i className="ph-fill ph-coin" /> {displayGold}</span>
 
         <button
-          className="btn small"
+          className="btn btn-small topbar-icon-btn"
           aria-label="Attiva/disattiva audio"
           title={enabled ? 'Disattiva audio' : 'Attiva audio'}
           onClick={toggle}
@@ -35,12 +35,16 @@ export default function Topbar({ sidebarOpen, onToggleSidebar }) {
         </button>
 
         {isAuthenticated ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontWeight: 800, fontSize: '0.85rem' }}>{user.username}</span>
-            <button className="btn small" onClick={logout}>Logout</button>
+          <div className="topbar-user">
+            <span className="topbar-username">{user.username}</span>
+            <button className="btn btn-small topbar-icon-btn" onClick={logout} title="Logout" aria-label="Logout">
+              <i className="ph-fill ph-sign-out" /><span className="topbar-action-label">Logout</span>
+            </button>
           </div>
         ) : (
-          <Link to="/login" className="btn small">Accedi</Link>
+          <Link to="/login" className="btn btn-small topbar-icon-btn" title="Accedi" aria-label="Accedi">
+            <i className="ph-fill ph-sign-in" /><span className="topbar-action-label">Accedi</span>
+          </Link>
         )}
       </div>
     </header>

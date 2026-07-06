@@ -1,4 +1,5 @@
 import { getRarityCSSClass, getRarityColor, getRarityIcon, getRarityName, getTotalScore, resolveCardImage } from '../../utils/cardUtils.js';
+import { getTiltVariant } from '../../utils/cardTiltVariants.js';
 import CardHoloFrame from './CardHoloFrame.jsx';
 
 const STAT_DEFS = [
@@ -34,7 +35,7 @@ export default function CardHero({ card, quantity = 1 }) {
 
   if (card.fullImage) {
     return (
-      <CardHoloFrame rarity={card.rarity} className={`card-hero card-hero-full ${rarityClass}`}>
+      <CardHoloFrame rarity={card.rarity} tiltVariant={getTiltVariant(card)} className={`card-hero card-hero-full ${rarityClass}`}>
         <img className="card-hero-art" src={resolveCardImage(card)} alt={card.name} />
         <HoloLayers />
         {quantity > 1 && <span className="card-hero-qty-badge">×{quantity}</span>}
@@ -47,7 +48,7 @@ export default function CardHero({ card, quantity = 1 }) {
 
   return (
     <div className={`card-hero ${rarityClass}`}>
-      <CardHoloFrame rarity={card.rarity} className="card-hero-art-wrap">
+      <CardHoloFrame rarity={card.rarity} tiltVariant={getTiltVariant(card)} className="card-hero-art-wrap">
         <img className="card-hero-art" src={resolveCardImage(card)} alt={card.name} />
         <div className="card-hero-scrim" />
         <HoloLayers />

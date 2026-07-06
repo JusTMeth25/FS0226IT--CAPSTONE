@@ -13,44 +13,6 @@ const MILESTONES = [
   { percent: 100, reward: 'Trofeo Collezionista', icon: 'ph-trophy', title: 'Collezionista Assoluto' }
 ];
 
-function Confetti() {
-  // Randomicità puramente decorativa (posizione/colore dei coriandoli): generata una sola
-  // volta e memoizzata, non influisce sullo stato di gioco né sulla logica di rendering.
-  /* eslint-disable react-hooks/purity */
-  const pieces = useMemo(() => {
-    const colors = ['#FFD700', '#8B5CF6', '#EC4899', '#22D3EE', '#FF6B6B', '#4CAF50', '#FF9800'];
-    return Array.from({ length: 60 }, (_, i) => ({
-      left: Math.random() * 100,
-      color: colors[i % colors.length],
-      size: 6 + Math.random() * 8,
-      duration: 2 + Math.random() * 3,
-      delay: Math.random() * 2,
-      round: Math.random() > 0.5
-    }));
-  }, []);
-  /* eslint-enable react-hooks/purity */
-
-  return (
-    <>
-      {pieces.map((p, i) => (
-        <div
-          key={i}
-          className="vinyl-dex-confetti"
-          style={{
-            left: `${p.left}%`,
-            backgroundColor: p.color,
-            width: p.size,
-            height: p.size,
-            animationDuration: `${p.duration}s`,
-            animationDelay: `${p.delay}s`,
-            borderRadius: p.round ? '50%' : '2px'
-          }}
-        />
-      ))}
-    </>
-  );
-}
-
 export default function AlbumPage() {
   const game = useGame();
   const { sound } = useSound();
@@ -82,7 +44,6 @@ export default function AlbumPage() {
 
   return (
     <section className="vinyl-dex-page">
-      {progressPercent >= 100 && <Confetti />}
       <h2 className="section-title text-gradient"><i className="ph-fill ph-book-open" /> VinylLegends</h2>
       <p className="text-center vinyl-dex-subtitle">Catalogo completo degli artisti dell'universo VinylLegends</p>
 

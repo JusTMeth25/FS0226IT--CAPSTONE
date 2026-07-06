@@ -168,18 +168,32 @@ ul, ol { list-style: none; }
   padding-top: var(--safe-top);
 }
 .header-inner {
-  display: flex; align-items: center; gap: var(--space-sm);
+  display: flex; align-items: center; gap: var(--space-xs);
   padding: var(--space-sm) var(--space-md);
 }
+/* Il logo è l'unico elemento "elastico" della topbar: si restringe/tronca lui,
+   così hamburger, gold, audio e login/logout restano sempre alla loro dimensione reale
+   invece di schiacciarsi (bug osservato: hamburger ridotto a ~14px su schermi stretti). */
+.topbar-brand { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .topbar-gold-pill {
-  margin-left: auto;
+  flex-shrink: 0;
   display: inline-flex; align-items: center; gap: var(--space-xs);
   font-weight: 700; font-size: 0.85rem; color: var(--neon-gold);
+}
+.topbar-icon-btn { flex-shrink: 0; }
+.topbar-user { flex-shrink: 0; display: flex; align-items: center; gap: var(--space-xs); }
+.topbar-username { display: none; font-weight: 800; font-size: 0.85rem; }
+.topbar-action-label { display: none; }
+@media (min-width: 480px) {
+  .topbar-action-label { display: inline; margin-left: 4px; }
+}
+@media (min-width: 768px) {
+  .topbar-username { display: inline; }
 }
 
 .hamburger-btn {
   display: flex; flex-direction: column; justify-content: center; align-items: center;
-  width: 36px; height: 36px; background: transparent;
+  width: 36px; height: 36px; flex-shrink: 0; background: transparent;
   border: 1px solid var(--border-color); border-radius: var(--radius-sm);
   cursor: pointer; gap: 5px; padding: 6px; transition: all var(--transition-fast);
 }
@@ -331,7 +345,7 @@ ul, ol { list-style: none; }
 
 .packs-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-md); }
 
-.pack-card { display: flex; flex-direction: column; overflow: hidden; cursor: pointer; transition: all var(--transition-normal); padding: 0; }
+.pack-card { display: flex; flex-direction: column; overflow: hidden; cursor: pointer; transition: all var(--transition-normal); padding: 0; max-width: 280px; width: 100%; margin: 0 auto; }
 .pack-card:hover:not(.pack-disabled) { transform: translateY(-4px); border-color: var(--neon-purple); box-shadow: 0 0 30px rgba(139, 92, 246, 0.2); }
 .pack-card.pack-disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -362,7 +376,7 @@ ul, ol { list-style: none; }
 .pack-card-body-slim { padding: var(--space-sm) var(--space-lg) var(--space-md); flex: none; }
 .pack-card-body > .btn { margin-top: auto; width: 100%; }
 .pack-card-actions { display: flex; flex-direction: column; gap: var(--space-xs); margin-top: auto; }
-.pack-card-actions .btn { width: 100%; }
+.pack-card-actions .btn { width: 100%; font-size: 0.78rem; letter-spacing: 0.5px; padding: var(--space-sm) var(--space-sm); }
 
 .pack-detail { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
 .pack-detail-label { color: var(--text-muted); font-weight: 500; }
@@ -546,6 +560,10 @@ ul, ol { list-style: none; }
   will-change: transform;
 }
 
+/* tiltVariant="spring" (ispirato a TiltedCard di React Bits): easing elastica invece
+   del semplice ease-out, per un tilt che "rimbalza" leggermente prima di assestarsi. */
+.card-holo-spring { transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
 .card-holo-glare,
 .card-holo-rainbow,
 .card-holo-sparkles {
@@ -618,6 +636,7 @@ ul, ol { list-style: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .card-holo { transition: none; }
+  .card-holo-spring { transition: none; }
   .card-sparkle { animation: none; opacity: 0; }
 }
 
@@ -661,9 +680,6 @@ ul, ol { list-style: none; }
 .card-unknown { transition: all var(--transition-normal); }
 .card-unknown:hover { opacity: 0.8 !important; filter: grayscale(0.5) !important; transform: translateY(-4px); }
 .filter-buttons { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
-
-.vinyl-dex-confetti { position: fixed; top: -10px; z-index: 9999; pointer-events: none; animation: confettiFall linear forwards; }
-@keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
 
 /* ========================================
    MISSIONS & LEVELS — Mobile First
