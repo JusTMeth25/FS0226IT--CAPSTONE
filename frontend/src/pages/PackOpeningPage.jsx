@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
 import { useSound } from '../hooks/useSound.js';
@@ -11,6 +11,7 @@ import StarBorder from '../components/common/StarBorder.jsx';
 import CardHoloFrame from '../components/card/CardHoloFrame.jsx';
 import CardTile from '../components/card/CardTile.jsx';
 import CardHero from '../components/card/CardHero.jsx';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock.js';
 
 // Trascinamento orizzontale (in px) necessario per completare lo strappo del pacchetto.
 const TEAR_DRAG_MAX = 120;
@@ -157,12 +158,26 @@ export default function PackOpeningPage() {
   const [notice, setNotice] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [inspectedCard, setInspectedCard] = useState(null);
+  // Sul modal di ispezione, blocca lo scroll di sfondo: altrimenti trascinare il dito sulla
+  // carta per l'effetto tilt scorre erroneamente il riepilogo sottostante.
+  useBodyScrollLock(!!inspectedCard);
 
   // Strappo del pacchetto: l'utente deve trascinare fisicamente le due metà (niente auto-apertura).
   const [dragProgress, setDragProgress] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [torn, setTorn] = useState(false);
   const dragStartX = useRef(0);
+
+  // I setTimeout di questa pagina aggiornano stato dopo un delay (transizioni di fase, notice
+  // auto-dismiss): se l'utente naviga via prima che scattino, andrebbero a scrivere su un
+  // componente smontato. Li tracciamo qui e li ripuliamo tutti allo smontaggio.
+  const pendingTimers = useRef(new Set());
+  const trackedTimeout = useCallback((fn, ms) => {
+    const id = setTimeout(() => { pendingTimers.current.delete(id); fn(); }, ms);
+    pendingTimers.current.add(id);
+    return id;
+  }, []);
+  useEffect(() => () => { pendingTimers.current.forEach(clearTimeout); }, []);
 
   const basePack = PACKS.find((p) => p.isFree);
   const cooldownRemaining = game.getFreeCooldownRemaining(basePack);
@@ -207,7 +222,7 @@ export default function PackOpeningPage() {
     setTorn(true);
     setDragProgress(1);
     sound.packOpen();
-    setTimeout(() => setPhase('reveal'), 550);
+    trackedTimeout(() => setPhase('reveal'), 550);
   }
 
   function handleTearPointerUp() {
@@ -230,7 +245,7 @@ export default function PackOpeningPage() {
     const next = revealIndex + 1;
     setRevealIndex(next);
     sound.cardReveal(cards[next].rarity);
-    setTimeout(() => setAdvancing(false), 450);
+    trackedTimeout(() => setAdvancing(false), 450);
   }
 
   const ERROR_MESSAGES = {
@@ -250,7 +265,7 @@ export default function PackOpeningPage() {
     if (mode === 'paid' && game.gold < pack.price) {
       sound.error();
       setNotice(ERROR_MESSAGES.insufficient_gold);
-      setTimeout(() => setNotice(null), 3000);
+      trackedTimeout(() => setNotice(null), 3000);
       return;
     }
 
@@ -261,7 +276,7 @@ export default function PackOpeningPage() {
     if (res.error) {
       sound.error();
       setNotice(ERROR_MESSAGES[res.error] || ERROR_MESSAGES.open_pack_failed);
-      setTimeout(() => setNotice(null), 3000);
+      trackedTimeout(() => setNotice(null), 3000);
       return;
     }
     setSelectedPack(pack);
