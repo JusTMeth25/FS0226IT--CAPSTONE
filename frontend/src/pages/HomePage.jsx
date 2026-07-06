@@ -110,7 +110,7 @@ export default function HomePage() {
         {/* Progresso album */}
         <div className="glass-panel panel-full">
           <div className="panel-header-row">
-            <h3 className="panel-title"><i className="ph-fill ph-book-open" /> Progresso VinylLegends</h3>
+            <h3 className="panel-title"><i className="ph-fill ph-book-open" /> Progresso VinylDex</h3>
             <span className="progress-text">{progressPercent}%</span>
           </div>
           <div className="progress-bar"><div className="progress-fill" style={{ width: `${progressPercent}%` }} /></div>

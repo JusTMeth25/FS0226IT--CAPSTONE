@@ -1,5 +1,4 @@
 import { getRarityCSSClass, getRarityColor, getRarityName, getStars, resolveCardImage } from '../../utils/cardUtils.js';
-import { getTiltVariant } from '../../utils/cardTiltVariants.js';
 import CardHoloFrame from './CardHoloFrame.jsx';
 
 function Stars({ count, color }) {
@@ -58,7 +57,6 @@ export default function CardTile({ card, quantity, unknown = false, onClick }) {
       <CardHoloFrame
         rarity={card.rarity}
         maxTilt={8}
-        tiltVariant={getTiltVariant(card)}
         className={`card ${rarityClass} card-full-image`}
         title={`${card.name} - ${getRarityName(card.rarity)}`}
         onClick={onClick}
@@ -75,7 +73,6 @@ export default function CardTile({ card, quantity, unknown = false, onClick }) {
     <CardHoloFrame
       rarity={card.rarity}
       maxTilt={8}
-      tiltVariant={getTiltVariant(card)}
       className={`card ${rarityClass}`}
       title={`${card.name} - ${getRarityName(card.rarity)}`}
       onClick={onClick}

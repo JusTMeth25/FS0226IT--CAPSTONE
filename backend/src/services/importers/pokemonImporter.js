@@ -39,7 +39,7 @@ function normalize(card) {
 async function importPokemonCards(opts = {}) {
   const limit = Math.min(opts.limit || 100, 250);
   const page = opts.page || Math.floor(Math.random() * 80) + 1;
-  const headers = { 'User-Agent': 'VinylLegends/1.0', Accept: 'application/json' };
+  const headers = { 'User-Agent': 'VinylDex/1.0', Accept: 'application/json' };
   if (process.env.POKEMONTCG_API_KEY) headers['X-Api-Key'] = process.env.POKEMONTCG_API_KEY;
 
   try {

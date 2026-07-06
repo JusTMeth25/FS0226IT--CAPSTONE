@@ -11,7 +11,7 @@ import { missionApi } from '../services/missionApi.js';
 import { soundService } from '../services/soundService.js';
 import { GameContext } from './game-context.js';
 
-const STORAGE_KEY = 'vinyllegends_game';
+const STORAGE_KEY = 'vinyldex_game';
 
 const DEFAULT_STATE = {
   gold: 150,

@@ -4,7 +4,7 @@
  */
 
 const BASE_URL = import.meta.env.VITE_API_URL || '/api';
-const TOKEN_KEY = 'vinyllegends_token';
+const TOKEN_KEY = 'vinyldex_token';
 
 export function getToken() {
   try {

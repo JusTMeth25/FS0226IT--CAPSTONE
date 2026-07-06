@@ -34,7 +34,7 @@ export default function AppLayout() {
 
         <footer id="app-footer">
           <div className="footer-inner">
-            <small>VinylLegends — Contenuti originali</small>
+            <small>VinylDex — Contenuti originali</small>
           </div>
         </footer>
       </div>

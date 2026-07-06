@@ -1,5 +1,5 @@
 /**
- * VinylLegends - Database carte (artisti musicali IP originali)
+ * VinylDex - Database carte (artisti musicali IP originali)
  * 8 classi x 5 carte + alcune carte speciali affiancate al roster principale.
  */
 export const CARDS = [

@@ -21,7 +21,7 @@ export default function Topbar({ sidebarOpen, onToggleSidebar }) {
           <span /><span /><span />
         </button>
 
-        <Link to="/home" className="nav-link topbar-brand">VinylLegends</Link>
+        <Link to="/home" className="nav-link topbar-brand">VinylDex</Link>
 
         <span className="topbar-gold-pill"><i className="ph-fill ph-coin" /> {displayGold}</span>
 

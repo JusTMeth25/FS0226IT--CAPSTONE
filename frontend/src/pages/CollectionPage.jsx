@@ -62,7 +62,7 @@ export default function CollectionPage() {
         </div>
         <div className="collection-stat">
           <span className="collection-stat-value">{CARDS.length > 0 ? Math.round((uniqueCount / CARDS.length) * 100) : 0}%</span>
-          <span className="collection-stat-label">VinylLegends</span>
+          <span className="collection-stat-label">VinylDex</span>
         </div>
       </div>
 

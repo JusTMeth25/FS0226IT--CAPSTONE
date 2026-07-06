@@ -1,5 +1,5 @@
 /**
- * Seed realistico per VinylLegends.
+ * Seed realistico per VinylDex.
  * Popola: classi artista, carte originali (43), pacchetti + drop-rate + garanzie,
  * missioni, un evento demo, l'album base e un utente admin di test.
  * Idempotente: usa upsert, eseguibile più volte senza duplicare dati.
@@ -111,7 +111,7 @@ const MISSIONS = [
 ];
 
 async function main() {
-  console.log('VinylLegends seed starting...');
+  console.log('VinylDex seed starting...');
 
   const classBySlug = {};
   for (const c of ARTIST_CLASSES) {
@@ -199,8 +199,8 @@ async function main() {
 
   const album = await prisma.album.upsert({
     where: { code: 'album-base' },
-    update: {},
-    create: { code: 'album-base', name: 'VinylLegends', description: 'Catalogo completo degli artisti originali.' }
+    update: { name: 'VinylDex' },
+    create: { code: 'album-base', name: 'VinylDex', description: 'Catalogo completo degli artisti originali.' }
   });
   const allCards = await prisma.card.findMany({ where: { source: 'original' }, select: { id: true } });
   for (const c of allCards) {
@@ -212,7 +212,7 @@ async function main() {
   }
   console.log(`Seeded album "${album.name}" with ${allCards.length} cards`);
 
-  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@vinyllegends.local';
+  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@vinyldex.local';
   const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'Admin1234!';
   const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
   await prisma.user.upsert({

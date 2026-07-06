@@ -55,7 +55,7 @@ const VinylDexHome = {
 
           <div class="glass-panel panel-full">
             <div class="panel-header-row">
-              <h3 class="panel-title"><i class="ph-fill ph-book-open"></i> Progresso VinylLegends</h3>
+              <h3 class="panel-title"><i class="ph-fill ph-book-open"></i> Progresso VinylDex</h3>
               <span class="progress-text">${progressPercent}%</span>
             </div>
             <div class="progress-bar">

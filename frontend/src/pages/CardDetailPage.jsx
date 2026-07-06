@@ -127,7 +127,7 @@ export default function CardDetailPage() {
         ) : (
           <div className="card-detail-meta-item">
             <span className="meta-label">Fonte</span>
-            <span className="meta-value">{ownedEntry.source === 'original' ? 'VinylLegends' : ownedEntry.source}</span>
+            <span className="meta-value">{ownedEntry.source === 'original' ? 'VinylDex' : ownedEntry.source}</span>
           </div>
         )}
       </div>

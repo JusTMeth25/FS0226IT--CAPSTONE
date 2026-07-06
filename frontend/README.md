@@ -1,4 +1,4 @@
-# VinylLegends — Frontend
+# VinylDex — Frontend
 
 React + Vite. Vedi il [README principale](../README.md) per setup completo (backend, database, Capacitor).
 

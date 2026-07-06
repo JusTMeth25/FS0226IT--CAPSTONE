@@ -4,7 +4,7 @@
  * così i componenti React (topbar) possono sincronizzare l'icona.
  */
 
-const STORAGE_KEY = 'vinyllegends_sound_enabled';
+const STORAGE_KEY = 'vinyldex_sound_enabled';
 
 const FILES = {
   click: '/assets/audio/click.mp3',

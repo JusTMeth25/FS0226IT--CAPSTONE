@@ -44,8 +44,8 @@ export default function AlbumPage() {
 
   return (
     <section className="vinyl-dex-page">
-      <h2 className="section-title text-gradient"><i className="ph-fill ph-book-open" /> VinylLegends</h2>
-      <p className="text-center vinyl-dex-subtitle">Catalogo completo degli artisti dell'universo VinylLegends</p>
+      <h2 className="section-title text-gradient"><i className="ph-fill ph-book-open" /> VinylDex</h2>
+      <p className="text-center vinyl-dex-subtitle">Catalogo completo degli artisti dell'universo VinylDex</p>
 
       <div className="glass-panel vinyl-dex-progress-card">
         <div className="vinyl-dex-progress-top">

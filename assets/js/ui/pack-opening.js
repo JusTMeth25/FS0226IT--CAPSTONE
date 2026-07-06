@@ -147,7 +147,7 @@ const VinylDexPackOpening = {
       <div class="pack-card glass-panel" data-pack-id="${packConfig.id}">
         <div class="pack-card-header" style="background: ${gradient}">
           <span class="pack-card-zigzag"></span>
-          <span class="pack-card-brand"><i class="ph-fill ph-lightning"></i> VinylLegends</span>
+          <span class="pack-card-brand"><i class="ph-fill ph-lightning"></i> VinylDex</span>
           <span class="pack-card-count">${packConfig.cardCount} carte</span>
           <span class="pack-icon">${icon}</span>
           <h3 class="pack-card-name">${packConfig.name}</h3>

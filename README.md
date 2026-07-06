@@ -1,4 +1,4 @@
-# VinylLegends
+# VinylDex
 
 Piattaforma di collezione carte digitali (musicisti IP originali) — React/Vite + Node/Express + Prisma/Postgres + Capacitor (iOS/Android). Valuta di gioco **gold** interna, nessun denaro reale, nessun cash-out, nessuna spedizione fisica.
 
@@ -29,7 +29,7 @@ node seed.js               # popola carte, pacchetti, missioni, evento demo e un
 npm run dev                 # http://localhost:4000
 ```
 
-Utente admin creato dal seed: `admin@vinyllegends.local` / `Admin1234!` (**da cambiare in produzione**).
+Utente admin creato dal seed: `admin@vinyldex.local` / `Admin1234!` (**da cambiare in produzione**).
 
 Variabili d'ambiente principali (`backend/.env`, vedi `.env.example`):
 
@@ -68,7 +68,7 @@ npx cap open android        # apre il progetto in Android Studio
 Scorciatoie equivalenti disponibili come script npm: `npm run cap:add:ios`, `cap:add:android`, `cap:sync` (esegue anche la build), `cap:open:ios`, `cap:open:android`.
 
 Note:
-- `appId`: `com.vinyllegends.app`, `appName`: `VinylLegends` (`frontend/capacitor.config.json`).
+- `appId`: `com.vinyldex.app`, `appName`: `VinylDex` (`frontend/capacitor.config.json`).
 - Le cartelle `frontend/ios/` e `frontend/android/` sono generate da `cap add` e **non sono versionate** (`.gitignore`): rieseguire `cap add` su ogni nuova macchina. Se prevedi personalizzazioni native dirette (icone firmate, permessi, plugin nativi custom), valuta di rimuoverle dal `.gitignore` e versionarle.
 - Icone/splash screen attuali sono **placeholder** generati dal logo `frontend/public/favicon.png`. Per rigenerarli con artwork definitivo: sostituisci `frontend/resources/icon.png` (min. 1024×1024) e `frontend/resources/splash.png` (min. 2732×2732), poi `npx @capacitor/assets generate --android --ios`.
 - Layout mobile-first, safe-area iOS gestita via CSS (`env(safe-area-inset-*)` in `frontend/src/styles/global.css`) e `StatusBar`/`SplashScreen` nativi inizializzati in `frontend/src/services/nativeInit.js`.

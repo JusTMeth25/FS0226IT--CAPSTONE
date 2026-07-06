@@ -1,5 +1,5 @@
 /* ========================================
-   VinylLegends - Design System & Variables
+   VinylDex - Design System & Variables
    Mobile-First Responsive
    Breakpoints: 576px, 768px, 992px+
    ======================================== */
@@ -565,9 +565,6 @@ input.filter-select { cursor: text; }
   will-change: transform;
 }
 
-/* tiltVariant="spring" (ispirato a TiltedCard di React Bits): easing elastica invece
-   del semplice ease-out, per un tilt che "rimbalza" leggermente prima di assestarsi. */
-.card-holo-spring { transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
 .card-holo-glare,
 .card-holo-rainbow,
@@ -641,7 +638,6 @@ input.filter-select { cursor: text; }
 
 @media (prefers-reduced-motion: reduce) {
   .card-holo { transition: none; }
-  .card-holo-spring { transition: none; }
   .card-sparkle { animation: none; opacity: 0; }
 }
 
@@ -659,7 +655,7 @@ input.filter-select { cursor: text; }
 .meta-value { color: var(--text-primary); font-weight: 600; }
 
 /* ========================================
-   ALBUM (VinylLegends catalog) — Mobile First
+   ALBUM (VinylDex catalog) — Mobile First
    ======================================== */
 .vinyl-dex-page { display: flex; flex-direction: column; gap: var(--space-md); }
 .vinyl-dex-subtitle { color: var(--text-secondary); font-size: 0.85rem; margin-top: calc(-1 * var(--space-sm)); }

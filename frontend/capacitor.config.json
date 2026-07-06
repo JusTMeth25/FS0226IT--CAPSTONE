@@ -1,6 +1,6 @@
 {
-  "appId": "com.vinyllegends.app",
-  "appName": "VinylLegends",
+  "appId": "com.vinyldex.app",
+  "appName": "VinylDex",
   "webDir": "dist",
   "backgroundColor": "#050816",
   "plugins": {

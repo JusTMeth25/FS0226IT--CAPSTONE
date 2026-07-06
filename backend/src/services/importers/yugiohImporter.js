@@ -43,7 +43,7 @@ async function importYugiohCards(opts = {}) {
 
   try {
     const res = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?num=${limit}&offset=${offset}`, {
-      headers: { 'User-Agent': 'VinylLegends/1.0', Accept: 'application/json' },
+      headers: { 'User-Agent': 'VinylDex/1.0', Accept: 'application/json' },
       signal: AbortSignal.timeout(15000)
     });
     if (!res.ok) throw new Error(`ygoprodeck_api_${res.status}`);

@@ -36,8 +36,8 @@ const VinylDexPage = {
 
     container.innerHTML = `
       <section class="vinyl-dex-page">
-        <h2 class="section-title text-gradient"><i class="ph-fill ph-book-open"></i> VinylLegends</h2>
-        <p class="text-center vinyl-dex-subtitle">Catalogo completo degli artisti dell'universo VinylLegends</p>
+        <h2 class="section-title text-gradient"><i class="ph-fill ph-book-open"></i> VinylDex</h2>
+        <p class="text-center vinyl-dex-subtitle">Catalogo completo degli artisti dell'universo VinylDex</p>
 
         <!-- Progress Card -->
         <div class="glass-panel vinyl-dex-progress-card">

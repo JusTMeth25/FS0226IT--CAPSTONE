@@ -57,7 +57,7 @@ const VinylDexCollection = {
           </div>
           <div class="collection-stat">
             <span class="collection-stat-value">${Math.round((uniqueCardIds.size / totalCards) * 100)}%</span>
-            <span class="collection-stat-label">VinylLegends</span>
+            <span class="collection-stat-label">VinylDex</span>
           </div>
         </div>
 
@@ -379,7 +379,7 @@ const VinylDexCollection = {
   /**
    * Renderizza la card "hero" di dettaglio: artwork a tutta larghezza, badge rarità,
    * nome + variante, citazione (descrizione), tag Classe/Gruppo e box statistiche + Totale.
-   * Usata sia dal modal di dettaglio della Collezione che da quello della VinylLegends.
+   * Usata sia dal modal di dettaglio della Collezione che da quello della VinylDex.
    * @param {Card} card - Istanza VinylDexCard
    * @param {Object} [options]
    * @param {number} [options.quantity] - Se > 1, mostra il badge quantità sull'artwork

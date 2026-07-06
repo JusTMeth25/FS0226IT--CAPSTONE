@@ -1,5 +1,5 @@
 /**
- * VinylLegends - Express server
+ * VinylDex - Express server
  *
  * To run (locally):
  * 1) cd backend && npm install
@@ -60,5 +60,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`VinylLegends backend listening on http://localhost:${PORT}`);
+  console.log(`VinylDex backend listening on http://localhost:${PORT}`);
 });

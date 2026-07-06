@@ -1,5 +1,5 @@
 /**
- * VinylLegends - Database pacchetti acquistabili/ottenibili.
+ * VinylDex - Database pacchetti acquistabili/ottenibili.
  */
 export const PACKS = [
   {

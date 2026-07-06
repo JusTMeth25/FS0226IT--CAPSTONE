@@ -48,7 +48,7 @@ async function importScryfallCards(opts = {}) {
     // Scryfall rifiuta le richieste con uno User-Agent generico da libreria HTTP:
     // richiede un User-Agent personalizzato che identifichi l'applicazione chiamante.
     const res = await fetch(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&page=${page}`, {
-      headers: { 'User-Agent': 'VinylLegends/1.0', Accept: 'application/json' },
+      headers: { 'User-Agent': 'VinylDex/1.0', Accept: 'application/json' },
       signal: AbortSignal.timeout(15000)
     });
     if (!res.ok) throw new Error(`scryfall_api_${res.status}`);
