@@ -37,29 +37,10 @@ function HoloLayers() {
   );
 }
 
-/**
- * Mini-card riusata in Home / Collection / Album.
- * `unknown`: mostra il placeholder "???" per carte non ancora possedute (Album).
- */
-export default function CardTile({ card, quantity, unknown = false, onClick }) {
+/** Mini-card riusata in Home / Collection / Battaglia. */
+export default function CardTile({ card, quantity, onClick }) {
   const rarityClass = getRarityCSSClass(card.rarity);
   const color = getRarityColor(card.rarity);
-
-  if (unknown) {
-    return (
-      <div className="card card-unknown" style={{ opacity: 0.6, filter: 'grayscale(0.7)' }} onClick={onClick}>
-        <RarityBadge rarity={card.rarity} style={{ background: `${color}44`, color }} />
-        <div className="card-artwork">
-          <div style={{ fontSize: '2.5rem', opacity: 0.3, filter: 'blur(1px)' }}><i className="ph ph-question" /></div>
-        </div>
-        <div className="card-info">
-          <div className="card-name" style={{ color }}>???</div>
-          <div className="card-class" style={{ color: '#666' }}>{card.artistClass}</div>
-          <Stars count={getStars(card.rarity)} color="#333" />
-        </div>
-      </div>
-    );
-  }
 
   if (card.fullImage) {
     return (

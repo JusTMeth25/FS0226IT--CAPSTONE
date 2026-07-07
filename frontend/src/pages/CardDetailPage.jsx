@@ -44,7 +44,7 @@ export default function CardDetailPage() {
         icon="ph-question"
         title="Carta non trovata"
         description="Questa carta non esiste nel catalogo."
-        action={<button className="btn btn-primary" onClick={() => navigate('/album')}>Torna all'Album</button>}
+        action={<button className="btn btn-primary" onClick={() => navigate('/collection')}>Torna alla Collezione</button>}
       />
     );
   }

@@ -41,7 +41,6 @@ const DEFAULT_STATE = {
   freePacks: {},
   claimedMissions: [],
   claimedLevelRewards: [],
-  claimedAlbumRewards: [],
   lastDailyReset: '',
   lastLoginDate: '',
   loginStreak: 0,
@@ -310,7 +309,7 @@ export function GameProvider({ children }) {
     });
   }, [isAuthenticated, refreshUser, setLocal]);
 
-  // Ricompense di livello/album: non ancora persistite lato server (fuori scope Fase 2),
+  // Ricompense di livello: non ancora persistite lato server (fuori scope Fase 2),
   // restano una feature locale per la modalità ospite.
   const claimLevelReward = useCallback((level) => {
     if (isAuthenticated) return;
@@ -322,18 +321,6 @@ export function GameProvider({ children }) {
       return next;
     });
     soundService.levelUp();
-  }, [isAuthenticated, setLocal]);
-
-  const claimAlbumReward = useCallback((milestone) => {
-    if (isAuthenticated) return;
-    setLocal((prev) => {
-      if (prev.claimedAlbumRewards.includes(milestone.percent)) return prev;
-      const next = { ...prev, claimedAlbumRewards: [...prev.claimedAlbumRewards, milestone.percent] };
-      if (milestone.gold) next.gold = prev.gold + milestone.gold;
-      if (milestone.pack) next.freePacks = { ...prev.freePacks, [milestone.pack]: (prev.freePacks[milestone.pack] || 0) + 1 };
-      if (milestone.title) next.title = milestone.title;
-      return next;
-    });
   }, [isAuthenticated, setLocal]);
 
   // ---------- Battaglie (feature client-only, sia per ospiti che per utenti autenticati) ----------
@@ -388,7 +375,6 @@ export function GameProvider({ children }) {
     lastFreePackAt,
     claimedMissions: isAuthenticated ? [] : local.claimedMissions,
     claimedLevelRewards: isAuthenticated ? [] : local.claimedLevelRewards,
-    claimedAlbumRewards: isAuthenticated ? [] : local.claimedAlbumRewards,
     lastLoginDate: isAuthenticated ? (user?.lastLoginDate ? new Date(user.lastLoginDate).toDateString() : '') : local.lastLoginDate,
     loginStreak: isAuthenticated ? (user?.loginStreak || 0) : local.loginStreak,
     title: isAuthenticated ? null : local.title,
@@ -403,13 +389,12 @@ export function GameProvider({ children }) {
     claimMission,
     claimLevelReward,
     claimLoginReward,
-    claimAlbumReward,
     recordBattleResult,
     refreshCollection
   }), [
     gold, xp, levelInfo, collection, remoteCatalogSize, favorites, stats, freePacks, lastFreePackAt, isAuthenticated, local,
     user, remoteLoaded, addGold, addXP, isFreeAvailable, getFreeCooldownRemaining, openPack, addFreePack,
-    toggleFavorite, claimMission, claimLevelReward, claimLoginReward, claimAlbumReward, recordBattleResult, refreshCollection
+    toggleFavorite, claimMission, claimLevelReward, claimLoginReward, recordBattleResult, refreshCollection
   ]);
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

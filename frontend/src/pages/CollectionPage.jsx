@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
 import { useFilterParams } from '../hooks/useFilterParams.js';
 import { CARDS, getArtistClasses } from '../data/cards.js';
-import { RARITIES, RARITY_ORDER, SOURCE_LABELS, getSourceLabel, getTotalScore } from '../utils/cardUtils.js';
+import { RARITIES, RARITY_ORDER, SOURCE_LABELS, getRarityIcon, getSourceLabel, getTotalScore } from '../utils/cardUtils.js';
 import { dedupeCollection } from '../utils/collectionUtils.js';
 import CardTile from '../components/card/CardTile.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
@@ -79,13 +79,15 @@ export default function CollectionPage() {
         <div className="rarity-counts-row">
           {Object.entries(RARITIES).map(([key, r]) => (
             <div className="rarity-count-item" key={key} onClick={() => setParam('rarity', key)}>
-              <span className="rarity-count-value" style={{ color: r.color }}>{stats[`${key}Count`] || 0}</span>
+              <span className="rarity-count-icon" style={{ color: r.color }}><i className={`ph-fill ph-${getRarityIcon(key)}`} /></span>
               <span className="rarity-count-label">{r.name}</span>
+              <span className="rarity-count-value" style={{ color: r.color }}>{stats[`${key}Count`] || 0}</span>
             </div>
           ))}
           <div className="rarity-count-item" onClick={() => setParam('rarity', '')}>
-            <span className="rarity-count-value">{collection.length}</span>
+            <span className="rarity-count-icon"><i className="ph-fill ph-cards" /></span>
             <span className="rarity-count-label">Totale</span>
+            <span className="rarity-count-value">{collection.length}</span>
           </div>
         </div>
       </div>

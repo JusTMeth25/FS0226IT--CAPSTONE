@@ -340,7 +340,7 @@ ul, ol { list-style: none; }
 @keyframes freePackPulse { 0%, 100% { border-color: rgba(255, 215, 0, 0.3); } 50% { border-color: rgba(255, 215, 0, 0.7); } }
 .free-pack-notice .cooldown-timer { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--neon-cyan); }
 
-.progress-section .progress-header, .vinyl-dex-page .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); }
+.progress-section .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); }
 .progress-section h3 { font-size: 1rem; font-weight: 700; }
 .progress-text { font-size: 0.9rem; font-weight: 700; color: var(--neon-purple); }
 
@@ -526,6 +526,7 @@ ul, ol { list-style: none; }
 .rarity-counts-row { display: flex; justify-content: center; gap: var(--space-sm); flex-wrap: wrap; }
 .rarity-count-item { text-align: center; cursor: pointer; padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-sm); transition: all var(--transition-fast); min-width: 60px; }
 .rarity-count-item:hover { background: rgba(139, 92, 246, 0.1); }
+.rarity-count-icon { display: block; font-size: 1.15rem; margin-bottom: 2px; }
 .rarity-count-value { display: block; font-size: 1.1rem; font-weight: 900; }
 .rarity-count-label { font-size: 0.6rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
 
@@ -681,34 +682,6 @@ input.filter-select { cursor: text; }
 .card-detail-meta-item { display: flex; justify-content: space-between; font-size: 0.8rem; }
 .meta-label { color: var(--text-muted); }
 .meta-value { color: var(--text-primary); font-weight: 600; }
-
-/* ========================================
-   ALBUM (VinylDex catalog) — Mobile First
-   ======================================== */
-.vinyl-dex-page { display: flex; flex-direction: column; gap: var(--space-md); }
-.vinyl-dex-subtitle { color: var(--text-secondary); font-size: 0.85rem; margin-top: calc(-1 * var(--space-sm)); }
-.vinyl-dex-progress-card { display: flex; flex-direction: column; gap: var(--space-md); }
-.vinyl-dex-progress-top { display: flex; justify-content: space-between; align-items: center; }
-.vinyl-dex-progress-info { display: flex; flex-direction: column; gap: 2px; }
-.vinyl-dex-progress-title { font-size: 0.9rem; font-weight: 700; }
-.vinyl-dex-progress-count { font-size: 0.75rem; color: var(--text-secondary); }
-.vinyl-dex-progress-percent { font-size: 1.5rem; font-weight: 900; color: var(--neon-purple); }
-.vinyl-dex-progress-bar { height: 10px; }
-
-.vinyl-dex-rewards { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-sm); margin-top: var(--space-sm); }
-.vinyl-dex-reward { display: flex; flex-direction: column; align-items: center; gap: var(--space-xs); padding: var(--space-sm); border-radius: var(--radius-sm); background: rgba(0, 0, 0, 0.2); cursor: default; transition: all var(--transition-normal); text-align: center; }
-.vinyl-dex-reward.reward-reached { background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); cursor: pointer; }
-.vinyl-dex-reward.reward-reached:hover { background: rgba(139, 92, 246, 0.2); transform: translateY(-2px); box-shadow: 0 0 15px rgba(139, 92, 246, 0.2); }
-.vinyl-dex-reward.reward-claimed { background: rgba(76, 175, 80, 0.1); border: 1px solid rgba(76, 175, 80, 0.3); cursor: default; opacity: 0.8; }
-.reward-icon { font-size: 1.3rem; }
-.reward-info { display: flex; flex-direction: column; gap: 1px; }
-.reward-label { font-size: 0.65rem; font-weight: 700; color: var(--text-primary); }
-.reward-status { font-size: 0.55rem; color: var(--text-secondary); }
-.reward-progress-mini { width: 100%; height: 3px; background: var(--bg-tertiary); border-radius: 2px; overflow: hidden; margin-top: 2px; }
-.reward-progress-fill { height: 100%; border-radius: 2px; background: var(--neon-purple); transition: width 0.5s ease; }
-.card-unknown { transition: all var(--transition-normal); }
-.card-unknown:hover { opacity: 0.8 !important; filter: grayscale(0.5) !important; transform: translateY(-4px); }
-.filter-buttons { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
 
 /* ========================================
    MISSIONS & LEVELS — Mobile First
@@ -1015,7 +988,6 @@ input.filter-select { cursor: text; }
   .card-hero-tag { flex: 1; }
   .card-hero-stats-grid { grid-template-columns: repeat(5, 1fr); }
   .card-hero-stat-total { grid-column: auto; }
-  .vinyl-dex-rewards { grid-template-columns: repeat(4, 1fr); }
   .battle-vs-content { flex-direction: column; }
   .battle-vs-label { font-size: 2.5rem; }
   .battle-mode-actions { flex-direction: row; }
@@ -1052,8 +1024,6 @@ input.filter-select { cursor: text; }
   .filter-group { min-width: 160px; }
   .card-detail-modal { width: 90%; }
   .card-detail-title { font-size: 1.5rem; }
-  .vinyl-dex-progress-percent { font-size: 2rem; }
-  .vinyl-dex-progress-title { font-size: 1rem; }
   .battle-team-slots { --card-width: 130px; --card-height: 185px; gap: var(--space-md); }
   .battle-slot { min-height: 200px; }
   .battle-available-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
@@ -1093,9 +1063,6 @@ input.filter-select { cursor: text; }
   .rarity-counts-row { gap: var(--space-lg); }
   .rarity-count-item { min-width: 90px; }
   .card-detail-modal { width: 95%; }
-  .vinyl-dex-rewards { gap: var(--space-md); }
-  .reward-icon { font-size: 1.5rem; }
-  .reward-label { font-size: 0.7rem; }
   .battle-available-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
   .footer-inner { font-size: 0.85rem; padding: var(--space-lg) var(--space-xl); }
 }
