@@ -70,11 +70,15 @@ export function GameProvider({ children }) {
   const [remotePacks, setRemotePacks] = useState([]);
   const [remoteLastFreePackAt, setRemoteLastFreePackAt] = useState(null);
   const [remoteLoaded, setRemoteLoaded] = useState(false);
+  // Totale carte attive nell'intero catalogo (tutte le fonti): usato per calcolare le percentuali
+  // di completamento invece del catalogo statico locale (che copre solo le 43 carte originali).
+  const [remoteCatalogSize, setRemoteCatalogSize] = useState(null);
 
   const refreshCollection = useCallback(async () => {
     try {
       const res = await collectionApi.getCollection({ owned: 'true' });
       setRemoteCollection(res.collection || []);
+      if (typeof res.totalActiveCards === 'number') setRemoteCatalogSize(res.totalActiveCards);
     } catch {
       // rete/serve non disponibile: mantiene l'ultimo stato noto
     }
@@ -377,6 +381,7 @@ export function GameProvider({ children }) {
     level: levelInfo.level,
     levelInfo,
     collection,
+    catalogSize: isAuthenticated ? remoteCatalogSize : null,
     favorites,
     stats,
     freePacks,
@@ -402,7 +407,7 @@ export function GameProvider({ children }) {
     recordBattleResult,
     refreshCollection
   }), [
-    gold, xp, levelInfo, collection, favorites, stats, freePacks, lastFreePackAt, isAuthenticated, local,
+    gold, xp, levelInfo, collection, remoteCatalogSize, favorites, stats, freePacks, lastFreePackAt, isAuthenticated, local,
     user, remoteLoaded, addGold, addXP, isFreeAvailable, getFreeCooldownRemaining, openPack, addFreePack,
     toggleFavorite, claimMission, claimLevelReward, claimLoginReward, claimAlbumReward, recordBattleResult, refreshCollection
   ]);

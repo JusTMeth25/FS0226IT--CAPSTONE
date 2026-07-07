@@ -4,12 +4,12 @@ import { useGame } from '../hooks/useGame.js';
 import { useSound } from '../hooks/useSound.js';
 import { useCountUp } from '../hooks/useCountUp.js';
 import { PACKS } from '../data/packs.js';
-import { getRarityColor, getRarityName, getStars, resolveCardImage } from '../utils/cardUtils.js';
+import { getRarityColor, getStars, resolveCardImage } from '../utils/cardUtils.js';
 import { formatDuration } from '../hooks/useCountdown.js';
 import RevealSpark from '../components/common/RevealSpark.jsx';
 import StarBorder from '../components/common/StarBorder.jsx';
 import CardHoloFrame from '../components/card/CardHoloFrame.jsx';
-import CardTile from '../components/card/CardTile.jsx';
+import CardTile, { RarityBadge } from '../components/card/CardTile.jsx';
 import CardHero from '../components/card/CardHero.jsx';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock.js';
 
@@ -118,7 +118,7 @@ function RevealCard({ card, size = 'grid' }) {
     return (
       <div className={`pack-reveal-card ${rarityClass} ${sizeClass} pack-reveal-flip`} style={{ overflow: 'hidden', borderRadius: 12, position: 'relative' }}>
         <img src={resolveCardImage(card)} alt={card.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }} />
-        <span className="pack-reveal-badge" style={{ background: color, position: 'absolute', top: 8, left: 8, zIndex: 2, fontSize: '0.7rem', padding: '2px 6px', borderRadius: 4 }}>{getRarityName(card.rarity)}</span>
+        <RarityBadge rarity={card.rarity} />
         <RevealSpark color={spark.color || color} count={spark.count} radius={spark.radius} />
       </div>
     );
@@ -127,9 +127,11 @@ function RevealCard({ card, size = 'grid' }) {
   return (
     <div className={`pack-reveal-card ${rarityClass} ${sizeClass} pack-reveal-flip`}>
       <div className="pack-reveal-card-inner">
-        <div className="pack-reveal-art"><img src={resolveCardImage(card)} alt={card.name} /></div>
+        <div className="pack-reveal-art">
+          <img src={resolveCardImage(card)} alt={card.name} />
+          <RarityBadge rarity={card.rarity} />
+        </div>
         <div className="pack-reveal-info">
-          <span className="pack-reveal-badge" style={{ background: color }}>{getRarityName(card.rarity)}</span>
           <span className="pack-reveal-name">{card.name}</span>
           <span className="pack-reveal-class">{card.artistClass}</span>
           <span className="pack-reveal-stars">

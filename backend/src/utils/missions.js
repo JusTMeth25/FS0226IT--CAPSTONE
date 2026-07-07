@@ -76,8 +76,10 @@ async function recomputeAbsoluteMissions(tx, userId) {
 
   const albumMissions = await tx.mission.findMany({ where: { type: 'album_percent', isActive: true } });
   if (albumMissions.length) {
-    const totalAlbumCards = await tx.albumCard.count();
-    const percent = totalAlbumCards > 0 ? Math.round((uniqueCount / totalAlbumCards) * 100) : 0;
+    // Totale reale del catalogo (tutte le fonti): AlbumCard resta fermo alle 43 carte del seed
+    // e non riflette le carte importate da API esterne, gonfiando la percentuale oltre il 100%.
+    const totalActiveCards = await tx.card.count({ where: { isActive: true } });
+    const percent = totalActiveCards > 0 ? Math.round((uniqueCount / totalActiveCards) * 100) : 0;
     for (const mission of albumMissions) {
       await setMissionValue(tx, userId, mission, percent);
     }

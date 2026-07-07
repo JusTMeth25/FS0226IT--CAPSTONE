@@ -28,10 +28,13 @@ router.get('/collection', verifyToken, loadCurrentUser, async (req, res, next) =
       ];
     }
 
-    const [cards, userCards, totalAlbumCards] = await Promise.all([
+    const [cards, userCards, totalActiveCards] = await Promise.all([
       prisma.card.findMany({ where, include: { artistClass: true }, orderBy: { name: 'asc' } }),
       prisma.userCard.findMany({ where: { userId } }),
-      prisma.albumCard.count()
+      // Totale reale del catalogo (tutte le fonti, non solo le carte originali): usato dal client
+      // per calcolare la percentuale di completamento invece del vecchio AlbumCard (mai aggiornato
+      // dagli import esterni, quindi fermo alle 43 carte originali del seed).
+      prisma.card.count({ where: { isActive: true } })
     ]);
 
     const ownedMap = new Map(userCards.map((uc) => [uc.cardId, uc]));
@@ -50,11 +53,11 @@ router.get('/collection', verifyToken, loadCurrentUser, async (req, res, next) =
     if (owned === 'true') combined = combined.filter((c) => c.owned);
     if (owned === 'false') combined = combined.filter((c) => !c.owned);
 
-    const albumCompletionPercent = totalAlbumCards > 0
-      ? Math.round((userCards.length / totalAlbumCards) * 100)
+    const albumCompletionPercent = totalActiveCards > 0
+      ? Math.round((userCards.length / totalActiveCards) * 100)
       : 0;
 
-    res.json({ collection: combined, albumCompletionPercent });
+    res.json({ collection: combined, albumCompletionPercent, totalActiveCards });
   } catch (err) {
     next(err);
   }

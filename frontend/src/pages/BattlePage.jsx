@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
 import { useSound } from '../hooks/useSound.js';
 import { useCountUp } from '../hooks/useCountUp.js';
-import { RARITIES, getRarityCSSClass, getRarityColor, getTotalScore, resolveCardImage } from '../utils/cardUtils.js';
+import { RARITIES, SOURCE_LABELS, getRarityCSSClass, getRarityColor, getSourceLabel, getTotalScore, resolveCardImage } from '../utils/cardUtils.js';
 import { CARDS } from '../data/cards.js';
 import EmptyState from '../components/common/EmptyState.jsx';
 import CardTile from '../components/card/CardTile.jsx';
 import RevealSpark from '../components/common/RevealSpark.jsx';
 import StarBorder from '../components/common/StarBorder.jsx';
+import ScrollToTopButton from '../components/common/ScrollToTopButton.jsx';
 
 const CATEGORIES = ['fans', 'style', 'influence', 'energy'];
 const CATEGORY_NAMES = { fans: 'Fans', style: 'Style', influence: 'Influence', energy: 'Energy' };
@@ -207,17 +208,23 @@ export default function BattlePage() {
   const [b, setB] = useState(INITIAL_BATTLE);
   const [battleSearch, setBattleSearch] = useState('');
   const [battleRarityFilter, setBattleRarityFilter] = useState('');
+  const [battleSourceFilter, setBattleSourceFilter] = useState('');
 
   const collectionCards = useMemo(() => uniqueCollectionCards(game.collection), [game.collection]);
+  const availableBattleSources = useMemo(() => {
+    const present = new Set(collectionCards.map((c) => c.source).filter(Boolean));
+    return Object.keys(SOURCE_LABELS).filter((s) => present.has(s));
+  }, [collectionCards]);
   const filteredAvailableCards = useMemo(() => {
     let cards = collectionCards;
     if (battleRarityFilter) cards = cards.filter((c) => c.rarity === battleRarityFilter);
+    if (battleSourceFilter) cards = cards.filter((c) => c.source === battleSourceFilter);
     if (battleSearch.trim()) {
       const q = battleSearch.trim().toLowerCase();
       cards = cards.filter((c) => c.name.toLowerCase().includes(q));
     }
     return cards;
-  }, [collectionCards, battleRarityFilter, battleSearch]);
+  }, [collectionCards, battleRarityFilter, battleSourceFilter, battleSearch]);
 
   if (collectionCards.length < 3) {
     return (
@@ -448,6 +455,11 @@ export default function BattlePage() {
           ))}
         </div>
 
+        <div className="battle-mode-actions">
+          <button className="btn btn-primary btn-large" disabled={filledCount < 3} onClick={startBattle}><i className="ph-fill ph-sword" /> Inizia Battaglia</button>
+          <button className="btn btn-gold btn-large" disabled={filledCount < 3} onClick={startTournament}><i className="ph-fill ph-trophy" /> Modalità Torneo</button>
+        </div>
+
         <div className="battle-team-preview glass-panel">
           <h3>La tua squadra</h3>
           {filledCount === 0 ? (
@@ -483,6 +495,14 @@ export default function BattlePage() {
                 {Object.entries(RARITIES).map(([key, r]) => <option key={key} value={key}>{r.name}</option>)}
               </select>
             </div>
+            {availableBattleSources.length > 1 && (
+              <div className="filter-group">
+                <select className="filter-select" value={battleSourceFilter} onChange={(e) => setBattleSourceFilter(e.target.value)}>
+                  <option value="">Tutte le Fonti</option>
+                  {availableBattleSources.map((s) => <option key={s} value={s}>{getSourceLabel(s)}</option>)}
+                </select>
+              </div>
+            )}
           </div>
           {filteredAvailableCards.length === 0 ? (
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: 'var(--space-md) 0' }}>Nessuna carta trovata con questi filtri.</p>
@@ -501,10 +521,7 @@ export default function BattlePage() {
           )}
         </div>
 
-        <div className="battle-mode-actions">
-          <button className="btn btn-primary btn-large" disabled={filledCount < 3} onClick={startBattle}><i className="ph-fill ph-sword" /> Inizia Battaglia</button>
-          <button className="btn btn-gold btn-large" disabled={filledCount < 3} onClick={startTournament}><i className="ph-fill ph-trophy" /> Modalità Torneo</button>
-        </div>
+        <ScrollToTopButton />
       </section>
     );
   }

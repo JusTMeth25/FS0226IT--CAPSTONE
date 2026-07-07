@@ -36,6 +36,10 @@ export default function HomePage() {
   const remaining = useCountdown(freePackTargetAt);
   const isFreeAvailable = game.isFreeAvailable(basePack);
 
+  // Per gli utenti autenticati il totale reale del catalogo (tutte le fonti) arriva dal server;
+  // in modalità ospite l'unico universo possibile resta il catalogo statico locale (43 carte).
+  const totalCatalogCards = game.catalogSize ?? CARDS.length;
+
   const { recentCards, featuredCard, progressPercent, ownedCount } = useMemo(() => {
     const unique = dedupeCollection(game.collection);
 
@@ -53,9 +57,9 @@ export default function HomePage() {
       recentCards: unique.slice(0, 8),
       featuredCard: featured,
       ownedCount: unique.length,
-      progressPercent: CARDS.length > 0 ? Math.round((unique.length / CARDS.length) * 100) : 0
+      progressPercent: totalCatalogCards > 0 ? Math.round((unique.length / totalCatalogCards) * 100) : 0
     };
-  }, [game.collection]);
+  }, [game.collection, totalCatalogCards]);
 
   const dailyMissions = useMemo(
     () => generateMissions(game).filter((m) => m.type === 'daily').slice(0, 3),
@@ -120,7 +124,7 @@ export default function HomePage() {
         <div className="glass-panel panel-full">
           <div className="panel-header-row">
             <h3 className="panel-title"><i className="ph-fill ph-cards" /> La Tua Collezione</h3>
-            <span className="panel-header-count">{ownedCount} / {CARDS.length} carte</span>
+            <span className="panel-header-count">{ownedCount} / {totalCatalogCards} carte</span>
           </div>
           {recentCards.length > 0 ? (
             <div className="collection-grid">

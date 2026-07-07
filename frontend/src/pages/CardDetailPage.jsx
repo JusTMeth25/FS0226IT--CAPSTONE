@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
 import { CARDS, findCardById } from '../data/cards.js';
 import { PACKS } from '../data/packs.js';
-import { getRarityColor, getRarityName } from '../utils/cardUtils.js';
+import { getRarityColor, getRarityName, getSourceLabel } from '../utils/cardUtils.js';
 import { cardApi } from '../services/cardApi.js';
 import { useApiResource } from '../hooks/useApiResource.js';
 import CardHero from '../components/card/CardHero.jsx';
@@ -127,7 +127,7 @@ export default function CardDetailPage() {
         ) : (
           <div className="card-detail-meta-item">
             <span className="meta-label">Fonte</span>
-            <span className="meta-value">{ownedEntry.source === 'original' ? 'VinylDex' : ownedEntry.source}</span>
+            <span className="meta-value">{getSourceLabel(ownedEntry.source)}</span>
           </div>
         )}
       </div>

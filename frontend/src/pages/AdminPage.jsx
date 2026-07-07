@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApiResource } from '../hooks/useApiResource.js';
 import { adminApi } from '../services/adminApi.js';
+import { SOURCE_LABELS } from '../utils/cardUtils.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 
@@ -131,14 +132,14 @@ function ImportTab() {
   }
 
   const sources = [
-    { key: 'pokemon', label: 'Pokémon TCG', fn: () => adminApi.importPokemon({ limit: count }) },
-    { key: 'scryfall', label: 'Magic (Scryfall)', fn: () => adminApi.importScryfall({ limit: count }) },
-    { key: 'yugioh', label: 'Yu-Gi-Oh!', fn: () => adminApi.importYugioh({ limit: count }) },
-    { key: 'onepiece', label: 'One Piece TCG', fn: () => adminApi.importOnePiece({ limit: count }) },
-    { key: 'digimon', label: 'Digimon Card Game', fn: () => adminApi.importDigimon({ limit: count }) },
-    { key: 'lorcana', label: 'Disney Lorcana', fn: () => adminApi.importLorcana({ limit: count }) },
-    { key: 'riftbound', label: 'Riftbound (LoL TCG)', fn: () => adminApi.importRiftbound({ limit: count }) },
-    { key: 'gundam', label: 'Gundam Card Game', fn: () => adminApi.importGundam({ limit: count }) }
+    { key: 'pokemon', label: SOURCE_LABELS.pokemon, fn: () => adminApi.importPokemon({ limit: count }) },
+    { key: 'scryfall', label: SOURCE_LABELS.scryfall, fn: () => adminApi.importScryfall({ limit: count }) },
+    { key: 'yugioh', label: SOURCE_LABELS.yugioh, fn: () => adminApi.importYugioh({ limit: count }) },
+    { key: 'onepiece', label: SOURCE_LABELS.onepiece, fn: () => adminApi.importOnePiece({ limit: count }) },
+    { key: 'digimon', label: SOURCE_LABELS.digimon, fn: () => adminApi.importDigimon({ limit: count }) },
+    { key: 'lorcana', label: SOURCE_LABELS.lorcana, fn: () => adminApi.importLorcana({ limit: count }) },
+    { key: 'riftbound', label: SOURCE_LABELS.riftbound, fn: () => adminApi.importRiftbound({ limit: count }) },
+    { key: 'gundam', label: SOURCE_LABELS.gundam, fn: () => adminApi.importGundam({ limit: count }) }
   ];
 
   return (

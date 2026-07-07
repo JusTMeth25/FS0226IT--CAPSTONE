@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
 import { useSound } from '../hooks/useSound.js';
+import { useFilterParams } from '../hooks/useFilterParams.js';
 import { CARDS, getArtistClasses } from '../data/cards.js';
 import { RARITIES } from '../utils/cardUtils.js';
 import CardTile from '../components/card/CardTile.jsx';
+import ScrollToTopButton from '../components/common/ScrollToTopButton.jsx';
 
 const MILESTONES = [
   { percent: 25, reward: '100 Gold', icon: 'ph-coin', gold: 100 },
@@ -17,13 +19,16 @@ export default function AlbumPage() {
   const game = useGame();
   const { sound } = useSound();
   const navigate = useNavigate();
-  const [classFilter, setClassFilter] = useState('');
-  const [rarityFilter, setRarityFilter] = useState('');
+  const { getParam, setParam } = useFilterParams();
+  const classFilter = getParam('class');
+  const rarityFilter = getParam('rarity');
 
   const artistClasses = useMemo(() => getArtistClasses(), []);
   const ownedIds = useMemo(() => new Set(game.collection.map((c) => c.id)), [game.collection]);
   const ownedCount = ownedIds.size;
-  const totalCards = CARDS.length;
+  // Per gli utenti autenticati il totale reale del catalogo (tutte le fonti) arriva dal server;
+  // in modalità ospite l'unico universo possibile resta il catalogo statico locale (43 carte).
+  const totalCards = game.catalogSize ?? CARDS.length;
   const progressPercent = totalCards > 0 ? Math.round((ownedCount / totalCards) * 100) : 0;
 
   const filteredCards = useMemo(() => {
@@ -84,14 +89,14 @@ export default function AlbumPage() {
         <div className="filter-row">
           <div className="filter-group">
             <label className="filter-label">Classe</label>
-            <select className="filter-select" value={classFilter} onChange={(e) => setClassFilter(e.target.value)}>
+            <select className="filter-select" value={classFilter} onChange={(e) => setParam('class', e.target.value)}>
               <option value="">Tutte le Classi</option>
               {artistClasses.map((cls) => <option key={cls} value={cls}>{cls}</option>)}
             </select>
           </div>
           <div className="filter-group">
             <label className="filter-label">Rarità</label>
-            <select className="filter-select" value={rarityFilter} onChange={(e) => setRarityFilter(e.target.value)}>
+            <select className="filter-select" value={rarityFilter} onChange={(e) => setParam('rarity', e.target.value)}>
               <option value="">Tutte le Rarità</option>
               {Object.entries(RARITIES).map(([key, r]) => <option key={key} value={key}>{r.name}</option>)}
             </select>
@@ -99,7 +104,7 @@ export default function AlbumPage() {
           <div className="filter-group">
             <label className="filter-label">Filtro rapido</label>
             <div className="filter-buttons">
-              <button className="btn btn-secondary btn-small" onClick={() => setRarityFilter('')}>Tutte</button>
+              <button className="btn btn-secondary btn-small" onClick={() => setParam('rarity', '')}>Tutte</button>
             </div>
           </div>
         </div>
@@ -115,6 +120,8 @@ export default function AlbumPage() {
           />
         ))}
       </div>
+
+      <ScrollToTopButton />
     </section>
   );
 }

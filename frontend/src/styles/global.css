@@ -245,9 +245,19 @@ ul, ol { list-style: none; }
 }
 .card:hover { transform: translateY(-4px); box-shadow: var(--glow-purple); }
 .card-rarity-badge {
-  position: absolute; top: var(--space-sm); right: var(--space-sm);
-  padding: 2px 8px; border-radius: 4px;
-  font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; z-index: 2;
+  position: absolute; top: var(--space-sm); left: var(--space-sm); z-index: 2;
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px);
+}
+.card-rarity-badge i { font-size: 0.7rem; line-height: 1; }
+/* Le scansioni reali (Pokémon/Yu-Gi-Oh!/One Piece/ecc.) stampano nome, costo e HP quasi sempre
+   in alto: sulle carte fullImage il badge si sposta in basso a sinistra per non coprirli
+   (il badge quantità occupa già il basso a destra). Le carte originali (illustrazione generata,
+   nessun testo stampato) restano invariate in alto, dove c'è più spazio libero. */
+.card-full-image .card-rarity-badge,
+.pack-reveal-card > .card-rarity-badge {
+  top: auto; bottom: var(--space-sm);
 }
 .card-artwork { width: 100%; height: 70%; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
 .card-info { width: 100%; padding: var(--space-sm); text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
@@ -386,6 +396,16 @@ ul, ol { list-style: none; }
 
 .pack-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; animation: overlayFadeIn 0.3s ease; padding: var(--space-md); }
 @keyframes overlayFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.scroll-to-top-btn {
+  position: fixed; right: calc(var(--space-md) + var(--safe-right)); bottom: calc(var(--space-lg) + var(--safe-bottom));
+  z-index: 150; width: 46px; height: 46px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+  background: linear-gradient(135deg, var(--neon-purple), var(--neon-magenta)); color: white;
+  box-shadow: var(--glow-purple); animation: scrollTopIn 0.25s ease;
+}
+.scroll-to-top-btn:hover { transform: translateY(-2px); }
+@keyframes scrollTopIn { from { opacity: 0; transform: translateY(10px) scale(0.8); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .pack-modal { text-align: center; max-width: 400px; width: 100%; animation: modalSlideUp 0.3s ease; }
 @keyframes modalSlideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .pack-modal-icon { font-size: 2.5rem; margin-bottom: var(--space-md); }
@@ -450,10 +470,9 @@ ul, ol { list-style: none; }
 .pack-reveal-flip { animation: cardFlipIn 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards; will-change: transform, opacity; }
 @keyframes cardFlipIn { 0% { transform: rotateY(180deg) scale(0.5); opacity: 0; } 60% { transform: rotateY(-8deg) scale(1.04); opacity: 1; } 100% { transform: rotateY(0deg) scale(1); opacity: 1; } }
 .pack-reveal-card-inner { width: 100%; height: 100%; display: flex; flex-direction: column; border-radius: var(--card-radius); overflow: hidden; border: 2px solid var(--border-color); }
-.pack-reveal-art { width: 100%; height: 65%; display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--bg-tertiary); }
+.pack-reveal-art { width: 100%; height: 65%; display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--bg-tertiary); position: relative; }
 .pack-reveal-art img { width: 100%; height: 100%; object-fit: cover; }
 .pack-reveal-info { flex: 1; padding: var(--space-xs) var(--space-sm); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; position: relative; }
-.pack-reveal-badge { position: absolute; top: 4px; right: 4px; padding: 1px 6px; border-radius: 4px; font-size: 0.55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: white; }
 .pack-reveal-name { font-size: 0.75rem; font-weight: 700; color: var(--text-primary); text-align: center; line-height: 1.1; }
 .pack-reveal-class { font-size: 0.6rem; color: var(--text-secondary); }
 .pack-reveal-stars { font-size: 0.6rem; margin-top: 1px; }

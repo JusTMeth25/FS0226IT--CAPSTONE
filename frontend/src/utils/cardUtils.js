@@ -13,6 +13,23 @@ export const RARITIES = {
 
 const RARITY_ICONS = { common: 'circle', uncommon: 'shield', rare: 'diamond', epic: 'fire', legendary: 'crown' };
 
+// Etichette leggibili per la provenienza di una carta (originali VinylDex + import da API esterne).
+export const SOURCE_LABELS = {
+  original: 'VinylDex',
+  pokemon: 'Pokémon TCG',
+  scryfall: 'Magic (Scryfall)',
+  yugioh: 'Yu-Gi-Oh!',
+  onepiece: 'One Piece TCG',
+  digimon: 'Digimon Card Game',
+  lorcana: 'Disney Lorcana',
+  riftbound: 'Riftbound (LoL TCG)',
+  gundam: 'Gundam Card Game'
+};
+
+export function getSourceLabel(source) {
+  return SOURCE_LABELS[source] || source;
+}
+
 export function getRarityData(rarity) {
   return RARITIES[rarity] || RARITIES.common;
 }

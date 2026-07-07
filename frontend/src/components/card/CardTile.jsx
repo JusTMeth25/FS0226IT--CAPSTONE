@@ -1,5 +1,14 @@
-import { getRarityCSSClass, getRarityColor, getRarityName, getStars, resolveCardImage } from '../../utils/cardUtils.js';
+import { getRarityCSSClass, getRarityColor, getRarityIcon, getRarityName, getStars, resolveCardImage } from '../../utils/cardUtils.js';
 import CardHoloFrame from './CardHoloFrame.jsx';
+
+/** Icona piccola colorata (no testo): la rarità estesa resta disponibile via title/tooltip. */
+export function RarityBadge({ rarity, style }) {
+  return (
+    <span className="card-rarity-badge" title={getRarityName(rarity)} style={style}>
+      <i className={`ph-fill ph-${getRarityIcon(rarity)}`} />
+    </span>
+  );
+}
 
 function Stars({ count, color }) {
   return (
@@ -39,7 +48,7 @@ export default function CardTile({ card, quantity, unknown = false, onClick }) {
   if (unknown) {
     return (
       <div className="card card-unknown" style={{ opacity: 0.6, filter: 'grayscale(0.7)' }} onClick={onClick}>
-        <span className="card-rarity-badge" style={{ background: `${color}44`, color }}>{getRarityName(card.rarity)}</span>
+        <RarityBadge rarity={card.rarity} style={{ background: `${color}44`, color }} />
         <div className="card-artwork">
           <div style={{ fontSize: '2.5rem', opacity: 0.3, filter: 'blur(1px)' }}><i className="ph ph-question" /></div>
         </div>
@@ -63,7 +72,7 @@ export default function CardTile({ card, quantity, unknown = false, onClick }) {
       >
         <img src={resolveCardImage(card)} alt={card.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }} />
         <HoloLayers />
-        <span className="card-rarity-badge" style={{ position: 'absolute', top: 8, left: 8, zIndex: 2 }}>{getRarityName(card.rarity)}</span>
+        <RarityBadge rarity={card.rarity} />
         {quantity > 1 && <span className="card-quantity-badge" style={{ position: 'absolute', bottom: 8, right: 8, zIndex: 2 }}>×{quantity}</span>}
       </CardHoloFrame>
     );
@@ -77,7 +86,7 @@ export default function CardTile({ card, quantity, unknown = false, onClick }) {
       title={`${card.name} - ${getRarityName(card.rarity)}`}
       onClick={onClick}
     >
-      <span className="card-rarity-badge">{getRarityName(card.rarity)}</span>
+      <RarityBadge rarity={card.rarity} />
       {quantity > 1 && <span className="card-quantity-badge">×{quantity}</span>}
       <div className="card-artwork">
         <img src={resolveCardImage(card)} alt={card.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
