@@ -8,10 +8,36 @@ import { todayString } from '../utils/missionUtils.js';
 import { packApi } from '../services/packApi.js';
 import { collectionApi } from '../services/collectionApi.js';
 import { missionApi } from '../services/missionApi.js';
+import { battleApi } from '../services/battleApi.js';
 import { soundService } from '../services/soundService.js';
 import { GameContext } from './game-context.js';
 
 const STORAGE_KEY = 'vinyldex_game';
+
+// Tabelle ricompense battaglia identiche a quelle del server (backend/src/routes/battles.js):
+// per gli utenti autenticati l'importo reale lo decide sempre il server, questa copia serve solo
+// alla modalità ospite (che non ha un saldo server da sincronizzare).
+const SINGLE_BATTLE_REWARDS = { win: { gold: 50, xp: 100 }, draw: { gold: 20, xp: 40 }, loss: { gold: 10, xp: 20 } };
+const TOURNAMENT_STAGE_ORDER = ['easy', 'normal', 'hard'];
+const TOURNAMENT_STAGE_REWARDS = { easy: { gold: 30, xp: 60 }, normal: { gold: 60, xp: 120 }, hard: { gold: 100, xp: 200 } };
+const TOURNAMENT_CHAMPION_BONUS = { gold: 100, xp: 150 };
+
+function computeLocalBattleReward(payload) {
+  if (payload.mode === 'tournament') {
+    const stagesCleared = Math.max(0, Math.min(TOURNAMENT_STAGE_ORDER.length, payload.stagesCleared || 0));
+    let gold = 0;
+    let xp = 0;
+    for (let i = 0; i < stagesCleared; i++) {
+      const cfg = TOURNAMENT_STAGE_REWARDS[TOURNAMENT_STAGE_ORDER[i]];
+      gold += cfg.gold;
+      xp += cfg.xp;
+    }
+    if (payload.wonAllStages) { gold += TOURNAMENT_CHAMPION_BONUS.gold; xp += TOURNAMENT_CHAMPION_BONUS.xp; }
+    return { gold, xp };
+  }
+  const r = SINGLE_BATTLE_REWARDS[payload.result] || SINGLE_BATTLE_REWARDS.loss;
+  return { gold: r.gold, xp: r.xp };
+}
 
 const DEFAULT_STATE = {
   gold: 150,
@@ -44,11 +70,7 @@ const DEFAULT_STATE = {
   lastDailyReset: '',
   lastLoginDate: '',
   loginStreak: 0,
-  title: null,
-  // Overlay usato SOLO in modalità autenticata per le ricompense battaglia (feature client-only,
-  // non presente nello schema Prisma): si somma a gold/xp reali del server senza sovrascriverli.
-  battleGoldBonus: 0,
-  battleXpBonus: 0
+  title: null
 };
 
 function rarityCountsFromCollection(collection) {
@@ -125,8 +147,8 @@ export function GameProvider({ children }) {
   }, [isAuthenticated, setLocal]);
 
   // ---------- Derivati comuni ----------
-  const gold = isAuthenticated ? (user?.gold ?? 0) + (local.battleGoldBonus || 0) : local.gold;
-  const xp = isAuthenticated ? (user?.xp ?? 0) + (local.battleXpBonus || 0) : local.xp;
+  const gold = isAuthenticated ? (user?.gold ?? 0) : local.gold;
+  const xp = isAuthenticated ? (user?.xp ?? 0) : local.xp;
   const levelInfo = useMemo(() => calcLevel(xp), [xp]);
 
   const collection = isAuthenticated ? remoteCollection : local.collection;
@@ -323,25 +345,28 @@ export function GameProvider({ children }) {
     soundService.levelUp();
   }, [isAuthenticated, setLocal]);
 
-  // ---------- Battaglie (feature client-only, sia per ospiti che per utenti autenticati) ----------
-  const addGold = useCallback((amount) => {
+  // ---------- Battaglie ----------
+  // Per gli utenti autenticati la ricompensa viene accreditata davvero sul server (stesso saldo
+  // che Mercato/Pacchetti controllano) invece di restare un bonus locale mai sincronizzato: prima
+  // di questa fix il gold "vinto" in battaglia gonfiava solo il numero mostrato in UI, senza mai
+  // diventare gold reale spendibile, causando "insufficient_gold" al Mercato pur mostrando abbastanza gold.
+  const claimBattleReward = useCallback(async (payload) => {
     if (isAuthenticated) {
-      setLocal((prev) => ({ ...prev, battleGoldBonus: Math.max(0, (prev.battleGoldBonus || 0) + amount) }));
-    } else {
-      setLocal((prev) => ({ ...prev, gold: Math.max(0, prev.gold + amount) }));
+      try {
+        await battleApi.claimReward(payload);
+      } catch {
+        // rete/server non disponibile: il tentativo successivo (prossima battaglia) riprova
+      } finally {
+        await refreshUser();
+      }
+      return;
     }
-  }, [isAuthenticated, setLocal]);
-
-  const addXP = useCallback((amount) => {
-    if (isAuthenticated) {
-      setLocal((prev) => ({ ...prev, battleXpBonus: Math.max(0, (prev.battleXpBonus || 0) + amount) }));
-    } else {
-      setLocal((prev) => {
-        const xpNext = prev.xp + amount;
-        return { ...prev, xp: xpNext, level: calcLevel(xpNext).level };
-      });
-    }
-  }, [isAuthenticated, setLocal]);
+    const { gold, xp } = computeLocalBattleReward(payload);
+    setLocal((prev) => {
+      const xpNext = prev.xp + xp;
+      return { ...prev, gold: Math.max(0, prev.gold + gold), xp: xpNext, level: calcLevel(xpNext).level };
+    });
+  }, [isAuthenticated, refreshUser, setLocal]);
 
   const recordBattleResult = useCallback((result) => {
     setLocal((prev) => {
@@ -379,8 +404,7 @@ export function GameProvider({ children }) {
     loginStreak: isAuthenticated ? (user?.loginStreak || 0) : local.loginStreak,
     title: isAuthenticated ? null : local.title,
     loading: isAuthenticated && !remoteLoaded,
-    addGold,
-    addXP,
+    claimBattleReward,
     isFreeAvailable,
     getFreeCooldownRemaining,
     openPack,
@@ -393,7 +417,7 @@ export function GameProvider({ children }) {
     refreshCollection
   }), [
     gold, xp, levelInfo, collection, remoteCatalogSize, favorites, stats, freePacks, lastFreePackAt, isAuthenticated, local,
-    user, remoteLoaded, addGold, addXP, isFreeAvailable, getFreeCooldownRemaining, openPack, addFreePack,
+    user, remoteLoaded, claimBattleReward, isFreeAvailable, getFreeCooldownRemaining, openPack, addFreePack,
     toggleFavorite, claimMission, claimLevelReward, claimLoginReward, recordBattleResult, refreshCollection
   ]);
 

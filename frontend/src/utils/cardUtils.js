@@ -23,7 +23,8 @@ export const SOURCE_LABELS = {
   digimon: 'Digimon Card Game',
   lorcana: 'Disney Lorcana',
   riftbound: 'Riftbound (LoL TCG)',
-  gundam: 'Gundam Card Game'
+  gundam: 'Gundam Card Game',
+  dragonball: 'Dragon Ball Super CCG'
 };
 
 export function getSourceLabel(source) {

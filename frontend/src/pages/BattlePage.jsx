@@ -390,8 +390,7 @@ export default function BattlePage() {
         const bonusXP = wonAllStages ? 150 : 0;
         const finalGold = tournamentGold + bonusGold;
         const finalXP = tournamentXP + bonusXP;
-        if (finalGold > 0) game.addGold(finalGold);
-        if (finalXP > 0) game.addXP(finalXP);
+        game.claimBattleReward({ mode: 'tournament', stagesCleared: wonAllStages ? TOURNAMENT_ORDER.length : b.tournamentStage, wonAllStages });
         update({ phase: 'final', finalKind: wonAllStages ? 'tournament-champion' : 'tournament-eliminated', rewards: { gold: finalGold, xp: finalXP }, tournamentGold, tournamentXP });
       } else {
         update({ phase: 'final', finalKind: 'tournament-stage-cleared', tournamentGold, tournamentXP });
@@ -406,8 +405,7 @@ export default function BattlePage() {
     else sound.battleLose();
 
     game.recordBattleResult(result);
-    game.addGold(goldReward);
-    game.addXP(xpReward);
+    game.claimBattleReward({ mode: 'single', result });
     update({ phase: 'final', finalKind: 'single', rewards: { gold: goldReward, xp: xpReward } });
   }
 

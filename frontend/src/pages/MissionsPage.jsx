@@ -65,12 +65,12 @@ export default function MissionsPage() {
 
   async function handleClaim(mission) {
     await game.claimMission(mission);
-    if (isAuthenticated) server.reload();
+    if (isAuthenticated) server.reload({ silent: true });
   }
 
   async function handleClaimLogin() {
     await game.claimLoginReward();
-    if (isAuthenticated) server.reload();
+    if (isAuthenticated) server.reload({ silent: true });
   }
 
   return (

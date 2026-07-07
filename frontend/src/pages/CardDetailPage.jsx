@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
-import { CARDS, findCardById } from '../data/cards.js';
+import { findCardById } from '../data/cards.js';
 import { PACKS } from '../data/packs.js';
 import { getRarityColor, getRarityName, getSourceLabel } from '../utils/cardUtils.js';
 import { cardApi } from '../services/cardApi.js';
@@ -93,13 +93,6 @@ export default function CardDetailPage() {
     );
   }
 
-  // Carta posseduta: usiamo sempre i dati reali di `ownedEntry` (collezione), mai il catalogo
-  // locale — così funziona anche per le carte importate, che non sono nel catalogo statico.
-  const classCards = ownedEntry.artistClass ? CARDS.filter((c) => c.artistClass === ownedEntry.artistClass) : [];
-  const ownedIds = new Set(collection.map((c) => c.id));
-  const classProgress = classCards.filter((c) => ownedIds.has(c.id)).length;
-  const classTotal = classCards.length;
-  const color = getRarityColor(ownedEntry.rarity);
   const isFavorite = favorites.includes(id);
 
   const dateStr = ownedEntry.obtainedAt
@@ -119,24 +112,11 @@ export default function CardDetailPage() {
           <span className="meta-label">Quantità</span>
           <span className="meta-value">×{ownedEntry.quantity}</span>
         </div>
-        {classTotal > 0 ? (
-          <div className="card-detail-meta-item">
-            <span className="meta-label">Classe completata</span>
-            <span className="meta-value">{classProgress}/{classTotal}</span>
-          </div>
-        ) : (
-          <div className="card-detail-meta-item">
-            <span className="meta-label">Fonte</span>
-            <span className="meta-value">{getSourceLabel(ownedEntry.source)}</span>
-          </div>
-        )}
-      </div>
-
-      {classTotal > 0 && (
-        <div className="progress-bar" style={{ width: '100%' }}>
-          <div className="progress-fill" style={{ width: `${(classProgress / classTotal) * 100}%`, background: `linear-gradient(90deg, ${color}, ${color}88)` }} />
+        <div className="card-detail-meta-item">
+          <span className="meta-label">Fonte</span>
+          <span className="meta-value">{getSourceLabel(ownedEntry.source)}</span>
         </div>
-      )}
+      </div>
 
       <button className={`btn ${isFavorite ? 'btn-gold' : 'btn-secondary'}`} onClick={() => toggleFavorite(id)}>
         <i className={isFavorite ? 'ph-fill ph-star' : 'ph ph-star'} /> {isFavorite ? 'Preferita' : 'Aggiungi ai preferiti'}

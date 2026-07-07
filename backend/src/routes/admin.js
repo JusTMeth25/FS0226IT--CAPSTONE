@@ -11,6 +11,7 @@ const { importDigimonCards } = require('../services/importers/digimonImporter');
 const { importLorcanaCards } = require('../services/importers/lorcanaImporter');
 const { importRiftboundCards } = require('../services/importers/riftboundImporter');
 const { importGundamCards } = require('../services/importers/gundamImporter');
+const { importDragonBallCards } = require('../services/importers/dragonBallImporter');
 
 const router = express.Router();
 router.use(verifyToken, loadCurrentUser, requireAdmin);
@@ -183,6 +184,9 @@ router.post('/import/riftbound', async (req, res, next) => {
 });
 router.post('/import/gundam', async (req, res, next) => {
   try { res.json(await importGundamCards(req.body || {})); } catch (err) { next(err); }
+});
+router.post('/import/dragonball', async (req, res, next) => {
+  try { res.json(await importDragonBallCards(req.body || {})); } catch (err) { next(err); }
 });
 
 // ---------- Missioni ----------

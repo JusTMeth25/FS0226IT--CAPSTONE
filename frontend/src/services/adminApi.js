@@ -26,6 +26,7 @@ export const adminApi = {
   async importLorcana(payload) { return apiClient.post('/admin/import/lorcana', payload); },
   async importRiftbound(payload) { return apiClient.post('/admin/import/riftbound', payload); },
   async importGundam(payload) { return apiClient.post('/admin/import/gundam', payload); },
+  async importDragonBall(payload) { return apiClient.post('/admin/import/dragonball', payload); },
 
   // Missioni / eventi
   async getMissions() { return apiClient.get('/admin/missions'); },

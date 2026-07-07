@@ -48,6 +48,7 @@ app.use('/api', require('./routes/trades'));
 app.use('/api', require('./routes/missions'));
 app.use('/api', require('./routes/events'));
 app.use('/api', require('./routes/leaderboard'));
+app.use('/api', require('./routes/battles'));
 app.use('/api/admin', require('./routes/admin'));
 
 // 404 per rotte /api non riconosciute
