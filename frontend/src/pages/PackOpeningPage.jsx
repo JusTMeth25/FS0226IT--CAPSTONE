@@ -118,7 +118,6 @@ function RevealCard({ card, size = 'grid' }) {
     return (
       <div className={`pack-reveal-card ${rarityClass} ${sizeClass} pack-reveal-flip`} style={{ overflow: 'hidden', borderRadius: 12, position: 'relative' }}>
         <img src={resolveCardImage(card)} alt={card.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }} />
-        <RarityBadge rarity={card.rarity} />
         <RevealSpark color={spark.color || color} count={spark.count} radius={spark.radius} />
       </div>
     );

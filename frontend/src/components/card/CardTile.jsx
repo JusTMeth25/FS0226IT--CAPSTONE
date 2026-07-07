@@ -72,7 +72,6 @@ export default function CardTile({ card, quantity, unknown = false, onClick }) {
       >
         <img src={resolveCardImage(card)} alt={card.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }} />
         <HoloLayers />
-        <RarityBadge rarity={card.rarity} />
         {quantity > 1 && <span className="card-quantity-badge" style={{ position: 'absolute', bottom: 8, right: 8, zIndex: 2 }}>×{quantity}</span>}
       </CardHoloFrame>
     );

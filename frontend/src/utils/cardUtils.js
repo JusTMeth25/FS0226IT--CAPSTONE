@@ -4,10 +4,10 @@
  */
 
 export const RARITIES = {
-  common: { id: 1, name: 'Comune', stars: 1, color: '#4CAF50' },
-  uncommon: { id: 2, name: 'Non Comune', stars: 2, color: '#2196F3' },
-  rare: { id: 3, name: 'Rara', stars: 3, color: '#8B5CF6' },
-  epic: { id: 4, name: 'Epica', stars: 4, color: '#FF9800' },
+  common: { id: 1, name: 'Comune', stars: 1, color: '#9CA3AF' },
+  uncommon: { id: 2, name: 'Non Comune', stars: 2, color: '#4CAF50' },
+  rare: { id: 3, name: 'Rara', stars: 3, color: '#2196F3' },
+  epic: { id: 4, name: 'Epica', stars: 4, color: '#8B5CF6' },
   legendary: { id: 5, name: 'Leggendaria', stars: 5, color: '#FFD700' }
 };
 
