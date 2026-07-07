@@ -1,11 +1,11 @@
 import { getRarityCSSClass, getRarityColor, getRarityIcon, getRarityName, getStars, resolveCardImage } from '../../utils/cardUtils.js';
 import CardHoloFrame from './CardHoloFrame.jsx';
 
-/** Icona piccola colorata (no testo): la rarità estesa resta disponibile via title/tooltip. */
+/** Gemma SVG piccola (no testo): la rarità estesa resta disponibile via title/tooltip. */
 export function RarityBadge({ rarity, style }) {
   return (
     <span className="card-rarity-badge" title={getRarityName(rarity)} style={style}>
-      <i className={`ph-fill ph-${getRarityIcon(rarity)}`} />
+      <img className="card-rarity-icon" src={getRarityIcon(rarity)} alt="" />
     </span>
   );
 }

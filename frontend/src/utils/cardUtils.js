@@ -11,7 +11,9 @@ export const RARITIES = {
   legendary: { id: 5, name: 'Leggendaria', stars: 5, color: '#FFD700' }
 };
 
-const RARITY_ICONS = { common: 'circle', uncommon: 'shield', rare: 'diamond', epic: 'fire', legendary: 'crown' };
+// Icone gemma SVG dedicate per rarità (frontend/public/*.svg), già colorate internamente
+// (gradiente proprio per tier): niente più icone font generiche colorate via CSS.
+const RARITY_ICONS = { common: '/common.svg', uncommon: '/uncommon.svg', rare: '/rare.svg', epic: '/epic.svg', legendary: '/legendary.svg' };
 
 // Etichette leggibili per la provenienza di una carta (originali VinylDex + import da API esterne).
 export const SOURCE_LABELS = {
@@ -48,7 +50,7 @@ export function getStars(rarity) {
 }
 
 export function getRarityIcon(rarity) {
-  return RARITY_ICONS[rarity] || 'circle';
+  return RARITY_ICONS[rarity] || RARITY_ICONS.common;
 }
 
 export function getRarityCSSClass(rarity) {

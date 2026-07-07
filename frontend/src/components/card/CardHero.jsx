@@ -52,7 +52,7 @@ export default function CardHero({ card, quantity = 1 }) {
         <div className="card-hero-scrim" />
         <HoloLayers />
         <span className="card-hero-rarity-badge" style={{ color, borderColor: color }}>
-          {getRarityName(card.rarity).toUpperCase()} <i className={`ph-fill ph-${getRarityIcon(card.rarity)}`} />
+          {getRarityName(card.rarity).toUpperCase()} <img className="card-hero-rarity-icon" src={getRarityIcon(card.rarity)} alt="" />
         </span>
         {quantity > 1 && <span className="card-hero-qty-badge">×{quantity}</span>}
         <div className="card-hero-heading">

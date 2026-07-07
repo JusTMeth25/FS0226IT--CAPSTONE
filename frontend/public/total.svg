@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Icona Totale">
+  <defs>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feColorMatrix in="blur" type="matrix"
+        values="1 0 0 0 0.65
+                0 1 0 0 0.20
+                0 0 1 0 1.00
+                0 0 0 1 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <linearGradient id="outer" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff4b0"/>
+      <stop offset="0.35" stop-color="#ffb300"/>
+      <stop offset="0.7" stop-color="#ff4fd8"/>
+      <stop offset="1" stop-color="#7a33ff"/>
+    </linearGradient>
+
+    <linearGradient id="inner" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.45" stop-color="#f8d85a"/>
+      <stop offset="1" stop-color="#c05cff"/>
+    </linearGradient>
+
+    <radialGradient id="core" cx="50%" cy="45%" r="60%">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.38" stop-color="#ffe67a"/>
+      <stop offset="0.75" stop-color="#b74dff"/>
+      <stop offset="1" stop-color="#21002f"/>
+    </radialGradient>
+  </defs>
+
+  <circle cx="256" cy="256" r="178" fill="none" stroke="url(#outer)" stroke-width="24" filter="url(#glow)"/>
+  <circle cx="256" cy="256" r="126" fill="none" stroke="#ffffff" stroke-width="10" opacity="0.22"/>
+
+  <path d="M256 82
+           L303 183
+           L414 196
+           L332 272
+           L354 382
+           L256 327
+           L158 382
+           L180 272
+           L98 196
+           L209 183 Z"
+        fill="url(#core)"
+        stroke="url(#outer)"
+        stroke-width="14"
+        stroke-linejoin="round"
+        filter="url(#glow)"/>
+
+  <path d="M256 142
+           L286 209
+           L360 218
+           L305 268
+           L320 341
+           L256 304
+           L192 341
+           L207 268
+           L152 218
+           L226 209 Z"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="9"
+        stroke-linejoin="round"
+        opacity="0.45"/>
+
+  <circle cx="256" cy="256" r="34" fill="#16001f" opacity="0.9"/>
+  <path d="M256 188 L278 236 L331 242 L292 279 L302 331 L256 305 L210 331 L220 279 L181 242 L234 236 Z"
+        fill="url(#inner)"
+        opacity="0.95"/>
+
+  <path d="M135 118 L153 153 L191 159 L163 186 L170 224 L135 206 L100 224 L107 186 L79 159 L117 153 Z"
+        fill="#ffffff" opacity="0.35"/>
+  <path d="M387 333 L403 364 L438 369 L413 393 L419 428 L387 411 L355 428 L361 393 L336 369 L371 364 Z"
+        fill="#ffffff" opacity="0.28"/>
+</svg>
