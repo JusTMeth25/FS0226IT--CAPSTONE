@@ -12,8 +12,11 @@ export default function ProfilePage() {
   const [savingAvatar, setSavingAvatar] = useState(null);
   const [avatarError, setAvatarError] = useState(null);
 
+  // Per gli utenti autenticati il totale reale del catalogo (tutte le fonti) arriva dal server;
+  // in modalità ospite l'unico universo possibile resta il catalogo statico locale (43 carte).
+  const totalCatalogCards = game.catalogSize ?? CARDS.length;
   const uniqueCount = useMemo(() => new Set(game.collection.map((c) => c.id)).size, [game.collection]);
-  const progressPercent = CARDS.length > 0 ? Math.round((uniqueCount / CARDS.length) * 100) : 0;
+  const progressPercent = totalCatalogCards > 0 ? Math.round((uniqueCount / totalCatalogCards) * 100) : 0;
 
   async function handleSelectAvatar(avatar) {
     if (savingAvatar || avatar === user.avatar) return;
@@ -77,7 +80,7 @@ export default function ProfilePage() {
           <span className="profile-stat-label">Gold</span>
         </div>
         <div className="glass-panel profile-stat-box">
-          <span className="profile-stat-value">{uniqueCount}/{CARDS.length}</span>
+          <span className="profile-stat-value">{uniqueCount}/{totalCatalogCards}</span>
           <span className="profile-stat-label">Album ({progressPercent}%)</span>
         </div>
         <div className="glass-panel profile-stat-box">
