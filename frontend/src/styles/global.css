@@ -445,20 +445,36 @@ ul, ol { list-style: none; }
 .gold-amount { font-size: 1.4rem; font-weight: 900; color: var(--neon-gold); }
 .gold-label { font-size: 0.8rem; color: var(--text-secondary); }
 
-.packs-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-md); }
+/* 3 pacchetti sempre affiancati, anche su iPhone: il gap si allarga nei breakpoint successivi,
+   non il numero di colonne (vedi override rimossi a 576px/768px). justify-items centra la card
+   (che ha un max-width proprio) nella colonna, altrimenti su schermi larghi ogni colonna da 1/3
+   si allargherebbe senza limiti facendo diventare i pacchetti enormi.
+   align-items:start (non stretch/center): l'artwork ha lo stesso aspect-ratio in ogni colonna di
+   pari larghezza, quindi è già identico su tutti e 3 senza bisogno di stirare/centrare l'intera
+   card — se centrassimo l'intera card, il pacchetto Base (2 pulsanti, card più alta) resterebbe
+   in cima mentre gli altri due (1 pulsante) verrebbero centrati nella riga più alta, spostando
+   la LORO immagine più in basso e disallineandola da quella del Base. */
+.packs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-sm); justify-items: center; align-items: start; }
 
-.pack-card { display: flex; flex-direction: column; overflow: hidden; cursor: pointer; transition: all var(--transition-normal); padding: 0; max-width: 280px; width: 100%; margin: 0 auto; }
-.pack-card:hover:not(.pack-disabled) { transform: translateY(-4px); border-color: var(--neon-purple); box-shadow: 0 0 30px rgba(139, 92, 246, 0.2); }
+/* Niente più cornice "glass-panel" attorno all'immagine: solo l'artwork del pacchetto (con angoli
+   arrotondati propri) e i pulsanti liberi sotto, senza sfondo/bordo a scatola attorno a tutto. */
+.pack-card {
+  display: flex; flex-direction: column; overflow: visible; cursor: pointer;
+  transition: all var(--transition-normal); padding: 0; width: 100%; max-width: 260px;
+  background: none; border: none; backdrop-filter: none; box-shadow: none;
+}
+.pack-card:hover:not(.pack-disabled) { transform: translateY(-4px); }
+.pack-card:hover:not(.pack-disabled) .pack-card-art-wrap { box-shadow: 0 0 30px rgba(139, 92, 246, 0.35); }
 .pack-card.pack-disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* Card pacchetto "full-image": l'artwork riempie l'intera area, senza cornice/header decorativo.
    Sotto restano solo prezzo e pulsante d'acquisto (pack-card-body-slim). */
 .pack-card-art-wrap {
-  position: relative; width: 100%; aspect-ratio: 5 / 7;
+  position: relative; width: 100%; aspect-ratio: 5 / 7; border-radius: var(--radius-lg);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  overflow: hidden; background: var(--bg-tertiary);
+  overflow: hidden; background: var(--bg-tertiary); transition: box-shadow var(--transition-normal);
 }
-.pack-card-art-full { width: 100%; height: 100%; object-fit: contain; display: block; }
+.pack-card-art-full { width: 100%; height: 100%; object-fit: cover; display: block; }
 .pack-card-count {
   position: absolute; top: var(--space-sm); right: var(--space-sm); z-index: 1;
   font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
@@ -475,10 +491,17 @@ ul, ol { list-style: none; }
 .pack-card-gift-badge { position: absolute; top: var(--space-sm); left: var(--space-sm); z-index: 1; }
 
 .pack-card-body { padding: var(--space-md) var(--space-lg) var(--space-lg); display: flex; flex-direction: column; gap: var(--space-sm); flex: 1; }
-.pack-card-body-slim { padding: var(--space-sm) var(--space-lg) var(--space-md); flex: none; }
+/* Su mobile 3 pacchetti stanno affiancati in colonne strette: pulsanti compatti per lasciare
+   più spazio percepito all'artwork sopra (che si allarga di nuovo da 768px in poi). */
+.pack-card-body-slim { padding: var(--space-xs) var(--space-xs) var(--space-sm); flex: none; }
 .pack-card-body > .btn { margin-top: auto; width: 100%; }
-.pack-card-actions { display: flex; flex-direction: column; gap: var(--space-xs); margin-top: auto; }
-.pack-card-actions .btn { width: 100%; font-size: 0.78rem; letter-spacing: 0.5px; padding: var(--space-sm) var(--space-sm); }
+.pack-card-actions { display: flex; flex-direction: column; gap: 4px; margin-top: auto; }
+.pack-card-actions .btn { width: 100%; font-size: 0.62rem; letter-spacing: 0.2px; padding: 6px 4px; gap: 3px; }
+@media (min-width: 768px) {
+  .pack-card-body-slim { padding: var(--space-sm) var(--space-lg) var(--space-md); }
+  .pack-card-actions { gap: var(--space-xs); }
+  .pack-card-actions .btn { font-size: 0.78rem; letter-spacing: 0.5px; padding: var(--space-sm) var(--space-sm); }
+}
 
 .pack-detail { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
 .pack-detail-label { color: var(--text-muted); font-weight: 500; }
@@ -1085,7 +1108,7 @@ input.filter-select { cursor: text; }
   .btn { font-size: 0.9rem; padding: var(--space-sm) var(--space-lg); }
   .grid { gap: var(--space-md); grid-template-columns: repeat(2, 1fr); }
   .section-title { font-size: 1.4rem; }
-  .packs-grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-md); }
+  .packs-grid { gap: var(--space-md); }
   .pack-icon { font-size: 2.8rem; }
   .pack-reveal-grid { grid-template-columns: repeat(3, 1fr); gap: var(--space-md); }
   .pack-reveal-card { width: 140px; height: 200px; }
@@ -1121,7 +1144,7 @@ input.filter-select { cursor: text; }
   .grid { grid-template-columns: repeat(3, 1fr); gap: var(--space-lg); }
   .section-title { font-size: 1.5rem; }
   .footer-inner { padding: var(--space-md) var(--space-lg); }
-  .packs-grid { grid-template-columns: repeat(3, 1fr); gap: var(--space-lg); }
+  .packs-grid { gap: var(--space-lg); }
   .pack-icon { font-size: 3rem; }
   .pack-opening-page { gap: var(--space-xl); }
   .pack-tear { width: 220px; height: 310px; }

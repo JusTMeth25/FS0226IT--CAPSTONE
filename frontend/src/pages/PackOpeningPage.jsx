@@ -52,7 +52,7 @@ function PackSelectCard({ pack, gold, isFreeAvailable, cooldownRemaining, gifted
   const packImage = PACK_IMAGE[pack.id];
 
   return (
-    <CardHoloFrame rarity={PACK_TILT_RARITY[pack.id] || 'rare'} maxTilt={6} className="pack-card glass-panel">
+    <CardHoloFrame rarity={PACK_TILT_RARITY[pack.id] || 'rare'} maxTilt={6} className="pack-card">
       <div className="pack-card-art-wrap" style={{ background: packImage ? undefined : PACK_GRADIENT[pack.id] }}>
         {packImage ? (
           <img className="pack-card-art-full" src={packImage} alt={pack.name} />
@@ -64,8 +64,8 @@ function PackSelectCard({ pack, gold, isFreeAvailable, cooldownRemaining, gifted
         )}
         <span className="pack-card-count">{pack.cardCount} carte</span>
         {giftedCount > 0 && <span className="pack-card-price-badge pack-card-price-free pack-card-gift-badge"><i className="ph-fill ph-gift" /> x{giftedCount}</span>}
+        <PackHoloLayers />
       </div>
-      <PackHoloLayers />
       <div className="pack-card-body pack-card-body-slim">
         <div className="pack-card-actions">
           {giftedCount > 0 && (
