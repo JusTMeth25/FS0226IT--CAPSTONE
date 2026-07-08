@@ -59,6 +59,7 @@ model User {
   xp             Int          @default(0)
   level          Int          @default(1)
   role           UserRole     @default(USER)
+  avatar         String?
   banned         Boolean      @default(false)
   banReason      String?
   lastFreePackAt DateTime?

@@ -14,6 +14,9 @@ export const authApi = {
   async profile() {
     return apiClient.get('/auth/profile');
   },
+  async updateAvatar(avatar) {
+    return apiClient.patch('/auth/avatar', { avatar });
+  },
   logout() {
     setToken(null);
   }

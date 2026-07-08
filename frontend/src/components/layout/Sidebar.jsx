@@ -2,6 +2,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
 import { useGame } from '../../hooks/useGame.js';
 import { useCountUp } from '../../hooks/useCountUp.js';
+import UserAvatar from '../common/UserAvatar.jsx';
 
 const NAV_ITEMS = [
   { to: '/home', label: 'Home', icon: 'ph-house' },
@@ -16,20 +17,21 @@ const NAV_ITEMS = [
   { to: '/profile', label: 'Profilo', icon: 'ph-user-circle' }
 ];
 
-export default function Sidebar({ open, onNavigate }) {
+/** Navigazione desktop (≥992px): a mobile/tablet la sostituisce interamente BottomNav. */
+export default function Sidebar() {
   const { user } = useAuth();
   const { gold, levelInfo } = useGame();
   const displayGold = useCountUp(gold);
   const xpPercent = levelInfo.xpForNext > 0 ? Math.round((levelInfo.xpRemaining / levelInfo.xpForNext) * 100) : 100;
 
   return (
-    <aside className={`sidebar ${open ? 'sidebar-open' : ''}`} id="app-sidebar">
+    <aside className="sidebar" id="app-sidebar">
       <div className="sidebar-brand">
-        <Link to="/home" className="nav-link" onClick={onNavigate}>VinylDex</Link>
+        <Link to="/home" className="nav-link">VinylDex</Link>
       </div>
 
       <div className="sidebar-user">
-        <div className="sidebar-avatar"><i className="ph-fill ph-vinyl-record" /></div>
+        <UserAvatar avatar={user?.avatar} className="sidebar-avatar" fallbackIcon="ph-vinyl-record" />
         <div className="sidebar-user-info">
           <span className="sidebar-username">{user ? user.username : 'Ospite'}</span>
           <span className="sidebar-level">Livello {levelInfo.level}</span>
@@ -49,7 +51,6 @@ export default function Sidebar({ open, onNavigate }) {
             <li key={item.to}>
               <NavLink
                 to={item.to}
-                onClick={onNavigate}
                 className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
               >
                 <i className={`ph-fill ${item.icon}`} /> {item.label}
@@ -58,7 +59,7 @@ export default function Sidebar({ open, onNavigate }) {
           ))}
           {user?.role === 'ADMIN' && (
             <li>
-              <NavLink to="/admin" onClick={onNavigate} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+              <NavLink to="/admin" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
                 <i className="ph-fill ph-shield-star" /> Admin
               </NavLink>
             </li>

@@ -1,30 +1,18 @@
-import { useEffect, useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { useLocation, Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar.jsx';
 import Topbar from './Topbar.jsx';
+import BottomNav from './BottomNav.jsx';
 import ErrorBoundary from '../common/ErrorBoundary.jsx';
 
 export default function AppLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-
-  // Chiude la sidebar mobile ad ogni cambio pagina.
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset intenzionale su navigazione
-    setSidebarOpen(false);
-  }, [location.pathname]);
 
   return (
     <div className="app-shell">
-      <div
-        className={`sidebar-overlay ${sidebarOpen ? 'sidebar-overlay-visible' : ''}`}
-        onClick={() => setSidebarOpen(false)}
-      />
-
-      <Sidebar open={sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
+      <Sidebar />
 
       <div className="app-content">
-        <Topbar sidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen((v) => !v)} />
+        <Topbar />
 
         <main id="app-view" className="app-main" role="main" aria-live="polite" key={location.pathname}>
           <ErrorBoundary>
@@ -38,6 +26,8 @@ export default function AppLayout() {
           </div>
         </footer>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

@@ -20,6 +20,10 @@ const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
+// Le 6 immagini disponibili in frontend/public/assets/img/avatarN.png: si salva solo la chiave
+// (es. "avatar3"), mai il path, così il frontend resta libero di cambiare cartella/estensione.
+const AVAILABLE_AVATARS = ['avatar1', 'avatar2', 'avatar3', 'avatar4', 'avatar5', 'avatar6'];
+
 function generateToken(user) {
   return jwt.sign(
     {
@@ -53,7 +57,7 @@ router.post('/register', async (req, res, next) => {
 
     const user = await prisma.user.create({
       data: { username, email, passwordHash },
-      select: { id: true, username: true, email: true, gold: true, xp: true, level: true, role: true, lastLoginDate: true, loginStreak: true, createdAt: true },
+      select: { id: true, username: true, email: true, gold: true, xp: true, level: true, role: true, avatar: true, lastLoginDate: true, loginStreak: true, createdAt: true },
     });
 
     const token = generateToken(user);
@@ -87,6 +91,7 @@ router.post('/login', async (req, res, next) => {
       xp: user.xp,
       level: user.level,
       role: user.role,
+      avatar: user.avatar,
       lastLoginDate: user.lastLoginDate,
       loginStreak: user.loginStreak,
     };
@@ -117,6 +122,7 @@ router.get('/profile', verifyToken, async (req, res, next) => {
         xp: true,
         level: true,
         role: true,
+        avatar: true,
         banned: true,
         lastLoginDate: true,
         loginStreak: true,
@@ -127,6 +133,43 @@ router.get('/profile', verifyToken, async (req, res, next) => {
 
     if (!user) return res.status(404).json({ error: 'not_found' });
     if (user.banned) return res.status(403).json({ error: 'user_banned' });
+    res.json({ user });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * PATCH /api/auth/avatar
+ * Protected - imposta l'avatar dell'utente scegliendo tra le 6 immagini disponibili
+ * body: { avatar: 'avatar1' | ... | 'avatar6' }
+ */
+router.patch('/avatar', verifyToken, async (req, res, next) => {
+  try {
+    const userId = req.user?.sub;
+    if (!userId) return res.status(401).json({ error: 'unauthorized' });
+
+    const { avatar } = req.body || {};
+    if (!AVAILABLE_AVATARS.includes(avatar)) return res.status(400).json({ error: 'invalid_avatar' });
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { avatar },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        gold: true,
+        xp: true,
+        level: true,
+        role: true,
+        avatar: true,
+        lastLoginDate: true,
+        loginStreak: true,
+        createdAt: true,
+      },
+    });
+
     res.json({ user });
   } catch (err) {
     next(err);
