@@ -1,4 +1,5 @@
 const { persistImportedCards } = require('./importCommon');
+const { rarityFromPrice } = require('./priceRarity');
 
 const SOURCE = 'yugioh';
 
@@ -7,7 +8,9 @@ const DEMO_CARDS = [
   { externalId: 'demo-kuriboh', name: 'Kuriboh (demo)', setName: 'Demo Set', number: '2', rarity: 'common', imgUrl: '', description: 'Carta demo (API YGOPRODeck non raggiungibile).' }
 ];
 
-function mapRarity(raw) {
+// Fallback usato solo quando la carta non ha alcun prezzo di mercato disponibile
+// (rarità dichiarata dalla fonte, non riflette necessariamente il valore reale).
+function mapRarityFallback(raw) {
   const r = (raw || '').toLowerCase();
   if (r.includes('secret') || r.includes('ultimate') || r.includes('ghost') || r.includes('collector') || r.includes('starlight') || r.includes('quarter century')) return 'legendary';
   if (r.includes('ultra')) return 'epic';
@@ -16,8 +19,20 @@ function mapRarity(raw) {
   return 'common';
 }
 
+// L'API include già il prezzo di mercato TCGPlayer per carta (fallback su Cardmarket se
+// tcgplayer_price manca o è 0, cosa che capita per alcune stampe recenti/regionali).
+function extractPrice(card) {
+  const prices = card.card_prices?.[0];
+  if (!prices) return null;
+  const tcgplayer = parseFloat(prices.tcgplayer_price);
+  if (tcgplayer > 0) return tcgplayer;
+  const cardmarket = parseFloat(prices.cardmarket_price);
+  return cardmarket > 0 ? cardmarket : null;
+}
+
 function normalize(card) {
   const set = card.card_sets?.[0];
+  const price = extractPrice(card);
   return {
     externalId: String(card.id),
     code: `yugioh-${card.id}`,
@@ -25,10 +40,10 @@ function normalize(card) {
     setName: set?.set_name || null,
     setCode: set?.set_code || null,
     number: null,
-    rarity: mapRarity(set?.set_rarity),
+    rarity: rarityFromPrice(SOURCE, price) || mapRarityFallback(set?.set_rarity),
     imgUrl: card.card_images?.[0]?.image_url || '',
     description: card.desc || null,
-    metadata: { type: card.type || null, atk: card.atk ?? null, def: card.def ?? null }
+    metadata: { type: card.type || null, atk: card.atk ?? null, def: card.def ?? null, marketPrice: price }
   };
 }
 

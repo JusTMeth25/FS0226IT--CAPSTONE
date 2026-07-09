@@ -1,4 +1,5 @@
 const { persistImportedCards } = require('./importCommon');
+const { rarityFromPrice } = require('./priceRarity');
 
 const SOURCE = 'onepiece';
 
@@ -7,7 +8,9 @@ const DEMO_CARDS = [
   { externalId: 'demo-zoro', name: 'Roronoa Zoro (demo)', setName: 'Demo Set', number: '2', rarity: 'rare', imgUrl: '', description: 'Carta demo (API OPTCG non raggiungibile).' }
 ];
 
-function mapRarity(raw) {
+// Fallback usato solo quando la carta non ha alcun prezzo di mercato disponibile
+// (rarità dichiarata dalla fonte, non riflette necessariamente il valore reale).
+function mapRarityFallback(raw) {
   const r = (raw || '').toUpperCase();
   if (r === 'SEC') return 'legendary';
   if (r === 'SR' || r === 'TR') return 'epic';
@@ -25,6 +28,7 @@ function externalIdFromImage(card) {
 
 function normalize(card) {
   const externalId = externalIdFromImage(card);
+  const price = card.market_price > 0 ? card.market_price : null;
   return {
     externalId,
     code: `onepiece-${externalId}`,
@@ -32,10 +36,10 @@ function normalize(card) {
     setName: card.set_name || null,
     setCode: card.set_id || null,
     number: card.card_set_id || null,
-    rarity: mapRarity(card.rarity),
+    rarity: rarityFromPrice(SOURCE, price) || mapRarityFallback(card.rarity),
     imgUrl: card.card_image || '',
     description: card.card_text || null,
-    metadata: { color: card.card_color || null, type: card.card_type || null, power: card.card_power || null, life: card.life || null }
+    metadata: { color: card.card_color || null, type: card.card_type || null, power: card.card_power || null, life: card.life || null, marketPrice: price }
   };
 }
 

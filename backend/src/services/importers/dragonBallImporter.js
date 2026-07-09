@@ -1,4 +1,5 @@
 const { persistImportedCards } = require('./importCommon');
+const { rarityFromPrice } = require('./priceRarity');
 
 const SOURCE = 'dragonball';
 const CATEGORY_ID = 27; // Dragon Ball Super CCG su tcgcsv.com (mirror pubblico dei dati TCGPlayer)
@@ -8,9 +9,11 @@ const DEMO_CARDS = [
   { externalId: 'demo-vegeta', name: 'Vegeta (demo)', setName: 'Demo Set', number: '2', rarity: 'rare', imgUrl: '', description: 'Carta demo (TCGPlayer non raggiungibile).' }
 ];
 
-// Rarità reali osservate su tcgcsv.com: Common/Uncommon/Rare/Super Rare/Secret Rare/
-// Special Rare/Special Leader Rare/God Rare/Concept Rare/None (carte senza indicazione, es. leader).
-function mapRarity(raw) {
+// Fallback usato solo quando la carta non ha alcun prezzo di mercato disponibile (rarità
+// dichiarata dalla fonte, non riflette necessariamente il valore reale). Rarità reali osservate
+// su tcgcsv.com: Common/Uncommon/Rare/Super Rare/Secret Rare/Special Rare/Special Leader Rare/
+// God Rare/Concept Rare/None (carte senza indicazione, es. leader).
+function mapRarityFallback(raw) {
   const r = (raw || '').toLowerCase();
   if (r.includes('secret') || r.includes('special') || r.includes('god') || r.includes('concept')) return 'legendary';
   if (r.includes('super')) return 'epic';
@@ -47,7 +50,8 @@ function upscaleImage(url) {
   return url ? url.replace(/_200w\.jpg$/i, '_400w.jpg') : url;
 }
 
-function normalize(product, setName) {
+function normalize(product, setName, priceMap) {
+  const price = priceMap?.get(product.productId) || null;
   return {
     externalId: String(product.productId),
     code: `dragonball-${product.productId}`,
@@ -55,14 +59,15 @@ function normalize(product, setName) {
     setName: setName || null,
     setCode: null,
     number: getField(product, 'Number'),
-    rarity: mapRarity(getField(product, 'Rarity')),
+    rarity: rarityFromPrice(SOURCE, price) || mapRarityFallback(getField(product, 'Rarity')),
     imgUrl: upscaleImage(product.imageUrl) || '',
     description: (getField(product, 'Description') || '').replace(/<br\s*\/?>/gi, '\n').replace(/\r\n/g, '\n').trim() || null,
     metadata: {
       color: getField(product, 'Color'),
       cardType: getField(product, 'CardType'),
       power: getField(product, 'Power'),
-      energyCost: getField(product, 'EnergyColor Cost')
+      energyCost: getField(product, 'EnergyColor Cost'),
+      marketPrice: price
     }
   };
 }
@@ -96,7 +101,22 @@ async function importDragonBallCards(opts = {}) {
       const rarity = getField(p, 'Rarity');
       return rarity && rarity !== 'None' && getField(p, 'Number');
     });
-    const normalized = singles.slice(0, limit).map((p) => normalize(p, group.name));
+
+    // Prezzi di mercato reali per lo stesso gruppo, usati per assegnare la rarità in base al
+    // valore effettivo della carta invece che al solo simbolo di rarità dichiarato dall'editore.
+    const priceMap = new Map();
+    try {
+      const pricesRes = await fetchWithRetry(`https://tcgcsv.com/tcgplayer/${CATEGORY_ID}/${group.groupId}/prices`);
+      if (pricesRes.ok) {
+        const pricesBody = await pricesRes.json();
+        (pricesBody.results || []).forEach((p) => {
+          const val = p.marketPrice || p.midPrice;
+          if (val > 0) priceMap.set(p.productId, val);
+        });
+      }
+    } catch { /* i prezzi sono un arricchimento best-effort: si ricade sul fallback per rarità */ }
+
+    const normalized = singles.slice(0, limit).map((p) => normalize(p, group.name, priceMap));
     const imported = await persistImportedCards(SOURCE, normalized);
     return { source: SOURCE, imported, usedFallback: false, set: group.name, totalAvailable: singles.length };
   } catch (err) {

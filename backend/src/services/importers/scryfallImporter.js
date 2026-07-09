@@ -1,4 +1,5 @@
 const { persistImportedCards } = require('./importCommon');
+const { rarityFromPrice } = require('./priceRarity');
 
 const SOURCE = 'scryfall';
 
@@ -7,7 +8,9 @@ const DEMO_CARDS = [
   { externalId: 'demo-llanowar-elves', name: 'Llanowar Elves (demo)', setName: 'Demo Set', number: '2', rarity: 'common', imgUrl: '', description: 'Carta demo (API Scryfall non raggiungibile).' }
 ];
 
-function mapRarity(raw) {
+// Fallback usato solo quando la carta non ha alcun prezzo di mercato disponibile
+// (rarità dichiarata dalla fonte, non riflette necessariamente il valore reale).
+function mapRarityFallback(raw) {
   switch (raw) {
     case 'mythic': return 'legendary';
     case 'rare': return 'epic';
@@ -16,8 +19,18 @@ function mapRarity(raw) {
   }
 }
 
+// Scryfall espone direttamente il prezzo di mercato Cardmarket/TCGPlayer in USD; alcune carte
+// esistono solo in versione foil (usd è null ma usd_foil è valorizzato).
+function extractPrice(card) {
+  const usd = parseFloat(card.prices?.usd);
+  if (usd > 0) return usd;
+  const foil = parseFloat(card.prices?.usd_foil);
+  return foil > 0 ? foil : null;
+}
+
 function normalize(card) {
   const image = card.image_uris?.normal || card.card_faces?.[0]?.image_uris?.normal || '';
+  const price = extractPrice(card);
   return {
     externalId: card.id,
     code: `scryfall-${card.id}`,
@@ -25,10 +38,10 @@ function normalize(card) {
     setName: card.set_name || null,
     setCode: card.set || null,
     number: card.collector_number || null,
-    rarity: mapRarity(card.rarity),
+    rarity: rarityFromPrice(SOURCE, price) || mapRarityFallback(card.rarity),
     imgUrl: image,
     description: card.oracle_text || card.flavor_text || null,
-    metadata: { manaCost: card.mana_cost || null, typeLine: card.type_line || null, colors: card.colors || [] }
+    metadata: { manaCost: card.mana_cost || null, typeLine: card.type_line || null, colors: card.colors || [], marketPrice: price }
   };
 }
 

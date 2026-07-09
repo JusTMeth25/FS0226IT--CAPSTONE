@@ -1,4 +1,5 @@
 const { persistImportedCards } = require('./importCommon');
+const { rarityFromPrice } = require('./priceRarity');
 
 const SOURCE = 'pokemon';
 
@@ -7,7 +8,9 @@ const DEMO_CARDS = [
   { externalId: 'demo-charizard', name: 'Charizard (demo)', setName: 'Demo Set', number: '2', rarity: 'legendary', imgUrl: '', description: 'Carta demo (API Pokémon TCG non raggiungibile).' }
 ];
 
-function mapRarity(raw) {
+// Fallback usato solo quando la carta non ha alcun prezzo di mercato disponibile
+// (rarità dichiarata dalla fonte, non riflette necessariamente il valore reale).
+function mapRarityFallback(raw) {
   const r = (raw || '').toLowerCase();
   if (r.includes('secret') || r.includes('rainbow') || r.includes('hyper') || r.includes('special')) return 'legendary';
   if (r.includes('ultra') || r.includes('holo')) return 'epic';
@@ -16,7 +19,22 @@ function mapRarity(raw) {
   return 'common';
 }
 
+// L'API include il prezzo di mercato TCGPlayer per ogni variante di stampa (holofoil, reverse
+// holofoil, 1st edition...) della stessa carta: si prende la più alta, che rappresenta il valore
+// reale della versione più ricercata di quella carta.
+function extractPrice(card) {
+  const variants = card.tcgplayer?.prices;
+  if (!variants) return null;
+  let best = 0;
+  for (const key of Object.keys(variants)) {
+    const p = variants[key]?.market ?? variants[key]?.mid ?? 0;
+    if (p > best) best = p;
+  }
+  return best > 0 ? best : null;
+}
+
 function normalize(card) {
+  const price = extractPrice(card);
   return {
     externalId: card.id,
     code: `pokemon-${card.id}`,
@@ -24,10 +42,10 @@ function normalize(card) {
     setName: card.set?.name || null,
     setCode: card.set?.id || null,
     number: card.number || null,
-    rarity: mapRarity(card.rarity),
+    rarity: rarityFromPrice(SOURCE, price) || mapRarityFallback(card.rarity),
     imgUrl: card.images?.large || card.images?.small || '',
     description: card.flavorText || (Array.isArray(card.rules) ? card.rules.join(' ') : null),
-    metadata: { types: card.types || [], hp: card.hp || null, artist: card.artist || null }
+    metadata: { types: card.types || [], hp: card.hp || null, artist: card.artist || null, marketPrice: price }
   };
 }
 
