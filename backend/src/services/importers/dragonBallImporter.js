@@ -40,6 +40,13 @@ function getField(product, name) {
   return field ? field.value : null;
 }
 
+// tcgcsv.com restituisce di default la miniatura "_200w" (~200px, visibilmente sgranata a schermo
+// intero). TCGPlayer serve anche "_400w" per lo stesso productId (verificato: 600w/800w/1000w e la
+// versione senza suffisso rispondono 403, quindi 400w è la risoluzione massima realmente disponibile).
+function upscaleImage(url) {
+  return url ? url.replace(/_200w\.jpg$/i, '_400w.jpg') : url;
+}
+
 function normalize(product, setName) {
   return {
     externalId: String(product.productId),
@@ -49,7 +56,7 @@ function normalize(product, setName) {
     setCode: null,
     number: getField(product, 'Number'),
     rarity: mapRarity(getField(product, 'Rarity')),
-    imgUrl: product.imageUrl || '',
+    imgUrl: upscaleImage(product.imageUrl) || '',
     description: (getField(product, 'Description') || '').replace(/<br\s*\/?>/gi, '\n').replace(/\r\n/g, '\n').trim() || null,
     metadata: {
       color: getField(product, 'Color'),
