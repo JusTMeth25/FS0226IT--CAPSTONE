@@ -98,9 +98,9 @@ const PACKS = [
 ];
 
 const MISSIONS = [
-  { code: 'daily-open-pack', title: 'Apri un pacchetto', description: 'Apri 1 pacchetto oggi', type: 'open_packs', targetValue: 1, rewardGold: 25, rewardXp: 50, isDaily: true },
-  { code: 'daily-collect-cards', title: 'Colleziona carte', description: 'Ottieni 3 carte oggi', type: 'collect_cards', targetValue: 3, rewardGold: 30, rewardXp: 60, isDaily: true },
-  { code: 'weekly-open-5', title: 'Apri 5 pacchetti', description: 'Apri 5 pacchetti questa settimana', type: 'open_packs', targetValue: 5, rewardGold: 100, rewardXp: 200, isDaily: false },
+  { code: 'daily-open-pack', title: 'Apri un pacchetto', description: 'Apri 1 pacchetto', type: 'open_packs', targetValue: 1, rewardGold: 25, rewardXp: 50, isDaily: true },
+  { code: 'daily-collect-cards', title: 'Colleziona carte', description: 'Ottieni 3 carte', type: 'collect_cards', targetValue: 3, rewardGold: 30, rewardXp: 60, isDaily: true },
+  { code: 'weekly-open-5', title: 'Apri 5 pacchetti', description: 'Apri 5 pacchetti', type: 'open_packs', targetValue: 5, rewardGold: 100, rewardXp: 200, isDaily: false },
   { code: 'weekly-legendary', title: 'Caccia alla Leggendaria', description: 'Ottieni 1 carta Leggendaria', type: 'collect_rarity', targetValue: 1, rewardGold: 150, rewardXp: 300, rewardPack: 'pack-deluxe', isDaily: false, metadata: { rarity: 'legendary' } },
   { code: 'weekly-market-sell', title: 'Commerciante', description: 'Vendi 1 carta nel mercato', type: 'sell_market', targetValue: 1, rewardGold: 50, rewardXp: 80, isDaily: false },
   { code: 'weekly-market-buy', title: 'Collezionista Astuto', description: "Compra 1 carta dal mercato", type: 'buy_market', targetValue: 1, rewardGold: 50, rewardXp: 80, isDaily: false },

@@ -1,28 +1,21 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth.js';
 import { useGame } from '../hooks/useGame.js';
+import { useApiResource } from '../hooks/useApiResource.js';
 import { CARDS } from '../data/cards.js';
 import { PACKS } from '../data/packs.js';
 import { findPackById } from '../data/packs.js';
-import { getRarityColor, getTotalScore, RARITY_ORDER } from '../utils/cardUtils.js';
+import { RARITY_ORDER } from '../utils/cardUtils.js';
 import { generateMissions } from '../utils/missionUtils.js';
+import { missionApi } from '../services/missionApi.js';
 import { dedupeCollection } from '../utils/collectionUtils.js';
 import { useCountdown, formatDuration } from '../hooks/useCountdown.js';
 import CardTile from '../components/card/CardTile.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 
-function StatBar({ label, value, max, color }) {
-  const percent = Math.min((value / max) * 100, 100);
-  return (
-    <div className="stat-bar-row">
-      <span className="stat-bar-label">{label}</span>
-      <div className="stat-bar-track"><div className="stat-bar-fill" style={{ width: `${percent}%`, background: color }} /></div>
-      <span className="stat-bar-value" style={{ color }}>{value}</span>
-    </div>
-  );
-}
-
 export default function HomePage() {
+  const { isAuthenticated } = useAuth();
   const game = useGame();
   const navigate = useNavigate();
   const basePack = findPackById('pack-base');
@@ -61,11 +54,21 @@ export default function HomePage() {
     };
   }, [game.collection, totalCatalogCards]);
 
-  const dailyMissions = useMemo(
-    () => generateMissions(game).filter((m) => m.type === 'daily').slice(0, 3),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [game.stats, game.claimedMissions]
+  // Per gli utenti autenticati le missioni vere arrivano dal server (stesso endpoint di
+  // MissionsPage): generateMissions(game) è solo per la modalità ospite e non riflette mai
+  // progresso/reclami reali per un utente loggato (game.stats/claimedMissions restano locali).
+  const missionsServer = useApiResource(
+    () => (isAuthenticated ? missionApi.getMissions() : Promise.resolve(null)),
+    [isAuthenticated, game.collection, game.stats]
   );
+
+  const dailyMissions = useMemo(() => {
+    if (isAuthenticated) {
+      return (missionsServer.data?.missions || []).filter((m) => m.id.startsWith('daily-')).slice(0, 3);
+    }
+    return generateMissions(game).filter((m) => m.type === 'daily').slice(0, 3);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, missionsServer.data, game.stats, game.claimedMissions]);
 
   return (
     <section className="home-page">
@@ -144,28 +147,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Statistiche carta in evidenza */}
-        <div className="glass-panel">
-          {featuredCard ? (
-            <div className="card-detail-stats">
-              <h3><i className="ph-fill ph-chart-bar" /> Statistiche — {featuredCard.name}</h3>
-              <StatBar label={<><i className="ph-fill ph-microphone-stage" /> Fans</>} value={featuredCard.stats.fans} max={100} color={getRarityColor(featuredCard.rarity)} />
-              <StatBar label={<><i className="ph-fill ph-palette" /> Style</>} value={featuredCard.stats.style} max={100} color={getRarityColor(featuredCard.rarity)} />
-              <StatBar label={<><i className="ph-fill ph-megaphone" /> Influence</>} value={featuredCard.stats.influence} max={100} color={getRarityColor(featuredCard.rarity)} />
-              <StatBar label={<><i className="ph-fill ph-lightning" /> Energy</>} value={featuredCard.stats.energy} max={100} color={getRarityColor(featuredCard.rarity)} />
-              <div className="stat-total">
-                <span>Punteggio Totale</span>
-                <span className="stat-total-value">{getTotalScore(featuredCard)}/400</span>
-              </div>
-            </div>
-          ) : (
-            <>
-              <h3 className="panel-title"><i className="ph-fill ph-chart-bar" /> Statistiche</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Nessuna carta da mostrare.</p>
-            </>
-          )}
-        </div>
-
         {/* Missioni giornaliere */}
         <div className="glass-panel panel-full">
           <h3 className="panel-title"><i className="ph-fill ph-target" /> Missioni Giornaliere</h3>
@@ -175,7 +156,7 @@ export default function HomePage() {
                 const percent = Math.min((m.progress / m.target) * 100, 100);
                 return (
                   <div className="missions-item" key={m.id}>
-                    <span className="missions-item-icon"><i className={`ph-fill ${m.icon}`} /></span>
+                    <span className="missions-item-icon"><i className={`ph-fill ${m.icon || 'ph-target'}`} /></span>
                     <div className="missions-item-info">
                       <span className="missions-item-title">{m.title}</span>
                       <div className="missions-item-progress">

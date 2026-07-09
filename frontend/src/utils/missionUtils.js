@@ -13,12 +13,12 @@ export function generateMissions(game) {
   const missions = [];
 
   missions.push({
-    id: 'daily-open-pack', title: 'Apri un pacchetto', description: 'Apri 1 pacchetto oggi', type: 'daily',
+    id: 'daily-open-pack', title: 'Apri un pacchetto', description: 'Apri 1 pacchetto', type: 'daily',
     icon: 'ph-gift', target: 1, progress: Math.min(stats.dailyPacksOpened || 0, 1),
     rewardGold: 25, rewardXP: 50, claimed: claimedIds.has('daily-open-pack')
   });
   missions.push({
-    id: 'daily-collect-cards', title: 'Colleziona carte', description: 'Ottieni 3 carte oggi', type: 'daily',
+    id: 'daily-collect-cards', title: 'Colleziona carte', description: 'Ottieni 3 carte', type: 'daily',
     icon: 'ph-cards', target: 3, progress: Math.min(stats.dailyCardsObtained || 0, 3),
     rewardGold: 30, rewardXP: 60, claimed: claimedIds.has('daily-collect-cards')
   });
@@ -29,7 +29,7 @@ export function generateMissions(game) {
   });
 
   missions.push({
-    id: 'weekly-open-5', title: 'Apri 5 pacchetti', description: 'Apri 5 pacchetti questa settimana', type: 'weekly',
+    id: 'weekly-open-5', title: 'Apri 5 pacchetti', description: 'Apri 5 pacchetti', type: 'weekly',
     icon: 'ph-gift', target: 5, progress: Math.min(stats.totalPacksOpened || 0, 5),
     rewardGold: 100, rewardXP: 200, claimed: claimedIds.has('weekly-open-5')
   });
