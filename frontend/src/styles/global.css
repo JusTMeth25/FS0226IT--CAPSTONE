@@ -1075,9 +1075,41 @@ input.filter-select { cursor: text; }
 
 .admin-guard { display: flex; flex-direction: column; align-items: center; gap: var(--space-md); padding: var(--space-2xl) var(--space-md); text-align: center; }
 .admin-tabs { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
+.admin-table-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .admin-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
 .admin-table th, .admin-table td { text-align: left; padding: var(--space-sm); border-bottom: 1px solid var(--glass-border); }
 .admin-table th { color: var(--text-secondary); text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.5px; }
+
+/* Sotto i 992px (mobile e tablet) una tabella a 4-6 colonne non ci sta mai comodamente: invece di
+   tagliarla o forzare uno scroll orizzontale scomodo, ogni riga diventa una card verticale con
+   l'etichetta di colonna (data-label) accanto al valore, e torna una tabella normale da desktop. */
+.admin-table thead { display: none; }
+.admin-table, .admin-table tbody, .admin-table tr, .admin-table td { display: block; width: 100%; }
+.admin-table tr { margin-bottom: var(--space-sm); padding: var(--space-xs) var(--space-sm); border: 1px solid var(--glass-border); border-radius: var(--radius-md); }
+.admin-table tr:last-child { margin-bottom: 0; }
+.admin-table td { display: flex; justify-content: space-between; align-items: center; gap: var(--space-sm); padding: 6px 2px; border-bottom: none; text-align: right; }
+.admin-table td[data-label]::before {
+  content: attr(data-label); flex-shrink: 0; text-align: left;
+  font-weight: 700; color: var(--text-secondary); text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.5px;
+}
+.admin-table td:not([data-label]) { justify-content: center; }
+/* Celle senza contenuto (es. badge Ruolo/Stato assenti) non mostrano un'etichetta a vuoto in card view. */
+.admin-table td:empty { display: none; }
+
+@media (min-width: 992px) {
+  .admin-table thead { display: table-header-group; }
+  .admin-table { display: table; }
+  .admin-table tbody { display: table-row-group; }
+  .admin-table tr { display: table-row; margin-bottom: 0; padding: 0; border: none; border-radius: 0; }
+  .admin-table td {
+    display: table-cell; width: auto; justify-content: initial; text-align: left;
+    padding: var(--space-sm); border-bottom: 1px solid var(--glass-border);
+  }
+  .admin-table td[data-label]::before { content: none; }
+  /* In una tabella vera una cella vuota va comunque disegnata, altrimenti le colonne delle altre righe si disallineano. */
+  .admin-table td:empty { display: table-cell; }
+}
+
 .admin-form-row { display: flex; gap: var(--space-sm); flex-wrap: wrap; align-items: flex-end; }
 .admin-form-row .filter-group { flex: 1; min-width: 140px; }
 .badge-role-admin { background: rgba(255, 215, 0, 0.15); color: var(--neon-gold); font-size: 0.6rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }

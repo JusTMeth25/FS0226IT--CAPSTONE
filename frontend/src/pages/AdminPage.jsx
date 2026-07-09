@@ -41,25 +41,27 @@ function UsersTab() {
         const users = data?.users || [];
         if (!users.length) return null;
         return (
-          <table className="admin-table">
-            <thead><tr><th>Username</th><th>Email</th><th>Gold</th><th>Ruolo</th><th>Stato</th><th /></tr></thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id}>
-                  <td>{u.username}</td>
-                  <td>{u.email}</td>
-                  <td>{u.gold}</td>
-                  <td>{u.role === 'ADMIN' && <span className="badge-role-admin">Admin</span>}</td>
-                  <td>{u.banned && <span className="badge-banned">Bannato</span>}</td>
-                  <td>
-                    <button className="btn btn-small btn-secondary" onClick={async () => { await (u.banned ? adminApi.unbanUser(u.id) : adminApi.banUser(u.id)); reload(); }}>
-                      {u.banned ? 'Sblocca' : 'Banna'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead><tr><th>Username</th><th>Email</th><th>Gold</th><th>Ruolo</th><th>Stato</th><th /></tr></thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id}>
+                    <td data-label="Username">{u.username}</td>
+                    <td data-label="Email">{u.email}</td>
+                    <td data-label="Gold">{u.gold}</td>
+                    <td data-label="Ruolo">{u.role === 'ADMIN' && <span className="badge-role-admin">Admin</span>}</td>
+                    <td data-label="Stato">{u.banned && <span className="badge-banned">Bannato</span>}</td>
+                    <td>
+                      <button className="btn btn-small btn-secondary" onClick={async () => { await (u.banned ? adminApi.unbanUser(u.id) : adminApi.banUser(u.id)); reload(); }}>
+                        {u.banned ? 'Sblocca' : 'Banna'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         );
       }}
     />
@@ -76,14 +78,16 @@ function CardsTab() {
         const cards = data?.cards || [];
         if (!cards.length) return null;
         return (
-          <table className="admin-table">
-            <thead><tr><th>Nome</th><th>Set</th><th>Rarità</th><th>Fonte</th></tr></thead>
-            <tbody>
-              {cards.map((c) => (
-                <tr key={c.id}><td>{c.name}</td><td>{c.setName}</td><td>{c.rarity}</td><td>{c.source}</td></tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead><tr><th>Nome</th><th>Set</th><th>Rarità</th><th>Fonte</th></tr></thead>
+              <tbody>
+                {cards.map((c) => (
+                  <tr key={c.id}><td data-label="Nome">{c.name}</td><td data-label="Set">{c.setName}</td><td data-label="Rarità">{c.rarity}</td><td data-label="Fonte">{c.source}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         );
       }}
     />
@@ -100,14 +104,16 @@ function PacksTab() {
         const packs = data?.packs || [];
         if (!packs.length) return null;
         return (
-          <table className="admin-table">
-            <thead><tr><th>Nome</th><th>Prezzo</th><th>Carte</th><th>Attivo</th></tr></thead>
-            <tbody>
-              {packs.map((p) => (
-                <tr key={p.id}><td>{p.name}</td><td>{p.priceGold}</td><td>{p.cardCount}</td><td>{p.isActive ? 'Sì' : 'No'}</td></tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead><tr><th>Nome</th><th>Prezzo</th><th>Carte</th><th>Attivo</th></tr></thead>
+              <tbody>
+                {packs.map((p) => (
+                  <tr key={p.id}><td data-label="Nome">{p.name}</td><td data-label="Prezzo">{p.priceGold}</td><td data-label="Carte">{p.cardCount}</td><td data-label="Attivo">{p.isActive ? 'Sì' : 'No'}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         );
       }}
     />
@@ -187,14 +193,16 @@ function MissionsTab() {
         const missions = data?.missions || [];
         if (!missions.length) return null;
         return (
-          <table className="admin-table">
-            <thead><tr><th>Titolo</th><th>Tipo</th><th>Target</th><th>Gold</th></tr></thead>
-            <tbody>
-              {missions.map((m) => (
-                <tr key={m.id}><td>{m.title}</td><td>{m.type}</td><td>{m.targetValue}</td><td>{m.rewardGold}</td></tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead><tr><th>Titolo</th><th>Tipo</th><th>Target</th><th>Gold</th></tr></thead>
+              <tbody>
+                {missions.map((m) => (
+                  <tr key={m.id}><td data-label="Titolo">{m.title}</td><td data-label="Tipo">{m.type}</td><td data-label="Target">{m.targetValue}</td><td data-label="Gold">{m.rewardGold}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         );
       }}
     />
@@ -211,14 +219,16 @@ function EventsTab() {
         const events = data?.events || [];
         if (!events.length) return null;
         return (
-          <table className="admin-table">
-            <thead><tr><th>Nome</th><th>Inizio</th><th>Fine</th></tr></thead>
-            <tbody>
-              {events.map((e) => (
-                <tr key={e.id}><td>{e.name}</td><td>{e.startsAt ? new Date(e.startsAt).toLocaleDateString('it-IT') : '—'}</td><td>{e.endsAt ? new Date(e.endsAt).toLocaleDateString('it-IT') : '—'}</td></tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead><tr><th>Nome</th><th>Inizio</th><th>Fine</th></tr></thead>
+              <tbody>
+                {events.map((e) => (
+                  <tr key={e.id}><td data-label="Nome">{e.name}</td><td data-label="Inizio">{e.startsAt ? new Date(e.startsAt).toLocaleDateString('it-IT') : '—'}</td><td data-label="Fine">{e.endsAt ? new Date(e.endsAt).toLocaleDateString('it-IT') : '—'}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         );
       }}
     />
@@ -234,10 +244,12 @@ function LogsTab() {
           const logs = data?.logs || [];
           if (!logs.length) return null;
           return (
-            <table className="admin-table">
-              <thead><tr><th>Utente</th><th>Pacchetto</th><th>Data</th></tr></thead>
-              <tbody>{logs.map((l) => <tr key={l.id}><td>{l.user?.username}</td><td>{l.pack?.name}</td><td>{new Date(l.createdAt).toLocaleString('it-IT')}</td></tr>)}</tbody>
-            </table>
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead><tr><th>Utente</th><th>Pacchetto</th><th>Data</th></tr></thead>
+                <tbody>{logs.map((l) => <tr key={l.id}><td data-label="Utente">{l.user?.username}</td><td data-label="Pacchetto">{l.pack?.name}</td><td data-label="Data">{new Date(l.createdAt).toLocaleString('it-IT')}</td></tr>)}</tbody>
+              </table>
+            </div>
           );
         }} />
       </div>
@@ -247,10 +259,12 @@ function LogsTab() {
           const listings = data?.listings || [];
           if (!listings.length) return null;
           return (
-            <table className="admin-table">
-              <thead><tr><th>Venditore</th><th>Carta</th><th>Prezzo</th></tr></thead>
-              <tbody>{listings.map((l) => <tr key={l.id}><td>{l.seller?.username}</td><td>{l.card?.name}</td><td>{l.pricePerUnit}</td></tr>)}</tbody>
-            </table>
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead><tr><th>Venditore</th><th>Carta</th><th>Prezzo</th></tr></thead>
+                <tbody>{listings.map((l) => <tr key={l.id}><td data-label="Venditore">{l.seller?.username}</td><td data-label="Carta">{l.card?.name}</td><td data-label="Prezzo">{l.pricePerUnit}</td></tr>)}</tbody>
+              </table>
+            </div>
           );
         }} />
       </div>
@@ -260,10 +274,12 @@ function LogsTab() {
           const trades = data?.trades || [];
           if (!trades.length) return null;
           return (
-            <table className="admin-table">
-              <thead><tr><th>Da</th><th>A</th><th>Stato</th></tr></thead>
-              <tbody>{trades.map((t) => <tr key={t.id}><td>{t.fromUser?.username}</td><td>{t.toUser?.username}</td><td>{t.status}</td></tr>)}</tbody>
-            </table>
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead><tr><th>Da</th><th>A</th><th>Stato</th></tr></thead>
+                <tbody>{trades.map((t) => <tr key={t.id}><td data-label="Da">{t.fromUser?.username}</td><td data-label="A">{t.toUser?.username}</td><td data-label="Stato">{t.status}</td></tr>)}</tbody>
+              </table>
+            </div>
           );
         }} />
       </div>
