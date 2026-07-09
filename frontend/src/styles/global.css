@@ -1127,7 +1127,7 @@ input.filter-select { cursor: text; }
   :root { --card-width: 150px; --card-height: 220px; --space-md: 16px; --space-lg: 24px; }
   .header-inner { padding: var(--space-md); }
   .sidebar-brand .nav-link, .topbar-brand-text { font-size: 1.4rem; letter-spacing: 1.5px; }
-  .app-main { padding: var(--space-lg); }
+  .app-main { padding: var(--space-lg); padding-bottom: calc(var(--bottom-nav-h) + var(--space-lg) + var(--safe-bottom)); }
   .btn { font-size: 0.9rem; padding: var(--space-sm) var(--space-lg); }
   .grid { gap: var(--space-md); grid-template-columns: repeat(2, 1fr); }
   .section-title { font-size: 1.4rem; }

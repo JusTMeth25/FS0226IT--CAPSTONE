@@ -25,17 +25,18 @@ function computeReward(body) {
       xp += cfg.xp;
     }
     if (body.wonAllStages) { gold += CHAMPION_BONUS.gold; xp += CHAMPION_BONUS.xp; }
-    return { gold, xp };
+    // Ogni stage superato è una battaglia vinta a tutti gli effetti (conta per la classifica "Battaglie vinte").
+    return { gold, xp, battlesWon: stagesCleared };
   }
   const r = SINGLE_REWARDS[body.result] || SINGLE_REWARDS.loss;
-  return { gold: r.gold, xp: r.xp };
+  return { gold: r.gold, xp: r.xp, battlesWon: body.result === 'win' ? 1 : 0 };
 }
 
 /** POST /api/battles/reward - accredita gold/xp reali al termine di una battaglia (singola o torneo). */
 router.post('/battles/reward', verifyToken, loadCurrentUser, async (req, res, next) => {
   try {
     const userId = req.currentUser.id;
-    const { gold: goldReward, xp: xpReward } = computeReward(req.body || {});
+    const { gold: goldReward, xp: xpReward, battlesWon } = computeReward(req.body || {});
 
     const result = await prisma.$transaction(async (tx) => {
       let user = req.currentUser;
@@ -43,6 +44,9 @@ router.post('/battles/reward', verifyToken, loadCurrentUser, async (req, res, ne
       if (xpReward > 0) {
         const xp = user.xp + xpReward;
         user = await tx.user.update({ where: { id: userId }, data: { xp, level: calcLevel(xp) } });
+      }
+      if (battlesWon > 0) {
+        user = await tx.user.update({ where: { id: userId }, data: { battlesWon: { increment: battlesWon } } });
       }
       return user;
     });

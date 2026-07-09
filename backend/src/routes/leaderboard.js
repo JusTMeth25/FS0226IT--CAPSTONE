@@ -18,8 +18,13 @@ router.get('/leaderboard', async (req, res, next) => {
     }
 
     if (type === 'battles') {
-      // Le battaglie sono attualmente gestite lato client (Fase 1): nessuna statistica persistita server-side.
-      return res.json({ entries: [] });
+      const users = await prisma.user.findMany({
+        where: { banned: false, battlesWon: { gt: 0 } },
+        orderBy: { battlesWon: 'desc' },
+        take: 20,
+        select: { id: true, username: true, battlesWon: true }
+      });
+      return res.json({ entries: users.map((u) => ({ userId: u.id, username: u.username, value: u.battlesWon })) });
     }
 
     // 'collection' (default): numero di carte uniche possedute
