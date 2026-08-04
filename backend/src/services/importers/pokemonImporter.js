@@ -68,8 +68,15 @@ async function importPokemonCards(opts = {}) {
     const imported = await persistImportedCards(SOURCE, normalized);
     return { source: SOURCE, imported, usedFallback: false, page, totalAvailable: body.totalCount };
   } catch (err) {
-    const imported = await persistImportedCards(SOURCE, DEMO_CARDS.map((c) => ({ ...c, code: `pokemon-${c.externalId}`, metadata: { demo: true } })), err.message);
-    return { source: SOURCE, imported, usedFallback: true, error: err.message };
+    try {
+      const imported = await persistImportedCards(SOURCE, DEMO_CARDS.map((c) => ({ ...c, code: `pokemon-${c.externalId}`, metadata: { demo: true } })), err.message);
+      return { source: SOURCE, imported, usedFallback: true, error: err.message };
+    } catch (dbErr) {
+      // Anche il salvataggio delle carte demo può fallire (es. database non raggiungibile): si
+      // evita di propagare un'eccezione non gestita (diventerebbe un 500 generico) restituendo
+      // invece un esito controllato che il pannello admin può mostrare in modo chiaro.
+      return { source: SOURCE, imported: 0, usedFallback: true, error: err.message, dbError: dbErr.message };
+    }
   }
 }
 

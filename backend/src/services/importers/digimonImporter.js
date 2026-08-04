@@ -5,6 +5,11 @@ const SOURCE = 'digimon';
 const TCGCSV_CATEGORY_ID = 63; // Digimon Card Game su tcgcsv.com (mirror pubblico dei dati TCGPlayer)
 const PRICE_CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6h: evita di rifare ~100 richieste a ogni import
 
+const DEMO_CARDS = [
+  { externalId: 'demo-agumon', name: 'Agumon (demo)', setName: 'Demo Set', number: '1', rarity: 'common', imgUrl: '', description: 'Carta demo (API DigimonCard.io non raggiungibile).' },
+  { externalId: 'demo-omnimon', name: 'Omnimon (demo)', setName: 'Demo Set', number: '2', rarity: 'legendary', imgUrl: '', description: 'Carta demo (API DigimonCard.io non raggiungibile).' }
+];
+
 // digimoncard.io non espone un prezzo di mercato diretto, ma include il tcgplayer_id di ogni
 // carta: si costruisce una volta (e si mette in cache) una mappa productId -> prezzo leggendo
 // tutti i gruppi (set) della categoria Digimon su tcgcsv.com.
@@ -114,8 +119,12 @@ async function importDigimonCards(opts = {}) {
     const imported = await persistImportedCards(SOURCE, normalized);
     return { source: SOURCE, imported, usedFallback: false, totalAvailable: uniqueById.length };
   } catch (err) {
-    const imported = await persistImportedCards(SOURCE, DEMO_CARDS.map((c) => ({ ...c, code: `digimon-${c.externalId}`, metadata: { demo: true } })), err.message);
-    return { source: SOURCE, imported, usedFallback: true, error: err.message };
+    try {
+      const imported = await persistImportedCards(SOURCE, DEMO_CARDS.map((c) => ({ ...c, code: `digimon-${c.externalId}`, metadata: { demo: true } })), err.message);
+      return { source: SOURCE, imported, usedFallback: true, error: err.message };
+    } catch (dbErr) {
+      return { source: SOURCE, imported: 0, usedFallback: true, error: err.message, dbError: dbErr.message };
+    }
   }
 }
 

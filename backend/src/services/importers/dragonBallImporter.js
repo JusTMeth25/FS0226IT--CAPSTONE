@@ -120,8 +120,12 @@ async function importDragonBallCards(opts = {}) {
     const imported = await persistImportedCards(SOURCE, normalized);
     return { source: SOURCE, imported, usedFallback: false, set: group.name, totalAvailable: singles.length };
   } catch (err) {
-    const imported = await persistImportedCards(SOURCE, DEMO_CARDS.map((c) => ({ ...c, code: `dragonball-${c.externalId}`, metadata: { demo: true } })), err.message);
-    return { source: SOURCE, imported, usedFallback: true, error: err.message };
+    try {
+      const imported = await persistImportedCards(SOURCE, DEMO_CARDS.map((c) => ({ ...c, code: `dragonball-${c.externalId}`, metadata: { demo: true } })), err.message);
+      return { source: SOURCE, imported, usedFallback: true, error: err.message };
+    } catch (dbErr) {
+      return { source: SOURCE, imported: 0, usedFallback: true, error: err.message, dbError: dbErr.message };
+    }
   }
 }
 

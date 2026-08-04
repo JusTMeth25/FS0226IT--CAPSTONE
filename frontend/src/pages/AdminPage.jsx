@@ -128,7 +128,9 @@ function ImportTab() {
     setStatus((s) => ({ ...s, [key]: { loading: true } }));
     try {
       const res = await fn();
-      const detail = res?.usedFallback
+      const detail = res?.dbError
+        ? `Fonte esterna non raggiungibile (${res.error}) e anche il database non è raggiungibile (${res.dbError}): nessuna carta importata.`
+        : res?.usedFallback
         ? `Servizio non raggiungibile (${res.error}): importate ${res?.imported ?? 0} carte demo di fallback.`
         : `Importate ${res?.imported ?? 0} carte nuove/aggiornate${res?.totalAvailable ? ` (su ${res.totalAvailable} disponibili nella fonte)` : ''}.`;
       setStatus((s) => ({ ...s, [key]: { loading: false, ok: !res?.usedFallback, message: detail } }));
