@@ -31,6 +31,49 @@ function Resource({ fetcher, deps, emptyLabel, errorLabel, render }) {
   return render(data, reload) || <EmptyState title="Nessun dato" description={emptyLabel || 'Nessun elemento presente.'} />;
 }
 
+/** Editor inline per aggiungere/togliere gold a un utente dal pannello admin. */
+function UserGoldEditor({ user, onSaved }) {
+  const [amount, setAmount] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function apply(sign) {
+    const n = Math.abs(parseInt(amount, 10) || 0);
+    if (!n) return;
+    const newTotal = Math.max(0, user.gold + sign * n);
+    setSaving(true);
+    setError(null);
+    try {
+      await adminApi.setUserGold(user.id, newTotal);
+      setAmount('');
+      await onSaved();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <span className="admin-gold-editor">
+      <strong>{user.gold}</strong>
+      <input
+        type="number" min="0" placeholder="qta" value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        className="ai-input admin-gold-input"
+        disabled={saving}
+      />
+      <button className="btn btn-small btn-secondary" disabled={saving || !amount} title="Aggiungi gold" onClick={() => apply(1)}>
+        <i className="ph-fill ph-plus" />
+      </button>
+      <button className="btn btn-small btn-secondary" disabled={saving || !amount} title="Togli gold" onClick={() => apply(-1)}>
+        <i className="ph-fill ph-minus" />
+      </button>
+      {error && <span className="admin-gold-error" title={error}><i className="ph-fill ph-warning" /></span>}
+    </span>
+  );
+}
+
 function UsersTab() {
   return (
     <Resource
@@ -49,7 +92,7 @@ function UsersTab() {
                   <tr key={u.id}>
                     <td data-label="Username">{u.username}</td>
                     <td data-label="Email">{u.email}</td>
-                    <td data-label="Gold">{u.gold}</td>
+                    <td data-label="Gold"><UserGoldEditor key={`${u.id}-${u.gold}`} user={u} onSaved={reload} /></td>
                     <td data-label="Ruolo">{u.role === 'ADMIN' && <span className="badge-role-admin">Admin</span>}</td>
                     <td data-label="Stato">{u.banned && <span className="badge-banned">Bannato</span>}</td>
                     <td>
