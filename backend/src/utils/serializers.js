@@ -28,7 +28,8 @@ function serializeCard(card) {
     source: card.source,
     setName: card.setName || null,
     setCode: card.setCode || null,
-    number: card.number || null
+    number: card.number || null,
+    marketPrice: card.metadata?.marketPrice ?? null
   };
 }
 

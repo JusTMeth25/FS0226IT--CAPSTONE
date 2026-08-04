@@ -67,7 +67,8 @@ router.get('/cards', async (req, res, next) => {
     res.json({
       cards: cards.map((c) => ({
         id: c.id, code: c.code, name: c.name, artistClass: c.artistClass?.name || null,
-        rarity: c.rarity, source: c.source, setName: c.setName, isActive: c.isActive
+        rarity: c.rarity, source: c.source, setName: c.setName, isActive: c.isActive,
+        marketPrice: c.metadata?.marketPrice ?? null
       }))
     });
   } catch (err) { next(err); }

@@ -33,6 +33,15 @@ export function getSourceLabel(source) {
   return SOURCE_LABELS[source] || source;
 }
 
+// Prezzo di mercato reale (USD) usato per calibrare la rarità delle carte importate da fonti con
+// dati di prezzo affidabili (Pokémon, Magic, Yu-Gi-Oh!, One Piece, Dragon Ball, Digimon). Le carte
+// originali VinylDex e quelle da fonti senza dati di prezzo (Lorcana/Gundam/Riftbound) non ce l'hanno.
+const marketPriceFormatter = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
+export function formatMarketPrice(marketPrice) {
+  if (!(marketPrice > 0)) return null;
+  return marketPriceFormatter.format(marketPrice);
+}
+
 export function getRarityData(rarity) {
   return RARITIES[rarity] || RARITIES.common;
 }

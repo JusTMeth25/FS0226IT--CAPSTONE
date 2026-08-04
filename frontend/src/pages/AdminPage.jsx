@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useApiResource } from '../hooks/useApiResource.js';
 import { adminApi } from '../services/adminApi.js';
-import { SOURCE_LABELS } from '../utils/cardUtils.js';
+import { SOURCE_LABELS, formatMarketPrice } from '../utils/cardUtils.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 
@@ -80,10 +80,16 @@ function CardsTab() {
         return (
           <div className="admin-table-wrap">
             <table className="admin-table">
-              <thead><tr><th>Nome</th><th>Set</th><th>Rarità</th><th>Fonte</th></tr></thead>
+              <thead><tr><th>Nome</th><th>Set</th><th>Rarità</th><th>Fonte</th><th>Valore</th></tr></thead>
               <tbody>
                 {cards.map((c) => (
-                  <tr key={c.id}><td data-label="Nome">{c.name}</td><td data-label="Set">{c.setName}</td><td data-label="Rarità">{c.rarity}</td><td data-label="Fonte">{c.source}</td></tr>
+                  <tr key={c.id}>
+                    <td data-label="Nome">{c.name}</td>
+                    <td data-label="Set">{c.setName}</td>
+                    <td data-label="Rarità">{c.rarity}</td>
+                    <td data-label="Fonte">{c.source}</td>
+                    <td data-label="Valore">{formatMarketPrice(c.marketPrice) || '—'}</td>
+                  </tr>
                 ))}
               </tbody>
             </table>
