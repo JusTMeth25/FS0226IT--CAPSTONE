@@ -328,19 +328,6 @@
 }
 
 /* ========================================
-   PULSANTI MAGNETICI
-   ======================================== */
-.magnet { display: inline-block; }
-.magnet-inner {
-  display: inline-block;
-  /* Il ritorno al centro e' morbido, l'inseguimento no: la transizione vale solo
-     quando il trasformazione viene azzerata, perche' durante il movimento viene
-     riscritta a ogni fotogramma. */
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
-}
-
-/* ========================================
    TRANSIZIONE DI PAGINA
    ======================================== */
 #app-view { animation: pageEnter 0.42s cubic-bezier(0.22, 1, 0.36, 1); }
@@ -354,7 +341,6 @@
    ======================================== */
 @media (prefers-reduced-motion: reduce) {
   .bottom-nav-indicator { transition: none; }
-  .magnet-inner { transition: none; transform: none !important; }
   #app-view { animation: none; }
 }
 

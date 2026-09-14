@@ -8,6 +8,7 @@ import Aurora from '../fx/Aurora.jsx';
 import Particles from '../fx/Particles.jsx';
 import ClickSpark from '../fx/ClickSpark.jsx';
 import { useSurfaceFx } from '../../hooks/useSurfaceFx.js';
+import { useScrollRestoration } from '../../hooks/useScrollRestoration.js';
 
 export default function AppLayout() {
   const location = useLocation();
@@ -16,6 +17,10 @@ export default function AppLayout() {
   // Alone al passaggio del puntatore e comparsa allo scroll su ogni pannello di vetro.
   // Passa da qui e non dalle singole pagine: cosi' vale anche per i pannelli futuri.
   useSurfaceFx(viewRef, location.pathname);
+
+  // Tornando indietro da una carta si riprende la collezione dal punto in cui si era,
+  // invece di ripartire dall'inizio dell'elenco.
+  useScrollRestoration();
 
   return (
     <>
