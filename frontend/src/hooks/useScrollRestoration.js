@@ -25,14 +25,6 @@ function jumpTo(top) {
   window.scrollTo({ top, left: 0, behavior: 'instant' });
 }
 
-/** Attivabile da console con localStorage.setItem('vinyldex:debug-scroll', '1'). */
-function debugLog(...args) {
-  try {
-    if (localStorage.getItem('vinyldex:debug-scroll') === '1') console.log('[scroll]', ...args);
-  } catch {
-    // Archiviazione negata: nessuna diagnostica, nessun errore.
-  }
-}
 
 function readStored() {
   try {
@@ -100,7 +92,6 @@ export function useScrollRestoration() {
 
     const save = () => {
       store[key] = window.scrollY;
-      debugLog('salvo', key, window.scrollY);
       // L'archiviazione si aggiorna al massimo ogni duecento millisecondi: scriverla a
       // ogni evento di scorrimento costerebbe piu' dell'effetto che si vuole ottenere.
       if (!flushTimer) {
@@ -121,7 +112,6 @@ export function useScrollRestoration() {
 
   useEffect(() => {
     const target = navigationType === 'POP' ? (positions.current[location.key] ?? 0) : 0;
-    debugLog('ripristino', { key: location.key, navigationType, target, noti: Object.keys(positions.current) });
 
     if (target === 0) {
       jumpTo(0);

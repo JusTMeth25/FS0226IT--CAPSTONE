@@ -1,13 +1,11 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth.js';
 import { useGame } from '../hooks/useGame.js';
 import { useApiResource } from '../hooks/useApiResource.js';
 import { CARDS } from '../data/cards.js';
 import { PACKS } from '../data/packs.js';
 import { findPackById } from '../data/packs.js';
 import { RARITY_ORDER } from '../utils/cardUtils.js';
-import { generateMissions } from '../utils/missionUtils.js';
 import { missionApi } from '../services/missionApi.js';
 import { dedupeCollection } from '../utils/collectionUtils.js';
 import { useCountdown, formatDuration } from '../hooks/useCountdown.js';
@@ -17,7 +15,6 @@ import SplitText from '../components/fx/SplitText.jsx';
 import AlbumProgress from '../components/fx/AlbumProgress.jsx';
 
 export default function HomePage() {
-  const { isAuthenticated } = useAuth();
   const game = useGame();
   const navigate = useNavigate();
   const basePack = findPackById('pack-base');
@@ -56,21 +53,16 @@ export default function HomePage() {
     };
   }, [game.collection, totalCatalogCards]);
 
-  // Per gli utenti autenticati le missioni vere arrivano dal server (stesso endpoint di
-  // MissionsPage): generateMissions(game) è solo per la modalità ospite e non riflette mai
-  // progresso/reclami reali per un utente loggato (game.stats/claimedMissions restano locali).
+  // Stesso endpoint di MissionsPage: le missioni con il progresso reale le tiene il server.
   const missionsServer = useApiResource(
-    () => (isAuthenticated ? missionApi.getMissions() : Promise.resolve(null)),
-    [isAuthenticated, game.collection, game.stats]
+    () => missionApi.getMissions(),
+    [game.collection, game.stats]
   );
 
-  const dailyMissions = useMemo(() => {
-    if (isAuthenticated) {
-      return (missionsServer.data?.missions || []).filter((m) => m.id.startsWith('daily-')).slice(0, 3);
-    }
-    return generateMissions(game).filter((m) => m.type === 'daily').slice(0, 3);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, missionsServer.data, game.stats, game.claimedMissions]);
+  const dailyMissions = useMemo(
+    () => (missionsServer.data?.missions || []).filter((m) => m.id.startsWith('daily-')).slice(0, 3),
+    [missionsServer.data]
+  );
 
   return (
     <section className="home-page">

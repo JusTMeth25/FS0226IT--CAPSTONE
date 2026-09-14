@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
 import { useAuth } from '../hooks/useAuth.js';
-import { findPackById, FREE_PACK_COOLDOWN_MS } from '../data/packs.js';
-import { generatePackCards } from '../utils/packGenerator.js';
-import { calcLevel, getLevelRewards } from '../utils/levelUtils.js';
-import { todayString } from '../utils/missionUtils.js';
+import { FREE_PACK_COOLDOWN_MS } from '../data/packs.js';
+import { calcLevel } from '../utils/levelUtils.js';
 import { packApi } from '../services/packApi.js';
 import { collectionApi } from '../services/collectionApi.js';
 import { missionApi } from '../services/missionApi.js';
@@ -14,63 +12,24 @@ import { GameContext } from './game-context.js';
 
 const STORAGE_KEY = 'vinyldex_game';
 
-// Tabelle ricompense battaglia identiche a quelle del server (backend/src/routes/battles.js):
-// per gli utenti autenticati l'importo reale lo decide sempre il server, questa copia serve solo
-// alla modalità ospite (che non ha un saldo server da sincronizzare).
-const SINGLE_BATTLE_REWARDS = { win: { gold: 50, xp: 100 }, draw: { gold: 20, xp: 40 }, loss: { gold: 10, xp: 20 } };
-const TOURNAMENT_STAGE_ORDER = ['easy', 'normal', 'hard'];
-const TOURNAMENT_STAGE_REWARDS = { easy: { gold: 30, xp: 60 }, normal: { gold: 60, xp: 120 }, hard: { gold: 100, xp: 200 } };
-const TOURNAMENT_CHAMPION_BONUS = { gold: 100, xp: 150 };
-
-function computeLocalBattleReward(payload) {
-  if (payload.mode === 'tournament') {
-    const stagesCleared = Math.max(0, Math.min(TOURNAMENT_STAGE_ORDER.length, payload.stagesCleared || 0));
-    let gold = 0;
-    let xp = 0;
-    for (let i = 0; i < stagesCleared; i++) {
-      const cfg = TOURNAMENT_STAGE_REWARDS[TOURNAMENT_STAGE_ORDER[i]];
-      gold += cfg.gold;
-      xp += cfg.xp;
-    }
-    if (payload.wonAllStages) { gold += TOURNAMENT_CHAMPION_BONUS.gold; xp += TOURNAMENT_CHAMPION_BONUS.xp; }
-    return { gold, xp };
-  }
-  const r = SINGLE_BATTLE_REWARDS[payload.result] || SINGLE_BATTLE_REWARDS.loss;
-  return { gold: r.gold, xp: r.xp };
-}
-
+/**
+ * Stato tenuto in locale.
+ *
+ * Gold, esperienza, collezione, missioni e pacchetti regalo stanno tutti sul server:
+ * qui resta solo quello che il server non traccia, cioe' l'andamento delle battaglie
+ * e il numero di bustine aperte. Sono statistiche personali senza effetto sul gioco,
+ * quindi non vale la pena farne tabelle lato server.
+ */
 const DEFAULT_STATE = {
-  gold: 150,
-  xp: 0,
-  level: 1,
-  collection: [],
-  favorites: [],
   stats: {
     totalPacksOpened: 0,
-    totalCardsObtained: 0,
-    legendaryCount: 0,
-    epicCount: 0,
-    rareCount: 0,
-    uncommonCount: 0,
-    commonCount: 0,
     totalBattlesPlayed: 0,
     totalBattlesWon: 0,
     totalBattlesLost: 0,
     totalBattlesDrawn: 0,
     battleWinStreak: 0,
-    bestBattleWinStreak: 0,
-    dailyPacksOpened: 0,
-    dailyCardsObtained: 0,
-    dailyBattlesPlayed: 0
-  },
-  lastFreePackAt: 0,
-  freePacks: {},
-  claimedMissions: [],
-  claimedLevelRewards: [],
-  lastDailyReset: '',
-  lastLoginDate: '',
-  loginStreak: 0,
-  title: null
+    bestBattleWinStreak: 0
+  }
 };
 
 function rarityCountsFromCollection(collection) {
@@ -86,13 +45,12 @@ export function GameProvider({ children }) {
   const { isAuthenticated, user, refreshUser } = useAuth();
   const [local, setLocal] = useLocalStorage(STORAGE_KEY, DEFAULT_STATE);
 
-  // ---------- Stato server (solo utenti autenticati) ----------
   const [remoteCollection, setRemoteCollection] = useState([]);
   const [remotePacks, setRemotePacks] = useState([]);
   const [remoteLastFreePackAt, setRemoteLastFreePackAt] = useState(null);
   const [remoteLoaded, setRemoteLoaded] = useState(false);
-  // Totale carte attive nell'intero catalogo (tutte le fonti): usato per calcolare le percentuali
-  // di completamento invece del catalogo statico locale (che copre solo le 43 carte originali).
+  // Totale carte attive nell'intero catalogo, tutte le fonti comprese: e' il denominatore
+  // delle percentuali di completamento.
   const [remoteCatalogSize, setRemoteCatalogSize] = useState(null);
 
   const refreshCollection = useCallback(async () => {
@@ -101,7 +59,7 @@ export function GameProvider({ children }) {
       setRemoteCollection(res.collection || []);
       if (typeof res.totalActiveCards === 'number') setRemoteCatalogSize(res.totalActiveCards);
     } catch {
-      // rete/serve non disponibile: mantiene l'ultimo stato noto
+      // rete o server non disponibili: si mantiene l'ultimo stato noto
     }
   }, []);
 
@@ -111,10 +69,12 @@ export function GameProvider({ children }) {
       setRemotePacks(res.packs || []);
       setRemoteLastFreePackAt(res.lastFreePackAt || null);
     } catch {
-      // rete/server non disponibile: mantiene l'ultimo stato noto
+      // rete o server non disponibili: si mantiene l'ultimo stato noto
     }
   }, []);
 
+  // Il provider avvolge anche la pagina di accesso, dove non c'e' ancora una sessione:
+  // senza questa guardia si chiamerebbero le API senza token a ogni visita al login.
   useEffect(() => {
     if (!isAuthenticated) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- reset intenzionale su logout
@@ -129,244 +89,110 @@ export function GameProvider({ children }) {
     return () => { cancelled = true; };
   }, [isAuthenticated, user?.id, refreshCollection, refreshPacksInfo]);
 
-  // Reset dei contatori giornalieri (solo modalità ospite: per utenti autenticati i contatori
-  // giornalieri delle missioni sono calcolati e resettati dal server).
-  useEffect(() => {
-    if (isAuthenticated) return;
-    const today = todayString();
-    setLocal((prev) => {
-      if (prev.lastDailyReset === today) return prev;
-      const claimedMissions = (prev.claimedMissions || []).filter((id) => !id.startsWith('daily-'));
-      return {
-        ...prev,
-        lastDailyReset: today,
-        claimedMissions,
-        stats: { ...prev.stats, dailyPacksOpened: 0, dailyCardsObtained: 0, dailyBattlesPlayed: 0 }
-      };
-    });
-  }, [isAuthenticated, setLocal]);
-
-  // ---------- Derivati comuni ----------
-  const gold = isAuthenticated ? (user?.gold ?? 0) : local.gold;
-  const xp = isAuthenticated ? (user?.xp ?? 0) : local.xp;
+  // ---------- Derivati ----------
+  const gold = user?.gold ?? 0;
+  const xp = user?.xp ?? 0;
   const levelInfo = useMemo(() => calcLevel(xp), [xp]);
 
-  const collection = isAuthenticated ? remoteCollection : local.collection;
-  const favorites = isAuthenticated ? remoteCollection.filter((c) => c.isFavorite).map((c) => c.id) : local.favorites;
-  const freePacks = isAuthenticated
-    ? Object.fromEntries(remotePacks.map((p) => [p.id, p.giftedCount || 0]))
-    : local.freePacks;
-  const lastFreePackAt = isAuthenticated ? remoteLastFreePackAt : local.lastFreePackAt;
+  const collection = remoteCollection;
+  const favorites = useMemo(
+    () => remoteCollection.filter((c) => c.isFavorite).map((c) => c.id),
+    [remoteCollection]
+  );
+  const freePacks = useMemo(
+    () => Object.fromEntries(remotePacks.map((p) => [p.id, p.giftedCount || 0])),
+    [remotePacks]
+  );
 
-  const stats = useMemo(() => {
-    if (!isAuthenticated) return local.stats;
-    return {
-      ...local.stats, // vittorie/sconfitte/pareggi battaglia restano nell'overlay locale
-      ...rarityCountsFromCollection(remoteCollection),
-      totalCardsObtained: remoteCollection.reduce((sum, c) => sum + (c.quantity || 1), 0)
-    };
-  }, [isAuthenticated, local.stats, remoteCollection]);
+  const stats = useMemo(() => ({
+    // Battaglie e bustine aperte vengono dall'archiviazione locale, il resto dalla
+    // collezione reale: le due parti non si sovrappongono.
+    ...local.stats,
+    ...rarityCountsFromCollection(remoteCollection),
+    totalCardsObtained: remoteCollection.reduce((sum, c) => sum + (c.quantity || 1), 0)
+  }), [local.stats, remoteCollection]);
 
-  // ---------- Azioni: pacchetti ----------
+  // ---------- Pacchetti ----------
+  // Il server restituisce la data in formato ISO, da convertire prima di confrontarla.
+  const lastFreePackMs = remoteLastFreePackAt ? new Date(remoteLastFreePackAt).getTime() : 0;
+
+  const cooldownMsFor = (pack) => (
+    pack.freeCooldownHours ? pack.freeCooldownHours * 60 * 60 * 1000 : FREE_PACK_COOLDOWN_MS
+  );
+
   const isFreeAvailable = useCallback((pack) => {
     if (!pack.isFree) return false;
-    if (!lastFreePackAt) return true;
-    const lastTime = isAuthenticated ? new Date(lastFreePackAt).getTime() : lastFreePackAt;
-    const cooldownMs = pack.freeCooldownHours ? pack.freeCooldownHours * 60 * 60 * 1000 : FREE_PACK_COOLDOWN_MS;
-    return Date.now() - lastTime >= cooldownMs;
-  }, [lastFreePackAt, isAuthenticated]);
+    if (!lastFreePackMs) return true;
+    return Date.now() - lastFreePackMs >= cooldownMsFor(pack);
+  }, [lastFreePackMs]);
 
   const getFreeCooldownRemaining = useCallback((pack) => {
-    if (!pack.isFree || !lastFreePackAt) return 0;
-    const lastTime = isAuthenticated ? new Date(lastFreePackAt).getTime() : lastFreePackAt;
-    const cooldownMs = pack.freeCooldownHours ? pack.freeCooldownHours * 60 * 60 * 1000 : FREE_PACK_COOLDOWN_MS;
-    const elapsed = Date.now() - lastTime;
-    return Math.max(0, cooldownMs - elapsed);
-  }, [lastFreePackAt, isAuthenticated]);
+    if (!pack.isFree || !lastFreePackMs) return 0;
+    return Math.max(0, cooldownMsFor(pack) - (Date.now() - lastFreePackMs));
+  }, [lastFreePackMs]);
 
-  const openPackAuthenticated = useCallback(async (packId, mode) => {
+  const openPack = useCallback(async (packId, mode) => {
     try {
       const res = await packApi.openPack(packId, mode);
       await Promise.all([refreshUser(), refreshCollection(), refreshPacksInfo()]);
+
+      // Il server non tiene il conto delle aperture: si incrementa qui, come per le battaglie.
+      setLocal((prev) => ({
+        ...prev,
+        stats: { ...prev.stats, totalPacksOpened: (prev.stats.totalPacksOpened || 0) + 1 }
+      }));
+
       return { cards: res.cards };
     } catch (err) {
       return { error: err.payload?.error || 'open_pack_failed' };
     }
-  }, [refreshUser, refreshCollection, refreshPacksInfo]);
+  }, [refreshUser, refreshCollection, refreshPacksInfo, setLocal]);
 
-  const openPackGuest = useCallback(async (packId, mode = 'paid') => {
-    const pack = findPackById(packId);
-    if (!pack) return { error: 'pack_not_found' };
-
-    if (mode === 'gift') {
-      if (!(local.freePacks[packId] > 0)) return { error: 'no_gift_available' };
-    } else if (mode === 'free') {
-      if (!pack.isFree || !isFreeAvailable(pack)) return { error: 'cooldown' };
-    } else if (local.gold < pack.price) {
-      return { error: 'insufficient_gold' };
-    }
-
-    let cards = null;
-    try {
-      const res = await packApi.openPack(packId, mode);
-      if (res && Array.isArray(res.cards) && res.cards.length) cards = res.cards;
-    } catch {
-      // ospite senza sessione valida: fallback locale per non bloccare la demo
-    }
-    if (!cards) cards = generatePackCards(pack);
-
-    setLocal((prev) => {
-      const next = { ...prev, stats: { ...prev.stats } };
-
-      if (mode === 'gift') {
-        next.freePacks = { ...prev.freePacks, [packId]: prev.freePacks[packId] - 1 };
-      } else if (mode === 'free') {
-        next.lastFreePackAt = Date.now();
-      } else {
-        next.gold = prev.gold - pack.price;
-      }
-
-      next.collection = [
-        ...prev.collection,
-        ...cards.map((c) => ({ ...c, obtainedAt: c.obtainedAt || Date.now() }))
-      ];
-
-      next.stats.totalPacksOpened = (next.stats.totalPacksOpened || 0) + 1;
-      next.stats.dailyPacksOpened = (next.stats.dailyPacksOpened || 0) + 1;
-      next.stats.totalCardsObtained = (next.stats.totalCardsObtained || 0) + cards.length;
-      next.stats.dailyCardsObtained = (next.stats.dailyCardsObtained || 0) + cards.length;
-      cards.forEach((c) => {
-        const key = `${c.rarity}Count`;
-        next.stats[key] = (next.stats[key] || 0) + 1;
-      });
-
-      return next;
-    });
-
-    return { cards };
-  }, [local.freePacks, local.gold, isFreeAvailable, setLocal]);
-
-  const openPack = isAuthenticated ? openPackAuthenticated : openPackGuest;
-
-  const addFreePack = useCallback((packId, amount = 1) => {
-    if (isAuthenticated) return; // i pacchetti regalo lato server arrivano solo da missioni/eventi
-    setLocal((prev) => ({ ...prev, freePacks: { ...prev.freePacks, [packId]: (prev.freePacks[packId] || 0) + amount } }));
-  }, [isAuthenticated, setLocal]);
-
-  // ---------- Azioni: collezione ----------
+  // ---------- Collezione ----------
   const toggleFavorite = useCallback(async (cardId) => {
-    if (isAuthenticated) {
-      try {
-        await collectionApi.toggleFavorite(cardId);
-        await refreshCollection();
-      } catch {
-        // ignorato: la carta potrebbe non essere posseduta
-      }
-      return;
+    try {
+      await collectionApi.toggleFavorite(cardId);
+      await refreshCollection();
+    } catch {
+      // ignorato: la carta potrebbe non essere posseduta
     }
-    setLocal((prev) => {
-      const has = prev.favorites.includes(cardId);
-      return { ...prev, favorites: has ? prev.favorites.filter((id) => id !== cardId) : [...prev.favorites, cardId] };
-    });
-  }, [isAuthenticated, refreshCollection, setLocal]);
+  }, [refreshCollection]);
 
-  // ---------- Azioni: missioni / livelli / login ----------
+  // ---------- Missioni e accesso giornaliero ----------
   const claimMission = useCallback(async (mission) => {
     if (!mission || mission.claimed || mission.progress < mission.target) return;
-
-    if (isAuthenticated) {
-      try {
-        await missionApi.claimMission(mission.id);
-        await Promise.all([refreshUser(), refreshPacksInfo()]);
-        soundService.reward();
-      } catch {
-        // mission già reclamata o non più valida: la UI si allineerà al prossimo refresh
-      }
-      return;
+    try {
+      await missionApi.claimMission(mission.id);
+      await Promise.all([refreshUser(), refreshPacksInfo()]);
+      soundService.reward();
+    } catch {
+      // gia' reclamata o non piu' valida: la schermata si allinea al prossimo aggiornamento
     }
-
-    setLocal((prev) => {
-      if (prev.claimedMissions.includes(mission.id)) return prev;
-      const xpNext = prev.xp + (mission.rewardXP || 0);
-      const next = {
-        ...prev,
-        claimedMissions: [...prev.claimedMissions, mission.id],
-        gold: prev.gold + (mission.rewardGold || 0),
-        xp: xpNext,
-        level: calcLevel(xpNext).level
-      };
-      if (mission.pack) next.freePacks = { ...prev.freePacks, [mission.pack]: (prev.freePacks[mission.pack] || 0) + 1 };
-      return next;
-    });
-    soundService.reward();
-  }, [isAuthenticated, refreshUser, refreshPacksInfo, setLocal]);
+  }, [refreshUser, refreshPacksInfo]);
 
   const claimLoginReward = useCallback(async () => {
-    if (isAuthenticated) {
-      try {
-        await missionApi.claimDailyLogin();
-        await refreshUser();
-      } catch {
-        // già reclamato oggi
-      }
-      return;
+    try {
+      await missionApi.claimDailyLogin();
+      await refreshUser();
+    } catch {
+      // gia' reclamato oggi
     }
-
-    const today = todayString();
-    setLocal((prev) => {
-      if (prev.lastLoginDate === today) return prev;
-      const yesterday = new Date(Date.now() - 86400000).toDateString();
-      const streak = prev.lastLoginDate === yesterday ? (prev.loginStreak || 0) + 1 : 1;
-      const goldReward = 10 + streak * 2;
-      const xpReward = 20 + streak * 3;
-      const xpNext = prev.xp + xpReward;
-      return {
-        ...prev,
-        gold: prev.gold + goldReward,
-        xp: xpNext,
-        level: calcLevel(xpNext).level,
-        lastLoginDate: today,
-        loginStreak: streak
-      };
-    });
-  }, [isAuthenticated, refreshUser, setLocal]);
-
-  // Ricompense di livello: non ancora persistite lato server (fuori scope Fase 2),
-  // restano una feature locale per la modalità ospite.
-  const claimLevelReward = useCallback((level) => {
-    if (isAuthenticated) return;
-    setLocal((prev) => {
-      if (prev.claimedLevelRewards.includes(level)) return prev;
-      const rewards = getLevelRewards(level);
-      const next = { ...prev, claimedLevelRewards: [...prev.claimedLevelRewards, level], gold: prev.gold + rewards.gold };
-      if (rewards.pack) next.freePacks = { ...prev.freePacks, [rewards.pack]: (prev.freePacks[rewards.pack] || 0) + 1 };
-      return next;
-    });
-    soundService.levelUp();
-  }, [isAuthenticated, setLocal]);
+  }, [refreshUser]);
 
   // ---------- Battaglie ----------
-  // Per gli utenti autenticati la ricompensa viene accreditata davvero sul server (stesso saldo
-  // che Mercato/Pacchetti controllano) invece di restare un bonus locale mai sincronizzato: prima
-  // di questa fix il gold "vinto" in battaglia gonfiava solo il numero mostrato in UI, senza mai
-  // diventare gold reale spendibile, causando "insufficient_gold" al Mercato pur mostrando abbastanza gold.
+  // La ricompensa la calcola e l'accredita il server, sullo stesso saldo che controllano
+  // mercato e pacchetti. Tenerla in locale avrebbe gonfiato il numero mostrato senza
+  // produrre gold spendibile, con acquisti rifiutati per saldo insufficiente a fronte di
+  // un contatore che ne mostrava a sufficienza.
   const claimBattleReward = useCallback(async (payload) => {
-    if (isAuthenticated) {
-      try {
-        await battleApi.claimReward(payload);
-      } catch {
-        // rete/server non disponibile: il tentativo successivo (prossima battaglia) riprova
-      } finally {
-        await refreshUser();
-      }
-      return;
+    try {
+      await battleApi.claimReward(payload);
+    } catch {
+      // rete o server non disponibili: la prossima battaglia riprova
+    } finally {
+      await refreshUser();
     }
-    const { gold, xp } = computeLocalBattleReward(payload);
-    setLocal((prev) => {
-      const xpNext = prev.xp + xp;
-      return { ...prev, gold: Math.max(0, prev.gold + gold), xp: xpNext, level: calcLevel(xpNext).level };
-    });
-  }, [isAuthenticated, refreshUser, setLocal]);
+  }, [refreshUser]);
 
   const recordBattleResult = useCallback((result) => {
     setLocal((prev) => {
@@ -376,7 +202,6 @@ export function GameProvider({ children }) {
         stats: {
           ...prev.stats,
           totalBattlesPlayed: (prev.stats.totalBattlesPlayed || 0) + 1,
-          dailyBattlesPlayed: (prev.stats.dailyBattlesPlayed || 0) + 1,
           totalBattlesWon: (prev.stats.totalBattlesWon || 0) + (result === 'win' ? 1 : 0),
           totalBattlesLost: (prev.stats.totalBattlesLost || 0) + (result === 'loss' ? 1 : 0),
           totalBattlesDrawn: (prev.stats.totalBattlesDrawn || 0) + (result === 'draw' ? 1 : 0),
@@ -393,32 +218,28 @@ export function GameProvider({ children }) {
     level: levelInfo.level,
     levelInfo,
     collection,
-    catalogSize: isAuthenticated ? remoteCatalogSize : null,
+    catalogSize: remoteCatalogSize,
     favorites,
     stats,
     freePacks,
-    lastFreePackAt,
-    claimedMissions: isAuthenticated ? [] : local.claimedMissions,
-    claimedLevelRewards: isAuthenticated ? [] : local.claimedLevelRewards,
-    lastLoginDate: isAuthenticated ? (user?.lastLoginDate ? new Date(user.lastLoginDate).toDateString() : '') : local.lastLoginDate,
-    loginStreak: isAuthenticated ? (user?.loginStreak || 0) : local.loginStreak,
-    title: isAuthenticated ? null : local.title,
-    loading: isAuthenticated && !remoteLoaded,
-    claimBattleReward,
+    lastFreePackAt: remoteLastFreePackAt,
+    lastLoginDate: user?.lastLoginDate ? new Date(user.lastLoginDate).toDateString() : '',
+    loginStreak: user?.loginStreak || 0,
+    loading: !remoteLoaded,
     isFreeAvailable,
     getFreeCooldownRemaining,
     openPack,
-    addFreePack,
     toggleFavorite,
     claimMission,
-    claimLevelReward,
     claimLoginReward,
+    claimBattleReward,
     recordBattleResult,
     refreshCollection
   }), [
-    gold, xp, levelInfo, collection, remoteCatalogSize, favorites, stats, freePacks, lastFreePackAt, isAuthenticated, local,
-    user, remoteLoaded, claimBattleReward, isFreeAvailable, getFreeCooldownRemaining, openPack, addFreePack,
-    toggleFavorite, claimMission, claimLevelReward, claimLoginReward, recordBattleResult, refreshCollection
+    gold, xp, levelInfo, collection, remoteCatalogSize, favorites, stats, freePacks,
+    remoteLastFreePackAt, user, remoteLoaded, isFreeAvailable, getFreeCooldownRemaining,
+    openPack, toggleFavorite, claimMission, claimLoginReward, claimBattleReward,
+    recordBattleResult, refreshCollection
   ]);
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
