@@ -12,6 +12,28 @@ const TOLERANCE_PX = 2;
 /** Eventi che significano "sto scorrendo io": da li' in poi il ripristino non interviene piu'. */
 const USER_INTENT = ['wheel', 'touchstart', 'keydown', 'pointerdown'];
 
+/**
+ * Salto immediato, mai animato.
+ *
+ * global.css imposta scroll-behavior: smooth su html, che vale anche per gli
+ * spostamenti da codice. Un ripristino animato e' gia' sbagliato di suo, ma soprattutto
+ * ogni nuova chiamata fa ripartire l'animazione da capo: riaffermando la posizione a
+ * ogni fotogramma, lo scorrimento morbido non arriverebbe mai a destinazione e la
+ * pagina resterebbe dov'era.
+ */
+function jumpTo(top) {
+  window.scrollTo({ top, left: 0, behavior: 'instant' });
+}
+
+/** Attivabile da console con localStorage.setItem('vinyldex:debug-scroll', '1'). */
+function debugLog(...args) {
+  try {
+    if (localStorage.getItem('vinyldex:debug-scroll') === '1') console.log('[scroll]', ...args);
+  } catch {
+    // Archiviazione negata: nessuna diagnostica, nessun errore.
+  }
+}
+
 function readStored() {
   try {
     return JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || {};
@@ -78,6 +100,7 @@ export function useScrollRestoration() {
 
     const save = () => {
       store[key] = window.scrollY;
+      debugLog('salvo', key, window.scrollY);
       // L'archiviazione si aggiorna al massimo ogni duecento millisecondi: scriverla a
       // ogni evento di scorrimento costerebbe piu' dell'effetto che si vuole ottenere.
       if (!flushTimer) {
@@ -98,9 +121,10 @@ export function useScrollRestoration() {
 
   useEffect(() => {
     const target = navigationType === 'POP' ? (positions.current[location.key] ?? 0) : 0;
+    debugLog('ripristino', { key: location.key, navigationType, target, noti: Object.keys(positions.current) });
 
     if (target === 0) {
-      window.scrollTo(0, 0);
+      jumpTo(0);
       return undefined;
     }
 
@@ -118,7 +142,7 @@ export function useScrollRestoration() {
       // Finche' la pagina e' troppo corta non si puo' arrivare a destinazione: si aspetta
       // che il contenuto finisca di arrivare invece di atterrare in un punto sbagliato.
       if (maxScroll >= target && Math.abs(window.scrollY - target) > TOLERANCE_PX) {
-        window.scrollTo(0, target);
+        jumpTo(target);
       }
 
       if (performance.now() - startedAt < ENFORCE_MS) {
@@ -126,7 +150,7 @@ export function useScrollRestoration() {
       } else if (maxScroll < target) {
         // Il contenuto non e' mai cresciuto abbastanza: meglio il punto piu' basso
         // raggiungibile che restare in cima.
-        window.scrollTo(0, Math.max(0, maxScroll));
+        jumpTo(Math.max(0, maxScroll));
       }
     };
 
