@@ -22,6 +22,14 @@ Piattaforma di collezione carte digitali (musicisti IP originali) — React/Vite
 - PostgreSQL 16+ in locale
 - Per il build mobile: Android Studio (Android) e/o Xcode su macOS (iOS)
 
+## Avvio rapido (Windows)
+
+Doppio clic su **`avvia.cmd`** nella cartella del progetto: controlla i prerequisiti, apre
+backend e frontend in due finestre separate, aspetta che il backend risponda e apre il
+browser su http://localhost:5173.
+
+Al primo avvio serve comunque il database: vedi la sezione seguente.
+
 ## Setup backend
 
 ```bash
