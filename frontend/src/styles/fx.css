@@ -1,0 +1,291 @@
+/* ========================================
+   VinylDex — Livello effetti
+   Sfondo animato, scintille, comparse, riflessi.
+
+   Tutto qui dentro e' decorativo: se una regola non viene applicata l'interfaccia
+   resta comunque leggibile e usabile. Le animazioni girano su transform e opacity,
+   cosi' restano sul compositor e non provocano reflow.
+   ======================================== */
+
+/* ---------- Impilamento ----------
+   Lo sfondo animato sta sopra il colore del body e sotto l'interfaccia.
+   Senza lo z-index esplicito sulla shell, i pannelli semitrasparenti finirebbero
+   dietro all'aurora e il testo diventerebbe illeggibile. */
+.app-shell { position: relative; z-index: 1; }
+
+/* ========================================
+   AURORA — sfondo
+   ======================================== */
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.aurora-blob {
+  position: absolute;
+  display: block;
+  width: 70vmax;
+  height: 70vmax;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.35;
+  will-change: transform;
+}
+
+.aurora-blob-1 {
+  top: -25vmax; left: -18vmax;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.55), transparent 62%);
+  animation: auroraDrift1 26s ease-in-out infinite;
+}
+.aurora-blob-2 {
+  bottom: -30vmax; right: -20vmax;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.45), transparent 62%);
+  animation: auroraDrift2 32s ease-in-out infinite;
+}
+.aurora-blob-3 {
+  top: 20%; left: 35%;
+  width: 55vmax; height: 55vmax;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.32), transparent 62%);
+  animation: auroraDrift3 38s ease-in-out infinite;
+}
+
+@keyframes auroraDrift1 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(12vmax, 8vmax, 0) scale(1.15); }
+}
+@keyframes auroraDrift2 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.1); }
+  50%      { transform: translate3d(-14vmax, -6vmax, 0) scale(1); }
+}
+@keyframes auroraDrift3 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(0.9); }
+  50%      { transform: translate3d(-8vmax, 10vmax, 0) scale(1.2); }
+}
+
+/* Griglia prospettica: da' profondita' senza pesare, e' un solo gradiente ripetuto. */
+.aurora-grid {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background-image:
+    linear-gradient(rgba(139, 92, 246, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 92, 246, 0.07) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 20%, transparent 75%);
+  animation: auroraGrid 40s linear infinite;
+}
+@keyframes auroraGrid {
+  from { background-position: 0 0, 0 0; }
+  to   { background-position: 64px 64px, 64px 64px; }
+}
+
+/* Bordi scuriti: tiene l'attenzione al centro e alza il contrasto del testo ai lati. */
+.aurora-vignette {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: radial-gradient(ellipse 100% 80% at 50% 45%, transparent 35%, rgba(5, 8, 22, 0.85) 100%);
+}
+
+.aurora-still .aurora-blob,
+.aurora-still .aurora-grid { animation: none; }
+
+/* Su schermi piccoli la sfocatura larga e' la parte piu' costosa da comporre: si riduce
+   raggio e dimensione delle macchie, l'effetto resta ma il telefono non scalda. */
+@media (max-width: 767px) {
+  .aurora-blob { filter: blur(60px); width: 85vmax; height: 85vmax; opacity: 0.3; }
+  .aurora-blob-3 { display: none; }
+  .aurora-grid { background-size: 48px 48px; }
+}
+
+/* ========================================
+   PARTICELLE
+   ======================================== */
+.fx-particles {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+/* ========================================
+   SCINTILLA AL CLIC
+   ======================================== */
+.fx-spark-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.fx-spark {
+  position: absolute;
+  width: 0; height: 0;
+}
+
+.fx-spark i {
+  position: absolute;
+  top: 0; left: 0;
+  width: 2px;
+  height: var(--length, 18px);
+  border-radius: 2px;
+  transform-origin: 50% 0;
+  transform: rotate(var(--angle)) translateY(0);
+  animation: sparkFly 420ms cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes sparkFly {
+  0%   { opacity: 1; transform: rotate(var(--angle)) translateY(0) scaleY(0.4); }
+  100% { opacity: 0; transform: rotate(var(--angle)) translateY(var(--length)) scaleY(1); }
+}
+
+/* ========================================
+   PANNELLI — alone che segue il puntatore
+   ======================================== */
+.glass-panel {
+  position: relative;
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+/* L'alone e' uno pseudo-elemento e non un background-image sul pannello: cosi' puo'
+   dissolversi in entrata e in uscita invece di comparire di scatto. */
+.glass-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+  background: radial-gradient(
+    260px circle at var(--fx-x, 50%) var(--fx-y, 50%),
+    rgba(139, 92, 246, 0.16),
+    rgba(236, 72, 153, 0.07) 45%,
+    transparent 70%
+  );
+}
+
+.glass-panel.fx-glow::after { opacity: 1; }
+.glass-panel.fx-glow {
+  border-color: var(--border-glow);
+  box-shadow: 0 0 28px rgba(139, 92, 246, 0.18);
+}
+
+/* ========================================
+   PANNELLI — comparsa allo scroll
+   ======================================== */
+.fx-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1) var(--fx-delay, 0ms),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) var(--fx-delay, 0ms);
+}
+.fx-reveal.fx-revealed { opacity: 1; transform: translateY(0); }
+
+/* ========================================
+   TESTO — riflesso scorrevole
+   ======================================== */
+.shiny-text {
+  background: linear-gradient(
+    110deg,
+    var(--neon-purple) 0%,
+    var(--neon-magenta) 35%,
+    #ffffff 50%,
+    var(--neon-magenta) 65%,
+    var(--neon-purple) 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: shineSweep var(--shine-duration, 4s) linear infinite;
+}
+@keyframes shineSweep {
+  from { background-position: 180% 0; }
+  to   { background-position: -80% 0; }
+}
+
+/* global.css riafferma il gradiente statico del marchio al passaggio del puntatore, per
+   evitare che l'hover generico sui link lo renda invisibile. Quella regola e' piu' specifica
+   di .shiny-text, quindi spegnerebbe il riflesso proprio quando lo si guarda: va ridichiarata. */
+.topbar-brand:hover .topbar-brand-text.shiny-text {
+  background: linear-gradient(
+    110deg,
+    var(--neon-purple) 0%,
+    var(--neon-magenta) 35%,
+    #ffffff 50%,
+    var(--neon-magenta) 65%,
+    var(--neon-purple) 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ========================================
+   TESTO — entrata lettera per lettera
+   ======================================== */
+.split-text { display: inline-block; }
+.split-text-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.45em) rotate(4deg);
+  animation: splitCharIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes splitCharIn {
+  to { opacity: 1; transform: translateY(0) rotate(0); }
+}
+
+/* ========================================
+   PULSANTI — riflesso al passaggio
+   ======================================== */
+.btn-primary, .btn-gold {
+  position: relative;
+  overflow: hidden;
+}
+/* Il riflesso attraversa il pulsante una volta sola per passaggio del puntatore:
+   ripeterlo in continuo distrarrebbe dalla lettura dell'etichetta. */
+.btn-primary::before, .btn-gold::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -120%;
+  width: 60%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-20deg);
+  pointer-events: none;
+}
+.btn-primary:hover::before, .btn-gold:hover::before { animation: btnGlare 0.7s ease; }
+@keyframes btnGlare {
+  to { left: 140%; }
+}
+
+/* ========================================
+   Preferenza "riduci animazioni"
+   Lo sfondo resta, il movimento no.
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  .aurora-blob, .aurora-grid,
+  .shiny-text, .split-text-char,
+  .btn-primary::before, .btn-gold::before { animation: none; }
+
+  .shiny-text {
+    -webkit-text-fill-color: initial;
+    color: var(--text-primary);
+    background: none;
+  }
+
+  .split-text-char { opacity: 1; transform: none; }
+
+  .fx-reveal { opacity: 1; transform: none; transition: none; }
+
+  .glass-panel::after { display: none; }
+}

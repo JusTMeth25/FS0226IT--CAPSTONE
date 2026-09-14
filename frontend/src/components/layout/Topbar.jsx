@@ -4,6 +4,7 @@ import { useGame } from '../../hooks/useGame.js';
 import { useSound } from '../../hooks/useSound.js';
 import { useCountUp } from '../../hooks/useCountUp.js';
 import UserAvatar from '../common/UserAvatar.jsx';
+import ShinyText from '../fx/ShinyText.jsx';
 
 /**
  * HUD in stile "game top bar" (logo, gold, audio, profilo/logout): su mobile/tablet è l'unica
@@ -20,7 +21,7 @@ export default function Topbar() {
       <div className="header-inner">
         <Link to="/home" className="topbar-brand">
           <span className="topbar-brand-icon"><i className="ph-fill ph-vinyl-record" /></span>
-          <span className="topbar-brand-text">VinylDex</span>
+          <ShinyText className="topbar-brand-text" speed={5}>VinylDex</ShinyText>
         </Link>
 
         <div className="topbar-actions">

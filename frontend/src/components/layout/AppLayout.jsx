@@ -1,33 +1,58 @@
+import { useRef } from 'react';
 import { useLocation, Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar.jsx';
 import Topbar from './Topbar.jsx';
 import BottomNav from './BottomNav.jsx';
 import ErrorBoundary from '../common/ErrorBoundary.jsx';
+import Aurora from '../fx/Aurora.jsx';
+import Particles from '../fx/Particles.jsx';
+import ClickSpark from '../fx/ClickSpark.jsx';
+import { useSurfaceFx } from '../../hooks/useSurfaceFx.js';
 
 export default function AppLayout() {
   const location = useLocation();
+  const viewRef = useRef(null);
+
+  // Alone al passaggio del puntatore e comparsa allo scroll su ogni pannello di vetro.
+  // Passa da qui e non dalle singole pagine: cosi' vale anche per i pannelli futuri.
+  useSurfaceFx(viewRef, location.pathname);
 
   return (
-    <div className="app-shell">
-      <Sidebar />
+    <>
+      {/* Sfondo animato: fuori dalla shell, cosi' non viene rimontato a ogni cambio pagina
+          e l'aurora prosegue il suo movimento durante la navigazione. */}
+      <Aurora />
+      <Particles />
+      <ClickSpark />
 
-      <div className="app-content">
-        <Topbar />
+      <div className="app-shell">
+        <Sidebar />
 
-        <main id="app-view" className="app-main" role="main" aria-live="polite" key={location.pathname}>
-          <ErrorBoundary>
-            <Outlet />
-          </ErrorBoundary>
-        </main>
+        <div className="app-content">
+          <Topbar />
 
-        <footer id="app-footer">
-          <div className="footer-inner">
-            <small>VinylDex — Contenuti originali</small>
-          </div>
-        </footer>
+          <main
+            id="app-view"
+            ref={viewRef}
+            className="app-main"
+            role="main"
+            aria-live="polite"
+            key={location.pathname}
+          >
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
+          </main>
+
+          <footer id="app-footer">
+            <div className="footer-inner">
+              <small>VinylDex — Contenuti originali</small>
+            </div>
+          </footer>
+        </div>
+
+        <BottomNav />
       </div>
-
-      <BottomNav />
-    </div>
+    </>
   );
 }

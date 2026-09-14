@@ -13,6 +13,7 @@ import { dedupeCollection } from '../utils/collectionUtils.js';
 import { useCountdown, formatDuration } from '../hooks/useCountdown.js';
 import CardTile from '../components/card/CardTile.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
+import SplitText from '../components/fx/SplitText.jsx';
 
 export default function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -72,7 +73,7 @@ export default function HomePage() {
 
   return (
     <section className="home-page">
-      <h2 className="section-title text-gradient"><i className="ph-fill ph-house" /> Home</h2>
+      <h2 className="section-title text-gradient"><i className="ph-fill ph-house" /> <SplitText text="Home" /></h2>
 
       <div className="dashboard-grid">
         {/* Pannello apertura pacchetto */}
