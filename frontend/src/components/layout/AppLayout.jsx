@@ -7,6 +7,7 @@ import ErrorBoundary from '../common/ErrorBoundary.jsx';
 import Aurora from '../fx/Aurora.jsx';
 import Particles from '../fx/Particles.jsx';
 import ClickSpark from '../fx/ClickSpark.jsx';
+import GoldFlight from '../fx/GoldFlight.jsx';
 import { useSurfaceFx } from '../../hooks/useSurfaceFx.js';
 import { useScrollRestoration } from '../../hooks/useScrollRestoration.js';
 
@@ -29,6 +30,7 @@ export default function AppLayout() {
       <Aurora />
       <Particles />
       <ClickSpark />
+      <GoldFlight />
 
       <div className="app-shell">
         <Sidebar />

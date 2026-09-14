@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useLocation, useNavigationType } from 'react-router-dom';
 
 /** Quanti fotogrammi riprovare prima di arrendersi (circa mezzo secondo a 60fps). */
@@ -11,28 +11,39 @@ const MAX_ATTEMPTS = 30;
  * react-router funziona solo con i router a dati, e il ripristino nativo del browser non
  * puo' agire perche' il contenuto viene ricreato da React dopo il cambio di indirizzo.
  *
- * Il comportamento segue quello di un sito normale:
+ * Comportamento:
  *   - navigazione in avanti (PUSH/REPLACE): si parte dall'inizio
- *   - ritorno (POP): si torna esattamente al punto in cui si era
+ *   - ritorno (POP): si torna al punto in cui si era
  */
 export function useScrollRestoration() {
   const location = useLocation();
   const navigationType = useNavigationType();
 
-  // La chiave e' unica per ogni voce della cronologia: visitare due volte la stessa
-  // pagina produce due posizioni distinte, come si aspetta l'utente.
+  // Una posizione per ogni voce della cronologia: visitare due volte la stessa pagina
+  // produce due posizioni distinte, come si aspetta l'utente.
   const positions = useRef(new Map());
 
-  // Registra di continuo la posizione della pagina corrente. Salvarla solo allo
-  // smontaggio non basterebbe: quando React smonta la vista lo scorrimento e' gia'
-  // stato azzerato dal contenuto piu' corto.
-  //
-  // La posizione non viene salvata al montaggio: questo effetto gira prima di quello
-  // di ripristino qui sotto, e scriverebbe zero sopra al valore da recuperare.
   useEffect(() => {
-    // La chiave e' catturata nella chiusura e non letta da un ref: durante un cambio
-    // di pagina un evento di scorrimento in ritardo finirebbe altrimenti sulla chiave
-    // sbagliata.
+    // Il browser proverebbe a ripristinare per conto suo e finirebbe per litigare con
+    // questo hook, perche' non sa che il contenuto arriva dopo.
+    const previous = window.history.scrollRestoration;
+    if (previous) window.history.scrollRestoration = 'manual';
+    return () => {
+      if (previous) window.history.scrollRestoration = previous;
+    };
+  }, []);
+
+  // useLayoutEffect e non useEffect, ed e' il perno di tutto l'hook.
+  //
+  // Cambiando pagina React smonta la vista precedente: il documento si accorcia e il
+  // browser riduce lo scorrimento, mettendo in coda un evento scroll. Quell'evento
+  // salverebbe zero sopra alla posizione buona, un istante prima che serva.
+  //
+  // La pulizia di un effetto di layout avviene dentro la fase di commit, in modo
+  // sincrono, mentre l'evento in coda viene emesso solo al passo di rendering
+  // successivo. Staccando qui l'ascoltatore, quell'evento non trova piu' nessuno.
+  // Con useEffect la pulizia e' asincrona e la corsa si perde.
+  useLayoutEffect(() => {
     const key = location.key;
     const save = () => positions.current.set(key, window.scrollY);
 
