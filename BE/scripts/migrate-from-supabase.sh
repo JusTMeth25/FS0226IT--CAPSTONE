@@ -28,7 +28,7 @@ DUMP_FILE="${DUMP_FILE:-$SCRIPT_DIR/supabase-dump.sql}"
 
 if [[ -z "${SUPABASE_DATABASE_URL:-}" ]]; then
   echo "Errore: SUPABASE_DATABASE_URL non impostata." >&2
-  echo "Il valore si trova in backend/.env, voce DATABASE_URL." >&2
+  echo "E' la connection string del progetto Supabase di origine." >&2
   echo "Usare la stringa in modalita' Session (porta 5432): pg_dump non funziona" >&2
   echo "con il pooler in modalita' Transaction (porta 6543)." >&2
   exit 1

@@ -1,7 +1,8 @@
 # VinylDex — Backend Spring Boot
 
-API REST del capstone. Sostituisce il backend Node/Express/Prisma che vive in `../backend`,
-mantenendo la stessa superficie HTTP: il frontend non richiede modifiche.
+API REST del capstone. Ha sostituito il backend Node/Express/Prisma mantenendone la stessa
+superficie HTTP, percio' il frontend non ha richiesto modifiche. Il codice precedente resta
+nella storia di git.
 
 - **Spring Boot 4.1.1** su **Java 25**
 - **PostgreSQL** locale (`FS0226IT-CAPSTONE`), schema gestito da **Flyway**
@@ -25,11 +26,11 @@ mantenendo la stessa superficie HTTP: il frontend non richiede modifiche.
 # 1. Creare il database (da pgAdmin oppure da riga di comando)
 createdb -U postgres -E UTF8 "FS0226IT-CAPSTONE"
 
-# 2. Impostare le variabili d'ambiente
+# 2. Impostare i segreti
 cp .env.example .env    # poi compilare DB_PASSWORD e JWT_SECRET
 
 # 3. Avviare: Flyway crea lo schema al primo avvio
-DB_PASSWORD="..." JWT_SECRET="..." ./mvnw spring-boot:run
+./mvnw spring-boot:run
 ```
 
 L'API risponde su `http://localhost:4000`. Sonda di salute: `GET /health`.
@@ -38,13 +39,15 @@ L'API risponde su `http://localhost:4000`. Sonda di salute: `GET /health`.
 
 ## Configurazione
 
-Tutta la configurazione passa da variabili d'ambiente, con valori di riserva in
-`src/main/resources/application.properties`. Nessun segreto sta nel codice.
+La configurazione arriva da `BE/.env`, letto all'avvio tramite `spring.config.import`,
+oppure da normali variabili d'ambiente che hanno la precedenza. I valori di riserva stanno
+in `src/main/resources/application.properties`. Nessun segreto sta nel codice, e `.env` e'
+gitignorato.
 
 Le due variabili obbligatorie sono `DB_PASSWORD` e `JWT_SECRET`. `JWT_SECRET` deve
 misurare almeno 32 byte: l'applicazione si rifiuta di partire se e' piu corto.
-Va tenuto uguale a quello del backend Node, altrimenti i token gia emessi smettono
-di valere e tutti devono rifare il login.
+E' lo stesso segreto che usava il backend Node, cosi' i token gia emessi sono rimasti
+validi durante il passaggio.
 
 L'elenco completo sta in `.env.example`.
 
@@ -89,12 +92,17 @@ se entita e tabelle divergono.
 Per cambiare lo schema si aggiunge un nuovo file `V2__...sql`. Non si modifica mai una
 migrazione gia applicata: Flyway confronta il checksum e rifiuta di partire.
 
-### Migrazione dei dati da Supabase
+### Migrazione dei dati da Supabase (gia' eseguita)
 
-Il travaso e una operazione una tantum, gia predisposta in `scripts/`:
+Il travaso dal vecchio database Supabase e' stato completato: 20 tabelle, 2099 righe,
+conteggi identici fra origine e destinazione. Gli hash BCrypt sono arrivati invariati da
+bcryptjs, quindi gli account esistenti funzionano con la stessa password.
+
+Gli script restano in `scripts/` come riferimento, per ripetere l'operazione su un'altra
+macchina o per ripartire da un backup:
 
 ```bash
-export SUPABASE_DATABASE_URL="..."   # dalla voce DATABASE_URL di backend/.env
+export SUPABASE_DATABASE_URL="..."   # stringa in modalita' Session, porta 5432
 export PGPASSWORD="..."              # password postgres locale
 
 ./scripts/migrate-from-supabase.sh            # crea il DB, scarica il dump, lo mette in "legacy"
@@ -102,18 +110,16 @@ export PGPASSWORD="..."              # password postgres locale
 psql -U postgres -d "FS0226IT-CAPSTONE" -v ON_ERROR_STOP=1 -f scripts/import-legacy-data.sql
 ```
 
-Lo script di import traduce i nomi Prisma (`"User"`, `"passwordHash"`) in quelli snake_case
-dello schema nuovo, e in coda stampa un confronto riga per riga fra origine e destinazione.
-Quando i conteggi coincidono si puo eliminare lo schema di appoggio:
+`import-legacy-data.sql` traduce i nomi Prisma (`"User"`, `"passwordHash"`) in quelli
+snake_case dello schema nuovo, e in coda stampa un confronto riga per riga fra origine e
+destinazione. Quando i conteggi coincidono si elimina lo schema di appoggio:
 
 ```bash
 psql -U postgres -d "FS0226IT-CAPSTONE" -c "DROP SCHEMA legacy CASCADE;"
 ```
 
-Gli hash BCrypt arrivano invariati da bcryptjs: gli account esistenti continuano a
-funzionare con la stessa password.
-
----
+Attenzione: `pg_dump` non funziona con il pooler Supabase in modalita' Transaction
+(porta 6543). Serve la stringa in modalita' Session, porta 5432.
 
 ## Endpoint
 
@@ -191,12 +197,9 @@ Spring la registra da sola, senza toccare controller o servizi.
 ```
 
 I test di logica pura (livelli, JWT, soglie di rarita) girano sempre. Il test di avvio del
-contesto richiede un database e viene saltato se `DB_PASSWORD` non e impostata, cosi la
-suite resta verde su una macchina pulita:
-
-```bash
-DB_PASSWORD="..." ./mvnw test
-```
+contesto richiede un database: gira se esiste `BE/.env` oppure se `DB_PASSWORD` e impostata
+nell'ambiente, altrimenti viene saltato, cosi la suite resta verde su una macchina appena
+clonata.
 
 ---
 

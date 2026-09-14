@@ -1,44 +1,50 @@
 # VinylDex
 
-Piattaforma di collezione carte digitali (musicisti IP originali) — React/Vite + Node/Express + Prisma/Postgres + Capacitor (iOS/Android). Valuta di gioco **gold** interna, nessun denaro reale, nessun cash-out, nessuna spedizione fisica.
+Piattaforma di collezione carte digitali (musicisti IP originali) — React/Vite + Spring Boot + PostgreSQL + Capacitor (iOS/Android). Valuta di gioco **gold** interna, nessun denaro reale, nessun cash-out, nessuna spedizione fisica.
 
 ## Struttura del repo
 
 ```
 /
 ├── frontend/     # React + Vite (web + base per Capacitor iOS/Android)
-├── backend/      # Node + Express + Prisma (API REST)
+├── BE/           # Spring Boot + JPA/Hibernate (API REST)
 └── assets/       # sorgente vanilla JS originale (pre-migrazione, mantenuto a scopo storico)
 ```
 
+> Il backend Node/Express/Prisma che stava in `backend/` e' stato sostituito dal backend Spring
+> in `BE/`. La superficie HTTP e' identica, quindi il frontend non ha richiesto modifiche.
+> Il codice vecchio resta nella storia di git fino al commit che lo rimuove.
+
 ## Requisiti
 
-- Node.js >= 18
-- Un database PostgreSQL (locale via Docker, oppure un progetto gratuito su [Neon](https://neon.tech) o [Supabase](https://supabase.com))
+- JDK 25 (backend)
+- Node.js >= 18 (frontend)
+- PostgreSQL 16+ in locale
 - Per il build mobile: Android Studio (Android) e/o Xcode su macOS (iOS)
 
 ## Setup backend
 
 ```bash
-cd backend
-npm install
-cp .env.example .env      # poi imposta DATABASE_URL, JWT_SECRET, ecc.
-npx prisma generate
-npx prisma db push
-node seed.js               # popola carte, pacchetti, missioni, evento demo e un utente admin
-npm run dev                 # http://localhost:4000
+cd BE
+createdb -U postgres -E UTF8 "FS0226IT-CAPSTONE"   # oppure da pgAdmin
+cp .env.example .env                                 # poi compila DB_PASSWORD e JWT_SECRET
+./mvnw spring-boot:run                               # http://localhost:4000
 ```
 
-Utente admin creato dal seed: `admin@vinyldex.local` / `Admin1234!` (**da cambiare in produzione**).
+Lo schema del database lo crea Flyway al primo avvio. `.env` viene letto automaticamente,
+non serve esportare le variabili a mano.
 
-Variabili d'ambiente principali (`backend/.env`, vedi `.env.example`):
+Variabili principali (`BE/.env`, elenco completo in `.env.example`):
 
 | Variabile | Descrizione |
 |---|---|
-| `DATABASE_URL` | Connection string Postgres |
-| `JWT_SECRET` | Segreto per firmare i token di sessione |
+| `DB_URL` · `DB_USERNAME` · `DB_PASSWORD` | Connessione al Postgres locale |
+| `JWT_SECRET` | Segreto per firmare i token, almeno 32 byte |
 | `PORT` | Porta HTTP del backend (default 4000) |
-| `POKEMONTCG_API_KEY` | Opzionale, per l'import carte Pokémon TCG |
+| `CORS_ORIGINS` | Origini ammesse dal browser |
+| `POKEMONTCG_API_KEY` · `APITCG_API_KEY` | Opzionali, per l'import carte esterne |
+
+Dettagli su architettura, endpoint e importer: [`BE/README.md`](BE/README.md).
 
 ## Setup frontend
 
@@ -83,7 +89,7 @@ Registrazione/Login → Home → Apertura pacchetto (server-authoritative: gold,
 | Layer | Tecnologia |
 |---|---|
 | Frontend | React 19 + Vite, React Router (Hash), Context API |
-| Backend | Node.js + Express, JWT, bcrypt |
-| Database | PostgreSQL + Prisma ORM |
+| Backend | Spring Boot 4 (Java 25), Spring Security + JWT, BCrypt |
+| Database | PostgreSQL + JPA/Hibernate, migrazioni Flyway |
 | Mobile | Capacitor (iOS/Android) |
-| Import carte esterne | Pokémon TCG API, Scryfall (Magic), YGOPRODeck (Yu-Gi-Oh!) — con fallback demo |
+| Import carte esterne | 9 fonti (Pokémon TCG, Scryfall, YGOPRODeck, One Piece, Digimon, Lorcana, Riftbound, Gundam, Dragon Ball) — con fallback demo |
