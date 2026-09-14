@@ -4,7 +4,7 @@ import { useGame } from '../hooks/useGame.js';
 import { useSound } from '../hooks/useSound.js';
 import { useCountUp } from '../hooks/useCountUp.js';
 import { PACKS } from '../data/packs.js';
-import { getRarityColor, getStars, resolveCardImage } from '../utils/cardUtils.js';
+import { findBestCardIndex, getRarityColor, getStars, resolveCardImage } from '../utils/cardUtils.js';
 import { formatDuration } from '../hooks/useCountdown.js';
 import RevealSpark from '../components/common/RevealSpark.jsx';
 import StarBorder from '../components/common/StarBorder.jsx';
@@ -14,6 +14,7 @@ import CardHero from '../components/card/CardHero.jsx';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock.js';
 import RevealStage from '../components/fx/RevealStage.jsx';
 import RarityAnnounce from '../components/fx/RarityAnnounce.jsx';
+import PackVerdict from '../components/fx/PackVerdict.jsx';
 
 // Trascinamento orizzontale (in px) necessario per completare lo strappo del pacchetto.
 const TEAR_DRAG_MAX = 120;
@@ -344,6 +345,7 @@ export default function PackOpeningPage() {
   const boxGradient = PACK_GRADIENT[selectedPack?.id];
   const currentCard = cards[revealIndex];
   const isLastCard = revealIndex >= cards.length - 1;
+  const bestCardIndex = findBestCardIndex(cards);
 
   const halfShift = dragProgress * 160;
   const halfRotate = dragProgress * 30;
@@ -421,9 +423,14 @@ export default function PackOpeningPage() {
       {phase === 'summary' && (
         <>
           <p className="pack-opening-text"><i className="ph-fill ph-vinyl-record" /> Ecco le tue nuove carte!</p>
+          <PackVerdict cards={cards} />
           <div className="pack-reveal-grid">
             {cards.map((card, i) => (
-              <div className="pack-reveal-slot pack-reveal-flip" key={`${card.id}-${i}`}>
+              <div
+                className={`pack-reveal-slot pack-reveal-flip${i === bestCardIndex ? ' pack-reveal-slot-best' : ''}`}
+                style={i === bestCardIndex ? { '--rarity-color': getRarityColor(card.rarity) } : undefined}
+                key={`${card.id}-${i}`}
+              >
                 <CardTile card={card} onClick={() => setInspectedCard(card)} />
               </div>
             ))}

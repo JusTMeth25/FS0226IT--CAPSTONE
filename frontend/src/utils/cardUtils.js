@@ -82,3 +82,26 @@ export function resolveCardImage(card) {
 }
 
 export const RARITY_ORDER = { legendary: 5, epic: 4, rare: 3, uncommon: 2, common: 1 };
+
+/** Rarita' minima perche' una carta valga un'evidenziazione: sotto non c'e' niente da festeggiare. */
+export const BEST_CARD_MIN_RARITY = RARITY_ORDER.rare;
+
+/**
+ * Indice della carta piu' rara di un elenco, oppure -1 se nessuna raggiunge la soglia.
+ * A parita' vince la prima: e' quella che l'utente ha visto per prima e a cui associa
+ * il colpo di fortuna.
+ */
+export function findBestCardIndex(cards) {
+  let index = -1;
+  let bestWeight = -1;
+
+  (cards || []).forEach((card, i) => {
+    const weight = RARITY_ORDER[card.rarity] || 0;
+    if (weight > bestWeight) {
+      bestWeight = weight;
+      index = i;
+    }
+  });
+
+  return bestWeight >= BEST_CARD_MIN_RARITY ? index : -1;
+}

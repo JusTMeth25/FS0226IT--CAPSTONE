@@ -686,3 +686,70 @@
 @media (prefers-reduced-motion: reduce) {
   .auth-hero-card-1, .auth-hero-card-2, .auth-hero-card-3 { animation: none; }
 }
+
+/* ========================================
+   APERTURA PACCHETTO — verdetto finale
+   ======================================== */
+.pack-verdict {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto var(--space-md);
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(5, 8, 22, 0.75);
+  background: color-mix(in srgb, var(--rarity-color) 14%, rgba(5, 8, 22, 0.8));
+  border: 1px solid var(--rarity-color);
+  box-shadow: 0 0 26px var(--rarity-color);
+  box-shadow: 0 0 26px color-mix(in srgb, var(--rarity-color) 40%, transparent);
+  animation: verdictIn 520ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: 220ms;
+}
+@keyframes verdictIn {
+  from { opacity: 0; transform: translateY(-10px) scale(0.94); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.pack-verdict-icon { color: var(--rarity-color); font-size: 1.3rem; line-height: 1; }
+.pack-verdict-text { display: flex; flex-direction: column; min-width: 0; }
+.pack-verdict-label {
+  font-size: 0.62rem; font-weight: 800; letter-spacing: 1.4px;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.pack-verdict-name {
+  font-size: 0.95rem; color: var(--text-primary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pack-verdict-rarity {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--rarity-color);
+  color: #050816;
+  font-size: 0.62rem; font-weight: 900;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+
+/* La carta migliore si stacca dalle altre nella griglia. */
+.pack-reveal-slot-best { position: relative; }
+.pack-reveal-slot-best::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: var(--radius-lg);
+  pointer-events: none;
+  background: radial-gradient(circle, var(--rarity-color) 0%, transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--rarity-color) 35%, transparent) 0%, transparent 70%);
+  animation: bestPulse 2.6s ease-in-out infinite;
+}
+@keyframes bestPulse {
+  0%, 100% { opacity: 0.45; transform: scale(0.97); }
+  50%      { opacity: 0.85; transform: scale(1.03); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pack-verdict { animation: none; }
+  .pack-reveal-slot-best::before { animation: none; opacity: 0.6; }
+}
