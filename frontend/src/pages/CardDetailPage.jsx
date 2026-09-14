@@ -9,6 +9,7 @@ import { useApiResource } from '../hooks/useApiResource.js';
 import CardHero from '../components/card/CardHero.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
+import RarityAmbience from '../components/fx/RarityAmbience.jsx';
 
 export default function CardDetailPage() {
   const { id } = useParams();
@@ -64,7 +65,8 @@ export default function CardDetailPage() {
     else if (referenceCard.rarity === 'rare') guaranteeText = 'Garantita in tutti i pacchetti!';
 
     return (
-      <section className="card-detail-page">
+      <section className="card-detail-page card-detail-locked" style={{ '--rarity-color': color }}>
+        <RarityAmbience rarity={referenceCard.rarity} muted />
         <div style={{ fontSize: '4rem', opacity: 0.3, margin: 'var(--space-lg) 0' }}><i className="ph ph-question" /></div>
         <h2 style={{ color }}>???</h2>
         <span className="card-detail-class">{referenceCard.artistClass || referenceCard.source} — {getRarityName(referenceCard.rarity)}</span>
@@ -100,8 +102,13 @@ export default function CardDetailPage() {
     : 'Sconosciuta';
 
   return (
-    <section className="card-detail-page">
+    <section className="card-detail-page" style={{ '--rarity-color': getRarityColor(ownedEntry.rarity) }}>
+      <RarityAmbience rarity={ownedEntry.rarity} />
+
       <CardHero card={ownedEntry} quantity={ownedEntry.quantity} />
+
+      <h2 className="card-detail-title">{ownedEntry.name}</h2>
+      <span className="card-detail-rarity-chip">{getRarityName(ownedEntry.rarity)}</span>
 
       <div className="card-detail-meta" style={{ width: '100%' }}>
         <div className="card-detail-meta-item">

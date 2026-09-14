@@ -753,3 +753,77 @@
   .pack-verdict { animation: none; }
   .pack-reveal-slot-best::before { animation: none; opacity: 0.6; }
 }
+
+/* ========================================
+   DETTAGLIO CARTA — atmosfera per rarita'
+   ======================================== */
+
+/* Sta sopra all'aurora ma sotto al contenuto, cosi' lo sfondo animato resta visibile
+   attraverso la tinta invece di essere coperto. */
+.rarity-ambience {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 120% 70% at 50% 0%, var(--rarity-color) 0%, transparent 60%),
+    radial-gradient(ellipse 90% 50% at 50% 100%, var(--rarity-color) 0%, transparent 70%);
+  background:
+    radial-gradient(ellipse 120% 70% at 50% 0%, color-mix(in srgb, var(--rarity-color) 26%, transparent) 0%, transparent 60%),
+    radial-gradient(ellipse 90% 50% at 50% 100%, color-mix(in srgb, var(--rarity-color) 14%, transparent) 0%, transparent 70%);
+  opacity: 0;
+  /* Il ritardo non e' estetico. #app-view e' animato con transform durante la
+     transizione di pagina, e un elemento fisso dentro un antenato trasformato si
+     ancora a quello invece che al viewport: per la durata dell'animazione la tinta
+     coprirebbe solo l'area del contenuto, poi scatterebbe a pieno schermo. Comparendo
+     a transizione conclusa il salto non esiste. */
+  animation: ambienceIn 700ms ease 450ms forwards;
+}
+@keyframes ambienceIn {
+  to { opacity: 1; }
+}
+
+/* Carta non ancora scoperta: si intuisce cosa si sta cercando senza svelarla. */
+.rarity-ambience-muted { animation-name: ambienceInMuted; }
+@keyframes ambienceInMuted {
+  to { opacity: 0.45; }
+}
+
+/* Il contenuto della pagina deve restare sopra alla tinta. */
+.card-detail-page { position: relative; z-index: 0; }
+
+.card-detail-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-align: center;
+  line-height: 1.15;
+  color: var(--text-primary);
+  text-shadow: 0 0 24px var(--rarity-color);
+}
+
+.card-detail-rarity-chip {
+  align-self: center;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: var(--rarity-color);
+  color: #050816;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  box-shadow: 0 0 20px var(--rarity-color);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--rarity-color) 55%, transparent);
+}
+
+/* Il riquadro dei dati prende il colore della carta invece del viola generico. */
+.card-detail-page .card-detail-meta {
+  border: 1px solid var(--rarity-color);
+  border-color: color-mix(in srgb, var(--rarity-color) 45%, transparent);
+  box-shadow: 0 0 26px color-mix(in srgb, var(--rarity-color) 16%, transparent);
+}
+.card-detail-page .meta-value { color: var(--text-primary); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rarity-ambience { animation: none; opacity: 1; }
+  .rarity-ambience-muted { opacity: 0.45; }
+}
