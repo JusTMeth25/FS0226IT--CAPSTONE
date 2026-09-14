@@ -21,8 +21,6 @@ public class ScryfallImporter extends AbstractCardImporter {
     /** Dimensione pagina di Scryfall. */
     private static final int MAX_PAGE_SIZE = 175;
 
-    private static final int APPROX_PAGES = 180;
-
     /** Query molto ampia: qualunque carta Magic reale dal 1993 a oggi. */
     private static final String DEFAULT_QUERY = "year>=1993";
 
@@ -38,16 +36,26 @@ public class ScryfallImporter extends AbstractCardImporter {
     /**
      * Scryfall mette in cache le risposte per query piu' pagina, quindi e' variare la pagina
      * (non l'ordinamento) che da' risultati diversi a ogni click ripetuto dal pannello admin.
+     *
+     * Quante pagine esistano dipende dalla query, percio' la prima chiamata serve a leggere
+     * total_cards e a ricavare il limite reale: chiedere una pagina oltre quel limite fa
+     * rispondere 404 e l'import ricadrebbe sempre sulle carte demo.
      */
     @Override
     protected ImportResult doImport(AdminRequests.ImportRequest request) {
         int limit = request.limitOrDefault(100, MAX_PAGE_SIZE);
         String query = request.query() == null || request.query().isBlank() ? DEFAULT_QUERY : request.query();
-        int page = request.page() != null ? request.pageOrOne() : random.nextInt(APPROX_PAGES) + 1;
+        String baseUrl = "https://api.scryfall.com/cards/search?q="
+                + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&page=";
 
-        String url = "https://api.scryfall.com/cards/search?q="
-                + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&page=" + page;
-        JsonNode body = fetchJson(url);
+        JsonNode probe = fetchJson(baseUrl + "1");
+        JsonNode totalNode = child(probe, "total_cards");
+        Integer totalCards = totalNode == null ? null : totalNode.intValue();
+
+        int maxPage = totalCards == null ? 1 : Math.max(1, (int) Math.ceil(totalCards / (double) MAX_PAGE_SIZE));
+        int page = request.page() != null ? Math.min(request.pageOrOne(), maxPage) : random.nextInt(maxPage) + 1;
+
+        JsonNode body = page == 1 ? probe : fetchJson(baseUrl + page);
 
         List<ImportedCard> cards = elements(child(body, "data")).stream()
                 .limit(limit)
@@ -55,8 +63,7 @@ public class ScryfallImporter extends AbstractCardImporter {
                 .toList();
 
         int imported = writer.persist(SOURCE, cards, null);
-        JsonNode total = child(body, "total_cards");
-        return ImportResult.success(SOURCE, imported, page, total == null ? null : total.intValue());
+        return ImportResult.success(SOURCE, imported, page, totalCards);
     }
 
     private ImportedCard normalize(JsonNode card) {

@@ -72,12 +72,12 @@ public class TradeService {
             Card card = resolveCard(item.cardId());
             int quantity = item.quantityOrOne();
             userCardService.remove(fromUser, card, quantity);
-            tradeItemRepository.save(new TradeItem(trade, card, quantity, TradeItemDirection.OFFERED));
+            addItem(trade, card, quantity, TradeItemDirection.OFFERED);
         }
 
         for (GameRequests.TradeCardRequest item : request.requestedOrEmpty()) {
             Card card = resolveCard(item.cardId());
-            tradeItemRepository.save(new TradeItem(trade, card, item.quantityOrOne(), TradeItemDirection.REQUESTED));
+            addItem(trade, card, item.quantityOrOne(), TradeItemDirection.REQUESTED);
         }
 
         if (trade.getOfferedGold() > 0) {
@@ -168,6 +168,18 @@ public class TradeService {
         trade.setStatus(TradeStatus.CANCELLED);
         tradeRepository.save(trade);
         return TradeDto.from(reload(trade.getId()));
+    }
+
+    /**
+     * Salva la riga e la aggiunge anche alla collezione in memoria.
+     *
+     * Senza il secondo passaggio l'oggetto Trade appena creato resta con la lista vuota: una
+     * rilettura nella stessa transazione riceve la stessa istanza dalla cache di primo livello,
+     * quindi la risposta tornerebbe senza le carte scambiate.
+     */
+    private void addItem(Trade trade, Card card, int quantity, TradeItemDirection direction) {
+        TradeItem item = tradeItemRepository.save(new TradeItem(trade, card, quantity, direction));
+        trade.getItems().add(item);
     }
 
     /** Restituisce a chi ha proposto le carte e i gold messi in deposito alla creazione. */

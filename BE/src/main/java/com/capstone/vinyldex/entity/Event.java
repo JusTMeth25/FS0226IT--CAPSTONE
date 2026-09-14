@@ -7,8 +7,8 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /** Evento a tempo: puo' alzare le probabilita' di drop e portare pacchetti o missioni dedicate. */
@@ -50,10 +50,10 @@ public class Event {
     private Instant createdAt;
 
     @OneToMany(mappedBy = "event")
-    private List<Pack> packs = new ArrayList<>();
+    private Set<Pack> packs = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "event")
-    private List<Mission> missions = new ArrayList<>();
+    private Set<Mission> missions = new LinkedHashSet<>();
 
     /** Attivo e dentro la finestra temporale. Estremi assenti valgono come "senza limite". */
     public boolean isRunningAt(Instant now) {

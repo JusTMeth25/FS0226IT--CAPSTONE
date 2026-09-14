@@ -46,17 +46,18 @@ public class MarketService {
     /** Vetrina pubblica delle inserzioni attive. cardId, se presente, e' il code della carta. */
     @Transactional(readOnly = true)
     public List<MarketListingDto> listActive(String rarity, String cardId) {
-        UUID cardUuid = null;
-        if (cardId != null && !cardId.isBlank()) {
-            // Carta inesistente: nessuna inserzione puo' corrispondere, si restituisce vuoto.
-            cardUuid = cardRepository.findByCode(cardId).map(Card::getId).orElse(null);
-            if (cardUuid == null) return List.of();
+        String rarityFilter = rarity == null ? "" : rarity.trim();
+
+        if (cardId == null || cardId.isBlank()) {
+            return listingRepository.findActive(rarityFilter).stream().map(MarketListingDto::from).toList();
         }
 
-        return listingRepository.findActive(
-                        rarity == null || rarity.isBlank() ? null : rarity, cardUuid).stream()
-                .map(MarketListingDto::from)
-                .toList();
+        // Carta inesistente: nessuna inserzione puo' corrispondere.
+        return cardRepository.findByCode(cardId)
+                .map(card -> listingRepository.findActiveByCard(rarityFilter, card.getId()).stream()
+                        .map(MarketListingDto::from)
+                        .toList())
+                .orElseGet(List::of);
     }
 
     /** Pubblica un'inserzione e mette in deposito le copie vendute. */

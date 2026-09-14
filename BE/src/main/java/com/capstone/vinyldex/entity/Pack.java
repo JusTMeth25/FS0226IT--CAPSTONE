@@ -7,8 +7,8 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /** Bustina acquistabile. Le probabilita' di uscita stanno in PackDropRate, i minimi garantiti in PackGuarantee. */
@@ -60,8 +60,8 @@ public class Pack {
     private Instant createdAt;
 
     @OneToMany(mappedBy = "pack", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PackDropRate> dropRates = new ArrayList<>();
+    private Set<PackDropRate> dropRates = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "pack", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PackGuarantee> guarantees = new ArrayList<>();
+    private Set<PackGuarantee> guarantees = new LinkedHashSet<>();
 }

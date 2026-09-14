@@ -37,8 +37,7 @@ public class CollectionService {
     public CollectionView getCollection(UUID userId, String search, String rarity, String set,
                                         String source, String owned) {
 
-        List<Card> cards = cardRepository.search(blankToNull(search), blankToNull(rarity),
-                blankToNull(set), blankToNull(source));
+        List<Card> cards = cardRepository.search(orEmpty(search), orEmpty(rarity), orEmpty(set), orEmpty(source));
 
         Map<UUID, UserCard> ownedByCardId = userCardRepository.findByUserId(userId).stream()
                 .collect(Collectors.toMap(uc -> uc.getCard().getId(), Function.identity()));
@@ -83,8 +82,9 @@ public class CollectionService {
         return userCardRepository.save(userCard).isFavorite();
     }
 
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value.trim();
+    /** La stringa vuota significa "filtro non applicato": vedi CardRepository.search. */
+    private static String orEmpty(String value) {
+        return value == null ? "" : value.trim();
     }
 
     public record CollectionView(List<CollectionEntryDto> collection, int albumCompletionPercent, long totalActiveCards) {

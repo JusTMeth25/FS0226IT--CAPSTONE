@@ -66,10 +66,11 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Migrazioni schema -->
+		<!-- Migrazioni schema. In Boot 4 l'autoconfigurazione di Flyway sta nello starter
+		     dedicato: il solo flyway-core non la porta e le migrazioni non partirebbero. -->
 		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-core</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-flyway</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.flywaydb</groupId>

@@ -12,18 +12,35 @@ import java.util.UUID;
 
 public interface MarketListingRepository extends JpaRepository<MarketListing, UUID> {
 
-    /** Vetrina pubblica: solo inserzioni attive, filtri rarita' e carta opzionali. */
+    /**
+     * Vetrina pubblica: solo inserzioni attive, filtro rarita' opzionale.
+     *
+     * La rarita' usa la stringa vuota per dire "non filtrare" invece di null: un parametro
+     * nullo arriverebbe a Postgres senza tipo e la query fallirebbe.
+     */
     @Query("""
             SELECT l FROM MarketListing l
             JOIN FETCH l.card c
             LEFT JOIN FETCH c.artistClass
             JOIN FETCH l.seller
             WHERE l.status = com.capstone.vinyldex.entity.MarketListingStatus.ACTIVE
-              AND (:cardId IS NULL OR c.id = :cardId)
-              AND (:rarity IS NULL OR c.rarity = :rarity)
+              AND (:rarity = '' OR c.rarity = :rarity)
             ORDER BY l.createdAt DESC
             """)
-    List<MarketListing> findActive(@Param("rarity") String rarity, @Param("cardId") UUID cardId);
+    List<MarketListing> findActive(@Param("rarity") String rarity);
+
+    /** Come findActive, ristretta a una singola carta. */
+    @Query("""
+            SELECT l FROM MarketListing l
+            JOIN FETCH l.card c
+            LEFT JOIN FETCH c.artistClass
+            JOIN FETCH l.seller
+            WHERE l.status = com.capstone.vinyldex.entity.MarketListingStatus.ACTIVE
+              AND c.id = :cardId
+              AND (:rarity = '' OR c.rarity = :rarity)
+            ORDER BY l.createdAt DESC
+            """)
+    List<MarketListing> findActiveByCard(@Param("rarity") String rarity, @Param("cardId") UUID cardId);
 
     @Query("SELECT l FROM MarketListing l JOIN FETCH l.card JOIN FETCH l.seller ORDER BY l.createdAt DESC")
     List<MarketListing> findRecentWithCardAndSeller(Limit limit);

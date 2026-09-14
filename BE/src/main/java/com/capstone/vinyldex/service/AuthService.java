@@ -53,7 +53,9 @@ public class AuthService {
         user.setUsername(username);
         user.setEmail(email);
         user.setPasswordHash(passwordEncoder.encode(request.password()));
-        userRepository.save(user);
+        // saveAndFlush e non save: le date di creazione le scrive Hibernate al flush,
+        // altrimenti la risposta le riporterebbe nulle.
+        userRepository.saveAndFlush(user);
 
         return buildResponse(user);
     }

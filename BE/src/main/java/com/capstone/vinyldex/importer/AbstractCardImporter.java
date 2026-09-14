@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.JsonNode;
 
+import java.net.URI;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,12 +59,19 @@ public abstract class AbstractCardImporter implements CardImporter {
         }
     }
 
+    /**
+     * Gli URL arrivano qui gia' codificati.
+     *
+     * Si passa un URI e non una stringa perche' RestClient tratterebbe la stringa come template
+     * e la codificherebbe una seconda volta: un "%3E" diventerebbe "%253E" e la query esterna
+     * verrebbe respinta.
+     */
     protected JsonNode fetchJson(String url) {
-        return restClient.get().uri(url).retrieve().body(JsonNode.class);
+        return restClient.get().uri(URI.create(url)).retrieve().body(JsonNode.class);
     }
 
     protected JsonNode fetchJson(String url, String headerName, String headerValue) {
-        return restClient.get().uri(url).header(headerName, headerValue).retrieve().body(JsonNode.class);
+        return restClient.get().uri(URI.create(url)).header(headerName, headerValue).retrieve().body(JsonNode.class);
     }
 
     /**

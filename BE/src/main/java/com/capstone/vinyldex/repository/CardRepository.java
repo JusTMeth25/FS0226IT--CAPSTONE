@@ -28,18 +28,21 @@ public interface CardRepository extends JpaRepository<Card, UUID> {
     List<Card> findAllWithArtistClassOrderByCreatedAtDesc();
 
     /**
-     * Catalogo filtrato. Ogni filtro nullo viene ignorato, cosi' la stessa query serve
-     * tutte le combinazioni della pagina collezione.
+     * Catalogo filtrato.
+     *
+     * Ogni filtro usa la stringa vuota per dire "non filtrare", invece di null: un parametro
+     * nullo dentro CONCAT arriverebbe a Postgres senza tipo e la query fallirebbe con
+     * "function lower(bytea) does not exist".
      */
     @Query("""
             SELECT c FROM Card c
             LEFT JOIN FETCH c.artistClass
             WHERE c.active = true
-              AND (:rarity IS NULL OR c.rarity = :rarity)
-              AND (:source IS NULL OR c.source = :source)
-              AND (:search IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')))
-              AND (:set IS NULL OR LOWER(c.setName) LIKE LOWER(CONCAT('%', :set, '%'))
-                                OR LOWER(c.setCode) LIKE LOWER(CONCAT('%', :set, '%')))
+              AND (:rarity = '' OR c.rarity = :rarity)
+              AND (:source = '' OR c.source = :source)
+              AND (:search = '' OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')))
+              AND (:set = '' OR LOWER(COALESCE(c.setName, '')) LIKE LOWER(CONCAT('%', :set, '%'))
+                             OR LOWER(COALESCE(c.setCode, '')) LIKE LOWER(CONCAT('%', :set, '%')))
             ORDER BY c.name ASC
             """)
     List<Card> search(@Param("search") String search,
