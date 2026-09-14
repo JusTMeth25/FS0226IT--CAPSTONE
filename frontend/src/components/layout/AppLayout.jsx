@@ -4,9 +4,6 @@ import Sidebar from './Sidebar.jsx';
 import Topbar from './Topbar.jsx';
 import BottomNav from './BottomNav.jsx';
 import ErrorBoundary from '../common/ErrorBoundary.jsx';
-import Aurora from '../fx/Aurora.jsx';
-import Particles from '../fx/Particles.jsx';
-import ClickSpark from '../fx/ClickSpark.jsx';
 import GoldFlight from '../fx/GoldFlight.jsx';
 import { useSurfaceFx } from '../../hooks/useSurfaceFx.js';
 import { useScrollRestoration } from '../../hooks/useScrollRestoration.js';
@@ -25,11 +22,6 @@ export default function AppLayout() {
 
   return (
     <>
-      {/* Sfondo animato: fuori dalla shell, cosi' non viene rimontato a ogni cambio pagina
-          e l'aurora prosegue il suo movimento durante la navigazione. */}
-      <Aurora />
-      <Particles />
-      <ClickSpark />
       <GoldFlight />
 
       <div className="app-shell">

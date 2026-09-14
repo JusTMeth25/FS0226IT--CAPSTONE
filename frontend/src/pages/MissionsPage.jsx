@@ -1,9 +1,7 @@
-import { useMemo } from 'react';
 import { useGame } from '../hooks/useGame.js';
-import { useAuth } from '../hooks/useAuth.js';
 import { useApiResource } from '../hooks/useApiResource.js';
 import { missionApi } from '../services/missionApi.js';
-import { generateMissions, todayString } from '../utils/missionUtils.js';
+import { todayString } from '../utils/missionUtils.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 
 function missionGroup(missionId) {
@@ -43,34 +41,22 @@ function MissionRow({ mission, onClaim }) {
 
 export default function MissionsPage() {
   const game = useGame();
-  const { isAuthenticated } = useAuth();
 
-  const guestMissions = useMemo(() => generateMissions(game), [game]);
-  const server = useApiResource(
-    () => (isAuthenticated ? missionApi.getMissions() : Promise.resolve(null)),
-    [isAuthenticated, game.collection, game.stats]
-  );
-
-  const missions = isAuthenticated ? (server.data?.missions || []) : guestMissions;
-
-  const unclaimedLevels = useMemo(() => {
-    const result = [];
-    for (let lv = 1; lv < game.levelInfo.level; lv++) {
-      if (!game.claimedLevelRewards.includes(lv)) result.push(lv);
-    }
-    return result;
-  }, [game.levelInfo.level, game.claimedLevelRewards]);
+  // Le missioni arrivano sempre dal server: la pagina e' raggiungibile solo da
+  // autenticati, quindi non esiste piu' un elenco generato in locale.
+  const server = useApiResource(() => missionApi.getMissions(), [game.collection, game.stats]);
+  const missions = server.data?.missions || [];
 
   const canClaimLogin = game.lastLoginDate !== todayString();
 
   async function handleClaim(mission) {
     await game.claimMission(mission);
-    if (isAuthenticated) server.reload({ silent: true });
+    server.reload({ silent: true });
   }
 
   async function handleClaimLogin() {
     await game.claimLoginReward();
-    if (isAuthenticated) server.reload({ silent: true });
+    server.reload({ silent: true });
   }
 
   return (
@@ -93,14 +79,6 @@ export default function MissionsPage() {
           <span className="missions-xp-text">{game.levelInfo.xpRemaining} / {game.levelInfo.xpForNext} XP</span>
         </div>
 
-        {!isAuthenticated && unclaimedLevels.length > 0 && (
-          <div className="missions-level-rewards">
-            <span><i className="ph-fill ph-gift" /> Ricompense livello da reclamare:</span>
-            {unclaimedLevels.map((lv) => (
-              <button key={lv} className="btn btn-gold btn-small" onClick={() => game.claimLevelReward(lv)}>Livello {lv} — Reclama</button>
-            ))}
-          </div>
-        )}
       </div>
 
       <div className={`missions-login-card glass-panel ${canClaimLogin ? 'missions-login-available' : ''}`} onClick={() => canClaimLogin && handleClaimLogin()}>
@@ -112,7 +90,7 @@ export default function MissionsPage() {
         <span className="missions-login-streak"><i className="ph-fill ph-fire" /> Giorno {game.loginStreak + (canClaimLogin ? 1 : 0)}</span>
       </div>
 
-      {isAuthenticated && server.loading ? (
+      {server.loading ? (
         <LoadingSpinner label="Carico le missioni…" />
       ) : (
         ['daily', 'weekly', 'progress'].map((type) => (
@@ -123,7 +101,7 @@ export default function MissionsPage() {
             </h3>
             <div className="missions-list">
               {missions
-                .filter((m) => (isAuthenticated ? missionGroup(m.id) === type : m.type === type))
+                .filter((m) => missionGroup(m.id) === type)
                 .map((m) => (
                   <MissionRow key={m.id} mission={m} onClaim={handleClaim} />
                 ))}

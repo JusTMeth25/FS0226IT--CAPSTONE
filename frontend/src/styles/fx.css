@@ -897,3 +897,29 @@
   .album-progress-fill { animation: none; transition: none; }
   .album-progress-tick.reached { animation: none; }
 }
+
+/* ========================================
+   ACCESSO — schermata intera
+
+   La pagina sta fuori dal layout dell'applicazione: niente barra laterale, barra
+   superiore o navigazione in basso. Chi non ha un account vede solo questo.
+   ======================================== */
+.auth-screen {
+  position: relative;
+  /* Sopra allo sfondo animato, che vive a z-index 0 a livello di applicazione. */
+  z-index: 1;
+  min-height: 100vh;
+  /* dvh tiene conto delle barre del browser mobile che compaiono e scompaiono:
+     con vh il modulo finirebbe sotto la barra degli indirizzi su iOS. */
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding:
+    calc(var(--space-lg) + var(--safe-top))
+    calc(var(--space-md) + var(--safe-right))
+    calc(var(--space-lg) + var(--safe-bottom))
+    calc(var(--space-md) + var(--safe-left));
+}
+
+/* Dentro la schermata intera il riempimento verticale lo da' gia' il contenitore. */
+.auth-screen .auth-page { padding-top: 0; }

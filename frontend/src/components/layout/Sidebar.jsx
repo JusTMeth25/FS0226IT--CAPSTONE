@@ -33,7 +33,7 @@ export default function Sidebar() {
       <div className="sidebar-user">
         <UserAvatar avatar={user?.avatar} className="sidebar-avatar" fallbackIcon="ph-vinyl-record" />
         <div className="sidebar-user-info">
-          <span className="sidebar-username">{user ? user.username : 'Ospite'}</span>
+          <span className="sidebar-username">{user?.username}</span>
           <span className="sidebar-level">Livello {levelInfo.level}</span>
         </div>
       </div>

@@ -79,7 +79,8 @@ export default function AuthPage() {
   }, []);
 
   return (
-    <section className="auth-page auth-landing">
+    <main className="auth-screen">
+      <section className="auth-page auth-landing">
       <div className="auth-hero">
         <p className="auth-hero-eyebrow"><i className="ph-fill ph-vinyl-record" /> Colleziona. Scambia. Domina la classifica.</p>
 
@@ -163,7 +164,8 @@ export default function AuthPage() {
             <p className="auth-switch">Hai già un account? <button type="button" className="auth-switch-link" onClick={() => switchTab('login')}>Accedi</button></p>
           </>
         )}
-      </div>
-    </section>
+        </div>
+      </section>
+    </main>
   );
 }

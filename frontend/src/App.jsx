@@ -2,6 +2,9 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout.jsx';
 import ProtectedRoute from './components/common/ProtectedRoute.jsx';
 import AdminRoute from './components/common/AdminRoute.jsx';
+import Aurora from './components/fx/Aurora.jsx';
+import Particles from './components/fx/Particles.jsx';
+import ClickSpark from './components/fx/ClickSpark.jsx';
 
 import HomePage from './pages/HomePage.jsx';
 import AuthPage from './pages/AuthPage.jsx';
@@ -20,32 +23,46 @@ import NotFoundPage from './pages/NotFoundPage.jsx';
 
 export default function App() {
   return (
-    <Routes>
-      <Route element={<AppLayout />}>
-        <Route index element={<Navigate to="/home" replace />} />
-        <Route path="home" element={<HomePage />} />
+    <>
+      {/* Sfondo animato a livello di applicazione e non dentro la shell: cosi' copre anche
+          la pagina di accesso, che ora sta fuori dal layout per occupare tutto lo schermo. */}
+      <Aurora />
+      <Particles />
+      <ClickSpark />
+
+      <Routes>
+        {/* Fuori dal layout: niente barra laterale, barra superiore o navigazione in basso.
+            Chi non ha ancora un account vede solo la presentazione e il modulo. */}
         <Route path="login" element={<AuthPage />} />
         <Route path="register" element={<AuthPage />} />
-        <Route path="packs" element={<PackOpeningPage />} />
-        <Route path="collection" element={<CollectionPage />} />
-        <Route path="card/:id" element={<CardDetailPage />} />
-        <Route path="marketplace" element={<MarketplacePage />} />
-        <Route path="missions" element={<MissionsPage />} />
-        <Route path="events" element={<EventsPage />} />
-        <Route path="leaderboard" element={<LeaderboardPage />} />
-        <Route path="battle" element={<BattlePage />} />
 
+        {/* Per giocare serve un account: non esiste piu' una modalita' ospite.
+            ProtectedRoute avvolge l'intero layout, quindi ogni pagina interna e'
+            raggiungibile solo da autenticati e rimanda all'accesso ricordando la
+            destinazione richiesta. */}
         <Route element={<ProtectedRoute />}>
-          <Route path="trades" element={<TradesPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-        </Route>
+          <Route element={<AppLayout />}>
+            <Route index element={<Navigate to="/home" replace />} />
+            <Route path="home" element={<HomePage />} />
+            <Route path="packs" element={<PackOpeningPage />} />
+            <Route path="collection" element={<CollectionPage />} />
+            <Route path="card/:id" element={<CardDetailPage />} />
+            <Route path="marketplace" element={<MarketplacePage />} />
+            <Route path="missions" element={<MissionsPage />} />
+            <Route path="events" element={<EventsPage />} />
+            <Route path="leaderboard" element={<LeaderboardPage />} />
+            <Route path="battle" element={<BattlePage />} />
+            <Route path="trades" element={<TradesPage />} />
+            <Route path="profile" element={<ProfilePage />} />
 
-        <Route element={<AdminRoute />}>
-          <Route path="admin" element={<AdminPage />} />
-        </Route>
+            <Route element={<AdminRoute />}>
+              <Route path="admin" element={<AdminPage />} />
+            </Route>
 
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
-    </Routes>
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+        </Route>
+      </Routes>
+    </>
   );
 }

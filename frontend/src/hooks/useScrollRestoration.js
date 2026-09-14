@@ -1,31 +1,61 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useLocation, useNavigationType } from 'react-router-dom';
 
-/** Quanti fotogrammi riprovare prima di arrendersi (circa mezzo secondo a 60fps). */
-const MAX_ATTEMPTS = 30;
+const STORAGE_KEY = 'vinyldex:scroll-positions';
+
+/** Per quanto continuare a rimettere la pagina al suo posto dopo un ritorno. */
+const ENFORCE_MS = 900;
+
+/** Scarto oltre il quale vale la pena ricorreggere: sotto e' rumore di arrotondamento. */
+const TOLERANCE_PX = 2;
+
+/** Eventi che significano "sto scorrendo io": da li' in poi il ripristino non interviene piu'. */
+const USER_INTENT = ['wheel', 'touchstart', 'keydown', 'pointerdown'];
+
+function readStored() {
+  try {
+    return JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || {};
+  } catch {
+    // Navigazione privata o archiviazione negata: si prosegue senza memoria fra i ricaricamenti.
+    return {};
+  }
+}
+
+function writeStored(positions) {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+  } catch {
+    // Spazio esaurito o archiviazione negata: il ripristino resta valido per la sessione corrente.
+  }
+}
 
 /**
  * Riporta la pagina dov'era quando ci si torna con "indietro".
  *
- * Serve perche' questa applicazione usa HashRouter con Routes: ScrollRestoration di
- * react-router funziona solo con i router a dati, e il ripristino nativo del browser non
- * puo' agire perche' il contenuto viene ricreato da React dopo il cambio di indirizzo.
+ * ScrollRestoration di react-router non e' utilizzabile: funziona solo con i router a
+ * dati, mentre qui c'e' HashRouter con Routes. E il ripristino nativo del browser non
+ * puo' agire, perche' il contenuto viene ricreato da React dopo il cambio di indirizzo.
  *
- * Comportamento:
- *   - navigazione in avanti (PUSH/REPLACE): si parte dall'inizio
- *   - ritorno (POP): si torna al punto in cui si era
+ * Tre accorgimenti, ognuno contro un modo diverso di perdere la posizione:
+ *
+ *   1. l'ascoltatore si stacca in un effetto di layout, prima che l'evento emesso
+ *      dall'accorciarsi della pagina possa salvare zero sopra al valore buono;
+ *   2. le posizioni stanno in sessionStorage e non solo in memoria, cosi' sopravvivono
+ *      anche se l'albero viene rimontato, per esempio mentre si verifica la sessione;
+ *   3. dopo un ritorno la posizione viene riaffermata per quasi un secondo, perche'
+ *      immagini che arrivano e riquadri che si dimensionano possono spostarla dopo.
+ *
+ * Il terzo punto si disattiva al primo gesto dell'utente: se decide lui di scorrere,
+ * la pagina non deve piu' tirare da un'altra parte.
  */
 export function useScrollRestoration() {
   const location = useLocation();
   const navigationType = useNavigationType();
 
-  // Una posizione per ogni voce della cronologia: visitare due volte la stessa pagina
-  // produce due posizioni distinte, come si aspetta l'utente.
-  const positions = useRef(new Map());
+  // Copia in memoria, per non rileggere e riscrivere l'archiviazione a ogni evento.
+  const positions = useRef(readStored());
 
   useEffect(() => {
-    // Il browser proverebbe a ripristinare per conto suo e finirebbe per litigare con
-    // questo hook, perche' non sa che il contenuto arriva dopo.
     const previous = window.history.scrollRestoration;
     if (previous) window.history.scrollRestoration = 'manual';
     return () => {
@@ -33,55 +63,78 @@ export function useScrollRestoration() {
     };
   }, []);
 
-  // useLayoutEffect e non useEffect, ed e' il perno di tutto l'hook.
-  //
-  // Cambiando pagina React smonta la vista precedente: il documento si accorcia e il
-  // browser riduce lo scorrimento, mettendo in coda un evento scroll. Quell'evento
-  // salverebbe zero sopra alla posizione buona, un istante prima che serva.
-  //
-  // La pulizia di un effetto di layout avviene dentro la fase di commit, in modo
-  // sincrono, mentre l'evento in coda viene emesso solo al passo di rendering
-  // successivo. Staccando qui l'ascoltatore, quell'evento non trova piu' nessuno.
-  // Con useEffect la pulizia e' asincrona e la corsa si perde.
+  // useLayoutEffect e non useEffect: la pulizia avviene dentro la fase di commit, in modo
+  // sincrono. Cambiando pagina il documento si accorcia, il browser riduce lo scorrimento
+  // e mette in coda un evento che verrebbe emesso solo al passo di rendering successivo:
+  // a quel punto questo ascoltatore non c'e' gia' piu'. Con un effetto normale la pulizia
+  // e' asincrona, l'evento la precede e sovrascrive la posizione con zero.
   useLayoutEffect(() => {
     const key = location.key;
-    const save = () => positions.current.set(key, window.scrollY);
+    // La mappa e' la stessa per tutta la vita del componente: catturarla qui evita di
+    // leggere il ref dentro la pulizia, dove il suo valore potrebbe in teoria essere
+    // gia' cambiato.
+    const store = positions.current;
+    let flushTimer = 0;
+
+    const save = () => {
+      store[key] = window.scrollY;
+      // L'archiviazione si aggiorna al massimo ogni duecento millisecondi: scriverla a
+      // ogni evento di scorrimento costerebbe piu' dell'effetto che si vuole ottenere.
+      if (!flushTimer) {
+        flushTimer = setTimeout(() => {
+          flushTimer = 0;
+          writeStored(store);
+        }, 200);
+      }
+    };
 
     window.addEventListener('scroll', save, { passive: true });
-    return () => window.removeEventListener('scroll', save);
+    return () => {
+      window.removeEventListener('scroll', save);
+      if (flushTimer) clearTimeout(flushTimer);
+      writeStored(store);
+    };
   }, [location.key]);
 
   useEffect(() => {
-    const target = navigationType === 'POP' ? (positions.current.get(location.key) ?? 0) : 0;
+    const target = navigationType === 'POP' ? (positions.current[location.key] ?? 0) : 0;
 
     if (target === 0) {
       window.scrollTo(0, 0);
       return undefined;
     }
 
-    // Il ripristino non puo' avvenire in un colpo solo: al primo fotogramma la pagina
-    // e' ancora corta, perche' la collezione carica le carte dal server. Si riprova a
-    // ogni fotogramma finche' non e' abbastanza alta da contenere quella posizione.
-    let attempts = 0;
     let frame = 0;
+    let stopped = false;
+    const startedAt = performance.now();
 
-    const tryRestore = () => {
+    const stop = () => { stopped = true; };
+    USER_INTENT.forEach((event) => window.addEventListener(event, stop, { passive: true, once: true }));
+
+    const enforce = () => {
+      if (stopped) return;
+
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-
-      if (maxScroll >= target) {
+      // Finche' la pagina e' troppo corta non si puo' arrivare a destinazione: si aspetta
+      // che il contenuto finisca di arrivare invece di atterrare in un punto sbagliato.
+      if (maxScroll >= target && Math.abs(window.scrollY - target) > TOLERANCE_PX) {
         window.scrollTo(0, target);
-        return;
       }
-      if (++attempts < MAX_ATTEMPTS) {
-        frame = requestAnimationFrame(tryRestore);
-      } else {
-        // I dati non sono arrivati in tempo o la pagina e' davvero piu' corta:
-        // si va il piu' in basso possibile invece di restare in cima.
+
+      if (performance.now() - startedAt < ENFORCE_MS) {
+        frame = requestAnimationFrame(enforce);
+      } else if (maxScroll < target) {
+        // Il contenuto non e' mai cresciuto abbastanza: meglio il punto piu' basso
+        // raggiungibile che restare in cima.
         window.scrollTo(0, Math.max(0, maxScroll));
       }
     };
 
-    frame = requestAnimationFrame(tryRestore);
-    return () => cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(enforce);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      USER_INTENT.forEach((event) => window.removeEventListener(event, stop));
+    };
   }, [location.key, navigationType]);
 }

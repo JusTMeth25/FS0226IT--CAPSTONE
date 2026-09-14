@@ -11,7 +11,7 @@ import ShinyText from '../fx/ShinyText.jsx';
  * barra di navigazione superiore, la sidebar/hamburger è sostituita dalla bottom nav.
  */
 export default function Topbar() {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { user, logout } = useAuth();
   const { gold } = useGame();
   const displayGold = useCountUp(gold);
   const { enabled, toggle } = useSound();
@@ -39,21 +39,13 @@ export default function Topbar() {
             <i className={`ph-fill ${enabled ? 'ph-speaker-high' : 'ph-speaker-slash'}`} />
           </button>
 
-          {isAuthenticated ? (
-            <>
-              <Link to="/profile" className="topbar-profile-link" title="Profilo">
-                <UserAvatar avatar={user.avatar} className="topbar-avatar" />
-                <span className="topbar-username">{user.username}</span>
-              </Link>
-              <button className="topbar-icon-btn topbar-logout-btn" onClick={logout} title="Logout" aria-label="Logout">
-                <i className="ph-fill ph-sign-out" />
-              </button>
-            </>
-          ) : (
-            <Link to="/login" className="topbar-icon-btn" title="Accedi" aria-label="Accedi">
-              <i className="ph-fill ph-sign-in" />
-            </Link>
-          )}
+          <Link to="/profile" className="topbar-profile-link" title="Profilo">
+            <UserAvatar avatar={user.avatar} className="topbar-avatar" />
+            <span className="topbar-username">{user.username}</span>
+          </Link>
+          <button className="topbar-icon-btn topbar-logout-btn" onClick={logout} title="Logout" aria-label="Logout">
+            <i className="ph-fill ph-sign-out" />
+          </button>
         </div>
       </div>
     </header>
