@@ -29,3 +29,8 @@ npm-debug.log*
 .idea
 .DS_Store
 *.local
+
+# Claude / AI tooling
+.claude/
+.cline/
+.qodo/
