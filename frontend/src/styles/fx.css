@@ -584,3 +584,105 @@
   .gold-flight-label { animation: none; opacity: 0; }
   .gold-pill-hit { animation: none; }
 }
+
+/* ========================================
+   ACCESSO — pagina di presentazione
+
+   Mobile first: una colonna, prima il messaggio poi il modulo. Dai 992px le due
+   parti si affiancano, con il modulo a destra dove cade lo sguardo per agire.
+   ======================================== */
+.auth-landing {
+  display: grid;
+  gap: var(--space-xl);
+  align-items: center;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-top: var(--space-lg);
+}
+
+.auth-hero { display: flex; flex-direction: column; gap: var(--space-md); }
+
+.auth-hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  align-self: flex-start;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  font-size: 0.75rem; font-weight: 700;
+  letter-spacing: 0.4px;
+}
+.auth-hero-eyebrow i { color: var(--neon-magenta); }
+
+.auth-hero-title {
+  font-size: clamp(2.6rem, 11vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+}
+
+.auth-hero-tagline {
+  font-size: clamp(1.05rem, 4vw, 1.5rem);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.auth-hero-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+.auth-hero-item { display: flex; align-items: flex-start; gap: var(--space-sm); font-size: 0.9rem; }
+.auth-hero-item strong { display: block; color: var(--text-primary); }
+.auth-hero-item-text { color: var(--text-secondary); font-size: 0.82rem; }
+
+.auth-hero-icon {
+  flex-shrink: 0;
+  display: grid; place-items: center;
+  width: 36px; height: 36px;
+  border-radius: var(--radius-sm);
+  background: rgba(139, 92, 246, 0.14);
+  border: 1px solid var(--glass-border);
+  color: var(--neon-cyan);
+  font-size: 1.1rem;
+}
+
+/* ---------- Carte in vetrina ---------- */
+/* Sovrapposte a ventaglio: un margine negativo le avvicina, e ognuna galleggia con
+   un ritmo diverso per non sembrare un blocco unico che oscilla. */
+.auth-hero-cards {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-lg) 0 var(--space-md);
+  perspective: 900px;
+}
+.auth-hero-card { will-change: transform; }
+.auth-hero-card + .auth-hero-card { margin-left: -42px; }
+
+.auth-hero-card-1 { transform: rotate(-9deg); z-index: 1; animation: heroFloat 6s ease-in-out infinite; }
+.auth-hero-card-2 { transform: translateY(-16px) scale(1.06); z-index: 3; animation: heroFloat 5.2s ease-in-out infinite 0.4s; }
+.auth-hero-card-3 { transform: rotate(9deg); z-index: 2; animation: heroFloat 6.6s ease-in-out infinite 0.8s; }
+
+/* Ogni carta ha la sua posa di partenza: l'animazione la ripete nei fotogrammi
+   estremi, altrimenti partendo da zero le carte scatterebbero dritte al primo giro. */
+@keyframes heroFloat {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -12px; }
+}
+
+.auth-landing .auth-card { width: 100%; max-width: 420px; justify-self: center; }
+
+/* Tre carte da 140px con 42px di sovrapposizione fanno 336px: su un telefono da 360px,
+   tolti i margini della pagina, sborderebbero. Si stringono ancora un po'. */
+@media (max-width: 420px) {
+  .auth-hero-card + .auth-hero-card { margin-left: -62px; }
+}
+
+@media (min-width: 992px) {
+  .auth-landing { grid-template-columns: 1.15fr 0.85fr; gap: var(--space-2xl); }
+  .auth-hero-cards { justify-content: flex-start; }
+  .auth-landing .auth-card { justify-self: end; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-hero-card-1, .auth-hero-card-2, .auth-hero-card-3 { animation: none; }
+}

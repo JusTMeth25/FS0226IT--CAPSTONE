@@ -1,7 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { useSound } from '../hooks/useSound.js';
+import { CARDS } from '../data/cards.js';
+import CardTile from '../components/card/CardTile.jsx';
+import ShinyText from '../components/fx/ShinyText.jsx';
+import SplitText from '../components/fx/SplitText.jsx';
+
+/** Cosa si vede prima ancora di avere un account. */
+const HIGHLIGHTS = [
+  { icon: 'ph-cards', title: 'Oltre mille carte', text: 'Artisti originali più import da nove giochi di carte reali.' },
+  { icon: 'ph-gift', title: 'Bustine ogni giorno', text: 'Una gratis a rotazione, con probabilità decise dal server.' },
+  { icon: 'ph-arrows-left-right', title: 'Mercato e scambi', text: 'Compra, vendi e scambia con gli altri collezionisti.' }
+];
 
 export default function AuthPage() {
   const location = useLocation();
@@ -59,8 +70,50 @@ export default function AuthPage() {
     setMessage(null);
   }
 
+  // Tre carte vere del catalogo locale, scelte per rarita' e non per identificativo:
+  // restano valide anche se il catalogo cambia. Sono disponibili senza account,
+  // quindi la vetrina funziona anche a utente non autenticato.
+  const showcase = useMemo(() => {
+    const pick = (rarity) => CARDS.find((c) => c.rarity === rarity);
+    return [pick('epic'), pick('legendary'), pick('rare')].filter(Boolean);
+  }, []);
+
   return (
-    <section className="auth-page">
+    <section className="auth-page auth-landing">
+      <div className="auth-hero">
+        <p className="auth-hero-eyebrow"><i className="ph-fill ph-vinyl-record" /> Colleziona. Scambia. Domina la classifica.</p>
+
+        <h1 className="auth-hero-title">
+          <ShinyText speed={6}>VinylDex</ShinyText>
+        </h1>
+
+        <p className="auth-hero-tagline">
+          <SplitText text="Il tuo album di carte musicali" delay={18} />
+        </p>
+
+        <ul className="auth-hero-list">
+          {HIGHLIGHTS.map((item) => (
+            <li className="auth-hero-item" key={item.title}>
+              <span className="auth-hero-icon"><i className={`ph-fill ${item.icon}`} /></span>
+              <span>
+                <strong>{item.title}</strong>
+                <span className="auth-hero-item-text">{item.text}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+
+        {showcase.length > 0 && (
+          <div className="auth-hero-cards" aria-hidden="true">
+            {showcase.map((card, i) => (
+              <div className={`auth-hero-card auth-hero-card-${i + 1}`} key={card.id}>
+                <CardTile card={card} />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="glass-panel auth-card">
         <div className="auth-tabs">
           <button className={`btn btn-secondary ${tab === 'login' ? 'btn-tab-active' : ''}`} onClick={() => switchTab('login')}>
