@@ -827,3 +827,73 @@
   .rarity-ambience { animation: none; opacity: 1; }
   .rarity-ambience-muted { opacity: 0.45; }
 }
+
+/* ========================================
+   ALBUM — barra di completamento con traguardi
+   ======================================== */
+.album-progress { display: flex; flex-direction: column; gap: var(--space-sm); }
+
+/* Piu' alta della barra generica per fare spazio alle tacche, e senza overflow
+   nascosto perche' le tacche sporgono dai bordi. */
+.album-progress-track {
+  position: relative;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--glass-border);
+}
+
+.album-progress-fill {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--neon-purple), var(--neon-magenta), var(--neon-cyan));
+  background-size: 200% 100%;
+  box-shadow: 0 0 14px rgba(139, 92, 246, 0.55);
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: albumFillShift 6s linear infinite;
+}
+@keyframes albumFillShift {
+  from { background-position: 0 0; }
+  to   { background-position: 200% 0; }
+}
+
+.album-progress-tick {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.95rem;
+  line-height: 1;
+  color: var(--bg-card-hover);
+  transition: color var(--transition-normal), transform var(--transition-normal), filter var(--transition-normal);
+  pointer-events: none;
+}
+/* Il traguardo finale cade sul bordo: spostandolo di meta' larghezza resterebbe
+   per meta' fuori dalla barra. */
+.album-progress-tick.last { transform: translate(-85%, -50%); }
+
+.album-progress-tick.reached {
+  color: var(--neon-gold);
+  filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
+  transform: translate(-50%, -50%) scale(1.25);
+  animation: tickPop 620ms cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+.album-progress-tick.reached.last { transform: translate(-85%, -50%) scale(1.25); }
+
+@keyframes tickPop {
+  0%   { scale: 0.5; }
+  55%  { scale: 1.45; }
+  100% { scale: 1; }
+}
+
+.album-progress-hint {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  text-align: right;
+}
+.album-progress-hint strong { color: var(--neon-cyan); }
+
+@media (prefers-reduced-motion: reduce) {
+  .album-progress-fill { animation: none; transition: none; }
+  .album-progress-tick.reached { animation: none; }
+}

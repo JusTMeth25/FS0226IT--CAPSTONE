@@ -14,6 +14,7 @@ import { useCountdown, formatDuration } from '../hooks/useCountdown.js';
 import CardTile from '../components/card/CardTile.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import SplitText from '../components/fx/SplitText.jsx';
+import AlbumProgress from '../components/fx/AlbumProgress.jsx';
 
 export default function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -121,7 +122,7 @@ export default function HomePage() {
             <h3 className="panel-title"><i className="ph-fill ph-book-open" /> Progresso VinylDex</h3>
             <span className="progress-text">{progressPercent}%</span>
           </div>
-          <div className="progress-bar"><div className="progress-fill" style={{ width: `${progressPercent}%` }} /></div>
+          <AlbumProgress percent={progressPercent} owned={ownedCount} total={totalCatalogCards} />
         </div>
 
         {/* Preview collezione */}
