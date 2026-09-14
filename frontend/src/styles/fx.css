@@ -289,3 +289,103 @@
 
   .glass-panel::after { display: none; }
 }
+
+/* ========================================
+   NAVIGAZIONE — indicatore scorrevole
+   ======================================== */
+
+/* Il trattino per voce viene sostituito da un unico indicatore che scorre:
+   due indicatori insieme si vedrebbero entrambi durante la transizione. */
+.bottom-nav-item.active::before { display: none; }
+
+.bottom-nav-indicator {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  height: 3px;
+  width: calc(100% / var(--nav-count, 5));
+  pointer-events: none;
+  transform: translateX(calc(var(--nav-index, 0) * 100%));
+  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Il trattino colorato e' piu' stretto della cella: sta dentro il figlio, cosi' lo
+   spostamento resta un multiplo esatto della larghezza di una voce. */
+.bottom-nav-indicator::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  width: 26px; height: 3px;
+  margin-left: -13px;
+  border-radius: 2px;
+  background: linear-gradient(135deg, var(--neon-purple), var(--neon-magenta));
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.75);
+}
+
+/* L'icona attiva sale un po' di piu' e resta illuminata. */
+.bottom-nav-item.active i {
+  transform: translateY(-3px) scale(1.12);
+  filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.7));
+}
+
+/* ========================================
+   PULSANTI MAGNETICI
+   ======================================== */
+.magnet { display: inline-block; }
+.magnet-inner {
+  display: inline-block;
+  /* Il ritorno al centro e' morbido, l'inseguimento no: la transizione vale solo
+     quando il trasformazione viene azzerata, perche' durante il movimento viene
+     riscritta a ogni fotogramma. */
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+/* ========================================
+   TRANSIZIONE DI PAGINA
+   ======================================== */
+#app-view { animation: pageEnter 0.42s cubic-bezier(0.22, 1, 0.36, 1); }
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(14px) scale(0.995); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ========================================
+   Preferenza "riduci animazioni" — seconda parte
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  .bottom-nav-indicator { transition: none; }
+  .magnet-inner { transition: none; transform: none !important; }
+  #app-view { animation: none; }
+}
+
+/* ========================================
+   TITOLI — gradiente che respira
+   ======================================== */
+
+/* .text-gradient e' l'utility usata da tutti i titoli di sezione: animarla qui li accende
+   tutti insieme senza toccare nessuna pagina. Il ciclo e' lungo di proposito, e' un
+   respiro di sfondo e non deve rubare l'attenzione al contenuto.
+   Il gradiente e' piu' largo dell'elemento, altrimenti spostarlo non produrrebbe
+   nessun movimento visibile. */
+.text-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--neon-purple) 0%,
+    var(--neon-magenta) 40%,
+    var(--neon-cyan) 60%,
+    var(--neon-purple) 100%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: titleBreathe 9s ease-in-out infinite;
+}
+@keyframes titleBreathe {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .text-gradient { animation: none; background-size: 100% 100%; }
+}

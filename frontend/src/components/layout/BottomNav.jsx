@@ -35,6 +35,13 @@ export default function BottomNav() {
     : MORE_ITEMS;
   const moreActive = moreItems.some((item) => location.pathname.startsWith(item.to));
 
+  // Posizione dell'indicatore. Le tab hanno tutte flex: 1, quindi l'indice basta a
+  // ricavare lo spostamento in percentuale, senza misurare nulla nel DOM.
+  // -1 sulle pagine che non corrispondono a nessuna voce (per esempio il dettaglio
+  // di una carta): li' l'indicatore resta nascosto invece di puntare a caso.
+  const tabIndex = TABS.findIndex((tab) => location.pathname.startsWith(tab.to));
+  const activeIndex = tabIndex >= 0 ? tabIndex : (moreActive ? TABS.length : -1);
+
   function goTo(to) {
     setMoreOpen(false);
     navigate(to);
@@ -43,6 +50,13 @@ export default function BottomNav() {
   return (
     <>
       <nav className="bottom-nav" aria-label="Navigazione principale">
+        {activeIndex >= 0 && (
+          <span
+            className="bottom-nav-indicator"
+            aria-hidden="true"
+            style={{ '--nav-index': activeIndex, '--nav-count': TABS.length + 1 }}
+          />
+        )}
         {TABS.map((tab) => (
           <NavLink
             key={tab.to}

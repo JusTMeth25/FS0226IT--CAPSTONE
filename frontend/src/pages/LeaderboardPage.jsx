@@ -3,6 +3,7 @@ import { useApiResource } from '../hooks/useApiResource.js';
 import { leaderboardApi } from '../services/leaderboardApi.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
+import AnimatedNumber from '../components/fx/AnimatedNumber.jsx';
 
 const TYPES = [
   { key: 'collection', label: 'Collezione' },
@@ -42,7 +43,7 @@ export default function LeaderboardPage() {
             <div className="leaderboard-row" style={{ animationDelay: `${Math.min(i, 20) * 0.04}s` }} key={row.userId || i}>
               <span className={`leaderboard-rank ${i < 3 ? `rank-${i + 1}` : ''}`}>{i + 1}</span>
               <span className="leaderboard-name">{row.username}</span>
-              <span className="leaderboard-value">{row.value}</span>
+              <span className="leaderboard-value"><AnimatedNumber value={row.value} /></span>
             </div>
           ))}
         </div>

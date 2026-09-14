@@ -5,6 +5,7 @@ import { CARDS } from '../data/cards.js';
 import { authApi } from '../services/authApi.js';
 import { AVATARS, getAvatarUrl } from '../utils/avatarUtils.js';
 import UserAvatar from '../components/common/UserAvatar.jsx';
+import AnimatedNumber from '../components/fx/AnimatedNumber.jsx';
 
 export default function ProfilePage() {
   const { user, logout, refreshUser } = useAuth();
@@ -72,35 +73,35 @@ export default function ProfilePage() {
 
       <div className="profile-stats-grid">
         <div className="glass-panel profile-stat-box">
-          <span className="profile-stat-value">{game.levelInfo.level}</span>
+          <span className="profile-stat-value"><AnimatedNumber value={game.levelInfo.level} /></span>
           <span className="profile-stat-label">Livello</span>
         </div>
         <div className="glass-panel profile-stat-box">
-          <span className="profile-stat-value">{game.gold}</span>
+          <span className="profile-stat-value"><AnimatedNumber value={game.gold} /></span>
           <span className="profile-stat-label">Gold</span>
         </div>
         <div className="glass-panel profile-stat-box">
-          <span className="profile-stat-value">{uniqueCount}/{totalCatalogCards}</span>
+          <span className="profile-stat-value"><AnimatedNumber value={uniqueCount} />/{totalCatalogCards}</span>
           <span className="profile-stat-label">Album ({progressPercent}%)</span>
         </div>
         <div className="glass-panel profile-stat-box">
-          <span className="profile-stat-value">{game.stats.totalPacksOpened || 0}</span>
+          <span className="profile-stat-value"><AnimatedNumber value={game.stats.totalPacksOpened || 0} /></span>
           <span className="profile-stat-label">Pacchetti aperti</span>
         </div>
         <div className="glass-panel profile-stat-box">
-          <span className="profile-stat-value">{game.stats.totalBattlesWon || 0}</span>
+          <span className="profile-stat-value"><AnimatedNumber value={game.stats.totalBattlesWon || 0} /></span>
           <span className="profile-stat-label">Battaglie vinte</span>
         </div>
         <div className="glass-panel profile-stat-box">
-          <span className="profile-stat-value">{game.stats.legendaryCount || 0}</span>
+          <span className="profile-stat-value"><AnimatedNumber value={game.stats.legendaryCount || 0} /></span>
           <span className="profile-stat-label">Leggendarie</span>
         </div>
         <div className="glass-panel profile-stat-box">
-          <span className="profile-stat-value">{game.favorites.length}</span>
+          <span className="profile-stat-value"><AnimatedNumber value={game.favorites.length} /></span>
           <span className="profile-stat-label">Preferite</span>
         </div>
         <div className="glass-panel profile-stat-box">
-          <span className="profile-stat-value">{game.loginStreak}</span>
+          <span className="profile-stat-value"><AnimatedNumber value={game.loginStreak} /></span>
           <span className="profile-stat-label">Serie login</span>
         </div>
       </div>

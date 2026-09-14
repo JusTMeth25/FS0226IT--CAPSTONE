@@ -14,6 +14,7 @@ import { useCountdown, formatDuration } from '../hooks/useCountdown.js';
 import CardTile from '../components/card/CardTile.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import SplitText from '../components/fx/SplitText.jsx';
+import Magnet from '../components/fx/Magnet.jsx';
 
 export default function HomePage() {
   const { isAuthenticated } = useAuth();
@@ -92,9 +93,11 @@ export default function HomePage() {
               <span className="cooldown-timer">{formatDuration(remaining)}</span>
             </div>
           )}
-          <button className="btn btn-primary btn-large" onClick={() => navigate('/packs')}>
-            <i className="ph-fill ph-vinyl-record" /> Apri un Pacchetto
-          </button>
+          <Magnet>
+            <button className="btn btn-primary btn-large" onClick={() => navigate('/packs')}>
+              <i className="ph-fill ph-vinyl-record" /> Apri un Pacchetto
+            </button>
+          </Magnet>
           <div className="panel-pack-other-row">
             {otherPacks.map((p) => (
               <div className="pack-detail" key={p.id}>
