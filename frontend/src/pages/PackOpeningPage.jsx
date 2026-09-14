@@ -12,6 +12,8 @@ import CardHoloFrame from '../components/card/CardHoloFrame.jsx';
 import CardTile, { RarityBadge } from '../components/card/CardTile.jsx';
 import CardHero from '../components/card/CardHero.jsx';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock.js';
+import RevealStage from '../components/fx/RevealStage.jsx';
+import RarityAnnounce from '../components/fx/RarityAnnounce.jsx';
 
 // Trascinamento orizzontale (in px) necessario per completare lo strappo del pacchetto.
 const TEAR_DRAG_MAX = 120;
@@ -388,9 +390,28 @@ export default function PackOpeningPage() {
       {phase === 'reveal' && currentCard && (
         <div className="pack-reveal-solo">
           <p className="pack-reveal-progress">Carta {revealIndex + 1} di {cards.length}</p>
-          <div className="pack-reveal-solo-card" onClick={advanceReveal} key={revealIndex}>
-            <RevealCard card={currentCard} size="hero" />
+
+          {/* Un pallino per carta, colorato con la rarita' di quelle gia' viste: mostra
+              a colpo d'occhio com'e' andato il pacchetto senza aspettare il riepilogo. */}
+          <div className="reveal-dots" aria-hidden="true">
+            {cards.map((card, i) => (
+              <span
+                key={`${card.id}-${i}`}
+                className={`reveal-dot${i < revealIndex ? ' seen' : ''}${i === revealIndex ? ' current' : ''}`}
+                style={i <= revealIndex ? { '--dot-color': getRarityColor(card.rarity) } : undefined}
+              />
+            ))}
           </div>
+
+          {/* key sull'indice: rimonta il palcoscenico a ogni carta, cosi' lampo, raggi e
+              annuncio ripartono da capo invece di restare fermi dalla prima rivelazione. */}
+          <div className="pack-reveal-solo-card" onClick={advanceReveal} key={revealIndex}>
+            <RevealStage rarity={currentCard.rarity}>
+              <RevealCard card={currentCard} size="hero" />
+            </RevealStage>
+            <RarityAnnounce rarity={currentCard.rarity} />
+          </div>
+
           <button className="btn btn-primary pack-reveal-next" onClick={advanceReveal}>
             {isLastCard ? <><i className="ph-fill ph-check-circle" /> Vedi il Riepilogo</> : <><i className="ph-fill ph-arrow-right" /> Prossima Carta</>}
           </button>

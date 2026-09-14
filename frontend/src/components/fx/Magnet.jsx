@@ -11,10 +11,11 @@ import { useReducedMotion } from '../../hooks/useReducedMotion.js';
  * Il contenuto si sposta ma il contenitore resta fermo, cosi' lo spostamento non muove
  * nulla intorno.
  *
- * @param {number} radius distanza in pixel entro cui l'attrazione si fa sentire
+ * @param {number} radius quanti pixel oltre il bordo dell'elemento arriva l'attrazione
  * @param {number} strength quanto segue il puntatore, da 0 a 1
+ * @param {number} maxOffset spostamento massimo in pixel
  */
-export default function Magnet({ children, radius = 90, strength = 0.35, className = '' }) {
+export default function Magnet({ children, radius = 70, strength = 0.28, maxOffset = 14, className = '' }) {
   const wrapperRef = useRef(null);
   const innerRef = useRef(null);
   const reduced = useReducedMotion();
@@ -35,36 +36,56 @@ export default function Magnet({ children, radius = 90, strength = 0.35, classNa
 
       frame = requestAnimationFrame(() => {
         const rect = wrapper.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        const dx = clientX - centerX;
-        const dy = clientY - centerY;
 
-        if (Math.hypot(dx, dy) > radius + Math.max(rect.width, rect.height) / 2) {
+        // Distanza dal BORDO dell'elemento, non dal centro. Misurarla dal centro
+        // renderebbe la zona di attrazione grande quanto meta' elemento piu' il raggio:
+        // su un pulsante largo l'effetto si attiverebbe da mezzo schermo di distanza.
+        // Dentro l'elemento entrambe le componenti valgono 0, quindi la distanza e' 0.
+        const outsideX = Math.max(rect.left - clientX, 0, clientX - rect.right);
+        const outsideY = Math.max(rect.top - clientY, 0, clientY - rect.bottom);
+        const distance = Math.hypot(outsideX, outsideY);
+
+        if (distance > radius) {
           inner.style.transform = '';
           return;
         }
-        inner.style.transform = `translate(${dx * strength}px, ${dy * strength}px)`;
+
+        // L'attrazione svanisce gradualmente verso il bordo della zona: senza questo
+        // il contenuto scatterebbe di colpo appena il puntatore entra nel raggio.
+        const falloff = 1 - distance / radius;
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const clamp = (v) => Math.max(-maxOffset, Math.min(maxOffset, v));
+        const offsetX = clamp((clientX - centerX) * strength * falloff);
+        const offsetY = clamp((clientY - centerY) * strength * falloff);
+
+        inner.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
       });
     };
 
-    const onLeave = () => {
+    const reset = () => {
       if (frame) cancelAnimationFrame(frame);
+      frame = 0;
       inner.style.transform = '';
     };
 
-    // L'ascolto e' sulla finestra e non sull'elemento: l'attrazione deve iniziare
-    // prima che il puntatore arrivi sopra al pulsante.
+    // L'ascolto e' sulla finestra e non sull'elemento: l'attrazione deve iniziare prima
+    // che il puntatore arrivi sopra al pulsante. Il costo e' contenuto perche' ogni
+    // evento si limita a una misura e a una scrittura di stile per fotogramma.
     window.addEventListener('pointermove', onMove, { passive: true });
-    window.addEventListener('pointerleave', onLeave);
+    // Se il puntatore esce dalla finestra non arrivano piu' eventi: senza questi due
+    // il contenuto resterebbe spostato nell'ultima posizione vista.
+    document.addEventListener('pointerleave', reset);
+    window.addEventListener('blur', reset);
 
     return () => {
-      if (frame) cancelAnimationFrame(frame);
+      reset();
       window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerleave', onLeave);
-      inner.style.transform = '';
+      document.removeEventListener('pointerleave', reset);
+      window.removeEventListener('blur', reset);
     };
-  }, [radius, strength, reduced]);
+  }, [radius, strength, maxOffset, reduced]);
 
   return (
     <span ref={wrapperRef} className={`magnet ${className}`}>

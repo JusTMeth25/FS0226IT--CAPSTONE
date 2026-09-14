@@ -389,3 +389,158 @@
 @media (prefers-reduced-motion: reduce) {
   .text-gradient { animation: none; background-size: 100% 100%; }
 }
+
+/* ========================================
+   APERTURA PACCHETTO — palcoscenico della rivelazione
+
+   Gli strati crescono con la rarita': alone per tutte, raggi da rara, lampo da epica,
+   scossa solo per le leggendarie. Il colore arriva da --rarity-color, l'intensita' da
+   --glow-strength: entrambe impostate dal componente, cosi' il CSS non deve conoscere
+   l'elenco delle rarita'.
+   ======================================== */
+.reveal-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Niente overflow nascosto: raggi e alone devono debordare oltre la carta. */
+  isolation: isolate;
+}
+
+.reveal-stage-content { position: relative; z-index: 2; }
+
+.reveal-stage-glow {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 150%; height: 130%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle, var(--rarity-color) 0%, transparent 68%);
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--rarity-color) 70%, transparent) 0%,
+    transparent 68%
+  );
+  opacity: var(--glow-strength, 0.3);
+  filter: blur(26px);
+  animation: revealGlowPulse 2.4s ease-in-out infinite;
+}
+@keyframes revealGlowPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50%      { transform: translate(-50%, -50%) scale(1.12); }
+}
+
+/* Raggi: un gradiente conico a spicchi alternati, ruotato lentamente e sfumato ai bordi
+   con una maschera, cosi' non si vede dove finisce il cerchio. */
+.reveal-stage-rays {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 190%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 0;
+  background: repeating-conic-gradient(from 0deg, var(--rarity-color) 0deg 6deg, transparent 6deg 22deg);
+  background: repeating-conic-gradient(
+    from 0deg,
+    color-mix(in srgb, var(--rarity-color) 55%, transparent) 0deg 6deg,
+    transparent 6deg 22deg
+  );
+  mask-image: radial-gradient(circle, transparent 28%, #000 46%, transparent 72%);
+  -webkit-mask-image: radial-gradient(circle, transparent 28%, #000 46%, transparent 72%);
+  opacity: 0.5;
+  animation: revealRaysSpin 18s linear infinite;
+}
+@keyframes revealRaysSpin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Lampo: parte una volta sola all'apparire della carta e non si ripete. */
+.reveal-stage-flash {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 60%; height: 60%;
+  transform: translate(-50%, -50%) scale(0.2);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 3;
+  background: radial-gradient(circle, #fff 0%, var(--rarity-color) 35%, transparent 70%);
+  background: radial-gradient(circle, #fff 0%, color-mix(in srgb, var(--rarity-color) 60%, #fff) 35%, transparent 70%);
+  animation: revealFlash 620ms cubic-bezier(0.15, 0.8, 0.3, 1) forwards;
+}
+@keyframes revealFlash {
+  0%   { opacity: 0.95; transform: translate(-50%, -50%) scale(0.2); }
+  100% { opacity: 0;    transform: translate(-50%, -50%) scale(2.6); }
+}
+
+/* Scossa: solo leggendarie, breve e una volta sola. Un tremolio continuo diventerebbe
+   fastidioso dopo il terzo pacchetto. */
+.reveal-stage-shake { animation: revealShake 520ms cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+@keyframes revealShake {
+  0%, 100% { transform: translate(0, 0); }
+  15%      { transform: translate(-5px, 2px) rotate(-0.7deg); }
+  30%      { transform: translate(5px, -2px) rotate(0.7deg); }
+  45%      { transform: translate(-4px, 1px) rotate(-0.5deg); }
+  60%      { transform: translate(4px, -1px) rotate(0.5deg); }
+  80%      { transform: translate(-2px, 0) rotate(-0.2deg); }
+}
+
+/* ---------- Annuncio della rarita' ---------- */
+.pack-reveal-solo-card { position: relative; }
+
+.rarity-announce {
+  position: absolute;
+  left: 50%;
+  bottom: -14px;
+  z-index: 4;
+  padding: 6px 18px;
+  border-radius: 999px;
+  pointer-events: none;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(5, 8, 22, 0.92);
+  background: color-mix(in srgb, var(--rarity-color) 28%, rgba(5, 8, 22, 0.92));
+  border: 1px solid var(--rarity-color);
+  box-shadow: 0 0 22px var(--rarity-color);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--rarity-color) 55%, transparent);
+  text-shadow: 0 0 12px var(--rarity-color);
+  transform: translate(-50%, 0) scale(1);
+  animation: raritySlam 520ms cubic-bezier(0.2, 1.4, 0.4, 1) backwards;
+  animation-delay: 260ms;
+}
+@keyframes raritySlam {
+  0%   { opacity: 0; transform: translate(-50%, 0) scale(2.4); letter-spacing: 10px; }
+  60%  { opacity: 1; transform: translate(-50%, 0) scale(0.94); letter-spacing: 1px; }
+  100% { opacity: 1; transform: translate(-50%, 0) scale(1); letter-spacing: 2px; }
+}
+
+/* ---------- Pallini di avanzamento ---------- */
+.reveal-dots { display: flex; gap: 8px; align-items: center; }
+.reveal-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--bg-card-hover);
+  border: 1px solid var(--glass-border);
+  transition: transform var(--transition-normal), background var(--transition-normal), box-shadow var(--transition-normal);
+}
+.reveal-dot.seen {
+  background: var(--dot-color, var(--neon-purple));
+  border-color: var(--dot-color, var(--neon-purple));
+}
+.reveal-dot.current {
+  transform: scale(1.6);
+  background: var(--dot-color, var(--neon-purple));
+  border-color: var(--dot-color, var(--neon-purple));
+  box-shadow: 0 0 12px var(--dot-color, var(--neon-purple));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-stage-glow { animation: none; }
+  .rarity-announce { animation: none; }
+}
