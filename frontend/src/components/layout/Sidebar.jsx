@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { to: '/events', label: 'Eventi', icon: 'ph-calendar-star' },
   { to: '/leaderboard', label: 'Classifica', icon: 'ph-trophy' },
   { to: '/battle', label: 'Battaglie', icon: 'ph-sword' },
+  { to: '/hotel', label: 'Hotel', icon: 'ph-buildings' },
   { to: '/profile', label: 'Profilo', icon: 'ph-user-circle' }
 ];
 

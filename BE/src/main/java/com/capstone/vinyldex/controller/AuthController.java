@@ -43,4 +43,11 @@ public class AuthController {
                                                  @Valid @RequestBody AuthRequests.AvatarRequest request) {
         return Map.of("user", authService.updateAvatar(principal.getId(), request.avatar()));
     }
+
+    /** Aspetto dell'avatar nell'hotel, scelto dal guardaroba. */
+    @PatchMapping("/look")
+    public Map<String, AuthUserDto> updateLook(@CurrentUser UserPrincipal principal,
+                                               @Valid @RequestBody AuthRequests.LookRequest request) {
+        return Map.of("user", authService.updateLook(principal.getId(), request.look()));
+    }
 }

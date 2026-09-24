@@ -39,4 +39,10 @@ public final class AuthRequests {
             @NotBlank(message = "invalid_avatar") String avatar
     ) {
     }
+
+    /** Aspetto dell'avatar nell'hotel, validato da HotelLook. */
+    public record LookRequest(
+            @NotBlank(message = "invalid_look") String look
+    ) {
+    }
 }

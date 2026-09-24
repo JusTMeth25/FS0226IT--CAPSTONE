@@ -17,6 +17,10 @@ export const authApi = {
   async updateAvatar(avatar) {
     return apiClient.patch('/auth/avatar', { avatar });
   },
+  /** Aspetto dell'avatar nell'hotel, dal guardaroba (es. "s1.h1.hc0.sh0.p0"). */
+  async updateLook(look) {
+    return apiClient.patch('/auth/look', { look });
+  },
   logout() {
     setToken(null);
   }

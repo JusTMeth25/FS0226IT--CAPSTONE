@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout.jsx';
 import ProtectedRoute from './components/common/ProtectedRoute.jsx';
@@ -20,6 +21,10 @@ import ProfilePage from './pages/ProfilePage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
 import BattlePage from './pages/BattlePage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
+import LoadingSpinner from './components/common/LoadingSpinner.jsx';
+
+// L'hotel ha un motore grafico tutto suo: si scarica solo quando ci si entra.
+const HotelPage = lazy(() => import('./pages/HotelPage.jsx'));
 
 export default function App() {
   return (
@@ -52,6 +57,7 @@ export default function App() {
             <Route path="events" element={<EventsPage />} />
             <Route path="leaderboard" element={<LeaderboardPage />} />
             <Route path="battle" element={<BattlePage />} />
+            <Route path="hotel" element={<Suspense fallback={<LoadingSpinner label="Apro l'hotel…" />}><HotelPage /></Suspense>} />
             <Route path="trades" element={<TradesPage />} />
             <Route path="profile" element={<ProfilePage />} />
 

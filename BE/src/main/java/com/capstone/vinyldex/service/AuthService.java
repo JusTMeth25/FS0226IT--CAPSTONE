@@ -5,6 +5,7 @@ import com.capstone.vinyldex.dto.response.AuthResponse;
 import com.capstone.vinyldex.dto.response.AuthUserDto;
 import com.capstone.vinyldex.entity.User;
 import com.capstone.vinyldex.exception.ApiException;
+import com.capstone.vinyldex.hotel.HotelLook;
 import com.capstone.vinyldex.repository.UserRepository;
 import com.capstone.vinyldex.security.JwtService;
 import org.springframework.http.HttpStatus;
@@ -95,6 +96,16 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> ApiException.notFound("not_found"));
         user.setAvatar(avatar);
+        return AuthUserDto.from(userRepository.save(user));
+    }
+
+    public AuthUserDto updateLook(UUID userId, String look) {
+        if (!HotelLook.isValid(look)) {
+            throw ApiException.badRequest("invalid_look");
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> ApiException.notFound("not_found"));
+        user.setHotelLook(look);
         return AuthUserDto.from(userRepository.save(user));
     }
 

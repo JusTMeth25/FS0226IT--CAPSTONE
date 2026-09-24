@@ -17,6 +17,7 @@ public record AuthUserDto(
         int level,
         UserRole role,
         String avatar,
+        String hotelLook,
         boolean banned,
         LocalDate lastLoginDate,
         int loginStreak,
@@ -28,7 +29,7 @@ public record AuthUserDto(
     public static AuthUserDto from(User user) {
         return new AuthUserDto(
                 user.getId(), user.getUsername(), user.getEmail(), user.getGold(), user.getXp(),
-                user.getLevel(), user.getRole(), user.getAvatar(), user.isBanned(),
+                user.getLevel(), user.getRole(), user.getAvatar(), user.getHotelLook(), user.isBanned(),
                 user.getLastLoginDate(), user.getLoginStreak(), user.getBattlesWon(),
                 user.getCreatedAt(), user.getUpdatedAt());
     }

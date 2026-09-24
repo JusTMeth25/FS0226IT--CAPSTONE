@@ -11,6 +11,7 @@ const TABS = [
 ];
 
 const MORE_ITEMS = [
+  { to: '/hotel', label: 'Hotel', icon: 'ph-buildings' },
   { to: '/profile', label: 'Profilo', icon: 'ph-user-circle' },
   { to: '/marketplace', label: 'Mercato', icon: 'ph-storefront' },
   { to: '/trades', label: 'Scambi', icon: 'ph-arrows-left-right' },

@@ -58,6 +58,10 @@ public class User {
     @Column(name = "avatar", length = 50)
     private String avatar;
 
+    /** Aspetto dell'avatar nell'hotel (vedi HotelLook). Null = aspetto predefinito. */
+    @Column(name = "hotel_look", length = 40)
+    private String hotelLook;
+
     @Column(name = "banned", nullable = false)
     private boolean banned = false;
 
