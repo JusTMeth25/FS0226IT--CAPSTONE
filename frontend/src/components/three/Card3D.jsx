@@ -27,8 +27,7 @@ function textureUrl(card) {
 
 /**
  * Dorsi ufficiali dei giochi da cui arrivano le carte importate, salvati in locale cosi'
- * funzionano anche offline. Le carte VinylDex, e i giochi senza un dorso disponibile
- * (Gundam), usano il dorso VinylDex disegnato su canvas.
+ * funzionano anche offline. Le carte VinylDex usano il dorso VinylDex disegnato su canvas.
  */
 const CARD_BACKS = {
   pokemon: '/assets/img/backs/pokemon.jpg',
@@ -38,7 +37,8 @@ const CARD_BACKS = {
   digimon: '/assets/img/backs/digimon.jpg',
   lorcana: '/assets/img/backs/lorcana.png',
   riftbound: '/assets/img/backs/riftbound.png',
-  dragonball: '/assets/img/backs/dragonball.png'
+  dragonball: '/assets/img/backs/dragonball.png',
+  gundam: '/assets/img/backs/gundam.jpg'
 };
 
 function CardModel({ card, flipped, onFlip }) {
