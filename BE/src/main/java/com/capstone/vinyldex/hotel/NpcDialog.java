@@ -219,9 +219,18 @@ public final class NpcDialog {
     }
 
     public static String smallTalk(NpcRoster.Role role, String user, Random random) {
+        return pick(random, switch (role) {
+            case BARISTA, WAITER, ICE_CREAM, CHEF -> List.of("Dimmi pure, " + user + ": cosa ti porto?", "Eccomi, " + user + "! Hai gia' scelto?");
+            case RECEPTIONIST, LIBRARIAN -> List.of("Dimmi pure, " + user + ", come posso aiutarti?", "Eccomi, " + user + "!");
+            default -> List.of("Dimmi pure, " + user + ".", "Tutto bene, " + user + "?", "Eccomi, " + user + "!");
+        });
+    }
+
+    /** Il modello non ha risposto e la frase non e' tra quelle che si capiscono a parole chiave. */
+    public static String didntCatch(String user, Random random) {
         return pick(random, List.of(
-                "Dimmi pure, " + user + ".",
-                "Tutto bene, " + user + "?",
-                idle(role, random)));
+                "Scusa " + user + ", c'e' un gran via vai e non ho capito bene. Me lo ripeti?",
+                "Aspetta " + user + ", mi sono distratto un attimo: puoi ridirmelo?",
+                "Non sono sicuro di aver capito, " + user + ". Me lo chiedi in un altro modo?"));
     }
 }

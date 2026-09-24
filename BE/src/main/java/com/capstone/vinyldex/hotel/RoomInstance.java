@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Una stanza "viva": chi c'e', dove si trova, dove sta andando.
@@ -36,6 +37,8 @@ public class RoomInstance {
     /** Quanto aspetta un NPC prima di rispondere, per sembrare una persona che legge e scrive. */
     private static final long NPC_REPLY_MILLIS = 1_200;
     private static final long NPC_GREET_COOLDOWN_MILLIS = 20_000;
+    /** Quanti messaggi di ogni conversazione NPC-giocatore si ricordano per il modello. */
+    private static final int NPC_MEMORY_LINES = 12;
     private static final long DRINK_MILLIS = 90_000;
 
     /** Brani del jukebox: il client li genera con WebAudio (src/hotel/music.js). */
@@ -58,6 +61,10 @@ public class RoomInstance {
     private final Random random;
     private final List<Pending> pending = new ArrayList<>();
     private final Map<String, Long> greetedAt = new HashMap<>();
+    /** Chi risponde quando ci si rivolge a un NPC: un modello linguistico, o nessuno. */
+    private final NpcMind mind;
+    /** Ultimi messaggi fra ogni NPC e ogni giocatore, per risposte coerenti con quanto detto. */
+    private final Map<String, Deque<NpcMind.Line>> conversations = new HashMap<>();
 
     private record Pending(long dueAt, Runnable action) {
     }
@@ -136,9 +143,14 @@ public class RoomInstance {
     }
 
     RoomInstance(RoomData data, List<RoomItemView> initialItems, Random random) {
+        this(data, initialItems, random, NpcMind.NONE);
+    }
+
+    RoomInstance(RoomData data, List<RoomItemView> initialItems, Random random, NpcMind mind) {
         this.data = data;
         this.layout = RoomLayout.parse(data.layout());
         this.random = random;
+        this.mind = mind;
         initialItems.forEach(item -> items.put(item.id(), item));
         spawnNpcs();
     }
@@ -236,6 +248,7 @@ public class RoomInstance {
         Occupant removed = occupants.remove(userId);
         if (removed == null) return;
         if (userCount() == 0) emptySince = System.currentTimeMillis();
+        conversations.keySet().removeIf(key -> key.endsWith("/" + userId));
         broadcast(Map.of("type", "user_left", "id", userId));
     }
 
@@ -399,11 +412,15 @@ public class RoomInstance {
         if (user == null || user.isNpc()) return "user_not_here";
         if (npc == null || !npc.isNpc()) return "npc_not_found";
         switch (action == null ? "" : action) {
-            case "order" -> order(npc, user, item);
-            case "talk" -> say(npc, NpcDialog.smallTalk(npc.npc.role(), user.user.username(), random), user, false);
+            case "order" -> order(npc, user, item, false);
+            case "talk" -> {
+                if (!askMind(npc, user, "(si avvicina e vuole fare due chiacchiere con te)", false)) {
+                    say(npc, NpcDialog.smallTalk(npc.npc.role(), user.user.username(), random), user, false);
+                }
+            }
             case "help" -> say(npc, NpcDialog.help(random), user, false);
-            case "dance" -> dance(npc, user);
-            case "music" -> music(npc, user);
+            case "dance" -> dance(npc, user, false);
+            case "music" -> music(npc, user, false);
             default -> {
                 return "unknown_action";
             }
@@ -447,22 +464,100 @@ public class RoomInstance {
         if (npc != null) respond(npc, user, text, false);
     }
 
-    /** Risposta di un NPC a un messaggio (in chat o sussurrato) di un giocatore. */
+    /**
+     * Risposta di un NPC a un messaggio (in chat o sussurrato) di un giocatore. Se c'e' un modello
+     * linguistico risponde lui, tenendo conto della conversazione; le ordinazioni chiare ("un
+     * caffe'") restano immediate e senza modello, e senza modello (o se sbaglia) si usano le battute.
+     */
     private void respond(Occupant npc, Occupant user, String text, boolean whispered) {
+        boolean clearOrder = NpcDialog.intentOf(text) == NpcDialog.Intent.ORDER && NpcDialog.requestedItem(text) != null;
+        if (!clearOrder && askMind(npc, user, text, whispered)) return;
+        respondWithDialog(npc, user, text, whispered, false);
+    }
+
+    /**
+     * Le battute a parole chiave di NpcDialog: la risposta di sempre, e il ripiego del modello.
+     * Chi si rivolge a un NPC riceve sempre una risposta: se la frase non si capisce e il modello
+     * non ha risposto, l'NPC lo dice invece di cambiare discorso.
+     */
+    private void respondWithDialog(Occupant npc, Occupant user, String text, boolean whispered, boolean mindFailed) {
         String name = user.user.username();
         NpcRoster.Role role = npc.npc.role();
         switch (NpcDialog.intentOf(text)) {
-            case ORDER -> order(npc, user, NpcDialog.requestedItem(text));
-            case GREET -> {
-                if (!greetedRecently(npc, user)) say(npc, NpcDialog.greeting(role, name, random), user, whispered);
-            }
+            case ORDER -> order(npc, user, NpcDialog.requestedItem(text), false);
+            case GREET -> say(npc, NpcDialog.greeting(role, name, random), user, whispered);
             case THANKS -> say(npc, NpcDialog.thanks(name, random), user, whispered);
-            case DANCE -> dance(npc, user);
-            case MUSIC -> music(npc, user);
+            case DANCE -> dance(npc, user, false);
+            case MUSIC -> music(npc, user, false);
             case HELP -> say(npc, NpcDialog.help(random), user, whispered);
             case BYE -> say(npc, NpcDialog.bye(name), user, whispered);
-            case NONE -> say(npc, NpcDialog.smallTalk(role, name, random), user, whispered);
+            case NONE -> say(npc, mindFailed ? NpcDialog.didntCatch(name, random) : NpcDialog.smallTalk(role, name, random),
+                    user, whispered);
         }
+    }
+
+    /**
+     * Passa la domanda al modello linguistico. Intanto l'NPC "sta scrivendo"; la risposta arriva
+     * su un altro thread e rientra nella stanza con onMindReply.
+     *
+     * @return false se il modello non c'e' o non ha budget: allora si risponde con le battute
+     */
+    private boolean askMind(Occupant npc, Occupant user, String text, boolean whispered) {
+        String key = npc.user.id() + "/" + user.user.id();
+        Deque<NpcMind.Line> history = conversations.computeIfAbsent(key, k -> new ArrayDeque<>());
+        List<String> present = occupants.values().stream()
+                .filter(o -> o != npc && o != user)
+                .map(o -> o.user.username())
+                .limit(10)
+                .toList();
+        NpcMind.Prompt prompt = new NpcMind.Prompt(npc.user.id(), user.user.id(), npc.user.username(), npc.npc.role(),
+                data.name(), data.description(), npc.npc.menu(), user.user.username(), user.handItem, present,
+                jukeboxTrack >= 0, List.copyOf(history), text);
+        UUID npcId = npc.user.id();
+        UUID userId = user.user.id();
+        // La domanda entra in memoria prima: la risposta potrebbe arrivare prima che ask() ritorni.
+        remember(key, new NpcMind.Line(false, text));
+        AtomicBoolean answered = new AtomicBoolean();
+        boolean asked = mind.ask(prompt, reply -> {
+            answered.set(true);
+            onMindReply(npcId, userId, text, whispered, reply);
+        });
+        if (!asked) {
+            history.pollLast();
+            return false;
+        }
+        if (!answered.get()) typingOf(npc, true);
+        return true;
+    }
+
+    /** Risposta del modello: la si dice (o sussurra) e si esegue l'azione, gia' controllata. */
+    private synchronized void onMindReply(UUID npcId, UUID userId, String text, boolean whispered, NpcMind.Reply reply) {
+        Occupant npc = occupants.get(npcId);
+        Occupant user = occupants.get(userId);
+        if (npc == null) return;
+        typingOf(npc, false);
+        if (user == null) return;
+        if (reply == null) {
+            respondWithDialog(npc, user, text, whispered, true);
+            return;
+        }
+        remember(npcId + "/" + userId, new NpcMind.Line(true, reply.text()));
+        say(npc, reply.text(), user, whispered, 0);
+        String action = reply.action();
+        if (action == null) return;
+        if (action.startsWith("serve:")) order(npc, user, action.substring(6), true);
+        else if ("dance".equals(action)) dance(npc, user, true);
+        else if ("music".equals(action)) music(npc, user, true);
+    }
+
+    private void remember(String key, NpcMind.Line line) {
+        Deque<NpcMind.Line> history = conversations.computeIfAbsent(key, k -> new ArrayDeque<>());
+        history.addLast(line);
+        while (history.size() > NPC_MEMORY_LINES) history.pollFirst();
+    }
+
+    private void typingOf(Occupant npc, boolean on) {
+        broadcast(Map.of("type", "typing", "id", npc.user.id(), "on", on));
     }
 
     private boolean greetedRecently(Occupant npc, Occupant user) {
@@ -478,7 +573,7 @@ public class RoomInstance {
      * Ordinazione. Il barista (e il gelataio) serve chi gli sta vicino e fa venire al bancone
      * chi e' lontano; il cameriere invece porta da bere camminando fino al giocatore.
      */
-    private void order(Occupant npc, Occupant user, String requested) {
+    private void order(Occupant npc, Occupant user, String requested, boolean quiet) {
         String name = user.user.username();
         List<String> menu = npc.npc.menu();
         if (menu.isEmpty()) {
@@ -493,7 +588,7 @@ public class RoomInstance {
         if (npc.npc.role().wanders()) {
             npc.delivery = new Delivery(user.user.id(), item);
             npc.status = "idle";
-            say(npc, NpcDialog.onMyWay(name, item), user, false);
+            if (!quiet) say(npc, NpcDialog.onMyWay(name, item), user, false);
             later(NPC_REPLY_MILLIS, () -> walkTo(npc, user));
             return;
         }
@@ -507,7 +602,7 @@ public class RoomInstance {
             say(npc, NpcDialog.cantReach(name), user, false);
             return;
         }
-        say(npc, NpcDialog.comeCloser(name), user, false);
+        if (!quiet) say(npc, NpcDialog.comeCloser(name), user, false);
         move(user.user.id(), spot[0], spot[1]);
         user.orderFrom = npc.user.id();
         user.orderItem = item;
@@ -523,7 +618,7 @@ public class RoomInstance {
         say(npc, NpcDialog.served(npc.npc.role(), user.user.username(), item, random), user, false, 0);
     }
 
-    private void dance(Occupant npc, Occupant user) {
+    private void dance(Occupant npc, Occupant user, boolean quiet) {
         NpcRoster.Role role = npc.npc.role();
         if (role != NpcRoster.Role.GUEST && role != NpcRoster.Role.DJ) {
             say(npc, NpcDialog.cannotDance(role), user, false);
@@ -535,16 +630,16 @@ public class RoomInstance {
         npc.status = "dance";
         npc.sitUntil = System.currentTimeMillis() + 20_000;
         broadcast(statusMessage(npc));
-        say(npc, NpcDialog.dancing(), user, false);
+        if (!quiet) say(npc, NpcDialog.dancing(), user, false);
     }
 
-    private void music(Occupant npc, Occupant user) {
+    private void music(Occupant npc, Occupant user, boolean quiet) {
         if (npc.npc.role() != NpcRoster.Role.DJ) {
             say(npc, NpcDialog.noDj(), user, false);
             return;
         }
         String error = cycleJukebox();
-        if (error == null) say(npc, NpcDialog.musicChange(random), user, false);
+        if (error == null && !quiet) say(npc, NpcDialog.musicChange(random), user, false);
     }
 
     private void say(Occupant npc, String text, Occupant to, boolean whispered) {
@@ -553,6 +648,8 @@ public class RoomInstance {
 
     /** L'NPC parla fra `delay` ms, girato verso chi gli ha parlato. Sussurrando risponde solo a lui. */
     private void say(Occupant npc, String text, Occupant to, boolean whispered, long delay) {
+        // Mentre conversa con qualcuno non se ne esce con battute a caso.
+        if (to != null) npc.nextChatAt = Math.max(npc.nextChatAt, System.currentTimeMillis() + 90_000);
         later(delay, () -> {
             if (!occupants.containsKey(npc.user.id())) return;
             if (to != null && occupants.containsKey(to.user.id())) face(npc, to);
@@ -625,7 +722,7 @@ public class RoomInstance {
             return;
         }
         if (now >= npc.nextChatAt) {
-            npc.nextChatAt = now + 35_000 + random.nextInt(50_000);
+            npc.nextChatAt = now + 60_000 + random.nextInt(60_000);
             say(npc, NpcDialog.idle(spec.role(), random), null, false, 0);
         }
         if (now < npc.nextThinkAt || !npc.path.isEmpty()) return;

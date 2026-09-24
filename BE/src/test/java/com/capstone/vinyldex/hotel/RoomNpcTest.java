@@ -121,6 +121,86 @@ class RoomNpcTest {
         assertEquals("unknown_action", room.npcAction(anna, npcId("Vinnie"), "hack", null));
     }
 
+    /** Stanza come nel setUp ma con un "modello" finto che risponde subito, o fallisce (null). */
+    private RoomInstance roomWithMind(NpcMind.Reply answer, List<NpcMind.Prompt> asked) throws Exception {
+        RoomData data = new RoomData(NpcRoster.NEON_BAR, "Neon Bar", "Cocktail al neon", null, null, LAYOUT,
+                0, 6, 2, "checker", "neon", "open", 25, true);
+        NpcMind mind = (prompt, onReply) -> {
+            asked.add(prompt);
+            onReply.accept(answer);
+            return true;
+        };
+        RoomInstance withMind = new RoomInstance(data, List.of(
+                new RoomItemView(UUID.randomUUID(), null, "bar_counter", 4, 2, 0, 0, null),
+                new RoomItemView(UUID.randomUUID(), null, "jukebox", 11, 1, 0, 0, null)), new Random(1), mind);
+        WebSocketSession raw = mock(WebSocketSession.class);
+        when(raw.isOpen()).thenReturn(true);
+        when(raw.getId()).thenReturn("anna2");
+        doAnswer(inv -> {
+            received.add(mapper.readTree(((TextMessage) inv.getArgument(0)).getPayload()));
+            return null;
+        }).when(raw).sendMessage(any());
+        HotelSession session = new HotelSession(raw, mapper);
+        session.authenticate(new HotelUser(anna, "anna", HotelLook.DEFAULT, 1));
+        received.clear();
+        withMind.join(session);
+        return withMind;
+    }
+
+    @Test
+    @DisplayName("Con il modello l'NPC risponde a tono, ricorda la conversazione ed esegue l'azione")
+    void mindAnswersWithMemory() throws Exception {
+        List<NpcMind.Prompt> asked = new ArrayList<>();
+        RoomInstance withMind = roomWithMind(new NpcMind.Reply("Si balla, alza il volume!", "dance"), asked);
+
+        withMind.chat(anna, "Stella, mi fai vedere come balli?", "normal");
+        withMind.chat(anna, "Stella sei bravissima", "normal");
+
+        assertEquals(2, asked.size());
+        assertEquals("Stella", asked.get(1).npcName());
+        assertEquals(2, asked.get(1).history().size(), "la domanda e la risposta di prima arrivano al modello");
+        assertEquals("Si balla, alza il volume!", asked.get(1).history().get(1).text());
+        assertTrue(received.stream().anyMatch(n -> "chat".equals(n.path("type").asString())
+                && "Si balla, alza il volume!".equals(n.path("text").asString())));
+        assertTrue(received.stream().anyMatch(n -> "user_status".equals(n.path("type").asString())
+                && "dance".equals(n.path("status").asString())), "Stella balla davvero");
+    }
+
+    @Test
+    @DisplayName("Se il modello fallisce, l'NPC risponde con le battute di sempre")
+    void mindFailureFallsBack() throws Exception {
+        List<NpcMind.Prompt> asked = new ArrayList<>();
+        RoomInstance withMind = roomWithMind(null, asked);
+
+        withMind.chat(anna, "Ciao Stella!", "normal");
+        for (int i = 0; i < 8; i++) {
+            Thread.sleep(250);
+            withMind.tick();
+        }
+        assertEquals(1, asked.size());
+        assertTrue(received.stream().anyMatch(n -> "chat".equals(n.path("type").asString())
+                && !anna.toString().equals(n.path("id").asString())
+                && n.path("text").asString().contains("anna")), "saluto a parole chiave");
+        received.clear();
+        withMind.chat(anna, "Stella, secondo te domani piove?", "normal");
+        for (int i = 0; i < 8; i++) {
+            Thread.sleep(250);
+            withMind.tick();
+        }
+        assertTrue(received.stream().anyMatch(n -> "chat".equals(n.path("type").asString())
+                && n.path("text").asString().contains("ripeti") || n.path("text").asString().contains("ridirmelo")
+                || n.path("text").asString().contains("altro modo")), "se non capisce lo dice, non cambia discorso");
+    }
+
+    @Test
+    @DisplayName("Le ordinazioni chiare non passano dal modello: sono immediate")
+    void clearOrdersSkipMind() throws Exception {
+        List<NpcMind.Prompt> asked = new ArrayList<>();
+        RoomInstance withMind = roomWithMind(new NpcMind.Reply("x", null), asked);
+        withMind.chat(anna, "Vinnie, una cola per favore", "normal");
+        assertTrue(asked.isEmpty());
+    }
+
     @Test
     @DisplayName("Le parole chiave della chat diventano intenzioni")
     void dialogIntents() {

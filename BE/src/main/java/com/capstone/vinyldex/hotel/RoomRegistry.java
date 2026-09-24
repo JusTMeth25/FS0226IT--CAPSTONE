@@ -8,6 +8,7 @@ import org.springframework.web.socket.CloseStatus;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -47,7 +48,11 @@ public class RoomRegistry {
         return thread;
     });
 
-    public RoomRegistry() {
+    /** Chi da' le risposte agli NPC: il modello linguistico, se configurato. */
+    private final NpcMind mind;
+
+    public RoomRegistry(NpcMind mind) {
+        this.mind = mind;
         scheduler.scheduleAtFixedRate(this::safeTick, TICK_MILLIS, TICK_MILLIS, TimeUnit.MILLISECONDS);
     }
 
@@ -62,7 +67,7 @@ public class RoomRegistry {
         leaveRoom(session);
         RoomInstance.JoinResult[] result = new RoomInstance.JoinResult[1];
         rooms.compute(data.id(), (id, existing) -> {
-            RoomInstance room = existing != null ? existing : new RoomInstance(data, items);
+            RoomInstance room = existing != null ? existing : new RoomInstance(data, items, new Random(), mind);
             result[0] = room.join(session);
             return room;
         });
