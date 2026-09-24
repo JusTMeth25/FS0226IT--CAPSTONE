@@ -61,6 +61,30 @@ class RoomFurniTest {
     }
 
     @Test
+    @DisplayName("Tappeti e piastrelle stanno sotto gli altri mobili, ma non uno sull'altro")
+    void flatItemsStack() {
+        // Il tavolino e' in (3,2): il tappeto 2x2 in (2,1) lo copre.
+        assertEquals(RoomInstance.PlaceResult.OK, room.canPlace(def("rug_vinyl"), 2, 1, 0, null), "tappeto sotto il tavolino");
+        room.putItem(new RoomItemView(UUID.randomUUID(), null, "rug_vinyl", 2, 1, 0, 0, null));
+
+        assertEquals(RoomInstance.PlaceResult.OK, room.canPlace(def("sofa_vinyl"), 1, 1, 0, null), "divano sul tappeto");
+        assertEquals(RoomInstance.PlaceResult.OCCUPIED, room.canPlace(def("dance_tile"), 2, 2, 0, null), "due mobili a terra no");
+        assertEquals(RoomInstance.PlaceResult.OCCUPIED, room.canPlace(def("chair_neon"), 3, 2, 0, null), "due mobili sopra no");
+    }
+
+    @Test
+    @DisplayName("Le quattro rotazioni girano lo schienale verso tutti i lati")
+    void fourRotations() {
+        FurniCatalog.FurniDef chair = def("chair_neon");
+        assertEquals(List.of(2, 4, 6, 0), List.of(chair.sitDirFor(0), chair.sitDirFor(2), chair.sitDirFor(4), chair.sitDirFor(6)));
+        FurniCatalog.FurniDef sofa = def("sofa_vinyl");
+        assertEquals(List.of(4, 2, 0, 6), List.of(sofa.sitDirFor(0), sofa.sitDirFor(2), sofa.sitDirFor(4), sofa.sitDirFor(6)));
+        assertEquals(1, sofa.footprintX(6), "rot 6 e' in verticale come rot 2");
+        assertEquals(4, sofa.normalizeRot(4));
+        assertEquals(2, def("card_frame").normalizeRot(6), "i quadri hanno solo due pareti");
+    }
+
+    @Test
     @DisplayName("Un quadro va solo su una parete che esiste davvero")
     void wallPlacementRules() {
         assertEquals(RoomInstance.PlaceResult.OK, room.canPlace(def("card_frame"), 2, 0, 0, null), "parete in alto");

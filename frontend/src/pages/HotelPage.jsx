@@ -21,6 +21,7 @@ import PvpPanel from '../hotel/ui/PvpPanel.jsx';
 import TradesPanel from '../hotel/ui/TradesPanel.jsx';
 import { useSearchParams } from 'react-router-dom';
 import HotelView from '../hotel/ui/HotelView.jsx';
+import { nextRotation } from '../hotel/sprites/furni.js';
 import { DEFAULT_LOOK } from '../hotel/sprites/avatar.js';
 import { TRACKS, getJukebox } from '../hotel/music.js';
 import '../hotel/hotel.css';
@@ -377,12 +378,12 @@ export default function HotelPage() {
     if (!placement) return undefined;
     const onKey = (event) => {
       if (event.target instanceof HTMLInputElement) return;
-      if (event.key === 'r' || event.key === 'R') setPlacement((p) => ({ ...p, rot: p.rot === 2 ? 0 : 2 }));
+      if (event.key === 'r' || event.key === 'R') setPlacement((p) => ({ ...p, rot: nextRotation(catalogByType.get(p.type), p.rot) }));
       if (event.key === 'Escape') setPlacement(null);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [placement]);
+  }, [placement, catalogByType]);
 
   function onItemClick(item, tile) {
     const def = catalogByType.get(item.type);
@@ -465,12 +466,12 @@ export default function HotelPage() {
           <div className="hotel-placement-bar" role="status">
             <span><i className="ph-fill ph-hand-grabbing" /> {catalogByType.get(placement.type)?.name}: clicca una casella</span>
             {!catalogByType.get(placement.type)?.wall && (
-              <button type="button" className="btn btn-secondary btn-small" onClick={() => setPlacement((p) => ({ ...p, rot: p.rot === 2 ? 0 : 2 }))}>
+              <button type="button" className="btn btn-secondary btn-small" onClick={() => setPlacement((p) => ({ ...p, rot: nextRotation(catalogByType.get(p.type), p.rot) }))}>
                 <i className="ph-fill ph-arrow-clockwise" /> Ruota (R)
               </button>
             )}
             {catalogByType.get(placement.type)?.wall && (
-              <button type="button" className="btn btn-secondary btn-small" onClick={() => setPlacement((p) => ({ ...p, rot: p.rot === 2 ? 0 : 2 }))}>
+              <button type="button" className="btn btn-secondary btn-small" onClick={() => setPlacement((p) => ({ ...p, rot: nextRotation(catalogByType.get(p.type), p.rot) }))}>
                 <i className="ph-fill ph-swap" /> Cambia parete (R)
               </button>
             )}
@@ -505,7 +506,7 @@ export default function HotelPage() {
             onClose={() => setSelectedItemId(null)}
             onViewCard={() => setViewingCard(selectedItem.card)}
             onChooseCard={() => { setPickingCardFor(selectedItem); setSelectedItemId(null); }}
-            onRotate={() => send({ type: 'place', itemId: selectedItem.id, x: selectedItem.x, y: selectedItem.y, rot: selectedItem.rot === 2 ? 0 : 2 })}
+            onRotate={() => send({ type: 'place', itemId: selectedItem.id, x: selectedItem.x, y: selectedItem.y, rot: nextRotation(catalogByType.get(selectedItem.type), selectedItem.rot) })}
             onMove={() => { setPlacement({ itemId: selectedItem.id, type: selectedItem.type, rot: selectedItem.rot }); setSelectedItemId(null); }}
             onPickup={() => { send({ type: 'pickup', itemId: selectedItem.id }); setSelectedItemId(null); }}
             jukeboxOn={jukebox.track >= 0}

@@ -1,12 +1,9 @@
 import { STEP_MS, directionBetween, insideDiamond, parseLayout, tileCenter, tileTop, viewForDirection } from './iso.js';
 import { AVATAR_FOOT_X, AVATAR_FOOT_Y, AVATAR_H, AVATAR_W, avatarSprite } from './sprites/avatar.js';
 import { hoverTileSprite, renderRoom } from './sprites/room.js';
-import { furniSprite, isAnimated } from './sprites/furni.js';
+import { footprintOf, furniSprite, isAnimated, isFlat } from './sprites/furni.js';
 import { GEM_H, GEM_W, drawSparkle, gemSprite } from './sprites/gem.js';
 import { getRarityColor } from '../utils/cardUtils.js';
-
-/** Mobili piatti: si disegnano sotto a tutto, come parte del pavimento. */
-const FLAT_TYPES = new Set(['rug_vinyl', 'dance_tile']);
 
 /** Di quanti pixel base si alza chi e' seduto su una sedia o un divano, rispetto al pavimento. */
 const SEAT_LIFT = 7;
@@ -365,9 +362,7 @@ export class HotelEngine {
   }
 
   footprint(item) {
-    const def = this.catalog.get(item.type);
-    if (!def || def.wall) return { fx: 1, fy: 1 };
-    return item.rot === 2 ? { fx: def.length, fy: def.width } : { fx: def.width, fy: def.length };
+    return footprintOf(this.catalog.get(item.type), item.rot);
   }
 
   /** Profondita' del mobile: la sua casella piu' vicina a chi guarda. */
@@ -375,7 +370,8 @@ export class HotelEngine {
     const { fx, fy } = this.footprint(item);
     const def = this.catalog.get(item.type);
     if (def?.wall) return -1000 + item.x + item.y;
-    if (FLAT_TYPES.has(item.type)) return -500 + item.x + item.y;
+    // I mobili a terra si disegnano sotto a tutto, come parte del pavimento.
+    if (isFlat(def)) return -500 + item.x + item.y;
     return item.x + fx - 1 + item.y + fy - 1 - 0.01;
   }
 
@@ -431,7 +427,10 @@ export class HotelEngine {
         if (this.layout.heightAt(x, y) !== tile.z) return false;
         if (door && door.x === x && door.y === y) return false;
         for (const other of this.items.values()) {
-          if (other.id === this.placement.itemId || this.catalog.get(other.type)?.wall) continue;
+          const otherDef = this.catalog.get(other.type);
+          if (other.id === this.placement.itemId || otherDef?.wall) continue;
+          // Un mobile a terra e uno sopra possono stare sulla stessa casella.
+          if (isFlat(otherDef) !== isFlat(def)) continue;
           const f = this.footprint(other);
           if (x >= other.x && x < other.x + f.fx && y >= other.y && y < other.y + f.fy) return false;
         }

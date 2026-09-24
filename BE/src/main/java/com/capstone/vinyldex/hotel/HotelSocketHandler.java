@@ -277,10 +277,10 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         }
         int x = integer(node, "x");
         int y = integer(node, "y");
-        int rot = integer(node, "rot") == 2 ? 2 : 0;
 
         // Il tipo si legge dal database, non dal messaggio: forma e regole sono quelle vere.
         FurniCatalog.FurniDef def = furniService.ownedItem(userId, itemId).def();
+        int rot = def.normalizeRot(integer(node, "rot"));
         RoomInstance.PlaceResult fit = room.canPlace(def, x, y, rot, itemId);
         if (fit != RoomInstance.PlaceResult.OK) {
             session.send(error("cant_place_" + fit.name().toLowerCase()));

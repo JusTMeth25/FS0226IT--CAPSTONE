@@ -16,8 +16,8 @@ import java.util.Optional;
 public final class FurniCatalog {
 
     /**
-     * @param width   caselle lungo x con rot 0 (lungo y con rot 2)
-     * @param length  caselle lungo y con rot 0 (lungo x con rot 2)
+     * @param width   caselle lungo x con rot 0 e 4 (lungo y con rot 2 e 6)
+     * @param length  caselle lungo y con rot 0 e 4 (lungo x con rot 2 e 6)
      * @param wall    si appende alla parete invece di stare sul pavimento
      * @param walkable ci si cammina sopra (tappeti, piastrelle)
      * @param sitDir  direzione in cui si guarda seduti con rot 0; -1 se non ci si siede
@@ -36,18 +36,47 @@ public final class FurniCatalog {
             return walkable || sittable();
         }
 
-        /** Direzione da seduti con la rotazione data: girare il mobile scambia est e sud. */
+        /**
+         * Mobile "a terra" (tappeti, piastrelle): sta sotto gli altri, che ci si possono
+         * appoggiare sopra. Due mobili a terra invece non si sovrappongono.
+         */
+        public boolean flat() {
+            return walkable && !sittable() && !wall;
+        }
+
+        /**
+         * Direzione da seduti con la rotazione data. Le quattro rotazioni sono lo scambio
+         * degli assi (rot 2), il mezzo giro (rot 4) e le due cose insieme (rot 6): girano
+         * lo schienale verso ognuno dei quattro lati.
+         */
         public int sitDirFor(int rot) {
-            if (rot == 0) return sitDir;
-            return sitDir == 2 ? 4 : sitDir == 4 ? 2 : sitDir;
+            int dir = (rot == 2 || rot == 6) ? swapAxes(sitDir) : sitDir;
+            return (rot == 4 || rot == 6) ? (dir + 4) % 8 : dir;
         }
 
         public int footprintX(int rot) {
-            return rot == 2 ? length : width;
+            return (rot == 2 || rot == 6) ? length : width;
         }
 
         public int footprintY(int rot) {
-            return rot == 2 ? width : length;
+            return (rot == 2 || rot == 6) ? width : length;
+        }
+
+        /** Rotazioni ammesse: quattro per i mobili a pavimento, due (una per parete) per quelli appesi. */
+        public int normalizeRot(int rot) {
+            int r = Math.floorMod(rot, 8) & ~1;
+            return wall ? r % 4 : r;
+        }
+
+        /** Scambiare gli assi porta est in sud e nord in ovest (e viceversa). */
+        private static int swapAxes(int dir) {
+            return switch (dir) {
+                case 2 -> 4;
+                case 4 -> 2;
+                case 0 -> 6;
+                case 6 -> 0;
+                default -> dir;
+            };
         }
     }
 

@@ -66,9 +66,27 @@ function dot(ctx, ox, oy, u, v, z, color, w = 1, h = 1) {
   ctx.fillRect(Math.round(ox + (u - v) * HALF_W), Math.round(oy + (u + v) * HALF_H - z), w, h);
 }
 
+/** Mobile "a terra" (tappeti, piastrelle): gli altri mobili ci si possono appoggiare sopra. */
+export function isFlat(def) {
+  return !!def && def.walkable && def.sitDir < 0 && !def.wall;
+}
+
+/** Caselle occupate con la rotazione data: rot 2 e 6 scambiano larghezza e lunghezza. */
+export function footprintOf(def, rot) {
+  if (!def || def.wall) return { fx: 1, fy: 1 };
+  return rot === 2 || rot === 6 ? { fx: def.length, fy: def.width } : { fx: def.width, fy: def.length };
+}
+
+/** Rotazione successiva: quattro lati per i mobili a pavimento, le due pareti per quelli appesi. */
+export function nextRotation(def, rot) {
+  if (def?.wall) return rot === 2 ? 0 : 2;
+  return ((rot || 0) + 2) % 8;
+}
+
 /**
- * Ogni disegnatore riceve le coordinate gia' ruotate: con rot 2 gli assi si scambiano, cosi'
- * lo stesso codice disegna il mobile girato di 90 gradi.
+ * Ogni disegnatore lavora come se il mobile avesse rot 0 e riceve funzioni che ruotano le
+ * coordinate: rot 2 scambia gli assi, rot 4 fa mezzo giro, rot 6 fa le due cose insieme.
+ * Cosi' lo schienale di una sedia puo' guardare verso tutti e quattro i lati.
  */
 const DRAW = {
   chair_neon(b) {
@@ -87,7 +105,7 @@ const DRAW = {
     b({ u0: 0.42, v0: 0.42, u1: 0.58, v1: 0.58, z0: 0, z1: 13, color: '#6b7280' });
     b({ u0: 0.14, v0: 0.14, u1: 0.86, v1: 0.86, z0: 13, z1: 16, color: '#f5f5f5', left: '#c9c9d6', right: '#a9a9b8' });
   },
-  plant_palm(b, { ctx, ox, oy }) {
+  plant_palm(b, { d }) {
     b({ u0: 0.3, v0: 0.3, u1: 0.7, v1: 0.7, z0: 0, z1: 9, color: '#b45309' });
     b({ u0: 0.44, v0: 0.44, u1: 0.56, v1: 0.56, z0: 9, z1: 26, color: '#65a30d' });
     const leaf = (u0, v0, u1, v1, z) => b({ u0, v0, u1, v1, z0: z, z1: z + 3, color: '#22c55e' });
@@ -95,36 +113,36 @@ const DRAW = {
     leaf(0.5, 0.4, 0.95, 0.6, 26);
     leaf(0.4, 0.05, 0.6, 0.5, 25);
     leaf(0.4, 0.5, 0.6, 0.95, 23);
-    dot(ctx, ox, oy, 0.5, 0.5, 31, '#bbf7d0', 2, 1);
+    d(0.5, 0.5, 31, '#bbf7d0', 2, 1);
   },
-  lamp_neon(b, { ctx, ox, oy }) {
+  lamp_neon(b, { d }) {
     b({ u0: 0.3, v0: 0.3, u1: 0.7, v1: 0.7, z0: 0, z1: 3, color: '#1f1f2e' });
     b({ u0: 0.46, v0: 0.46, u1: 0.54, v1: 0.54, z0: 3, z1: 30, color: '#4b4570' });
     b({ u0: 0.25, v0: 0.25, u1: 0.75, v1: 0.75, z0: 30, z1: 40, color: '#67e8f9', left: '#22d3ee', right: '#0e7490' });
-    dot(ctx, ox, oy, 0.5, 0.5, 41, '#ffffff', 3, 1);
+    d(0.5, 0.5, 41, '#ffffff', 3, 1);
   },
-  rug_vinyl(b, { ctx, ox, oy }) {
+  rug_vinyl(b, { d }) {
     b({ u0: 0.05, v0: 0.05, u1: 1.95, v1: 1.95, z0: 0, z1: 1, color: '#111018', outline: false });
     b({ u0: 0.5, v0: 0.5, u1: 1.5, v1: 1.5, z0: 1, z1: 1.5, color: '#ec4899', outline: false });
     b({ u0: 0.85, v0: 0.85, u1: 1.15, v1: 1.15, z0: 1.5, z1: 2, color: '#111018', outline: false });
-    for (let i = 0; i < 6; i += 1) dot(ctx, ox, oy, 0.2 + i * 0.3, 0.12, 1, '#3b3561', 2, 1);
+    for (let i = 0; i < 6; i += 1) d(0.2 + i * 0.3, 0.12, 1, '#3b3561', 2, 1);
   },
-  speaker(b, { ctx, ox, oy }) {
+  speaker(b, { d }) {
     b({ u0: 0.2, v0: 0.2, u1: 0.8, v1: 0.8, z0: 0, z1: 24, color: '#262233', left: '#1a1726', right: '#121019' });
     [[0.5, 0.8, 16], [0.5, 0.8, 7]].forEach(([u, v, z]) => {
-      dot(ctx, ox, oy, u - 0.12, v, z, '#4b4570', 5, 5);
-      dot(ctx, ox, oy, u - 0.06, v, z - 2, '#8b5cf6', 2, 2);
+      d(u - 0.12, v, z, '#4b4570', 5, 5, true);
+      d(u - 0.06, v, z - 2, '#8b5cf6', 2, 2, true);
     });
   },
-  jukebox(b, { ctx, ox, oy, now }) {
+  jukebox(b, { d, now }) {
     b({ u0: 0.12, v0: 0.18, u1: 0.88, v1: 0.82, z0: 0, z1: 30, color: '#7c2d12', left: '#9a3412', right: '#431407' });
     b({ u0: 0.12, v0: 0.18, u1: 0.88, v1: 0.82, z0: 30, z1: 34, color: '#fbbf24' });
     const colors = ['#ec4899', '#22d3ee', '#ffd700', '#8b5cf6', '#22c55e'];
     for (let i = 0; i < 5; i += 1) {
       const c = colors[(i + Math.floor((now || 0) / 300)) % colors.length];
-      dot(ctx, ox, oy, 0.2 + i * 0.14, 0.82, 26 - i, c, 2, 2);
+      d(0.2 + i * 0.14, 0.82, 26 - i, c, 2, 2, true);
     }
-    dot(ctx, ox, oy, 0.4, 0.82, 16, '#111018', 6, 5);
+    d(0.4, 0.82, 16, '#111018', 6, 5, true);
   },
   dance_tile(b, { item, now }) {
     const colors = ['#ec4899', '#22d3ee', '#ffd700', '#8b5cf6', '#22c55e', '#3b82f6'];
@@ -142,19 +160,19 @@ const DRAW = {
     b({ u0: 0.2, v0: 0.2, u1: 0.8, v1: 0.8, z0: 0, z1: 16, color: '#f4f1ff', left: '#d9d2f5', right: '#b7aee0' });
     b({ u0: 0.16, v0: 0.16, u1: 0.84, v1: 0.84, z0: 16, z1: 18, color: '#8b5cf6' });
   },
-  bar_counter(b, { ctx, ox, oy }) {
+  bar_counter(b, { d }) {
     b({ u0: 0.02, v0: 0.1, u1: 2.98, v1: 0.9, z0: 0, z1: 18, color: '#4a2511', left: '#5c2e15', right: '#2e170a' });
     b({ u0: 0, v0: 0.06, u1: 3, v1: 0.94, z0: 18, z1: 21, color: '#1f1f2e' });
     const bottles = ['#22c55e', '#ec4899', '#ffd700', '#22d3ee'];
     bottles.forEach((c, i) => b({ u0: 0.4 + i * 0.6, v0: 0.3, u1: 0.52 + i * 0.6, v1: 0.42, z0: 21, z1: 30, color: c }));
-    for (let i = 0; i < 12; i += 1) dot(ctx, ox, oy, 0.1 + i * 0.24, 0.9, 6, '#ec4899', 2, 1);
+    for (let i = 0; i < 12; i += 1) d(0.1 + i * 0.24, 0.9, 6, '#ec4899', 2, 1, true);
   },
-  dj_booth(b, { ctx, ox, oy, now }) {
+  dj_booth(b, { d, now }) {
     b({ u0: 0.05, v0: 0.1, u1: 1.95, v1: 0.9, z0: 0, z1: 16, color: '#1f1f2e', left: '#18182a', right: '#101019' });
     b({ u0: 0.05, v0: 0.1, u1: 1.95, v1: 0.9, z0: 16, z1: 18, color: '#8b5cf6' });
     [0.55, 1.45].forEach((u) => b({ u0: u - 0.3, v0: 0.25, u1: u + 0.3, v1: 0.75, z0: 18, z1: 19, color: '#111018' }));
     const pulse = Math.floor((now || 0) / 250) % 2 === 0;
-    for (let i = 0; i < 8; i += 1) dot(ctx, ox, oy, 0.15 + i * 0.22, 0.9, 9, pulse === (i % 2 === 0) ? '#22d3ee' : '#ec4899', 2, 2);
+    for (let i = 0; i < 8; i += 1) d(0.15 + i * 0.22, 0.9, 9, pulse === (i % 2 === 0) ? '#22d3ee' : '#ec4899', 2, 2, true);
   }
 };
 
@@ -226,8 +244,7 @@ export function cardImage(card, onLoad) {
  * il vertice alto della casella d'angolo (l'ancora).
  */
 export function furniSprite(item, def, { now = 0, onImageLoad } = {}) {
-  const fx = def.wall ? 1 : (item.rot === 2 ? def.length : def.width);
-  const fy = def.wall ? 1 : (item.rot === 2 ? def.width : def.length);
+  const { fx, fy } = footprintOf(def, item.rot);
   const width = (fx + fy) * HALF_W + PAD;
   const height = (fx + fy) * HALF_H + PAD + 24;
   const { canvas, ctx } = createCanvas(width, height);
@@ -240,13 +257,31 @@ export function furniSprite(item, def, { now = 0, onImageLoad } = {}) {
     return { canvas, anchorX: ox, anchorY: oy };
   }
 
-  // Con rot 2 si scambiano u e v: il mobile appare girato di 90 gradi.
-  const rotated = (b) => (item.rot === 2
-    ? { ...b, u0: b.v0, v0: b.u0, u1: b.v1, v1: b.u1 }
-    : b);
+  const W = def.width;
+  const L = def.length;
+  const turn = (u, v) => {
+    switch (item.rot) {
+      case 2: return [v, u];
+      case 4: return [W - u, L - v];
+      case 6: return [L - v, W - u];
+      default: return [u, v];
+    }
+  };
+  const rotated = (opts) => {
+    const [a0, c0] = turn(opts.u0, opts.v0);
+    const [a1, c1] = turn(opts.u1, opts.v1);
+    return { ...opts, u0: Math.min(a0, a1), u1: Math.max(a0, a1), v0: Math.min(c0, c1), v1: Math.max(c0, c1) };
+  };
   const b = (opts) => box(ctx, ox, oy, rotated(opts));
+  // I dettagli sul davanti (casse, luci del jukebox) con rot 4 e 6 finiscono sul retro, che non si vede.
+  const fromBack = item.rot === 4 || item.rot === 6;
+  const d = (u, v, z, color, w, h, front = false) => {
+    if (front && fromBack) return;
+    const [ru, rv] = turn(u, v);
+    dot(ctx, ox, oy, ru, rv, z, color, w, h);
+  };
   const draw = DRAW[item.type];
-  if (draw) draw(b, { ctx, ox, oy, now, item });
+  if (draw) draw(b, { d, now, item });
   else b({ u0: 0.2, v0: 0.2, u1: 0.8, v1: 0.8, z0: 0, z1: 14, color: '#6b7280' });
 
   // Vetrina: la carta sta in piedi sul piedistallo, rivolta verso chi guarda.

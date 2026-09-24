@@ -244,11 +244,15 @@ public class RoomInstance {
         return x == toX && y == toY && isOccupiedByOther(userId, x, y);
     }
 
+    /** Il mobile su quella casella; se c'e' anche un tappeto sotto, conta quello sopra. */
     private RoomItemView floorItemAt(int x, int y) {
+        RoomItemView under = null;
         for (RoomItemView item : items.values()) {
-            if (item.covers(x, y)) return item;
+            if (!item.covers(x, y)) continue;
+            if (!item.def().flat()) return item;
+            under = item;
         }
-        return null;
+        return under;
     }
 
     /**
@@ -350,7 +354,11 @@ public class RoomInstance {
                 if (layout.heightAt(tx, ty) != height) return PlaceResult.UNEVEN;
                 if (tx == room.doorX() && ty == room.doorY()) return PlaceResult.DOOR;
                 for (RoomItemView other : items.values()) {
-                    if (!other.id().equals(ignoreId) && other.covers(tx, ty)) return PlaceResult.OCCUPIED;
+                    // Un mobile a terra e uno sopra possono condividere la casella: tavolo sul tappeto.
+                    if (!other.id().equals(ignoreId) && other.covers(tx, ty)
+                            && other.def().flat() == def.flat()) {
+                        return PlaceResult.OCCUPIED;
+                    }
                 }
                 if (!def.passable()) {
                     for (Occupant o : occupants.values()) {
