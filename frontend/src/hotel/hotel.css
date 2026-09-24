@@ -399,6 +399,19 @@
 .hotel-furni-card:hover { transform: translateY(-2px); box-shadow: 0 0 14px rgba(139, 92, 246, 0.4); }
 .hotel-furni-card strong { font-size: 0.78rem; }
 .hotel-furni-card small { font-size: 0.65rem; color: var(--hp-muted); min-height: 1.6em; }
+/* Pulsanti compatti: devono stare dentro la scheda anche nella colonna piu' stretta. */
+.hotel-furni-card .btn {
+  width: 100%;
+  margin-top: auto;
+  padding: 5px 6px;
+  gap: 4px;
+  font-size: 0.68rem;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  border-radius: 8px;
+  box-shadow: none;
+}
+.hotel-furni-card .btn:hover { transform: none; filter: brightness(1.1); }
 .hotel-furni-preview {
   image-rendering: pixelated;
   background:
