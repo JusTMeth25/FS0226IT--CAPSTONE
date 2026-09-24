@@ -21,7 +21,7 @@ import PvpPanel from '../hotel/ui/PvpPanel.jsx';
 import TradesPanel from '../hotel/ui/TradesPanel.jsx';
 import { useSearchParams } from 'react-router-dom';
 import HotelView from '../hotel/ui/HotelView.jsx';
-import { nextRotation } from '../hotel/sprites/furni.js';
+import { footprintOf, nextRotation } from '../hotel/sprites/furni.js';
 import { DEFAULT_LOOK } from '../hotel/sprites/avatar.js';
 import { TRACKS, getJukebox } from '../hotel/music.js';
 import '../hotel/hotel.css';
@@ -403,9 +403,12 @@ export default function HotelPage() {
       send({ type: 'move', x: tile.x, y: tile.y });
       return;
     }
-    // Sedie e divani: ci si va a sedere, anche nella propria stanza.
+    // Sedie e divani: ci si va a sedere, anche nella propria stanza. Sul divano si va sul posto
+    // cliccato; se e' preso, il server manda sull'altro.
     if (def?.sitDir >= 0) {
-      send({ type: 'move', x: item.x, y: item.y });
+      const { fx, fy } = footprintOf(def, item.rot);
+      const onItem = tile && tile.x >= item.x && tile.y >= item.y && tile.x < item.x + fx && tile.y < item.y + fy;
+      send({ type: 'move', x: onItem ? tile.x : item.x, y: onItem ? tile.y : item.y });
       return;
     }
     if (item.card) {

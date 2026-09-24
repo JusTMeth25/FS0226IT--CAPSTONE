@@ -170,14 +170,18 @@ public class RoomInstance {
         // Un nuovo clic annulla l'uso rimasto in sospeso (per esempio andare al bancone).
         occupant.pendingUse = null;
 
-        List<Pathfinder.Step> steps = Pathfinder.find(layout, occupant.x, occupant.y, toX, toY,
-                (x, y) -> isBlocked(userId, x, y, toX, toY));
+        // Posto gia' preso su un divano: si va sull'altro posto libero della stessa seduta.
+        int[] seat = freeSeat(userId, toX, toY);
+        int destX = seat != null ? seat[0] : toX;
+        int destY = seat != null ? seat[1] : toY;
+        List<Pathfinder.Step> steps = Pathfinder.find(layout, occupant.x, occupant.y, destX, destY,
+                (x, y) -> isBlocked(userId, x, y, destX, destY));
         if (steps.isEmpty()) return;
 
         occupant.path.clear();
         occupant.path.addAll(steps);
-        occupant.targetX = toX;
-        occupant.targetY = toY;
+        occupant.targetX = destX;
+        occupant.targetY = destY;
         if (!"idle".equals(occupant.status)) {
             occupant.status = "idle";
             broadcast(statusMessage(occupant));
@@ -242,6 +246,24 @@ public class RoomInstance {
         RoomItemView item = floorItemAt(x, y);
         if (item != null && !item.def().passable()) return true;
         return x == toX && y == toY && isOccupiedByOther(userId, x, y);
+    }
+
+    /**
+     * Se (x, y) e' un posto a sedere gia' occupato da un altro, un posto libero della stessa
+     * seduta (il divano ne ha due); altrimenti null e si va dove si e' cliccato.
+     */
+    private int[] freeSeat(UUID userId, int x, int y) {
+        RoomItemView item = floorItemAt(x, y);
+        if (item == null || !item.def().sittable() || !isOccupiedByOther(userId, x, y)) return null;
+        FurniCatalog.FurniDef def = item.def();
+        for (int dx = 0; dx < def.footprintX(item.rot()); dx++) {
+            for (int dy = 0; dy < def.footprintY(item.rot()); dy++) {
+                int sx = item.x() + dx;
+                int sy = item.y() + dy;
+                if (!isOccupiedByOther(userId, sx, sy)) return new int[]{sx, sy};
+            }
+        }
+        return null;
     }
 
     /** Il mobile su quella casella; se c'e' anche un tappeto sotto, conta quello sopra. */

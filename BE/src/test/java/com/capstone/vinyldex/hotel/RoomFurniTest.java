@@ -123,6 +123,46 @@ class RoomFurniTest {
     }
 
     @Test
+    @DisplayName("Sul divano si siedono in due: chi trova il posto preso va sull'altro")
+    void sofaSeatsTwo() throws Exception {
+        room.putItem(new RoomItemView(UUID.randomUUID(), null, "sofa_vinyl", 1, 2, 0, 0, null));
+        JsonMapper mapper = JsonMapper.builder().build();
+        List<JsonNode> received = new ArrayList<>();
+        UUID anna = join(mapper, received, "anna");
+        UUID bruno = join(mapper, received, "bruno");
+
+        room.move(anna, 1, 2);
+        for (int i = 0; i < 6; i++) room.tick();
+        room.move(bruno, 1, 2);
+        for (int i = 0; i < 6; i++) room.tick();
+
+        List<JsonNode> seated = received.stream()
+                .filter(n -> "user_status".equals(n.path("type").asString()) && "sit".equals(n.path("status").asString()))
+                .toList();
+        assertEquals(2, seated.stream().map(n -> n.path("id").asString()).distinct().count(), "seduti entrambi");
+        JsonNode lastPath = received.reversed().stream()
+                .filter(n -> "user_path".equals(n.path("type").asString()) && bruno.toString().equals(n.path("id").asString()))
+                .findFirst().orElseThrow();
+        JsonNode end = lastPath.path("path").get(lastPath.path("path").size() - 1);
+        assertEquals(2, end.get(0).asInt(), "bruno sull'altro posto del divano");
+    }
+
+    private UUID join(JsonMapper mapper, List<JsonNode> received, String name) throws Exception {
+        WebSocketSession raw = mock(WebSocketSession.class);
+        when(raw.isOpen()).thenReturn(true);
+        when(raw.getId()).thenReturn(name);
+        doAnswer(inv -> {
+            received.add(mapper.readTree(((TextMessage) inv.getArgument(0)).getPayload()));
+            return null;
+        }).when(raw).sendMessage(any());
+        HotelSession session = new HotelSession(raw, mapper);
+        UUID id = UUID.randomUUID();
+        session.authenticate(new HotelUser(id, name, HotelLook.DEFAULT, 1));
+        room.join(session);
+        return id;
+    }
+
+    @Test
     @DisplayName("I mobili solidi bloccano il passaggio, tappeti e sedute no")
     void passability() {
         assertEquals(false, def("table_round").passable());
