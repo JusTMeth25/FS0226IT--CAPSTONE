@@ -153,4 +153,25 @@ class RoomInstanceTest {
         assertEquals(3, RoomInstance.directionBetween(0, 0, 1, 1, 0));
         assertEquals(7, RoomInstance.directionBetween(1, 1, 0, 0, 0));
     }
+
+    @Test
+    @DisplayName("Chi torna sulla pagina dell'hotel riceve lo stato senza rientrare; chi va altrove resta, assente")
+    void resyncAndAway() throws Exception {
+        Client anna = client("anna");
+        Client bruno = client("bruno");
+        room.join(anna.session());
+        room.join(bruno.session());
+        int statesBefore = (int) anna.types().stream().filter("room_state"::equals).count();
+
+        room.setAway(anna.id(), true);
+        assertTrue(bruno.last("user_away").path("away").asBoolean());
+        room.setAway(anna.id(), true);
+        assertEquals(1, bruno.types().stream().filter("user_away"::equals).count(), "nessun doppione se non cambia");
+
+        assertTrue(room.resendState(anna.id()));
+        assertEquals(statesBefore + 1, anna.types().stream().filter("room_state"::equals).count());
+        assertTrue(anna.last("room_state").path("users").get(0).path("away").asBoolean());
+        assertEquals(0, bruno.types().stream().filter("user_left"::equals).count(), "nessuno e' uscito");
+        assertEquals(false, room.resendState(UUID.randomUUID()), "chi non e' nella stanza non riceve nulla");
+    }
 }

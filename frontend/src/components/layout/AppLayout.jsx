@@ -7,6 +7,7 @@ import ErrorBoundary from '../common/ErrorBoundary.jsx';
 import GoldFlight from '../fx/GoldFlight.jsx';
 import { useSurfaceFx } from '../../hooks/useSurfaceFx.js';
 import { useScrollRestoration } from '../../hooks/useScrollRestoration.js';
+import HotelProvider from '../../hotel/HotelProvider.jsx';
 
 export default function AppLayout() {
   const location = useLocation();
@@ -21,7 +22,9 @@ export default function AppLayout() {
   useScrollRestoration();
 
   return (
-    <>
+    // La connessione all'hotel vive qui e non nella sua pagina: cambiando sezione si resta
+    // nella stanza e si ricevono sfide e scambi.
+    <HotelProvider>
       <GoldFlight />
 
       <div className="app-shell">
@@ -52,6 +55,6 @@ export default function AppLayout() {
 
         <BottomNav />
       </div>
-    </>
+    </HotelProvider>
   );
 }

@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../hooks/useAuth.js';
 import { useGame } from '../hooks/useGame.js';
 import { useSound } from '../hooks/useSound.js';
-import { useHotelSocket } from '../hotel/useHotelSocket.js';
+import { useHotel } from '../hotel/hotel-context.js';
 import { furniApi } from '../services/furniApi.js';
+import { tradeApi } from '../services/tradeApi.js';
 import { roomApi } from '../services/roomApi.js';
 import HotelCanvas from '../hotel/ui/HotelCanvas.jsx';
 import ChatBar from '../hotel/ui/ChatBar.jsx';
@@ -17,6 +18,8 @@ import CardViewer from '../hotel/ui/CardViewer.jsx';
 import RoomSettings from '../hotel/ui/RoomSettings.jsx';
 import UserCard from '../hotel/ui/UserCard.jsx';
 import PvpPanel from '../hotel/ui/PvpPanel.jsx';
+import TradesPanel from '../hotel/ui/TradesPanel.jsx';
+import { useSearchParams } from 'react-router-dom';
 import { DEFAULT_LOOK } from '../hotel/sprites/avatar.js';
 import { TRACKS, getJukebox } from '../hotel/music.js';
 import '../hotel/hotel.css';
@@ -69,14 +72,24 @@ export default function HotelPage() {
   const { gold } = useGame();
   const { sound } = useSound();
   const canvasRef = useRef(null);
-  const roomIdRef = useRef(null);
+  const hotel = useHotel();
+  const { status, send } = hotel;
+  // Ultima stanza nota al provider, letta dai gestori dei messaggi senza dipendere dal render.
+  const hotelRoomRef = useRef(hotel.roomId);
+  useEffect(() => { hotelRoomRef.current = hotel.roomId; }, [hotel.roomId]);
+  // Vero da quando si chiede lo stato della stanza al ritorno sulla pagina fino alla risposta.
+  const syncPending = useRef(false);
+  const [searchParams] = useSearchParams();
 
-  const [me, setMe] = useState(null);
+  const [me, setMe] = useState(() => hotel.me);
   const [room, setRoom] = useState(null);
   const [people, setPeople] = useState({});
   const [items, setItems] = useState({});
   const [catalog, setCatalog] = useState([]);
-  const [panel, setPanel] = useState('navigator');
+  // Con ?panel=trades (dall'avviso di uno scambio) si apre subito il pannello scambi.
+  const [panel, setPanel] = useState(() => (searchParams.get('panel') === 'trades' ? 'trades' : hotel.roomId ? null : 'navigator'));
+  const [buildMode, setBuildMode] = useState(false);
+  const [pendingTrades, setPendingTrades] = useState(0);
   const [selected, setSelected] = useState(null);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [pickingCardFor, setPickingCardFor] = useState(null);
@@ -119,16 +132,29 @@ export default function HotelPage() {
         setMe(message.user);
         break;
       case 'room_state':
-        roomIdRef.current = message.room.id;
+        syncPending.current = false;
         setRoom(message.room);
         setPeople(Object.fromEntries(message.users.map((u) => [u.id, u])));
         setItems(Object.fromEntries((message.items || []).map((i) => [i.id, i])));
         setJukebox({ track: message.jukebox?.track ?? -1 });
         getJukebox().set(message.jukebox?.track ?? -1, message.jukebox?.startedAt ?? 0, message.serverTime);
-        setPanel(null);
+        setPanel((current) => (current === 'trades' ? current : null));
         setSelected(null);
         setSelectedItemId(null);
         setPlacement(null);
+        setBuildMode(false);
+        break;
+      case 'not_in_room':
+        setRoom(null);
+        setPanel((current) => current || 'navigator');
+        break;
+      case 'user_away':
+        setPeople((p) => (p[message.id] ? { ...p, [message.id]: { ...p[message.id], away: message.away } } : p));
+        break;
+      case 'trade_event':
+        if (message.kind === 'received') showNotice(`${message.other} ti ha proposto uno scambio: aprilo da Scambi.`);
+        if (message.kind === 'accepted') showNotice(`${message.other} ha accettato il tuo scambio!`);
+        if (message.kind === 'rejected') showNotice(`${message.other} ha rifiutato il tuo scambio.`);
         break;
       case 'room_updated':
         setRoom((r) => (r ? { ...r, ...message.room } : r));
@@ -250,29 +276,68 @@ export default function HotelPage() {
         setInventoryVersion((v) => v + 1);
         break;
       case 'kicked':
-        roomIdRef.current = null;
         setRoom(null);
         setPanel('navigator');
         showNotice('Il proprietario ti ha accompagnato fuori dalla stanza.');
         break;
       case 'error':
+        // Un server che non conosce ancora "sync" (per esempio avviato prima dell'aggiornamento):
+        // invece di un errore si rientra nella stanza in cui si era.
+        if (message.code === 'unknown_command' && syncPending.current) {
+          syncPending.current = false;
+          if (hotelRoomRef.current) send({ type: 'join', roomId: hotelRoomRef.current });
+          else setPanel((current) => current || 'navigator');
+          break;
+        }
         showNotice(ERRORS[message.code] || ERRORS.server_error);
         break;
       default:
         break;
     }
-  }, [showNotice, sound, refreshUser]);
+  }, [showNotice, sound, refreshUser, send]);
 
-  const { status, send } = useHotelSocket({
-    onMessage,
-    // Dopo una caduta di rete si torna nella stanza in cui si era.
-    onReconnect: () => {
-      if (roomIdRef.current) send({ type: 'join', roomId: roomIdRef.current });
-    }
-  });
+  // Iscrizione ai messaggi dell'hotel finche' la pagina e' aperta. La connessione resta del
+  // provider: uscendo si resta nella stanza, segnati come assenti; tornando si chiede lo stato
+  // attuale della stanza invece di rientrare dalla porta.
+  const onMessageRef = useRef(onMessage);
+  useEffect(() => { onMessageRef.current = onMessage; }, [onMessage]);
+  useEffect(() => {
+    hotel.activate();
+    const unsubscribe = hotel.subscribe((message) => onMessageRef.current(message));
+    return unsubscribe;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- iscrizione una volta sola per montaggio
+  }, []);
+
+  const online = status === 'online';
+  useEffect(() => {
+    if (!online) return undefined;
+    syncPending.current = true;
+    send({ type: 'sync' });
+    send({ type: 'away', on: false });
+    return () => send({ type: 'away', on: true });
+  }, [online, send]);
+
+  // Scambi ricevuti in attesa: il numero sul pulsante Scambi, aggiornato a ogni evento.
+  useEffect(() => {
+    let cancelled = false;
+    tradeApi.getIncoming()
+      .then((res) => {
+        if (!cancelled) setPendingTrades((res.trades || []).filter((t) => t.status?.toLowerCase() === 'pending').length);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [hotel.tradeVersion]);
+
+  // Una sfida arrivata mentre si era su un'altra pagina.
+  useEffect(() => {
+    const challenge = hotel.pendingChallenge;
+    if (!challenge) return;
+    hotel.takePendingChallenge();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- stato ricevuto dal provider mentre la pagina era chiusa
+    setPvp({ stage: 'incoming', challengeId: challenge.challengeId, from: challenge.from });
+  }, [hotel]);
 
   const join = (roomId) => send({ type: 'join', roomId });
-  const online = status === 'online';
   const myLook = me?.look || user?.hotelLook || DEFAULT_LOOK;
   const myStatus = me ? people[me.id]?.status : null;
   const isOwner = !!(room && me && room.ownerId === me.id);
@@ -320,27 +385,33 @@ export default function HotelPage() {
 
   function onItemClick(item, tile) {
     const def = catalogByType.get(item.type);
+    // In modalita' arredo il proprietario seleziona il mobile per ruotarlo, spostarlo, raccoglierlo.
+    if (isOwner && buildMode) {
+      setSelected(null);
+      setSelectedItemId(item.id);
+      return;
+    }
     // Bancone: si riceve una bibita (camminandoci accanto se serve). Jukebox: cambia brano.
-    if (item.type === 'bar_counter' || (item.type === 'jukebox' && !isOwner)) {
+    if (item.type === 'bar_counter' || item.type === 'jukebox') {
       send({ type: 'use_item', itemId: item.id });
       return;
     }
-    // Pista e tappeti si calpestano: per chi non arreda il clic vale come camminare li'.
-    if (def?.walkable && !isOwner && tile) {
+    // Pista e tappeti si calpestano: fuori dalla modalita' arredo il clic vale come camminare li'.
+    if (def?.walkable && tile) {
       send({ type: 'move', x: tile.x, y: tile.y });
       return;
     }
-    // Sedie e divani: ci si va a sedere. Gli altri aprono il menu (o la carta, se non si e' il proprietario).
-    if (def?.sitDir >= 0 && !isOwner) {
+    // Sedie e divani: ci si va a sedere, anche nella propria stanza.
+    if (def?.sitDir >= 0) {
       send({ type: 'move', x: item.x, y: item.y });
       return;
     }
-    if (!isOwner && item.card) {
+    if (item.card) {
       setViewingCard(item.card);
       return;
     }
-    setSelected(null);
-    setSelectedItemId(item.id);
+    // Fuori dalla modalita' arredo gli altri mobili non fanno nulla: si cammina li' accanto.
+    if (tile) send({ type: 'move', x: tile.x, y: tile.y });
   }
 
   return (
@@ -351,6 +422,7 @@ export default function HotelPage() {
           zoom={zoom}
           catalog={catalog}
           placement={placement}
+          buildMode={isOwner && buildMode}
           onTileClick={(tile) => send({ type: 'move', x: tile.x, y: tile.y })}
           onAvatarClick={(u) => { setSelectedItemId(null); setSelected(u); }}
           onItemClick={onItemClick}
@@ -491,6 +563,16 @@ export default function HotelPage() {
           />
         )}
         {panel === 'settings' && room && isOwner && <RoomSettings room={room} onClose={() => setPanel(null)} />}
+        {panel === 'trades' && (
+          <TradesPanel version={hotel.tradeVersion} onPendingChange={setPendingTrades} onClose={() => setPanel(null)}
+            onViewCard={(card) => setViewingCard(card)} />
+        )}
+        {buildMode && isOwner && !placement && (
+          <div className="hotel-placement-bar hotel-build-bar" role="status">
+            <span><i className="ph-fill ph-hammer" /> Modalita' arredo: clicca un mobile per modificarlo</span>
+            <button type="button" className="btn btn-secondary btn-small" onClick={() => { setBuildMode(false); setSelectedItemId(null); }}>Fine</button>
+          </div>
+        )}
       </div>
 
       {viewingCard && <CardViewer card={viewingCard} onClose={() => setViewingCard(null)} />}
@@ -508,6 +590,17 @@ export default function HotelPage() {
         <button type="button" className={`hotel-tool${panel === 'wardrobe' ? ' active' : ''}`} onClick={() => setPanel(panel === 'wardrobe' ? null : 'wardrobe')} title="Guardaroba">
           <i className="ph-fill ph-t-shirt" /><span>Look</span>
         </button>
+        <button type="button" className={`hotel-tool${panel === 'trades' ? ' active' : ''}`} onClick={() => setPanel(panel === 'trades' ? null : 'trades')} title="Scambi">
+          <i className="ph-fill ph-arrows-left-right" /><span>Scambi</span>
+          {pendingTrades > 0 && <b className="hotel-tool-badge">{pendingTrades}</b>}
+        </button>
+        {isOwner && (
+          <button type="button" className={`hotel-tool${buildMode ? ' active' : ''}`}
+            onClick={() => { setBuildMode((b) => !b); setSelectedItemId(null); }}
+            title="Modalita' arredo: clicca un mobile per ruotarlo, spostarlo o rimetterlo nell'inventario">
+            <i className="ph-fill ph-hammer" /><span>Arreda</span>
+          </button>
+        )}
         {isOwner && (
           <button type="button" className={`hotel-tool${panel === 'settings' ? ' active' : ''}`} onClick={() => setPanel(panel === 'settings' ? null : 'settings')} title="Impostazioni stanza">
             <i className="ph-fill ph-gear-six" /><span>Stanza</span>

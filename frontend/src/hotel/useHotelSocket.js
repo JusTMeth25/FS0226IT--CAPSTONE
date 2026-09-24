@@ -32,8 +32,8 @@ export function hotelSocketUrl() {
  * I messaggi arrivano a `onMessage` e non passano dallo stato di React: sono tanti e servono
  * soprattutto al motore grafico.
  */
-export function useHotelSocket({ onMessage, onReconnect }) {
-  const [status, setStatus] = useState('connecting');
+export function useHotelSocket({ onMessage, onReconnect, enabled = true }) {
+  const [status, setStatus] = useState(enabled ? 'connecting' : 'idle');
   const socketRef = useRef(null);
   const handlers = useRef({ onMessage, onReconnect });
   useEffect(() => {
@@ -41,6 +41,8 @@ export function useHotelSocket({ onMessage, onReconnect }) {
   }, [onMessage, onReconnect]);
 
   useEffect(() => {
+    // La connessione parte solo quando serve (la prima visita all'hotel), poi resta aperta.
+    if (!enabled) return undefined;
     let retryMs = 1_000;
     let retryTimer = 0;
     let pingTimer = 0;
@@ -98,8 +100,9 @@ export function useHotelSocket({ onMessage, onReconnect }) {
       clearTimeout(retryTimer);
       clearInterval(pingTimer);
       socketRef.current?.close();
+      socketRef.current = null;
     };
-  }, []);
+  }, [enabled]);
 
   const send = useCallback((message) => {
     const socket = socketRef.current;

@@ -12,7 +12,7 @@ const DRAG_THRESHOLD = 5;
  *
  * Il genitore passa i messaggi del server con ref.current.handle(message).
  */
-const HotelCanvas = forwardRef(function HotelCanvas({ zoom, catalog, placement, onTileClick, onAvatarClick, onItemClick, onPlace }, ref) {
+const HotelCanvas = forwardRef(function HotelCanvas({ zoom, catalog, placement, buildMode, onTileClick, onAvatarClick, onItemClick, onPlace }, ref) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const engineRef = useRef(null);
@@ -71,6 +71,10 @@ const HotelCanvas = forwardRef(function HotelCanvas({ zoom, catalog, placement, 
   useEffect(() => {
     if (engineRef.current) engineRef.current.placement = placement || null;
   }, [placement]);
+
+  useEffect(() => {
+    if (engineRef.current) engineRef.current.buildMode = !!buildMode;
+  }, [buildMode]);
 
   const gesture = useRef(null);
 

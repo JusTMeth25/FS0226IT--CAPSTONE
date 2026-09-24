@@ -61,6 +61,8 @@ public class RoomInstance {
         int targetY;
         String handItem;
         long handItemUntil;
+        /** Collegato ma su un'altra pagina del sito: gli altri lo vedono sbiadito. */
+        boolean away;
         /** Mobile da usare appena si arriva (per esempio il bancone del bar). */
         UUID pendingUse;
 
@@ -466,6 +468,25 @@ public class RoomInstance {
                 "serverTime", System.currentTimeMillis());
     }
 
+    /**
+     * Rimanda lo stato completo della stanza a un presente, senza farlo rientrare: serve quando
+     * torna sulla pagina dell'hotel dopo aver girato per il resto del sito.
+     */
+    public synchronized boolean resendState(UUID userId) {
+        Occupant occupant = occupants.get(userId);
+        if (occupant == null) return false;
+        occupant.session.send(roomState(userId));
+        return true;
+    }
+
+    /** Il giocatore e' andato su un'altra pagina del sito (o e' tornato): resta nella stanza. */
+    public synchronized void setAway(UUID userId, boolean away) {
+        Occupant occupant = occupants.get(userId);
+        if (occupant == null || occupant.away == away) return;
+        occupant.away = away;
+        broadcast(Map.of("type", "user_away", "id", userId, "away", away));
+    }
+
     /** Messaggio a tutti i presenti, per esempio il risultato di una sfida. */
     public synchronized void announce(Map<String, Object> message) {
         broadcast(message);
@@ -579,6 +600,7 @@ public class RoomInstance {
         view.put("dir", o.dir);
         view.put("status", o.status);
         view.put("handItem", o.handItem);
+        view.put("away", o.away);
         List<int[]> path = new ArrayList<>();
         o.path.forEach(s -> path.add(new int[]{s.x(), s.y(), s.z()}));
         view.put("path", path);

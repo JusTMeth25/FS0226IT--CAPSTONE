@@ -11,8 +11,18 @@ function uniqueOwnedCards(collection) {
   return dedupeCollection(collection).map((c) => ({ ...c, owned: c.quantity }));
 }
 
+const STATUS_LABELS = { pending: 'In attesa', accepted: 'Accettato', rejected: 'Rifiutato', cancelled: 'Annullato' };
+
+/**
+ * Il backend scrive lo stato in maiuscolo (PENDING), il vecchio backend Node in minuscolo: si
+ * confronta sempre in minuscolo. Con il confronto esatto i pulsanti Accetta e Rifiuta non
+ * comparivano mai.
+ */
+const statusOf = (trade) => trade.status?.toLowerCase();
+
 function TradeStatusBadge({ status }) {
-  return <span className={`trade-status-badge trade-status-${status?.toLowerCase()}`}>{status}</span>;
+  const key = status?.toLowerCase();
+  return <span className={`trade-status-badge trade-status-${key}`}>{STATUS_LABELS[key] || status}</span>;
 }
 
 function TradeList({ trades, loading, error, onReload, direction, onAccept, onReject, onCancel }) {
@@ -45,7 +55,7 @@ function TradeList({ trades, loading, error, onReload, direction, onAccept, onRe
             </span>
           </div>
           <TradeStatusBadge status={trade.status} />
-          {trade.status === 'pending' && (
+          {statusOf(trade) === 'pending' && (
             <div className="listing-item-actions">
               {direction === 'incoming' ? (
                 <>

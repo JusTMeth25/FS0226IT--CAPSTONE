@@ -15,6 +15,7 @@ import { useBodyScrollLock } from '../hooks/useBodyScrollLock.js';
 import RevealStage from '../components/fx/RevealStage.jsx';
 import RarityAnnounce from '../components/fx/RarityAnnounce.jsx';
 import PackVerdict from '../components/fx/PackVerdict.jsx';
+import PackValue from '../components/fx/PackValue.jsx';
 import ThreeGate from '../components/three/ThreeGate.jsx';
 import { useThreeEnabled } from '../components/three/useThreeEnabled.js';
 
@@ -463,6 +464,7 @@ export default function PackOpeningPage() {
         <>
           <p className="pack-opening-text"><i className="ph-fill ph-vinyl-record" /> Ecco le tue nuove carte!</p>
           <PackVerdict cards={cards} />
+          <PackValue cards={cards} />
           <div className="pack-reveal-grid">
             {cards.map((card, i) => (
               <div

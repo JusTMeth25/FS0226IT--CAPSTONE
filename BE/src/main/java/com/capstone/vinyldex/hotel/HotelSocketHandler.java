@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *   typing {on} · emote {emote} · status {status} · refresh_profile · ping
  *   respect {userId} · use_item {itemId} · jukebox {on}
  *   challenge {userId} · challenge_reply {challengeId,accept} · pvp_team {cards} · pvp_category {category}
- *   pvp_card {index,boost} · pvp_forfeit
+ *   pvp_card {index,boost} · pvp_forfeit · sync · away {on}
  * Solo nella propria stanza:
  *   place {itemId,x,y,rot} · pickup {itemId} · set_display {itemId,cardId} · kick {userId}
  */
@@ -211,6 +211,13 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             case "pvp_category" -> reply(session, pvpService.category(session, text(node, "category")));
             case "pvp_card" -> reply(session, pvpService.card(session, integer(node, "index"), node.path("boost").asBoolean(false)));
             case "pvp_forfeit" -> pvpService.userLeft(userId);
+            case "sync" -> {
+                // Tornato sulla pagina dell'hotel: stato completo della stanza in cui e' ancora.
+                if (room == null || !room.resendState(userId)) session.send(Map.of("type", "not_in_room"));
+            }
+            case "away" -> {
+                if (room != null) room.setAway(userId, node.path("on").asBoolean(false));
+            }
             case "kick" -> {
                 if (room != null && room.data().isOwner(userId)) room.kick(uuid(node, "userId"));
             }

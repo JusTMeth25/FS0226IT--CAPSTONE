@@ -8,6 +8,7 @@ import com.capstone.vinyldex.repository.CardRepository;
 import com.capstone.vinyldex.repository.TradeItemRepository;
 import com.capstone.vinyldex.repository.TradeRepository;
 import com.capstone.vinyldex.repository.UserRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,19 +35,22 @@ public class TradeService {
     private final UserRepository userRepository;
     private final UserCardService userCardService;
     private final WalletService walletService;
+    private final ApplicationEventPublisher events;
 
     public TradeService(TradeRepository tradeRepository,
                         TradeItemRepository tradeItemRepository,
                         CardRepository cardRepository,
                         UserRepository userRepository,
                         UserCardService userCardService,
-                        WalletService walletService) {
+                        WalletService walletService,
+                        ApplicationEventPublisher events) {
         this.tradeRepository = tradeRepository;
         this.tradeItemRepository = tradeItemRepository;
         this.cardRepository = cardRepository;
         this.userRepository = userRepository;
         this.userCardService = userCardService;
         this.walletService = walletService;
+        this.events = events;
     }
 
     @Transactional
@@ -85,6 +89,7 @@ public class TradeService {
                     WalletTransactionType.TRADE, trade.getId().toString(), "escrow");
         }
 
+        events.publishEvent(new TradeEvent(trade.getId(), "received", toUser.getId(), fromUser.getUsername()));
         return TradeDto.from(reload(trade.getId()));
     }
 
@@ -141,6 +146,7 @@ public class TradeService {
 
         trade.setStatus(TradeStatus.ACCEPTED);
         tradeRepository.save(trade);
+        events.publishEvent(new TradeEvent(trade.getId(), "accepted", proposer.getId(), receiver.getUsername()));
         return TradeDto.from(reload(trade.getId()));
     }
 
@@ -154,6 +160,8 @@ public class TradeService {
         refundEscrow(trade);
         trade.setStatus(TradeStatus.REJECTED);
         tradeRepository.save(trade);
+        events.publishEvent(new TradeEvent(trade.getId(), "rejected", trade.getFromUser().getId(),
+                trade.getToUser().getUsername()));
         return TradeDto.from(reload(trade.getId()));
     }
 
@@ -167,6 +175,8 @@ public class TradeService {
         refundEscrow(trade);
         trade.setStatus(TradeStatus.CANCELLED);
         tradeRepository.save(trade);
+        events.publishEvent(new TradeEvent(trade.getId(), "cancelled", trade.getToUser().getId(),
+                trade.getFromUser().getUsername()));
         return TradeDto.from(reload(trade.getId()));
     }
 

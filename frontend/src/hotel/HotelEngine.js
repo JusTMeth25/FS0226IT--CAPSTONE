@@ -45,6 +45,8 @@ export class HotelEngine {
     this.spriteCache = new Map();
     /** Posizionamento in corso: { itemId, type, rot } oppure null. */
     this.placement = null;
+    /** Modalita' arredo: il clic prende prima i mobili, anche se c'e' un avatar seduto sopra. */
+    this.buildMode = false;
     /** Il jukebox suona: la pista si accende e chi ci sta sopra balla. */
     this.jukeboxOn = false;
     /** Cuori del rispetto che salgono sopra la testa di chi lo riceve. */
@@ -131,6 +133,11 @@ export class HotelEngine {
       case 'item_updated': this.items.set(message.item.id, message.item); break;
       case 'item_removed': this.items.delete(message.id); break;
       case 'hand_item': this.setHandItem(message.id, message.item); break;
+      case 'user_away': {
+        const user = this.users.get(message.id);
+        if (user) user.away = message.away;
+        break;
+      }
       case 'jukebox': this.jukeboxOn = message.track >= 0; break;
       case 'respect': this.hearts.push({ userId: message.to, born: now }); break;
       default: break;
@@ -286,6 +293,13 @@ export class HotelEngine {
       const tile = this.tileAt(cssX, cssY);
       if (tile) this.onPlace?.(tile, this.placement);
       return;
+    }
+    if (this.buildMode) {
+      const target = this.itemAt(cssX, cssY);
+      if (target) {
+        this.onItemClick?.(target, this.tileAt(cssX, cssY));
+        return;
+      }
     }
     const user = this.avatarAt(cssX, cssY);
     if (user) {
@@ -534,14 +548,18 @@ export class HotelEngine {
       ctx.fill();
 
       const p = toScreen(left, top);
+      // Chi e' su un'altra pagina del sito resta nella stanza, ma sbiadito.
+      if (user.away) ctx.globalAlpha = 0.45;
       ctx.drawImage(sprite, p.x, p.y, AVATAR_W * scale, AVATAR_H * scale);
+      ctx.globalAlpha = 1;
       if (user.handItem) drawDrink(ctx, user, p, scale, viewForDirection(user.dir ?? 2));
       const head = toScreen(center.x, top);
       user.headY = head.y;
       user.screenX = head.x;
       if (user.typing) labels.push({ kind: 'typing', x: head.x, y: head.y - 6 });
-      if (user.id === this.hoverUserId || user.id === this.meId) {
-        labels.push({ kind: 'name', x: head.x, y: head.y - (user.typing ? 22 : 6), text: user.username, me: user.id === this.meId });
+      if (user.id === this.hoverUserId || user.id === this.meId || user.away) {
+        const text = user.away ? `${user.username} (assente)` : user.username;
+        labels.push({ kind: 'name', x: head.x, y: head.y - (user.typing ? 22 : 6), text, me: user.id === this.meId });
       }
     });
 

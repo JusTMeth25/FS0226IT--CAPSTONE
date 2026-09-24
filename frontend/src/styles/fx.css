@@ -732,6 +732,32 @@
   letter-spacing: 1px; text-transform: uppercase;
 }
 
+/* Valore di mercato delle carte trovate: stessa pillola del verdetto, in oro. */
+.pack-value {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: fit-content;
+  max-width: 100%;
+  margin: calc(-1 * var(--space-sm)) auto var(--space-md);
+  padding: 10px 18px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--neon-gold) 10%, rgba(5, 8, 22, 0.85));
+  border: 1px solid color-mix(in srgb, var(--neon-gold) 70%, transparent);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--neon-gold) 30%, transparent);
+  animation: verdictIn 520ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: 420ms;
+}
+.pack-value-icon { color: var(--neon-gold); font-size: 1.4rem; line-height: 1; }
+.pack-value-text { display: flex; flex-direction: column; min-width: 0; }
+.pack-value-label {
+  font-size: 0.62rem; font-weight: 800; letter-spacing: 1.4px;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.pack-value-amount { font-size: 1.15rem; font-weight: 900; color: var(--neon-gold); }
+.pack-value-detail { font-size: 0.72rem; color: var(--text-secondary); }
+@media (prefers-reduced-motion: reduce) { .pack-value { animation: none; } }
+
 /* La carta migliore si stacca dalle altre nella griglia. */
 .pack-reveal-slot-best { position: relative; }
 .pack-reveal-slot-best::before {
@@ -970,3 +996,33 @@
 @media (min-width: 992px) {
   .pack-3d-stage { height: 520px; }
 }
+
+/* ========================================
+   AVVISO DELL'HOTEL SULLE ALTRE PAGINE
+   Sfide e proposte di scambio arrivano anche mentre si guarda la collezione o il mercato:
+   un avviso in basso porta all'hotel.
+   ======================================== */
+.hotel-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--bottom-nav-h, 0px) + 16px + var(--safe-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100% - 24px);
+  padding: 8px 10px 8px 14px;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  background: linear-gradient(160deg, #1c1242, #0b0720);
+  border: 2px solid #05030d;
+  box-shadow: inset 0 0 0 1px rgba(236, 72, 153, 0.5), 0 0 24px rgba(139, 92, 246, 0.45);
+  animation: hotelToastIn 0.25s ease-out;
+}
+.hotel-toast > i { font-size: 1.2rem; color: #ffd700; }
+.hotel-toast-close { background: none; border: none; color: #aea3dc; cursor: pointer; }
+@keyframes hotelToastIn { from { opacity: 0; transform: translate(-50%, 12px); } }
+@media (prefers-reduced-motion: reduce) { .hotel-toast { animation: none; } }
