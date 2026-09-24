@@ -562,6 +562,64 @@ const DRAW = {
       d(0.7, 0.82, 34, '#8b5cf6', 30, 8);
     });
   },
+  pizza_oven(b, { c, d, now, front }) {
+    // Forno a legna a cupola: base in mattoni, bocca con il fuoco che si muove.
+    b({ u0: 0.04, v0: 0.12, u1: 1.96, v1: 0.88, z1: 34, color: '#9a4a32', tex: 'stone' });
+    b({ u0: 0.02, v0: 0.1, u1: 1.98, v1: 0.9, z0: 34, z1: 38, color: '#c9b79c', tex: 'stone' });
+    c({ u: 1, v: 0.5, r: 0.66, z0: 38, z1: 58, color: '#b8a38a', top: '#cdbba4', tex: 'stone' });
+    c({ u: 1, v: 0.5, r: 0.44, z0: 58, z1: 68, color: '#b8a38a', top: '#cdbba4', tex: 'stone' });
+    c({ u: 1.3, v: 0.3, r: 0.1, z0: 66, z1: 96, color: '#7a6c60', tex: 'stone' });
+    front(() => {
+      const step = Math.floor((now || 0) / 150) % 4;
+      d(0.78, 0.9, 56, '#1a1210', 28, 16);
+      const flames = ['#f97316', '#fbbf24', '#ef4444', '#fde68a'];
+      for (let i = 0; i < 5; i += 1) {
+        const h = 6 + ((i * 5 + step * 3) % 8);
+        d(0.82 + i * 0.1, 0.9, 42 + h, flames[(i + step) % 4], 3, h);
+      }
+      d(0.2, 0.9, 30, '#6b3e1f', 8, 18);
+      d(0.24, 0.9, 30, '#8a5a3b', 4, 18);
+    });
+  },
+  pool_table(b, { c }) {
+    [[0.12, 0.2], [0.12, 0.74], [1.82, 0.2], [1.82, 0.74]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.08, v1: v + 0.08, z1: 26, color: '#4a2511' }));
+    b({ u0: 0.06, v0: 0.14, u1: 1.94, v1: 0.86, z0: 26, z1: 34, color: '#6b3e1f', tex: 'wood' });
+    b({ u0: 0.14, v0: 0.22, u1: 1.86, v1: 0.78, z0: 34, z1: 35, color: '#15803d', tex: 'fabric' });
+    [[0.14, 0.22], [1.0, 0.22], [1.86, 0.22], [0.14, 0.78], [1.0, 0.78], [1.86, 0.78]].forEach(([u, v]) => c({ u, v, r: 0.04, z0: 35, z1: 35, color: '#111018', top: '#111018' }));
+    [[0.5, 0.5, '#f5f5f5'], [1.3, 0.4, '#ef4444'], [1.4, 0.55, '#fbbf24'], [1.5, 0.45, '#3b82f6'], [1.4, 0.34, '#111018']].forEach(([u, v, color]) => c({ u, v, r: 0.035, z0: 35, z1: 38, color, top: color }));
+    b({ u0: 0.3, v0: 0.62, u1: 1.2, v1: 0.66, z0: 38, z1: 39, color: '#d9b77c' });
+  },
+  claw_machine(b, { c, d, now, front }) {
+    const step = Math.floor((now || 0) / 300) % 4;
+    b({ u0: 0.14, v0: 0.18, u1: 0.86, v1: 0.82, z1: 36, color: '#ec4899' });
+    b({ u0: 0.14, v0: 0.18, u1: 0.86, v1: 0.82, z0: 36, z1: 86, color: '#bae6fd', left: '#7dd3fc', right: '#38bdf8', top: '#e0f2fe' });
+    b({ u0: 0.12, v0: 0.16, u1: 0.88, v1: 0.84, z0: 86, z1: 96, color: '#ec4899', glow: true });
+    ['#fbbf24', '#8b5cf6', '#22c55e', '#f97316'].forEach((color, i) => c({ u: 0.3 + (i % 2) * 0.35, v: 0.35 + Math.floor(i / 2) * 0.3, r: 0.1, z0: 36, z1: 44, color }));
+    b({ u0: 0.44, v0: 0.44, u1: 0.5, v1: 0.5, z0: 64 + step * 3, z1: 86, color: '#9ca3af' });
+    front(() => {
+      for (let i = 0; i < 5; i += 1) d(0.2 + i * 0.13, 0.82, 94, (i + step) % 2 ? '#fde68a' : '#ffffff', 2, 2);
+      d(0.3, 0.82, 26, '#1f1f2e', 14, 8);
+      d(0.36, 0.82, 22, '#ef4444', 4, 3);
+    });
+  },
+  globe(b, { c }) {
+    c({ u: 0.5, v: 0.5, r: 0.18, z0: 0, z1: 4, color: '#6b3e1f' });
+    c({ u: 0.5, v: 0.5, r: 0.03, z0: 4, z1: 34, color: '#d4a017', tex: 'metal' });
+    [[0.14, 34, 38], [0.24, 38, 44], [0.28, 44, 52], [0.24, 52, 58], [0.14, 58, 62]].forEach(([r, z0, z1], i) => {
+      c({ u: 0.5, v: 0.5, r, z0, z1, color: i % 2 ? '#3b82f6' : '#22c55e' });
+    });
+    b({ u0: 0.18, v0: 0.46, u1: 0.22, v1: 0.54, z0: 34, z1: 62, color: '#d4a017' });
+  },
+  fire_pit(b, { c, d, now }) {
+    const step = Math.floor((now || 0) / 150) % 4;
+    c({ u: 0.5, v: 0.5, r: 0.36, z0: 0, z1: 12, color: '#57534e', top: '#1c1917', tex: 'stone' });
+    const flames = ['#f97316', '#fbbf24', '#ef4444', '#fde68a'];
+    for (let i = 0; i < 6; i += 1) {
+      const h = 6 + ((i * 7 + step * 4) % 12);
+      d(0.3 + (i % 3) * 0.14, 0.5 + Math.floor(i / 3) * 0.12 - 0.06, 12 + h, flames[(i + step) % 4], 3, h);
+    }
+    d(0.44, 0.5, 34 + step * 2, 'rgba(203, 213, 225, 0.5)', 3, 3);
+  },
   bar_counter(b, { d, front }) {
     b({ u0: 0.02, v0: 0.1, u1: 2.98, v1: 0.9, z1: 40, color: '#4a2511', left: '#5c2e15', right: '#2e170a', tex: 'wood' });
     b({ u0: 0, v0: 0.06, u1: 3, v1: 0.94, z0: 40, z1: 44, color: '#1f1f2e', glow: true });
@@ -802,7 +860,10 @@ const ANIMATIONS = {
   pool_water: { period: 600, steps: 4 },
   aquarium: { period: 300, steps: 6 },
   fireplace: { period: 150, steps: 4 },
-  fountain: { period: 250, steps: 4 }
+  fountain: { period: 250, steps: 4 },
+  pizza_oven: { period: 150, steps: 4 },
+  claw_machine: { period: 300, steps: 4 },
+  fire_pit: { period: 150, steps: 4 }
 };
 const DANCE_COLORS = 6;
 

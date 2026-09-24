@@ -186,6 +186,35 @@ const FLOORS = {
     };
   })(),
 
+  // Cotto: piastrelle quadrate color terracotta, sfumate una per una.
+  terracotta: (() => {
+    const tones = ['#b5583a', '#a84f33', '#c0643f', '#9e4a30'].map(rgb);
+    const grout = rgb('#6e3a28');
+    return (X, Y, sx, sy) => {
+      const cu = frac(X * 2);
+      const cv = frac(Y * 2);
+      if (cu < 0.05 || cv < 0.05) return grout;
+      const base = tones[Math.floor(noise(Math.floor(X * 2), Math.floor(Y * 2), 5) * tones.length)];
+      return tint(base, (noise(sx, sy) - 0.5) * 0.08 + (cu + cv < 0.35 ? 0.06 : 0));
+    };
+  })(),
+
+  // Pedana in legno da esterno: doghe strette con le viti in fila.
+  wooddeck: (() => {
+    const woods = ['#8a6a4a', '#7c5e40', '#957453'].map(rgb);
+    const gap = rgb('#3b2a1e');
+    return (X, Y, sx, sy) => {
+      const row = Math.floor(Y * 5);
+      const inRow = frac(Y * 5);
+      if (inRow < 0.1) return gap;
+      const base = woods[Math.floor(noise(row, 9) * woods.length)];
+      const screw = Math.abs(frac(X * 2) - 0.5) < 0.02 && Math.abs(inRow - 0.5) < 0.08;
+      if (screw) return rgb('#2a2a2a');
+      const grain = Math.sin(X * 30 + noise(row, 4) * 10) > 0.9 ? -0.1 : 0;
+      return tint(base, grain + (noise(sx, sy) - 0.5) * 0.05);
+    };
+  })(),
+
   // Tappeto da ring: gomma rossa con le corde dorate ai bordi di ogni quadrato.
   arena: (() => {
     const mat = rgb('#5e1f2b');
@@ -345,6 +374,30 @@ const WALLS = {
       const cy = Math.floor(h / 8);
       if (h > 40 && h < 56) return (cx + cy) % 2 ? deep : blue;
       return tint((cx + cy) % 3 === 0 ? blue : white, (noise(col, sy) - 0.5) * 0.04);
+    };
+  })(),
+
+  // Skyline: parapetto in vetro e dietro la citta' di notte, con le finestre accese e le stelle.
+  skyline: (() => {
+    const sky = ['#0b0620', '#170b35', '#2a114f', '#4a1765'].map(rgb);
+    const building = rgb('#140d2c');
+    const lights = ['#ffd76a', '#ff7ad9', '#7ae8ff'].map(rgb);
+    const rail = rgb('#9ca3af');
+    const glass = rgb('#7dd3fc');
+    return (col, h, height, side, sy) => {
+      if (h < 3) return rgb('#1f1f2e');
+      // Parapetto: corrimano metallico e vetro appena azzurrato in basso.
+      if (h >= 34 && h < 37) return h === 36 ? tint(rail, 0.3) : rail;
+      if (h < 34) return mix(tint(building, 0.1), glass, 0.18);
+      const bx = Math.floor(col / 14);
+      const top = 50 + Math.floor(noise(bx, 3) * 70);
+      if (h < top) {
+        const lit = (col % 4 === 1) && (h % 6 === 2) && noise(col, h) > 0.45;
+        return lit ? lights[Math.floor(noise(h, col) * lights.length)] : tint(building, (noise(col, sy) - 0.5) * 0.06);
+      }
+      const t = (h - 37) / (height - 37);
+      const color = sky[Math.min(sky.length - 1, Math.floor((1 - t) * sky.length))];
+      return noise(col, h) > 0.996 ? rgb('#ffffff') : color;
     };
   })(),
 

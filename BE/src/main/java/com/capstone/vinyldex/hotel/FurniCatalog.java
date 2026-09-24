@@ -128,6 +128,11 @@ public final class FurniCatalog {
         add(new FurniDef("fountain", "Fontana", "giardino", 280, 2, 2, false, false, -1, false, true));
         add(new FurniDef("flower_bed", "Aiuola", "giardino", 40, 1, 1, false, false, -1, false, true));
         add(new FurniDef("icecream_cart", "Carretto dei gelati", "giardino", 200, 2, 1, false, false, -1, false, true));
+        add(new FurniDef("pizza_oven", "Forno a legna", "caffe", 260, 2, 1, false, false, -1, false, true));
+        add(new FurniDef("pool_table", "Biliardo", "giochi", 320, 2, 1, false, false, -1, false, true));
+        add(new FurniDef("claw_machine", "Pesca-peluche", "giochi", 240, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("globe", "Mappamondo", "arredo", 90, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("fire_pit", "Braciere", "giardino", 150, 1, 1, false, false, -1, false, true));
         add(new FurniDef("bar_counter", "Bancone bar", "lobby", 0, 3, 1, false, false, -1, false, false));
         add(new FurniDef("dj_booth", "Consolle DJ", "lobby", 0, 2, 1, false, false, -1, false, false));
     }

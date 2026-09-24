@@ -41,6 +41,12 @@ public final class NpcDialog {
         ITEM_WORDS.put("the", "tea");
         ITEM_WORDS.put("tea", "tea");
         ITEM_WORDS.put("tisana", "tea");
+        ITEM_WORDS.put("pizza", "pizza");
+        ITEM_WORDS.put("trancio", "pizza");
+        ITEM_WORDS.put("margherita", "pizza");
+        ITEM_WORDS.put("libro", "book");
+        ITEM_WORDS.put("romanzo", "book");
+        ITEM_WORDS.put("leggere", "book");
         ITEM_WORDS.put("gelato", "gelato");
         ITEM_WORDS.put("cono", "gelato");
     }
@@ -56,7 +62,8 @@ public final class NpcDialog {
     /** Nomi leggibili degli oggetti, per le frasi. */
     private static final Map<String, String> ITEM_NAMES = Map.of(
             "coffee", "un caffe'", "cola", "una cola", "juice", "un succo d'arancia", "bubble", "una bibita frizzante",
-            "cocktail", "un cocktail al neon", "tea", "una tazza di te'", "gelato", "un gelato");
+            "cocktail", "un cocktail al neon", "tea", "una tazza di te'", "gelato", "un gelato",
+            "pizza", "un trancio di pizza", "book", "un bel libro");
 
     private NpcDialog() {
     }
@@ -119,6 +126,8 @@ public final class NpcDialog {
             case ICE_CREAM -> "Ciao " + user + "! Un bel gelato?";
             case GARDENER -> "Ciao " + user + "! Attento alle aiuole, le ho appena sistemate.";
             case REFEREE -> "Benvenuto nell'Arena, " + user + ". Clicca un giocatore e sfidalo!";
+            case CHEF -> "Benvenuto in pizzeria, " + user + "! Il forno e' caldo, una margherita?";
+            case LIBRARIAN -> "Benvenuto in biblioteca, " + user + ". Sussurra, qui si legge!";
             case GUEST -> pick(random, List.of("Ciao " + user + "!", "Ehi " + user + ", come va?", "Ciao! Bella stanza, vero?"));
         };
     }
@@ -166,7 +175,8 @@ public final class NpcDialog {
 
     public static String cannotDance(NpcRoster.Role role) {
         return switch (role) {
-            case BARISTA, WAITER, ICE_CREAM -> "Sono in servizio, ballo dopo il turno!";
+            case BARISTA, WAITER, ICE_CREAM, CHEF -> "Sono in servizio, ballo dopo il turno!";
+            case LIBRARIAN -> "In biblioteca? Shhh!";
             case LIFEGUARD -> "Devo tenere d'occhio la vasca, scusa!";
             default -> "Magari dopo!";
         };
@@ -200,6 +210,9 @@ public final class NpcDialog {
             case ICE_CREAM -> List.of("Gelati freschi!", "Oggi c'e' il gusto vinile: nero con la ciliegina rosa!");
             case GARDENER -> List.of("Queste rose crescono bene.", "Qualcuno ha visto il mio annaffiatoio?");
             case REFEREE -> List.of("Chi si sfida adesso?", "Tre round, vince il migliore!", "Scegliete bene le carte.");
+            case CHEF -> List.of("Pizza calda appena sfornata!", "Oggi c'e' la speciale al neon: pomodoro e fiordilatte viola... scherzo!",
+                    "Chi vuole un trancio?");
+            case LIBRARIAN -> List.of("Shhh, per favore.", "Nuovi arrivi sullo scaffale dei manga.", "I libri si restituiscono entro domani!");
             case GUEST -> List.of("Che bella giornata!", "Qualcuno vuole scambiare carte?", "Adoro questo posto.",
                     "Ho appena aperto un pacchetto fortunato!", "Ci vediamo al Neon Bar stasera?");
         });

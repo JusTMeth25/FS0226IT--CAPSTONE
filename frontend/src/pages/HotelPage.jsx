@@ -400,7 +400,7 @@ export default function HotelPage() {
       return;
     }
     // Bancone: si riceve una bibita (camminandoci accanto se serve). Jukebox: cambia brano.
-    if (['bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'jukebox'].includes(item.type)) {
+    if (['bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'pizza_oven', 'jukebox'].includes(item.type)) {
       send({ type: 'use_item', itemId: item.id });
       return;
     }

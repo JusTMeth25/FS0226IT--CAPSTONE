@@ -881,7 +881,7 @@ public class RoomInstance {
         if (occupant == null || item == null) return "item_not_found";
 
         switch (item.type()) {
-            case "bar_counter", "cafe_counter", "coffee_machine", "icecream_cart" -> {
+            case "bar_counter", "cafe_counter", "coffee_machine", "icecream_cart", "pizza_oven" -> {
                 if (isNextTo(occupant, item)) {
                     serveDrink(occupant, item.type());
                     return null;
@@ -969,6 +969,7 @@ public class RoomInstance {
         occupant.handItem = switch (from) {
             case "coffee_machine" -> "coffee";
             case "icecream_cart" -> "gelato";
+            case "pizza_oven" -> "pizza";
             default -> DRINKS.get(Math.floorMod((int) System.nanoTime(), DRINKS.size()));
         };
         occupant.handItemUntil = System.currentTimeMillis() + DRINK_MILLIS;

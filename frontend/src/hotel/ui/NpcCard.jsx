@@ -8,7 +8,9 @@ const ITEMS = {
   juice: { label: 'Succo', icon: 'ph-orange-slice' },
   bubble: { label: 'Frizzante', icon: 'ph-sparkle' },
   cocktail: { label: 'Cocktail', icon: 'ph-martini' },
-  gelato: { label: 'Gelato', icon: 'ph-ice-cream' }
+  gelato: { label: 'Gelato', icon: 'ph-ice-cream' },
+  pizza: { label: 'Pizza', icon: 'ph-pizza' },
+  book: { label: 'Un libro', icon: 'ph-book-open' }
 };
 
 const DESCRIPTIONS = {
@@ -20,6 +22,8 @@ const DESCRIPTIONS = {
   ice_cream: 'Il carretto dei gelati del giardino.',
   gardener: 'Cura le aiuole e sa tutto delle piante.',
   referee: 'Arbitra le sfide dell\'Arena.',
+  chef: 'Al forno a legna: ordina un trancio e te lo sforna.',
+  librarian: 'Conosce ogni libro dello scaffale. Chiedile un consiglio.',
   guest: 'Un ospite dell\'hotel: salutalo, magari balla con te.'
 };
 

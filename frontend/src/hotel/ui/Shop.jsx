@@ -10,6 +10,7 @@ const CATEGORY_LABELS = {
   caffe: 'Caffetteria',
   piscina: 'Piscina',
   giardino: 'Giardino',
+  giochi: 'Giochi',
   carte: 'Carte',
   pareti: 'Pareti'
 };

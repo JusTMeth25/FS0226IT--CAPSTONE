@@ -128,6 +128,8 @@ class RoomNpcTest {
         assertEquals("coffee", NpcDialog.requestedItem("Un caffè, per favore!"));
         assertEquals("tea", NpcDialog.requestedItem("mi fai un tè?"));
         assertNull(NpcDialog.requestedItem("questo e' per te"), "\"te\" da solo e' un pronome");
+        assertEquals("pizza", NpcDialog.requestedItem("Salvatore, una margherita!"));
+        assertEquals("book", NpcDialog.requestedItem("mi consigli un libro?"));
         assertEquals(NpcDialog.Intent.GREET, NpcDialog.intentOf("ciao Marco"));
         assertEquals(NpcDialog.Intent.THANKS, NpcDialog.intentOf("grazie mille"));
         assertTrue(NpcDialog.mentions("ehi dj byte, metti musica", "DJ Byte"));

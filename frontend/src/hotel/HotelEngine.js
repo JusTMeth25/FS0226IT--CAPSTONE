@@ -11,7 +11,8 @@ const SEAT_LIFT = 7 * DETAIL;
 
 /** Colori delle bibite del bancone (nomi come in RoomInstance.DRINKS). */
 const DRINK_COLORS = {
-  cola: '#5b2a0e', juice: '#f97316', coffee: '#6b3e1f', bubble: '#ec4899', cocktail: '#22d3ee', tea: '#b45309', gelato: '#f9a8d4'
+  cola: '#5b2a0e', juice: '#f97316', coffee: '#6b3e1f', bubble: '#ec4899', cocktail: '#22d3ee', tea: '#b45309', gelato: '#f9a8d4',
+  pizza: '#fbbf24', book: '#8b5cf6'
 };
 
 /** Di quanto scende in acqua chi nuota: resta fuori dalla vita in su, come su Habbo. */
@@ -719,6 +720,21 @@ function drawDrink(ctx, user, p, scale, view) {
     ctx.fillRect(x + dx * s, y + dy * s, w * s, h * s);
   };
   switch (user.handItem) {
+    case 'pizza':
+      rect(-1, 0, 11, 8, '#1a1030');
+      rect(0, 1, 9, 6, '#e8b45a');
+      rect(1, 1, 7, 4, '#ef4444');
+      rect(2, 2, 2, 1, '#fde68a');
+      rect(5, 3, 2, 1, '#fde68a');
+      rect(3, 4, 1, 1, '#16a34a');
+      break;
+    case 'book':
+      rect(-1, -1, 9, 11, '#1a1030');
+      rect(0, 0, 7, 9, color);
+      rect(0, 0, 1, 9, '#5b21b6');
+      rect(2, 2, 4, 1, '#fde68a');
+      rect(6, 1, 1, 7, '#f5f5f5');
+      break;
     case 'gelato':
       rect(1, 2, 6, 10, '#1a1030');
       rect(2, 3, 4, 8, '#d9a066');
