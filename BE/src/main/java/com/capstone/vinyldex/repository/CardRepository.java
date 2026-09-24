@@ -18,6 +18,10 @@ public interface CardRepository extends JpaRepository<Card, UUID> {
 
     long countByActiveTrue();
 
+    /** Carte di altre fonti con statistiche esattamente uguali a quelle date (vedi CardStatsBackfill). */
+    List<Card> findBySourceNotAndFansAndStyleAndInfluenceAndEnergy(String source, int fans, int style,
+                                                                 int influence, int energy);
+
     @Query("SELECT c FROM Card c LEFT JOIN FETCH c.artistClass WHERE c.active = true")
     List<Card> findAllActiveWithArtistClass();
 

@@ -49,6 +49,12 @@ public class LorcanaImporter extends AbstractCardImporter {
         metadata.put("color", text(card, "Color"));
         metadata.put("type", text(card, "Type"));
         metadata.put("franchise", text(card, "Franchise"));
+        // Dati per CardStatCalculator.
+        metadata.put("cost", decimal(card, "Cost"));
+        metadata.put("strength", decimal(card, "Strength"));
+        metadata.put("willpower", decimal(card, "Willpower"));
+        metadata.put("lore", decimal(card, "Lore"));
+        metadata.put("tcgRarity", text(card, "Rarity"));
 
         String description = text(card, "Flavor_Text");
         if (description == null) description = text(card, "Body_Text");

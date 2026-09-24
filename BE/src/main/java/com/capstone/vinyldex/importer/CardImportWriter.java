@@ -20,15 +20,15 @@ import java.util.List;
 @Service
 public class CardImportWriter {
 
-    /** Stat di partenza delle carte importate: neutre, un admin puo' bilanciarle dal pannello. */
-    private static final int DEFAULT_STAT = 50;
-
     private final CardRepository cardRepository;
     private final ExternalCardSourceRepository sourceRepository;
+    private final CardStatCalculator statCalculator;
 
-    public CardImportWriter(CardRepository cardRepository, ExternalCardSourceRepository sourceRepository) {
+    public CardImportWriter(CardRepository cardRepository, ExternalCardSourceRepository sourceRepository,
+                            CardStatCalculator statCalculator) {
         this.cardRepository = cardRepository;
         this.sourceRepository = sourceRepository;
+        this.statCalculator = statCalculator;
     }
 
     @Transactional
@@ -39,13 +39,12 @@ public class CardImportWriter {
             Card card = cardRepository.findBySourceAndExternalId(source, incoming.externalId())
                     .orElseGet(Card::new);
 
+            // Le statistiche si calcolano solo per le carte nuove o ancora ai valori neutri di
+            // prima: se un admin le ha ribilanciate dal pannello, un nuovo import non le sovrascrive.
+            boolean computeStats = card.getId() == null || hasLegacyDefaultStats(card);
             if (card.getId() == null) {
                 card.setSource(source);
                 card.setExternalId(incoming.externalId());
-                card.setFans(DEFAULT_STAT);
-                card.setStyle(DEFAULT_STAT);
-                card.setInfluence(DEFAULT_STAT);
-                card.setEnergy(DEFAULT_STAT);
             }
 
             card.setCode(incoming.code());
@@ -65,6 +64,8 @@ public class CardImportWriter {
             // precedente le aveva create attive, cosi' non escono mai dai pacchetti veri.
             card.setActive(!incoming.isDemo());
 
+            if (computeStats) applyStats(card);
+
             cardRepository.save(card);
             imported++;
         }
@@ -77,6 +78,23 @@ public class CardImportWriter {
         sourceRepository.save(sourceRow);
 
         return imported;
+    }
+
+    /** Ricalcola le statistiche di una carta importata dai suoi dati attuali. */
+    public void applyStats(Card card) {
+        CardStatCalculator.Stats stats = statCalculator.calculate(new CardStatCalculator.Input(
+                card.getSource(), card.getCode(), card.getName(), card.getSetName(), card.getRarity(),
+                card.getMarketPrice(), card.getMetadata()));
+        card.setFans(stats.fans());
+        card.setStyle(stats.style());
+        card.setInfluence(stats.influence());
+        card.setEnergy(stats.energy());
+    }
+
+    /** Vero per le carte importate prima del calcolo delle statistiche: tutte e quattro a 50. */
+    public static boolean hasLegacyDefaultStats(Card card) {
+        int d = CardStatCalculator.LEGACY_DEFAULT_STAT;
+        return card.getFans() == d && card.getStyle() == d && card.getInfluence() == d && card.getEnergy() == d;
     }
 
     private static String truncate(String value, int max) {

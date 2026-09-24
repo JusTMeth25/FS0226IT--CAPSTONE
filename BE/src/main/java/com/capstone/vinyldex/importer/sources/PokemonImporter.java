@@ -67,6 +67,10 @@ public class PokemonImporter extends AbstractCardImporter {
         metadata.put("hp", text(card, "hp"));
         metadata.put("artist", text(card, "artist"));
         metadata.put("marketPrice", price);
+        // Dati per CardStatCalculator: sottotipi (ex, V, VMAX...), danno piu' alto e rarita' originale.
+        metadata.put("subtypes", elements(child(card, "subtypes")).stream().map(JsonNode::asString).toList());
+        metadata.put("maxDamage", maxDamage(card));
+        metadata.put("tcgRarity", text(card, "rarity"));
 
         JsonNode images = child(card, "images");
         String image = text(images, "large");
@@ -90,6 +94,18 @@ public class PokemonImporter extends AbstractCardImporter {
     private String rarityOf(JsonNode card, Double price) {
         String byPrice = priceRarityMapper.rarityFromPrice(SOURCE, price);
         return byPrice != null ? byPrice : mapRarityFallback(text(card, "rarity"));
+    }
+
+    /** Danno piu' alto fra gli attacchi: "120+" e "30x" valgono per il loro numero. */
+    private static Integer maxDamage(JsonNode card) {
+        int best = 0;
+        for (JsonNode attack : elements(child(card, "attacks"))) {
+            String damage = text(attack, "damage");
+            if (damage == null) continue;
+            String digits = damage.replaceAll("[^0-9]", "");
+            if (!digits.isEmpty()) best = Math.max(best, Integer.parseInt(digits));
+        }
+        return best > 0 ? best : null;
     }
 
     private static String description(JsonNode card) {

@@ -23,6 +23,27 @@ function HoloLayers() {
   );
 }
 
+/** Le quattro statistiche piu' il totale, uguali per tutte le carte. */
+function StatsGrid({ card }) {
+  const total = getTotalScore(card);
+  return (
+    <div className="card-hero-stats-grid">
+      {STAT_DEFS.map((s) => (
+        <div key={s.key} className="card-hero-stat" style={{ '--stat-color': s.color }}>
+          <i className={`ph-fill ${s.icon}`} />
+          <span className="card-hero-stat-value">{card.stats?.[s.key] || 0}</span>
+          <span className="card-hero-stat-label">{s.label}</span>
+        </div>
+      ))}
+      <div className="card-hero-stat card-hero-stat-total">
+        <span className="card-hero-stat-value">{total}</span>
+        <span className="card-hero-stat-label">Totale</span>
+        <span className="card-hero-stat-sublabel">Somma Statistiche</span>
+      </div>
+    </div>
+  );
+}
+
 /**
  * Vista di dettaglio "hero" di una carta: artwork a tutta larghezza, rarità,
  * citazione e statistiche. Usata da CardDetailPage e dal modal reveal.
@@ -31,23 +52,36 @@ function HoloLayers() {
  *
  * Con `hideArt` l'artwork non viene mostrato: serve quando sopra c'e' gia' la carta 3D, per
  * non vedere la stessa immagine due volte. Restano citazione, tag e statistiche.
+ *
+ * Le carte VinylDex a immagine intera hanno le statistiche stampate sull'artwork. Quelle importate
+ * da altri TCG no: per loro le statistiche di gioco compaiono in un riquadro sotto l'immagine.
  */
 export default function CardHero({ card, quantity = 1, hideArt = false }) {
   const rarityClass = getRarityCSSClass(card.rarity);
 
   if (card.fullImage) {
-    if (hideArt) return null;
-    return (
+    const imported = card.source && card.source !== 'original';
+    const art = hideArt ? null : (
       <CardHoloFrame rarity={card.rarity} className={`card-hero card-hero-full ${rarityClass}`}>
         <img className="card-hero-art" src={resolveCardImage(card)} alt={card.name} />
         <HoloLayers />
         {quantity > 1 && <span className="card-hero-qty-badge">×{quantity}</span>}
       </CardHoloFrame>
     );
+    if (!imported) return art;
+    return (
+      <>
+        {art}
+        <div className={`card-hero card-hero-stats-only ${rarityClass}`}>
+          <div className="card-hero-body">
+            <StatsGrid card={card} />
+          </div>
+        </div>
+      </>
+    );
   }
 
   const color = getRarityColor(card.rarity);
-  const total = getTotalScore(card);
 
   return (
     <div className={`card-hero ${rarityClass}`}>
@@ -80,20 +114,7 @@ export default function CardHero({ card, quantity = 1, hideArt = false }) {
             </div>
           )}
         </div>
-        <div className="card-hero-stats-grid">
-          {STAT_DEFS.map((s) => (
-            <div key={s.key} className="card-hero-stat" style={{ '--stat-color': s.color }}>
-              <i className={`ph-fill ${s.icon}`} />
-              <span className="card-hero-stat-value">{card.stats?.[s.key] || 0}</span>
-              <span className="card-hero-stat-label">{s.label}</span>
-            </div>
-          ))}
-          <div className="card-hero-stat card-hero-stat-total">
-            <span className="card-hero-stat-value">{total}</span>
-            <span className="card-hero-stat-label">Totale</span>
-            <span className="card-hero-stat-sublabel">Somma Statistiche</span>
-          </div>
-        </div>
+        <StatsGrid card={card} />
       </div>
     </div>
   );

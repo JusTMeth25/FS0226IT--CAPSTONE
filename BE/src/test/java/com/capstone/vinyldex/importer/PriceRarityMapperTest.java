@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PriceRarityMapperTest {
 
@@ -40,5 +41,16 @@ class PriceRarityMapperTest {
         // Un dollaro e' poco per Pokemon ma gia' molto per Yu-Gi-Oh.
         assertEquals("common", mapper.rarityFromPrice("pokemon", 1.0));
         assertEquals("rare", mapper.rarityFromPrice("yugioh", 1.0));
+    }
+
+    @Test
+    @DisplayName("Il percentile di prezzo segue la distribuzione reale della fonte")
+    void pricePercentile() {
+        assertNull(mapper.pricePercentile("lorcana", 10.0));
+        assertNull(mapper.pricePercentile("pokemon", null));
+        assertEquals(0.5, mapper.pricePercentile("pokemon", 2.94), 1e-9);
+        assertEquals(1.0, mapper.pricePercentile("pokemon", 10000.0));
+        // Stesso prezzo, posizioni diverse: 1 dollaro e' tanto per Yu-Gi-Oh, poco per Pokemon.
+        assertTrue(mapper.pricePercentile("yugioh", 1.0) > mapper.pricePercentile("pokemon", 1.0));
     }
 }

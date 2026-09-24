@@ -76,6 +76,8 @@ public class GundamImporter extends AbstractCardImporter {
         metadata.put("cardType", blank(text(card, "cardType")));
         metadata.put("ap", blank(text(card, "ap")));
         metadata.put("hp", blank(text(card, "hp")));
+        metadata.put("level", blank(text(card, "level")));
+        metadata.put("cost", blank(text(card, "cost")));
 
         JsonNode images = child(card, "images");
         String image = text(images, "large");

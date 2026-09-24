@@ -75,6 +75,12 @@ public class ScryfallImporter extends AbstractCardImporter {
         metadata.put("typeLine", text(card, "type_line"));
         metadata.put("colors", elements(child(card, "colors")).stream().map(JsonNode::asString).toList());
         metadata.put("marketPrice", price);
+        // Dati per CardStatCalculator.
+        metadata.put("power", text(card, "power"));
+        metadata.put("toughness", text(card, "toughness"));
+        metadata.put("cmc", decimal(card, "cmc"));
+        metadata.put("edhrecRank", decimal(card, "edhrec_rank"));
+        metadata.put("tcgRarity", text(card, "rarity"));
 
         String rarityByPrice = priceRarityMapper.rarityFromPrice(SOURCE, price);
         String description = text(card, "oracle_text");

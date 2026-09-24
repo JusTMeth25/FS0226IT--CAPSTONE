@@ -46,6 +46,41 @@ public class PriceRarityMapper {
         return "common";
     }
 
+    /** Percentili a cui corrispondono i valori di PRICE_PERCENTILES (stessa tabella del commento in testa). */
+    private static final double[] PERCENTILE_POINTS = {0, 0.25, 0.50, 0.75, 0.90, 0.95, 0.99, 1.0};
+
+    private static final Map<String, double[]> PRICE_PERCENTILES = Map.of(
+            "pokemon", new double[]{0.04, 0.45, 2.94, 18.98, 74.87, 147.74, 379.99, 3998.99},
+            "scryfall", new double[]{0.02, 0.25, 0.38, 1.59, 7.74, 15.43, 54.04, 203.30},
+            "yugioh", new double[]{0.02, 0.14, 0.21, 0.40, 1.28, 3.15, 15.64, 454.44},
+            "onepiece", new double[]{0.02, 0.08, 0.20, 4.45, 40.33, 124.38, 1095.24, 8489.98},
+            "dragonball", new double[]{0.01, 0.13, 0.29, 0.74, 4.34, 12.98, 149.08, 2475.01},
+            "digimon", new double[]{0.05, 0.15, 0.41, 1.98, 6.62, 14.78, 139.95, 2399.50});
+
+    /**
+     * Posizione del prezzo nella distribuzione reale della sua fonte, da 0 (la carta piu' economica)
+     * a 1 (la piu' cara). Interpola in scala logaritmica fra i percentili campionati, perche' i prezzi
+     * delle carte crescono per ordini di grandezza.
+     *
+     * @return null se la fonte non ha dati di prezzo o il prezzo manca.
+     */
+    public Double pricePercentile(String source, Double price) {
+        double[] values = PRICE_PERCENTILES.get(source);
+        if (values == null || price == null || price <= 0) return null;
+        if (price <= values[0]) return 0.0;
+        if (price >= values[values.length - 1]) return 1.0;
+
+        for (int i = 1; i < values.length; i++) {
+            if (price <= values[i]) {
+                double low = Math.log(values[i - 1]);
+                double high = Math.log(values[i]);
+                double t = (Math.log(price) - low) / (high - low);
+                return PERCENTILE_POINTS[i - 1] + t * (PERCENTILE_POINTS[i] - PERCENTILE_POINTS[i - 1]);
+            }
+        }
+        return 1.0;
+    }
+
     private record Thresholds(double uncommon, double rare, double epic, double legendary) {
     }
 }

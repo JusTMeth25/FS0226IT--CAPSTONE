@@ -56,6 +56,8 @@ public class OnePieceImporter extends AbstractCardImporter {
         metadata.put("power", text(card, "card_power"));
         metadata.put("life", text(card, "life"));
         metadata.put("marketPrice", price);
+        metadata.put("cost", text(card, "card_cost"));
+        metadata.put("tcgRarity", text(card, "rarity"));
 
         String rarityByPrice = priceRarityMapper.rarityFromPrice(SOURCE, price);
 

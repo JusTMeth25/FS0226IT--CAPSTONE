@@ -61,6 +61,10 @@ public class YugiohImporter extends AbstractCardImporter {
         metadata.put("atk", decimal(card, "atk"));
         metadata.put("def", decimal(card, "def"));
         metadata.put("marketPrice", price);
+        // Dati per CardStatCalculator: livello o rango, oppure il valore Link.
+        Double level = decimal(card, "level");
+        metadata.put("level", level != null ? level : decimal(card, "linkval"));
+        metadata.put("race", text(card, "race"));
 
         String rarityByPrice = priceRarityMapper.rarityFromPrice(SOURCE, price);
 
