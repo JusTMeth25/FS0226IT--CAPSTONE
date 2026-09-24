@@ -156,6 +156,36 @@ const FLOORS = {
     };
   })(),
 
+  // Prato: fili d'erba in tre verdi, qualche macchia piu' chiara e un fiorellino ogni tanto.
+  grass: (() => {
+    const greens = ['#3f8f3a', '#4a9e42', '#357a31'].map(rgb);
+    const light = rgb('#6cc04a');
+    const flowers = ['#f5f5f5', '#fbbf24', '#ec4899'].map(rgb);
+    return (X, Y, sx, sy) => {
+      const n = noise(sx, sy);
+      if (n > 0.9985) return flowers[Math.floor(noise(sy, sx) * flowers.length)];
+      const patch = smoothNoise(X * 1.2, Y * 1.2, 31);
+      const base = greens[Math.floor(noise(sx >> 1, sy) * greens.length)];
+      const blade = (sx + Math.floor(sy / 2)) % 5 === 0 && n > 0.6 ? 0.12 : 0;
+      return tint(patch > 0.62 ? mix(base, light, 0.35) : base, blade + (n - 0.5) * 0.08);
+    };
+  })(),
+
+  // Bordo piscina: piastrelle chiare con le fughe azzurre, antiscivolo a puntini.
+  pooldeck: (() => {
+    const tile = rgb('#e9eef2');
+    const alt = rgb('#dfe7ed');
+    const grout = rgb('#9cc9da');
+    return (X, Y, sx, sy) => {
+      const cu = frac(X * 2);
+      const cv = frac(Y * 2);
+      if (cu < 0.035 || cv < 0.035) return grout;
+      const base = (Math.floor(X * 2) + Math.floor(Y * 2)) % 2 ? tile : alt;
+      const dot = (sx % 4 === 0 && sy % 3 === 0) ? -0.05 : 0;
+      return tint(base, dot + (noise(sx, sy) - 0.5) * 0.03);
+    };
+  })(),
+
   // Tappeto da ring: gomma rossa con le corde dorate ai bordi di ogni quadrato.
   arena: (() => {
     const mat = rgb('#5e1f2b');
@@ -282,6 +312,39 @@ const WALLS = {
       if (diag < 3) color = mix(color, glint, 0.55);
       else if (diag > 10 && diag < 12) color = mix(color, glint, 0.3);
       return color;
+    };
+  })(),
+
+  // Siepe: foglie fitte a ciuffi, piu' scure in basso, con la cima potata.
+  hedge: (() => {
+    const leaves = ['#2f7d32', '#3a8f3c', '#276b2a', '#46a047'].map(rgb);
+    const dark = rgb('#1e4f20');
+    return (col, h, height, side, sy) => {
+      if (h < 3) return dark;
+      const clump = noise(Math.floor(col / 3), Math.floor(h / 3));
+      let color = leaves[Math.floor(clump * leaves.length)];
+      if (noise(col, sy) > 0.8) color = tint(color, 0.15);
+      if (h < 30) color = tint(color, -0.15 * (1 - h / 30));
+      if (h > height - 5) color = tint(color, 0.1);
+      return color;
+    };
+  })(),
+
+  // Piastrelle da piscina: quadratini azzurri e bianchi, con una fascia di mosaico blu.
+  pooltile: (() => {
+    const blue = rgb('#7cc6e0');
+    const white = rgb('#eef6fa');
+    const deep = rgb('#2a7fa8');
+    const grout = rgb('#b8d9e6');
+    const board = { shadow: rgb('#1b4a60'), board: rgb('#2a7fa8'), trim: rgb('#eef6fa') };
+    return (col, h, height, side, sy) => {
+      const bb = baseboard(h, board);
+      if (bb) return bb;
+      if (col % 8 === 0 || h % 8 === 0) return grout;
+      const cx = Math.floor(col / 8);
+      const cy = Math.floor(h / 8);
+      if (h > 40 && h < 56) return (cx + cy) % 2 ? deep : blue;
+      return tint((cx + cy) % 3 === 0 ? blue : white, (noise(col, sy) - 0.5) * 0.04);
     };
   })(),
 

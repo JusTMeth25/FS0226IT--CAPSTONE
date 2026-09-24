@@ -3,11 +3,12 @@ import { roomApi } from '../../services/roomApi.js';
 
 const FLOORS = [
   ['neon', 'Piastrelle neon'], ['parquet', 'Parquet scuro'], ['carpet', 'Moquette'],
-  ['checker', 'Scacchiera'], ['marble', 'Marmo'], ['arena', 'Ring']
+  ['checker', 'Scacchiera'], ['marble', 'Marmo'], ['arena', 'Ring'], ['grass', 'Prato'], ['pooldeck', 'Bordo piscina']
 ];
 const WALLS = [
   ['neon', 'Carta da parati neon'], ['brick', 'Mattoni'], ['teal', 'Verde caffetteria'],
-  ['wood', 'Boiserie in legno'], ['windows', 'Vetrate'], ['arena', 'Pannelli arena']
+  ['wood', 'Boiserie in legno'], ['windows', 'Vetrate'], ['arena', 'Pannelli arena'], ['hedge', 'Siepe'],
+  ['pooltile', 'Piastrelle da piscina']
 ];
 
 /** Impostazioni della propria stanza. Le modifiche arrivano subito a chi e' dentro. */

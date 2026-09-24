@@ -21,6 +21,7 @@ import PvpPanel from '../hotel/ui/PvpPanel.jsx';
 import TradesPanel from '../hotel/ui/TradesPanel.jsx';
 import { useSearchParams } from 'react-router-dom';
 import HotelView from '../hotel/ui/HotelView.jsx';
+import NpcCard from '../hotel/ui/NpcCard.jsx';
 import { footprintOf, nextRotation } from '../hotel/sprites/furni.js';
 import { DEFAULT_LOOK } from '../hotel/sprites/avatar.js';
 import { TRACKS, getJukebox } from '../hotel/music.js';
@@ -32,6 +33,9 @@ const ERRORS = {
   room_not_found: 'Questa stanza non esiste piu\'.',
   chat_muted: 'Stai scrivendo troppo in fretta: aspetta 30 secondi.',
   user_not_here: 'Quella persona non e\' in questa stanza.',
+  npc_not_found: 'Quel personaggio non e\' piu\' qui.',
+  npc_no_respect: 'Il rispetto si da\' ai giocatori, non al personale dell\'hotel.',
+  npc_no_challenge: 'Il personale dell\'hotel non accetta sfide.',
   not_your_room: 'Puoi arredare solo la tua stanza.',
   not_your_item: 'Questo mobile non e\' tuo.',
   card_not_owned: 'Puoi esporre solo carte che possiedi (una vetrina per copia).',
@@ -93,6 +97,7 @@ export default function HotelPage() {
   const [buildMode, setBuildMode] = useState(false);
   const [pendingTrades, setPendingTrades] = useState(0);
   const [selected, setSelected] = useState(null);
+  const [selectedNpc, setSelectedNpc] = useState(null);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [pickingCardFor, setPickingCardFor] = useState(null);
   const [viewingCard, setViewingCard] = useState(null);
@@ -142,6 +147,7 @@ export default function HotelPage() {
         getJukebox().set(message.jukebox?.track ?? -1, message.jukebox?.startedAt ?? 0, message.serverTime);
         setPanel((current) => (current === 'trades' ? current : null));
         setSelected(null);
+        setSelectedNpc(null);
         setSelectedItemId(null);
         setPlacement(null);
         setBuildMode(false);
@@ -394,7 +400,7 @@ export default function HotelPage() {
       return;
     }
     // Bancone: si riceve una bibita (camminandoci accanto se serve). Jukebox: cambia brano.
-    if (['bar_counter', 'cafe_counter', 'coffee_machine', 'jukebox'].includes(item.type)) {
+    if (['bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'jukebox'].includes(item.type)) {
       send({ type: 'use_item', itemId: item.id });
       return;
     }
@@ -429,7 +435,7 @@ export default function HotelPage() {
           placement={placement}
           buildMode={isOwner && buildMode}
           onTileClick={(tile) => send({ type: 'move', x: tile.x, y: tile.y })}
-          onAvatarClick={(u) => { setSelectedItemId(null); setSelected(u); }}
+          onAvatarClick={(u) => { setSelectedItemId(null); if (u.npc) { setSelected(null); setSelectedNpc(u); } else { setSelectedNpc(null); setSelected(u); } }}
           onItemClick={onItemClick}
           onPlace={(tile, current) => {
             send({ type: 'place', itemId: current.itemId, x: tile.x, y: tile.y, rot: current.rot });
@@ -442,7 +448,7 @@ export default function HotelPage() {
         {room && (
           <div className="hotel-room-info">
             <strong>{room.name}</strong>
-            <span>{room.ownerName ? `Stanza di ${room.ownerName}` : 'Stanza pubblica'} · <i className="ph-fill ph-user" /> {Object.keys(people).length}</span>
+            <span>{room.ownerName ? `Stanza di ${room.ownerName}` : 'Stanza pubblica'} · <i className="ph-fill ph-user" /> {Object.values(people).filter((p) => !p.npc).length}</span>
             <div className="hotel-room-info-actions">
               {likes && (
                 <button type="button" className={`hotel-like${likes.liked ? ' liked' : ''}`} onClick={toggleLike} disabled={isOwner}
@@ -480,6 +486,15 @@ export default function HotelPage() {
             )}
             <button type="button" className="btn btn-secondary btn-small" onClick={() => setPlacement(null)}>Annulla</button>
           </div>
+        )}
+
+        {selectedNpc && (
+          <NpcCard
+            npc={people[selectedNpc.id] || selectedNpc}
+            send={send}
+            onClose={() => setSelectedNpc(null)}
+            onWhisper={() => { setWhisperTo(selectedNpc.username); setSelectedNpc(null); }}
+          />
         )}
 
         {selected && (

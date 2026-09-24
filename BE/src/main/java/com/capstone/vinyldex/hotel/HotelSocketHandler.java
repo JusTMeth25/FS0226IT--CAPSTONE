@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *   respect {userId} · use_item {itemId} · jukebox {on}
  *   challenge {userId} · challenge_reply {challengeId,accept} · pvp_team {cards} · pvp_category {category}
  *   pvp_card {index,boost} · pvp_forfeit · sync · away {on}
+ *   npc {npcId,action,item}: ordinare, chiacchierare, far ballare o cambiare musica a un NPC
  * Solo nella propria stanza:
  *   place {itemId,x,y,rot} · pickup {itemId} · set_display {itemId,cardId} · kick {userId}
  */
@@ -194,6 +195,9 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             case "respect" -> {
                 if (room != null) respect(session, room, uuid(node, "userId"));
             }
+            case "npc" -> {
+                if (room != null) reply(session, room.npcAction(userId, uuid(node, "npcId"), text(node, "action"), text(node, "item")));
+            }
             case "use_item" -> {
                 if (room != null) reply(session, room.useItem(userId, uuid(node, "itemId")));
             }
@@ -315,6 +319,10 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     private void respect(HotelSession session, RoomInstance room, UUID receiverId) {
         if (receiverId == null || !room.contains(receiverId)) {
             session.send(error("user_not_here"));
+            return;
+        }
+        if (room.isNpc(receiverId)) {
+            session.send(error("npc_no_respect"));
             return;
         }
         HotelSocialService.RespectResult result = socialService.respect(session.user().id(), receiverId);

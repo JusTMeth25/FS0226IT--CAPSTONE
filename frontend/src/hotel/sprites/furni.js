@@ -448,6 +448,120 @@ const DRAW = {
       for (let i = 0; i < 6; i += 1) d(0.14 + i * 0.3, 0.86, 34, '#244a4f', 6, 24);
     });
   },
+  pool_water(b, { d, now }) {
+    // Acqua della piscina: niente contorno fra una casella e l'altra, riflessi che si muovono.
+    const step = Math.floor((now || 0) / 600) % 4;
+    b({ u0: 0, v0: 0, u1: 1, v1: 1, z1: 0, color: '#2aa7c9' });
+    const glints = [[0.2, 0.3], [0.6, 0.15], [0.35, 0.7], [0.75, 0.6], [0.1, 0.9], [0.85, 0.3]];
+    glints.forEach(([u, v], i) => {
+      const du = ((step + i) % 4) * 0.04;
+      d(u + du, v, 0, i % 2 ? '#8fe3f5' : '#d6f4ff', 6, 1);
+      d(u + du + 0.08, v + 0.04, 0, '#5cc6e0', 4, 1);
+    });
+  },
+  sunbed(b) {
+    [[0.14, 0.26], [0.14, 0.68], [0.82, 0.26], [0.82, 0.68]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.05, v1: v + 0.05, z1: 10, color: '#e5e7eb' }));
+    b({ u0: 0.1, v0: 0.24, u1: 0.9, v1: 0.76, z0: 10, z1: 13, color: '#f5f5f5' });
+    ['#22d3ee', '#f5f5f5', '#22d3ee', '#f5f5f5', '#22d3ee'].forEach((color, i) => {
+      b({ u0: 0.28 + i * 0.124, v0: 0.26, u1: 0.4 + i * 0.124, v1: 0.74, z0: 13, z1: 16, color, tex: 'fabric' });
+    });
+    b({ u0: 0.1, v0: 0.26, u1: 0.2, v1: 0.74, z0: 13, z1: 30, color: '#22d3ee', tex: 'fabric' });
+    b({ u0: 0.1, v0: 0.26, u1: 0.28, v1: 0.74, z0: 13, z1: 22, color: '#22d3ee', tex: 'fabric' });
+  },
+  umbrella(b, { c }) {
+    c({ u: 0.5, v: 0.5, r: 0.16, z0: 0, z1: 6, color: '#6b7280' });
+    c({ u: 0.5, v: 0.5, r: 0.025, z0: 6, z1: 84, color: '#e5e7eb', tex: 'metal' });
+    [[0.62, 78, 81, '#ec4899'], [0.5, 81, 85, '#fdf2f8'], [0.38, 85, 89, '#ec4899'], [0.24, 89, 92, '#fdf2f8'], [0.1, 92, 95, '#ec4899']]
+      .forEach(([r, z0, z1, color]) => c({ u: 0.5, v: 0.5, r, z0, z1, color }));
+  },
+  lifeguard_chair(b, { d, front }) {
+    [[0.14, 0.2], [0.14, 0.74], [0.8, 0.2], [0.8, 0.74]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.06, v1: v + 0.06, z1: 62, color: '#f5f5f5' }));
+    b({ u0: 0.1, v0: 0.16, u1: 0.9, v1: 0.84, z0: 60, z1: 64, color: '#ef4444' });
+    b({ u0: 0.1, v0: 0.16, u1: 0.22, v1: 0.84, z0: 64, z1: 92, color: '#ef4444' });
+    front(() => {
+      [14, 28, 42].forEach((z) => d(0.2, 0.84, z, '#f5f5f5', 34, 2));
+      d(0.34, 0.84, 88, '#f5f5f5', 10, 8);
+      d(0.36, 0.84, 86, '#ef4444', 6, 4);
+    });
+  },
+  aquarium(b, { d, now, front }) {
+    b({ u0: 0.04, v0: 0.2, u1: 1.96, v1: 0.8, z1: 26, color: '#3b2a1e', tex: 'wood' });
+    b({ u0: 0.06, v0: 0.22, u1: 1.94, v1: 0.78, z0: 26, z1: 70, color: '#38bdf8', left: '#1e94c9', right: '#146a92', top: '#7dd3fc' });
+    b({ u0: 0.04, v0: 0.2, u1: 1.96, v1: 0.8, z0: 70, z1: 74, color: '#1f1f2e' });
+    front(() => {
+      const step = Math.floor((now || 0) / 300) % 6;
+      d(0.1, 0.78, 34, '#d9b77c', 56, 6);
+      [[0.3, 58, '#f97316'], [0.9, 48, '#fbbf24'], [1.4, 60, '#ec4899'], [0.6, 42, '#22c55e']].forEach(([u, z, color], i) => {
+        const swim = ((step + i * 2) % 6) * 0.05 - 0.12;
+        d(u + swim, 0.78, z, color, 6, 3);
+        d(u + swim - 0.06, 0.78, z - 1, color, 2, 1);
+      });
+      [0.4, 1.2, 1.7].forEach((u) => d(u, 0.78, 44 + ((step * 5) % 20), '#e0f2fe', 2, 2));
+      d(0.2, 0.78, 50, '#16a34a', 2, 14);
+      d(1.6, 0.78, 54, '#16a34a', 2, 18);
+    });
+  },
+  fireplace(b, { d, now, front }) {
+    b({ u0: 0.06, v0: 0.12, u1: 1.94, v1: 0.74, z1: 62, color: '#8a7b6e', tex: 'stone' });
+    b({ u0: 0.02, v0: 0.08, u1: 1.98, v1: 0.8, z0: 62, z1: 68, color: '#5b3a26', tex: 'wood' });
+    b({ u0: 0.5, v0: 0.12, u1: 1.5, v1: 0.5, z0: 68, z1: 120, color: '#7a6c60', tex: 'stone' });
+    b({ u0: 0.3, v0: 0.4, u1: 0.4, v1: 0.5, z0: 68, z1: 78, color: '#fbbf24' });
+    front(() => {
+      const step = Math.floor((now || 0) / 150) % 4;
+      d(0.42, 0.74, 44, '#1a1210', 36, 30);
+      const flames = ['#f97316', '#fbbf24', '#ef4444', '#fde68a'];
+      for (let i = 0; i < 6; i += 1) {
+        const h = 10 + ((i * 7 + step * 5) % 12);
+        d(0.5 + i * 0.12, 0.74, 18 + h, flames[(i + step) % 4], 4, h);
+      }
+      d(0.46, 0.74, 18, '#5b3a26', 30, 4);
+    });
+  },
+  bench(b) {
+    [[0.14, 0.3], [0.14, 0.72], [1.8, 0.3], [1.8, 0.72]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.06, v1: v + 0.06, z1: 18, color: '#1f2937' }));
+    [0.28, 0.44, 0.6].forEach((v) => b({ u0: 0.08, v0: v, u1: 1.92, v1: v + 0.13, z0: 18, z1: 21, color: '#a06a45', tex: 'wood' }));
+    [26, 36, 46].forEach((z) => b({ u0: 0.08, v0: 0.2, u1: 1.92, v1: 0.26, z0: z, z1: z + 6, color: '#a06a45', tex: 'wood' }));
+    b({ u0: 0.14, v0: 0.2, u1: 0.2, v1: 0.26, z0: 18, z1: 52, color: '#1f2937' });
+    b({ u0: 1.8, v0: 0.2, u1: 1.86, v1: 0.26, z0: 18, z1: 52, color: '#1f2937' });
+  },
+  fountain(b, { c, d, now }) {
+    const step = Math.floor((now || 0) / 250) % 4;
+    c({ u: 1, v: 1, r: 0.92, z0: 0, z1: 16, color: '#cbd5e1', top: '#e2e8f0', tex: 'stone' });
+    c({ u: 1, v: 1, r: 0.8, z0: 16, z1: 16, color: '#38bdf8', top: '#38bdf8' });
+    c({ u: 1, v: 1, r: 0.12, z0: 16, z1: 44, color: '#cbd5e1', tex: 'stone' });
+    c({ u: 1, v: 1, r: 0.34, z0: 44, z1: 50, color: '#cbd5e1', top: '#7dd3fc', tex: 'stone' });
+    c({ u: 1, v: 1, r: 0.05, z0: 50, z1: 62, color: '#bae6fd' });
+    // Gocce che ricadono dalla vasca alta a quella bassa.
+    [[0.72, 0.9], [1.28, 1.1], [0.9, 1.3], [1.1, 0.72]].forEach(([u, v], i) => {
+      const z = 44 - ((step + i) % 4) * 7;
+      d(u, v, z, '#e0f2fe', 2, 4);
+    });
+    [[0.6, 1.3], [1.35, 0.8], [1.2, 1.4]].forEach(([u, v], i) => d(u, v, 16, (step + i) % 2 ? '#bae6fd' : '#7dd3fc', 6, 1));
+  },
+  flower_bed(b, { d, leaves }) {
+    b({ u0: 0.08, v0: 0.08, u1: 0.92, v1: 0.92, z1: 10, color: '#7c5a3b', tex: 'wood' });
+    b({ u0: 0.14, v0: 0.14, u1: 0.86, v1: 0.86, z0: 10, z1: 10, color: '#3f2a1a' });
+    leaves({ u: 0.5, v: 0.5, z: 16, r: 0.45, color: '#2f9e44', seed: 21 });
+    const petals = ['#ec4899', '#fbbf24', '#f5f5f5', '#8b5cf6', '#ef4444'];
+    [[0.3, 0.3], [0.7, 0.3], [0.5, 0.5], [0.3, 0.7], [0.7, 0.7], [0.5, 0.2], [0.2, 0.5], [0.8, 0.5]].forEach(([u, v], i) => {
+      d(u, v, 22, petals[i % petals.length], 4, 3);
+      d(u + 0.03, v, 23, '#fde68a', 1, 1);
+    });
+  },
+  icecream_cart(b, { c, d, front }) {
+    c({ u: 0.4, v: 0.86, r: 0.14, z0: 4, z1: 6, color: '#1f2937' });
+    c({ u: 1.6, v: 0.86, r: 0.14, z0: 4, z1: 6, color: '#1f2937' });
+    b({ u0: 0.1, v0: 0.18, u1: 1.9, v1: 0.82, z0: 10, z1: 46, color: '#fdf2f8' });
+    b({ u0: 0.08, v0: 0.16, u1: 1.92, v1: 0.84, z0: 46, z1: 50, color: '#ec4899' });
+    ['#f9a8d4', '#fde68a', '#a7f3d0', '#6b3e1f'].forEach((color, i) => c({ u: 0.4 + i * 0.36, v: 0.5, r: 0.12, z0: 50, z1: 54, color: '#e5e7eb', top: color }));
+    c({ u: 1.7, v: 0.3, r: 0.025, z0: 50, z1: 96, color: '#e5e7eb' });
+    [[0.62, 92, 94, '#ec4899'], [0.46, 94, 97, '#fdf2f8'], [0.28, 97, 100, '#ec4899'], [0.1, 100, 102, '#fdf2f8']]
+      .forEach(([r, z0, z1, color]) => c({ u: 1.7, v: 0.3, r, z0, z1, color }));
+    front(() => {
+      for (let i = 0; i < 6; i += 1) d(0.16 + i * 0.3, 0.82, 44, i % 2 ? '#ec4899' : '#fdf2f8', 8, 34);
+      d(0.7, 0.82, 34, '#8b5cf6', 30, 8);
+    });
+  },
   bar_counter(b, { d, front }) {
     b({ u0: 0.02, v0: 0.1, u1: 2.98, v1: 0.9, z1: 40, color: '#4a2511', left: '#5c2e15', right: '#2e170a', tex: 'wood' });
     b({ u0: 0, v0: 0.06, u1: 3, v1: 0.94, z0: 40, z1: 44, color: '#1f1f2e', glow: true });
@@ -670,7 +784,8 @@ export function furniSprite(item, def, { now = 0, onImageLoad } = {}) {
     }
   }
 
-  outline(ctx, width, height);
+  // L'acqua della piscina non ha contorno: le caselle vicine si fondono in una vasca unica.
+  if (item.type !== 'pool_water') outline(ctx, width, height);
   return { canvas: bake(canvas), anchorX: ox, anchorY: oy };
 }
 
@@ -683,7 +798,11 @@ const ANIMATIONS = {
   jukebox: { period: 300, steps: 5 },
   dj_booth: { period: 250, steps: 2 },
   arcade: { period: 400, steps: 2 },
-  neon_sign: { period: 1800, steps: 7 }
+  neon_sign: { period: 1800, steps: 7 },
+  pool_water: { period: 600, steps: 4 },
+  aquarium: { period: 300, steps: 6 },
+  fireplace: { period: 150, steps: 4 },
+  fountain: { period: 250, steps: 4 }
 };
 const DANCE_COLORS = 6;
 

@@ -2,10 +2,13 @@ package com.capstone.vinyldex.hotel;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
@@ -30,6 +33,9 @@ public class RoomInstance {
 
     /** Bibite del bancone: il nome e' anche lo sprite che il client disegna in mano. */
     private static final List<String> DRINKS = List.of("cola", "juice", "coffee", "bubble");
+    /** Quanto aspetta un NPC prima di rispondere, per sembrare una persona che legge e scrive. */
+    private static final long NPC_REPLY_MILLIS = 1_200;
+    private static final long NPC_GREET_COOLDOWN_MILLIS = 20_000;
     private static final long DRINK_MILLIS = 90_000;
 
     /** Brani del jukebox: il client li genera con WebAudio (src/hotel/music.js). */
@@ -48,7 +54,28 @@ public class RoomInstance {
     private long jukeboxStartedAt = 0;
     private long jukeboxChangedAt = 0;
 
+    /** NPC: cose da dire o da fare fra poco, e quando hanno salutato chi. */
+    private final Random random;
+    private final List<Pending> pending = new ArrayList<>();
+    private final Map<String, Long> greetedAt = new HashMap<>();
+
+    private record Pending(long dueAt, Runnable action) {
+    }
+
+    /** Consegna in corso di un cameriere: a chi, cosa, e quante volte ha gia' provato ad arrivare. */
+    private static final class Delivery {
+        final UUID userId;
+        final String item;
+        int attempts;
+
+        Delivery(UUID userId, String item) {
+            this.userId = userId;
+            this.item = item;
+        }
+    }
+
     private static final class Occupant {
+        /** null per gli NPC: non hanno una connessione. */
         final HotelSession session;
         HotelUser user;
         int x;
@@ -65,16 +92,38 @@ public class RoomInstance {
         boolean away;
         /** Mobile da usare appena si arriva (per esempio il bancone del bar). */
         UUID pendingUse;
+        /** Ordinazione da ritirare arrivati dal barista: chi la prepara e cosa. */
+        UUID orderFrom;
+        String orderItem;
+
+        /** Solo per gli NPC: chi sono, quando pensano alla prossima mossa, cosa stanno facendo. */
+        NpcRoster.NpcSpec npc;
+        long nextThinkAt;
+        long nextChatAt;
+        long sitUntil;
+        Delivery delivery;
 
         Occupant(HotelSession session, int x, int y, int z, int dir) {
+            this(session, session.user(), x, y, z, dir);
+        }
+
+        Occupant(HotelSession session, HotelUser user, int x, int y, int z, int dir) {
             this.session = session;
-            this.user = session.user();
+            this.user = user;
             this.x = x;
             this.y = y;
             this.z = z;
             this.dir = dir;
             this.targetX = x;
             this.targetY = y;
+        }
+
+        boolean isNpc() {
+            return npc != null;
+        }
+
+        void send(Object message) {
+            if (session != null) session.send(message);
         }
     }
 
@@ -83,21 +132,48 @@ public class RoomInstance {
     }
 
     public RoomInstance(RoomData data, List<RoomItemView> initialItems) {
+        this(data, initialItems, new Random());
+    }
+
+    RoomInstance(RoomData data, List<RoomItemView> initialItems, Random random) {
         this.data = data;
         this.layout = RoomLayout.parse(data.layout());
+        this.random = random;
         initialItems.forEach(item -> items.put(item.id(), item));
+        spawnNpcs();
+    }
+
+    /** Gli NPC della stanza entrano con lei, ognuno al suo posto. */
+    private void spawnNpcs() {
+        long now = System.currentTimeMillis();
+        for (NpcRoster.NpcSpec spec : NpcRoster.forRoom(data.id())) {
+            if (!layout.isTile(spec.x(), spec.y())) continue;
+            HotelUser user = new HotelUser(spec.id(data.id()), spec.name(), spec.look(), 0);
+            Occupant npc = new Occupant(null, user, spec.x(), spec.y(),
+                    Math.max(0, layout.heightAt(spec.x(), spec.y())), spec.dir());
+            npc.npc = spec;
+            npc.nextThinkAt = now + 2_000 + random.nextInt(4_000);
+            npc.nextChatAt = now + 20_000 + random.nextInt(40_000);
+            occupants.put(user.id(), npc);
+        }
     }
 
     public RoomData data() {
         return data;
     }
 
+    /** Giocatori veri presenti: gli NPC non contano ne' per la capienza ne' per il navigatore. */
     public synchronized int userCount() {
-        return occupants.size();
+        return (int) occupants.values().stream().filter(o -> !o.isNpc()).count();
     }
 
     public synchronized long emptySince() {
-        return occupants.isEmpty() ? emptySince : Long.MAX_VALUE;
+        return userCount() == 0 ? emptySince : Long.MAX_VALUE;
+    }
+
+    public synchronized boolean isNpc(UUID id) {
+        Occupant occupant = occupants.get(id);
+        return occupant != null && occupant.isNpc();
     }
 
     // ------------------------------------------------------------------ ingresso e uscita
@@ -108,7 +184,7 @@ public class RoomInstance {
         UUID userId = session.user().id();
         boolean owner = data.isOwner(userId);
         if (!owner && "closed".equals(data.doorMode())) return JoinResult.CLOSED;
-        if (!occupants.containsKey(userId) && occupants.size() >= data.maxUsers() && !owner) return JoinResult.FULL;
+        if (!occupants.containsKey(userId) && userCount() >= data.maxUsers() && !owner) return JoinResult.FULL;
 
         occupants.remove(userId);
         Occupant occupant = new Occupant(session, data.doorX(), data.doorY(),
@@ -119,6 +195,7 @@ public class RoomInstance {
 
         session.send(roomState(userId));
         broadcastExcept(userId, Map.of("type", "user_joined", "user", view(occupant)));
+        welcome(occupant);
         return JoinResult.OK;
     }
 
@@ -158,7 +235,7 @@ public class RoomInstance {
     public synchronized void leave(UUID userId) {
         Occupant removed = occupants.remove(userId);
         if (removed == null) return;
-        if (occupants.isEmpty()) emptySince = System.currentTimeMillis();
+        if (userCount() == 0) emptySince = System.currentTimeMillis();
         broadcast(Map.of("type", "user_left", "id", userId));
     }
 
@@ -222,6 +299,12 @@ public class RoomInstance {
                 occupant.pendingUse = null;
                 if (target != null && isNextTo(occupant, target)) serveDrink(occupant, target.type());
             }
+            if (occupant.path.isEmpty() && occupant.orderFrom != null) {
+                Occupant barista = occupants.get(occupant.orderFrom);
+                String item = occupant.orderItem;
+                occupant.orderFrom = null;
+                if (barista != null && distance(barista, occupant) <= 2) later(600, () -> serve(barista, occupant, item));
+            }
 
             // Arrivati su una sedia o un divano ci si siede, girati come la seduta.
             if (occupant.path.isEmpty()) {
@@ -232,6 +315,11 @@ public class RoomInstance {
                     broadcast(statusMessage(occupant));
                 }
             }
+        }
+        // Gli NPC pensano solo se c'e' qualcuno a guardarli.
+        if (userCount() > 0) {
+            runPending(now);
+            List.copyOf(occupants.values()).stream().filter(Occupant::isNpc).forEach(npc -> think(npc, now));
         }
     }
 
@@ -298,26 +386,369 @@ public class RoomInstance {
         return fallback;
     }
 
+    // ------------------------------------------------------------------ NPC
+
+    /**
+     * Azione scelta dalla scheda di un NPC: ordinare, chiacchierare, far ballare, cambiare musica.
+     *
+     * @return codice d'errore, oppure null se tutto e' andato bene
+     */
+    public synchronized String npcAction(UUID userId, UUID npcId, String action, String item) {
+        Occupant user = occupants.get(userId);
+        Occupant npc = npcId == null ? null : occupants.get(npcId);
+        if (user == null || user.isNpc()) return "user_not_here";
+        if (npc == null || !npc.isNpc()) return "npc_not_found";
+        switch (action == null ? "" : action) {
+            case "order" -> order(npc, user, item);
+            case "talk" -> say(npc, NpcDialog.smallTalk(npc.npc.role(), user.user.username(), random), user, false);
+            case "help" -> say(npc, NpcDialog.help(random), user, false);
+            case "dance" -> dance(npc, user);
+            case "music" -> music(npc, user);
+            default -> {
+                return "unknown_action";
+            }
+        }
+        return null;
+    }
+
+    /** Appena entra un giocatore, il receptionist (o il primo lavoratore della stanza) lo saluta. */
+    private void welcome(Occupant user) {
+        occupants.values().stream()
+                .filter(o -> o.isNpc() && o.npc.role() != NpcRoster.Role.GUEST)
+                .findFirst()
+                .ifPresent(npc -> {
+                    if (greetedRecently(npc, user)) return;
+                    say(npc, NpcDialog.greeting(npc.npc.role(), user.user.username(), random), user, false, 1_800);
+                });
+    }
+
+    /**
+     * Un giocatore ha scritto in chat: risponde l'NPC nominato o, se nessuno e' nominato, il
+     * piu' vicino che ha qualcosa da dire (il barista per le ordinazioni, chiunque per un saluto).
+     */
+    private void hear(Occupant user, String text) {
+        List<Occupant> npcs = occupants.values().stream().filter(Occupant::isNpc).toList();
+        if (npcs.isEmpty()) return;
+        Occupant named = npcs.stream().filter(n -> NpcDialog.mentions(text, n.user.username())).findFirst().orElse(null);
+        if (named != null) {
+            respond(named, user, text, false);
+            return;
+        }
+        NpcDialog.Intent intent = NpcDialog.intentOf(text);
+        Comparator<Occupant> closest = Comparator.comparingInt(n -> distance(n, user));
+        Occupant npc = switch (intent) {
+            case ORDER -> npcs.stream().filter(n -> n.npc.serves()).min(closest).orElse(null);
+            case MUSIC -> npcs.stream().filter(n -> n.npc.role() == NpcRoster.Role.DJ).findFirst().orElse(null);
+            case HELP -> npcs.stream().filter(n -> n.npc.role() == NpcRoster.Role.RECEPTIONIST).findFirst()
+                    .orElseGet(() -> npcs.stream().filter(n -> distance(n, user) <= 5).min(closest).orElse(null));
+            case NONE -> null;
+            default -> npcs.stream().filter(n -> distance(n, user) <= 5).min(closest).orElse(null);
+        };
+        if (npc != null) respond(npc, user, text, false);
+    }
+
+    /** Risposta di un NPC a un messaggio (in chat o sussurrato) di un giocatore. */
+    private void respond(Occupant npc, Occupant user, String text, boolean whispered) {
+        String name = user.user.username();
+        NpcRoster.Role role = npc.npc.role();
+        switch (NpcDialog.intentOf(text)) {
+            case ORDER -> order(npc, user, NpcDialog.requestedItem(text));
+            case GREET -> {
+                if (!greetedRecently(npc, user)) say(npc, NpcDialog.greeting(role, name, random), user, whispered);
+            }
+            case THANKS -> say(npc, NpcDialog.thanks(name, random), user, whispered);
+            case DANCE -> dance(npc, user);
+            case MUSIC -> music(npc, user);
+            case HELP -> say(npc, NpcDialog.help(random), user, whispered);
+            case BYE -> say(npc, NpcDialog.bye(name), user, whispered);
+            case NONE -> say(npc, NpcDialog.smallTalk(role, name, random), user, whispered);
+        }
+    }
+
+    private boolean greetedRecently(Occupant npc, Occupant user) {
+        long now = System.currentTimeMillis();
+        String key = npc.user.id() + "/" + user.user.id();
+        Long last = greetedAt.get(key);
+        if (last != null && now - last < NPC_GREET_COOLDOWN_MILLIS) return true;
+        greetedAt.put(key, now);
+        return false;
+    }
+
+    /**
+     * Ordinazione. Il barista (e il gelataio) serve chi gli sta vicino e fa venire al bancone
+     * chi e' lontano; il cameriere invece porta da bere camminando fino al giocatore.
+     */
+    private void order(Occupant npc, Occupant user, String requested) {
+        String name = user.user.username();
+        List<String> menu = npc.npc.menu();
+        if (menu.isEmpty()) {
+            say(npc, NpcDialog.noService(), user, false);
+            return;
+        }
+        String item = requested == null ? menu.get(random.nextInt(menu.size())) : requested;
+        if (!menu.contains(item)) {
+            say(npc, NpcDialog.notOnMenu(item, menu), user, false);
+            return;
+        }
+        if (npc.npc.role().wanders()) {
+            npc.delivery = new Delivery(user.user.id(), item);
+            npc.status = "idle";
+            say(npc, NpcDialog.onMyWay(name, item), user, false);
+            later(NPC_REPLY_MILLIS, () -> walkTo(npc, user));
+            return;
+        }
+        if (distance(npc, user) <= 2) {
+            face(npc, user);
+            later(NPC_REPLY_MILLIS, () -> serve(npc, user, item));
+            return;
+        }
+        int[] spot = freeSpotNear(user.user.id(), npc.x, npc.y, 2);
+        if (spot == null) {
+            say(npc, NpcDialog.cantReach(name), user, false);
+            return;
+        }
+        say(npc, NpcDialog.comeCloser(name), user, false);
+        move(user.user.id(), spot[0], spot[1]);
+        user.orderFrom = npc.user.id();
+        user.orderItem = item;
+    }
+
+    /** Consegna: l'oggetto passa in mano al giocatore, che lo vedono tutti. */
+    private void serve(Occupant npc, Occupant user, String item) {
+        if (!occupants.containsKey(user.user.id()) || !occupants.containsKey(npc.user.id())) return;
+        face(npc, user);
+        user.handItem = item;
+        user.handItemUntil = System.currentTimeMillis() + DRINK_MILLIS;
+        broadcast(handMessage(user));
+        say(npc, NpcDialog.served(npc.npc.role(), user.user.username(), item, random), user, false, 0);
+    }
+
+    private void dance(Occupant npc, Occupant user) {
+        NpcRoster.Role role = npc.npc.role();
+        if (role != NpcRoster.Role.GUEST && role != NpcRoster.Role.DJ) {
+            say(npc, NpcDialog.cannotDance(role), user, false);
+            return;
+        }
+        npc.path.clear();
+        npc.targetX = npc.x;
+        npc.targetY = npc.y;
+        npc.status = "dance";
+        npc.sitUntil = System.currentTimeMillis() + 20_000;
+        broadcast(statusMessage(npc));
+        say(npc, NpcDialog.dancing(), user, false);
+    }
+
+    private void music(Occupant npc, Occupant user) {
+        if (npc.npc.role() != NpcRoster.Role.DJ) {
+            say(npc, NpcDialog.noDj(), user, false);
+            return;
+        }
+        String error = cycleJukebox();
+        if (error == null) say(npc, NpcDialog.musicChange(random), user, false);
+    }
+
+    private void say(Occupant npc, String text, Occupant to, boolean whispered) {
+        say(npc, text, to, whispered, NPC_REPLY_MILLIS);
+    }
+
+    /** L'NPC parla fra `delay` ms, girato verso chi gli ha parlato. Sussurrando risponde solo a lui. */
+    private void say(Occupant npc, String text, Occupant to, boolean whispered, long delay) {
+        later(delay, () -> {
+            if (!occupants.containsKey(npc.user.id())) return;
+            if (to != null && occupants.containsKey(to.user.id())) face(npc, to);
+            if (whispered && to != null) {
+                Map<String, Object> message = Map.of("type", "chat", "id", npc.user.id(), "text", text,
+                        "style", "whisper", "to", to.user.username());
+                to.send(message);
+            } else {
+                broadcast(Map.of("type", "chat", "id", npc.user.id(), "text", text, "style", "normal"));
+            }
+        });
+    }
+
+    private void later(long delay, Runnable action) {
+        if (delay <= 0) {
+            action.run();
+            return;
+        }
+        pending.add(new Pending(System.currentTimeMillis() + delay, action));
+    }
+
+    private void runPending(long now) {
+        List<Pending> due = pending.stream().filter(p -> p.dueAt() <= now).toList();
+        pending.removeAll(due);
+        due.forEach(p -> p.action().run());
+    }
+
+    /** Si gira verso qualcuno senza muoversi. Da seduti resta rivolto come la seduta. */
+    private void face(Occupant npc, Occupant target) {
+        if (!"idle".equals(npc.status) || !npc.path.isEmpty()) return;
+        int dir = directionBetween(npc.x, npc.y, target.x, target.y, npc.dir);
+        if (dir == npc.dir) return;
+        npc.dir = dir;
+        broadcast(statusMessage(npc));
+    }
+
+    /** Il cameriere va accanto al giocatore da servire. */
+    private void walkTo(Occupant npc, Occupant user) {
+        int[] spot = freeSpotNear(npc.user.id(), user.x, user.y, 1);
+        if (spot == null) {
+            npc.delivery = null;
+            say(npc, NpcDialog.cantReach(user.user.username()), user, false, 0);
+            return;
+        }
+        move(npc.user.id(), spot[0], spot[1]);
+    }
+
+    /**
+     * Una mossa per NPC a ogni tick: consegne da finire, ritorno al proprio posto, passeggiate,
+     * sedute, balli quando suona il jukebox e ogni tanto una battuta.
+     */
+    private void think(Occupant npc, long now) {
+        NpcRoster.NpcSpec spec = npc.npc;
+        if (npc.delivery != null) {
+            if (!npc.path.isEmpty()) return;
+            Occupant user = occupants.get(npc.delivery.userId);
+            if (user == null) {
+                npc.delivery = null;
+            } else if (distance(npc, user) <= 1) {
+                String item = npc.delivery.item;
+                npc.delivery = null;
+                serve(npc, user, item);
+                npc.nextThinkAt = now + 4_000;
+            } else if (++npc.delivery.attempts > 6) {
+                npc.delivery = null;
+                say(npc, NpcDialog.cantReach(user.user.username()), user, false, 0);
+            } else {
+                walkTo(npc, user);
+            }
+            return;
+        }
+        if (now >= npc.nextChatAt) {
+            npc.nextChatAt = now + 35_000 + random.nextInt(50_000);
+            say(npc, NpcDialog.idle(spec.role(), random), null, false, 0);
+        }
+        if (now < npc.nextThinkAt || !npc.path.isEmpty()) return;
+        npc.nextThinkAt = now + 4_000 + random.nextInt(6_000);
+
+        // Balla chi e' ospite o DJ quando c'e' musica; smette quando si spegne.
+        boolean music = jukeboxTrack >= 0;
+        if ("dance".equals(npc.status)) {
+            if (!music && now > npc.sitUntil) {
+                npc.status = "idle";
+                broadcast(statusMessage(npc));
+            }
+            return;
+        }
+        if (music && (spec.role() == NpcRoster.Role.GUEST || spec.role() == NpcRoster.Role.DJ) && random.nextInt(3) == 0) {
+            npc.status = "dance";
+            broadcast(statusMessage(npc));
+            return;
+        }
+
+        if (!spec.role().wanders()) {
+            // I lavoratori tornano al loro posto, rivolti come all'inizio.
+            if (npc.x != spec.x() || npc.y != spec.y()) {
+                move(npc.user.id(), spec.x(), spec.y());
+            } else if (npc.dir != spec.dir() && "idle".equals(npc.status)) {
+                npc.dir = spec.dir();
+                broadcast(statusMessage(npc));
+            }
+            return;
+        }
+        if ("sit".equals(npc.status) && now < npc.sitUntil) return;
+
+        // Gli ospiti ogni tanto si siedono su un posto libero, altrimenti passeggiano.
+        if (spec.role() == NpcRoster.Role.GUEST && random.nextInt(3) == 0) {
+            int[] seat = freeSeatNear(npc, spec.x(), spec.y(), spec.radius() + 2);
+            if (seat != null) {
+                npc.sitUntil = now + 20_000 + random.nextInt(25_000);
+                move(npc.user.id(), seat[0], seat[1]);
+                return;
+            }
+        }
+        for (int attempt = 0; attempt < 8; attempt++) {
+            int x = spec.x() + random.nextInt(spec.radius() * 2 + 1) - spec.radius();
+            int y = spec.y() + random.nextInt(spec.radius() * 2 + 1) - spec.radius();
+            if (!layout.isTile(x, y) || nearDoor(x, y) || isOccupiedByOther(npc.user.id(), x, y)) continue;
+            RoomItemView item = floorItemAt(x, y);
+            if (item != null && !item.def().passable()) continue;
+            move(npc.user.id(), x, y);
+            return;
+        }
+    }
+
+    /** Vicino alla porta non si ferma nessun NPC: bloccherebbe chi entra. */
+    private boolean nearDoor(int x, int y) {
+        return Math.max(Math.abs(x - data.doorX()), Math.abs(y - data.doorY())) <= 1;
+    }
+
+    /** Un posto a sedere libero entro `radius` caselle, per gli ospiti che vogliono sedersi. */
+    private int[] freeSeatNear(Occupant npc, int cx, int cy, int radius) {
+        List<int[]> seats = new ArrayList<>();
+        for (RoomItemView item : items.values()) {
+            if (!item.def().sittable()) continue;
+            FurniCatalog.FurniDef def = item.def();
+            for (int dx = 0; dx < def.footprintX(item.rot()); dx++) {
+                for (int dy = 0; dy < def.footprintY(item.rot()); dy++) {
+                    int x = item.x() + dx;
+                    int y = item.y() + dy;
+                    if (Math.max(Math.abs(x - cx), Math.abs(y - cy)) > radius) continue;
+                    if (!isOccupiedByOther(npc.user.id(), x, y)) seats.add(new int[]{x, y});
+                }
+            }
+        }
+        return seats.isEmpty() ? null : seats.get(random.nextInt(seats.size()));
+    }
+
+    /** Casella libera e raggiungibile entro `radius` da (cx, cy), la piu' vicina a chi si muove. */
+    private int[] freeSpotNear(UUID moverId, int cx, int cy, int radius) {
+        Occupant mover = occupants.get(moverId);
+        int[] best = null;
+        int bestDistance = Integer.MAX_VALUE;
+        for (int x = cx - radius; x <= cx + radius; x++) {
+            for (int y = cy - radius; y <= cy + radius; y++) {
+                if ((x == cx && y == cy) || !layout.isTile(x, y)) continue;
+                if (isBlocked(moverId, x, y, x, y)) continue;
+                int d = Math.abs(x - mover.x) + Math.abs(y - mover.y);
+                if (d < bestDistance) {
+                    bestDistance = d;
+                    best = new int[]{x, y};
+                }
+            }
+        }
+        return best;
+    }
+
+    private static int distance(Occupant a, Occupant b) {
+        return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+    }
+
     // ------------------------------------------------------------------ chat ed espressioni
 
     public synchronized void chat(UUID userId, String text, String style) {
-        if (!occupants.containsKey(userId)) return;
+        Occupant speaker = occupants.get(userId);
+        if (speaker == null) return;
         broadcast(Map.of("type", "chat", "id", userId, "text", text, "style", style));
+        if (!speaker.isNpc()) hear(speaker, text);
     }
 
-    /** Sussurro: arriva solo al destinatario e a chi lo scrive. */
+    /** Sussurro: arriva solo al destinatario e a chi lo scrive. A un NPC si sussurra e lui risponde. */
     public synchronized boolean whisper(UUID fromId, String toUsername, String text) {
         Occupant from = occupants.get(fromId);
         if (from == null) return false;
+        // A parita' di nome vince il giocatore vero sull'NPC.
         Occupant to = occupants.values().stream()
                 .filter(o -> o.user.username().equalsIgnoreCase(toUsername))
-                .findFirst().orElse(null);
+                .min(Comparator.comparing(Occupant::isNpc))
+                .orElse(null);
         if (to == null) return false;
 
         Map<String, Object> message = Map.of("type", "chat", "id", fromId, "text", text, "style", "whisper",
                 "to", to.user.username());
-        from.session.send(message);
-        if (to != from) to.session.send(message);
+        from.send(message);
+        if (to != from) to.send(message);
+        if (to.isNpc()) respond(to, from, text, true);
         return true;
     }
 
@@ -429,7 +860,7 @@ public class RoomInstance {
     /** Il proprietario allontana un visitatore, che torna al navigatore. */
     public synchronized boolean kick(UUID userId) {
         Occupant occupant = occupants.get(userId);
-        if (occupant == null || data.isOwner(userId)) return false;
+        if (occupant == null || occupant.isNpc() || data.isOwner(userId)) return false;
         occupant.session.send(Map.of("type", "kicked"));
         occupant.session.setRoomId(null);
         leave(userId);
@@ -450,7 +881,7 @@ public class RoomInstance {
         if (occupant == null || item == null) return "item_not_found";
 
         switch (item.type()) {
-            case "bar_counter", "cafe_counter", "coffee_machine" -> {
+            case "bar_counter", "cafe_counter", "coffee_machine", "icecream_cart" -> {
                 if (isNextTo(occupant, item)) {
                     serveDrink(occupant, item.type());
                     return null;
@@ -506,7 +937,7 @@ public class RoomInstance {
      */
     public synchronized boolean resendState(UUID userId) {
         Occupant occupant = occupants.get(userId);
-        if (occupant == null) return false;
+        if (occupant == null || occupant.isNpc()) return false;
         occupant.session.send(roomState(userId));
         return true;
     }
@@ -533,11 +964,13 @@ public class RoomInstance {
         return occupants.containsKey(userId);
     }
 
-    /** Dal bancone esce una bibita a caso, dalla macchina del caffe' sempre un caffe'. */
+    /** Dal bancone esce una bibita a caso, dalla macchina del caffe' un caffe', dal carretto un gelato. */
     private void serveDrink(Occupant occupant, String from) {
-        occupant.handItem = "coffee_machine".equals(from)
-                ? "coffee"
-                : DRINKS.get(Math.floorMod((int) System.nanoTime(), DRINKS.size()));
+        occupant.handItem = switch (from) {
+            case "coffee_machine" -> "coffee";
+            case "icecream_cart" -> "gelato";
+            default -> DRINKS.get(Math.floorMod((int) System.nanoTime(), DRINKS.size()));
+        };
         occupant.handItemUntil = System.currentTimeMillis() + DRINK_MILLIS;
         broadcast(handMessage(occupant));
     }
@@ -637,6 +1070,10 @@ public class RoomInstance {
         view.put("status", o.status);
         view.put("handItem", o.handItem);
         view.put("away", o.away);
+        if (o.isNpc()) {
+            view.put("npc", Map.of("role", o.npc.role().name().toLowerCase(), "title", o.npc.role().title(),
+                    "menu", o.npc.menu()));
+        }
         List<int[]> path = new ArrayList<>();
         o.path.forEach(s -> path.add(new int[]{s.x(), s.y(), s.z()}));
         view.put("path", path);
@@ -654,12 +1091,12 @@ public class RoomInstance {
     }
 
     private void broadcast(Object message) {
-        occupants.values().forEach(o -> o.session.send(message));
+        occupants.values().forEach(o -> o.send(message));
     }
 
     private void broadcastExcept(UUID userId, Object message) {
         occupants.values().forEach(o -> {
-            if (!o.user.id().equals(userId)) o.session.send(message);
+            if (!o.user.id().equals(userId)) o.send(message);
         });
     }
 }

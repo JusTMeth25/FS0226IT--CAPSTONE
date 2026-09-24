@@ -373,6 +373,41 @@
   cursor: pointer;
 }
 .hotel-user-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* Scheda degli NPC: il ruolo in una targhetta dorata e il menu delle ordinazioni. */
+.hotel-npc-role {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffd700, #f59e0b);
+  color: #3a2600 !important;
+  font-weight: 900;
+  font-size: 0.7rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.hotel-npc-menu { display: flex; flex-direction: column; gap: 4px; }
+.hotel-npc-menu-title { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--hp-muted); }
+.hotel-npc-menu-items { display: flex; flex-wrap: wrap; gap: 6px; }
+.hotel-npc-order {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--hp-line);
+  background: var(--hp-surface);
+  color: var(--hp-text);
+  font-weight: 700;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.hotel-npc-order:hover { background: var(--hp-surface-hover); border-color: #ffd700; }
+.hotel-npc-order i { color: #ffd700; }
+.hotel-npc-card .hotel-user-actions .btn { padding: 5px 10px; font-size: 0.7rem; letter-spacing: 0.5px; box-shadow: none; }
 .hotel-user-card .hotel-panel-close { position: absolute; top: 6px; right: 6px; }
 .hotel-user-card-info { display: flex; flex-direction: column; gap: 4px; padding-right: 24px; }
 .hotel-user-card-info strong { font-size: 1rem; }

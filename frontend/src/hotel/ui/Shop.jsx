@@ -8,6 +8,8 @@ const CATEGORY_LABELS = {
   luci: 'Luci',
   musica: 'Musica',
   caffe: 'Caffetteria',
+  piscina: 'Piscina',
+  giardino: 'Giardino',
   carte: 'Carte',
   pareti: 'Pareti'
 };

@@ -118,6 +118,16 @@ public final class FurniCatalog {
         add(new FurniDef("neon_sign", "Insegna neon", "pareti", 90, 1, 1, true, false, -1, false, true));
         add(new FurniDef("window_wall", "Finestra", "pareti", 70, 1, 1, true, false, -1, false, true));
         add(new FurniDef("chalkboard", "Lavagna", "pareti", 60, 1, 1, true, false, -1, false, true));
+        add(new FurniDef("pool_water", "Acqua della piscina", "piscina", 25, 1, 1, false, true, -1, false, true));
+        add(new FurniDef("sunbed", "Lettino", "piscina", 70, 1, 1, false, false, 2, false, true));
+        add(new FurniDef("umbrella", "Ombrellone", "piscina", 60, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("lifeguard_chair", "Sedia del bagnino", "piscina", 120, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("aquarium", "Acquario", "arredo", 250, 2, 1, false, false, -1, false, true));
+        add(new FurniDef("fireplace", "Camino", "arredo", 220, 2, 1, false, false, -1, false, true));
+        add(new FurniDef("bench", "Panchina", "giardino", 60, 2, 1, false, false, 4, false, true));
+        add(new FurniDef("fountain", "Fontana", "giardino", 280, 2, 2, false, false, -1, false, true));
+        add(new FurniDef("flower_bed", "Aiuola", "giardino", 40, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("icecream_cart", "Carretto dei gelati", "giardino", 200, 2, 1, false, false, -1, false, true));
         add(new FurniDef("bar_counter", "Bancone bar", "lobby", 0, 3, 1, false, false, -1, false, false));
         add(new FurniDef("dj_booth", "Consolle DJ", "lobby", 0, 2, 1, false, false, -1, false, false));
     }

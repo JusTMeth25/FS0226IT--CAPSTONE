@@ -77,6 +77,7 @@ public class PvpService {
         RoomInstance room = registry.get(from.roomId());
         if (toId == null || toId.equals(fromId)) return "cannot_challenge_yourself";
         if (room == null || !room.contains(toId)) return "user_not_here";
+        if (room.isNpc(toId)) return "npc_no_challenge";
         if (isBusy(fromId)) return "already_in_match";
         if (isBusy(toId)) return "opponent_busy";
 

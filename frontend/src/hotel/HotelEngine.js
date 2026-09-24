@@ -10,7 +10,12 @@ import { getRarityColor } from '../utils/cardUtils.js';
 const SEAT_LIFT = 7 * DETAIL;
 
 /** Colori delle bibite del bancone (nomi come in RoomInstance.DRINKS). */
-const DRINK_COLORS = { cola: '#5b2a0e', juice: '#f97316', coffee: '#f5f5f5', bubble: '#ec4899' };
+const DRINK_COLORS = {
+  cola: '#5b2a0e', juice: '#f97316', coffee: '#6b3e1f', bubble: '#ec4899', cocktail: '#22d3ee', tea: '#b45309', gelato: '#f9a8d4'
+};
+
+/** Di quanto scende in acqua chi nuota: resta fuori dalla vita in su, come su Habbo. */
+const SWIM_SINK = 30;
 const HEART_MS = 2_200;
 
 const BUBBLE_H = 20;
@@ -351,6 +356,16 @@ export class HotelEngine {
     return false;
   }
 
+  /** L'avatar e' nell'acqua della piscina? */
+  inWater(at) {
+    const x = Math.round(at.x);
+    const y = Math.round(at.y);
+    for (const item of this.items.values()) {
+      if (item.type === 'pool_water' && item.x === x && item.y === y) return true;
+    }
+    return false;
+  }
+
   /** Sedia o divano sotto l'avatar seduto, se c'e'. */
   seatUnder(user) {
     if (user.status !== 'sit') return null;
@@ -552,26 +567,54 @@ export class HotelEngine {
       }
       const { user } = entry;
       const { sprite, left, top, center } = this.spriteFor(user, now);
-      // Ombra ovale sotto i piedi.
+      const swimming = user.status !== 'sit' && this.inWater(user.drawn || user.pos);
+      const sink = swimming ? SWIM_SINK : 0;
       const shadow = toScreen(center.x, center.y);
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-      ctx.beginPath();
-      ctx.ellipse(shadow.x, shadow.y, 8 * DETAIL * scale, 3 * DETAIL * scale, 0, 0, Math.PI * 2);
-      ctx.fill();
+      if (!swimming) {
+        // Ombra ovale sotto i piedi.
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+        ctx.beginPath();
+        ctx.ellipse(shadow.x, shadow.y, 8 * DETAIL * scale, 3 * DETAIL * scale, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
-      const p = toScreen(left, top);
+      const p = toScreen(left, top + sink);
+      const width = AVATAR_W * AVATAR_SCALE * scale;
+      const height = AVATAR_H * AVATAR_SCALE * scale;
       // Chi e' su un'altra pagina del sito resta nella stanza, ma sbiadito.
       if (user.away) ctx.globalAlpha = 0.45;
-      ctx.drawImage(sprite, p.x, p.y, AVATAR_W * AVATAR_SCALE * scale, AVATAR_H * AVATAR_SCALE * scale);
+      if (swimming) {
+        // In acqua si vede solo la parte sopra la superficie, con le onde attorno alla vita.
+        const surface = shadow.y - 4 * scale;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(p.x - 4, p.y - 4, width + 8, surface - p.y + 4);
+        ctx.clip();
+        ctx.drawImage(sprite, p.x, p.y, width, height);
+        ctx.restore();
+        const wave = this.reducedMotion ? 0 : Math.sin(now / 300 + user.x) * 2 * scale;
+        ctx.strokeStyle = 'rgba(214, 244, 255, 0.85)';
+        ctx.lineWidth = Math.max(1, 2 * scale);
+        ctx.beginPath();
+        ctx.ellipse(shadow.x, surface, (14 + Math.abs(wave)) * scale, 5 * scale, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      } else {
+        ctx.drawImage(sprite, p.x, p.y, width, height);
+      }
       ctx.globalAlpha = 1;
       if (user.handItem) drawDrink(ctx, user, p, scale * AVATAR_SCALE, viewForDirection(user.dir ?? 2));
-      const head = toScreen(center.x, top);
+      const head = toScreen(center.x, top + sink);
       user.headY = head.y;
       user.screenX = head.x;
       if (user.typing) labels.push({ kind: 'typing', x: head.x, y: head.y - 6 });
       const labelY = head.y - (user.typing ? 22 : 6);
       const hovered = user.id === this.hoverUserId;
-      if (hovered || user.id === this.meId || user.away) {
+      if (user.npc && hovered) {
+        // Personale e ospiti dell'hotel: nome e mestiere su una targhetta dorata.
+        labels.push({ kind: 'name', x: head.x, y: labelY, text: `${user.username} · ${user.npc.title}`, npc: true });
+      } else if (user.npc) {
+        labels.push({ kind: 'staff', x: head.x, y: labelY });
+      } else if (hovered || user.id === this.meId || user.away) {
         const text = user.away ? `${user.username} (assente)` : user.username;
         labels.push({
           kind: 'name', x: head.x, y: labelY, text, me: user.id === this.meId,
@@ -590,6 +633,7 @@ export class HotelEngine {
     const gemScale = Math.max(1, Math.round(scale * 2));
     labels.forEach((label) => {
       if (label.kind === 'typing') drawTyping(ctx, label);
+      else if (label.kind === 'staff') drawStaffTag(ctx, label, gemScale);
       else if (label.kind === 'gem') {
         const bob = animate ? Math.round(Math.sin(now / 450 + label.seed)) * gemScale : 0;
         drawGem(ctx, label.x - (GEM_W * gemScale) / 2, label.y + bob, label.rarity, gemScale, now, animate);
@@ -661,28 +705,75 @@ function depth(user) {
   return at.x + at.y + at.z * 0.01;
 }
 
-/** Bicchiere in mano all'avatar: nella mano verso chi guarda, che cambia lato se lo sprite e' specchiato. */
+/**
+ * Oggetto in mano all'avatar: bicchiere, tazza, cocktail o cono gelato, nella mano verso chi
+ * guarda (che cambia lato se lo sprite e' specchiato).
+ */
 function drawDrink(ctx, user, p, scale, view) {
   const color = DRINK_COLORS[user.handItem] || '#22d3ee';
-  const handX = view.flip ? 6 : 36;
-  const handY = 55;
-  const x = p.x + handX * scale;
-  const y = p.y + handY * scale;
+  const x = p.x + (view.flip ? 6 : 36) * scale;
+  const y = p.y + 55 * scale;
   const s = scale;
-  ctx.fillStyle = '#140d24';
-  ctx.fillRect(x - s, y - s, 8 * s, 11 * s);
-  ctx.fillStyle = '#e5e7eb';
-  ctx.fillRect(x, y, 6 * s, 9 * s);
-  ctx.fillStyle = color;
-  ctx.fillRect(x, y + 2 * s, 6 * s, 7 * s);
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-  ctx.fillRect(x + s, y + 3 * s, s, 4 * s);
+  const rect = (dx, dy, w, h, c) => {
+    ctx.fillStyle = c;
+    ctx.fillRect(x + dx * s, y + dy * s, w * s, h * s);
+  };
+  switch (user.handItem) {
+    case 'gelato':
+      rect(1, 2, 6, 10, '#1a1030');
+      rect(2, 3, 4, 8, '#d9a066');
+      rect(3, 5, 2, 1, '#b07a45');
+      rect(0, -4, 8, 7, '#1a1030');
+      rect(1, -3, 6, 5, color);
+      rect(2, -3, 2, 1, '#ffe4f1');
+      rect(3, -5, 2, 2, '#ef4444');
+      break;
+    case 'cocktail':
+      rect(-1, -1, 10, 5, '#1a1030');
+      rect(0, 0, 8, 3, color);
+      rect(3, 3, 2, 5, '#1a1030');
+      rect(1, 7, 6, 2, '#1a1030');
+      rect(5, -5, 1, 5, '#ec4899');
+      rect(4, -6, 4, 2, '#fbbf24');
+      break;
+    case 'coffee':
+    case 'tea':
+      rect(-1, 1, 9, 8, '#1a1030');
+      rect(0, 2, 7, 6, '#f5f5f5');
+      rect(0, 2, 7, 2, color);
+      rect(7, 3, 2, 3, '#f5f5f5');
+      rect(2, -2, 1, 2, 'rgba(255, 255, 255, 0.5)');
+      rect(4, -3, 1, 2, 'rgba(255, 255, 255, 0.5)');
+      break;
+    default:
+      rect(-1, -1, 8, 11, '#1a1030');
+      rect(0, 0, 6, 9, '#e5e7eb');
+      rect(0, 2, 6, 7, color);
+      rect(1, 3, 1, 4, 'rgba(255, 255, 255, 0.6)');
+  }
 }
 
-function drawName(ctx, { x, y, text, me, gem, card }, scale, now, animate) {
+/** Piccola stella dorata sopra la testa degli NPC: si capisce subito chi lavora nell'hotel. */
+const STAR = ['..#..', '..#..', '#####', '.###.', '.#.#.', '#...#'];
+
+function drawStaffTag(ctx, { x, y }, scale) {
+  const s = scale;
+  const left = Math.round(x - 2.5 * s);
+  const top = Math.round(y - 8 * s);
+  const cells = [];
+  STAR.forEach((row, r) => [...row].forEach((c, col) => { if (c === '#') cells.push([col, r]); }));
+  ctx.fillStyle = '#1a1030';
+  cells.forEach(([col, r]) => ctx.fillRect(left + (col - 1) * s, top + (r - 1) * s, 3 * s, 3 * s));
+  ctx.fillStyle = '#ffd700';
+  cells.forEach(([col, r]) => ctx.fillRect(left + col * s, top + r * s, s, s));
+  ctx.fillStyle = '#fff7cc';
+  ctx.fillRect(left + 2 * s, top + 2 * s, s, s);
+}
+
+function drawName(ctx, { x, y, text, me, gem, card, npc }, scale, now, animate) {
   ctx.font = 'bold 11px "Segoe UI", system-ui, sans-serif';
   const width = ctx.measureText(text).width + 10;
-  ctx.fillStyle = me ? 'rgba(139, 92, 246, 0.9)' : 'rgba(10, 16, 36, 0.85)';
+  ctx.fillStyle = npc ? 'rgba(180, 120, 0, 0.95)' : me ? 'rgba(139, 92, 246, 0.9)' : 'rgba(10, 16, 36, 0.85)';
   roundRect(ctx, x - width / 2, y - 14, width, 14, 4);
   ctx.fill();
   ctx.fillStyle = '#ffffff';

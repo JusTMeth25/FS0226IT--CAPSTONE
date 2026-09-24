@@ -3,6 +3,8 @@ package com.capstone.vinyldex.hotel;
 import com.capstone.vinyldex.entity.User;
 import com.capstone.vinyldex.repository.UserRepository;
 import com.capstone.vinyldex.security.JwtService;
+import jakarta.websocket.ContainerProvider;
+import jakarta.websocket.WebSocketContainer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -95,7 +97,10 @@ class HotelSocketIntegrationTest {
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
         headers.setOrigin(allowedOrigins.split(",")[0].trim());
 
-        WebSocketSession session = new StandardWebSocketClient().execute(new TextWebSocketHandler() {
+        // Lo stato della Lobby (mobili e NPC) supera gli 8 KB che il client Java accetta di default.
+        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+        container.setDefaultMaxTextMessageBufferSize(512 * 1024);
+        WebSocketSession session = new StandardWebSocketClient(container).execute(new TextWebSocketHandler() {
             @Override
             protected void handleTextMessage(WebSocketSession s, TextMessage message) {
                 inbox.add(objectMapper.readTree(message.getPayload()));
