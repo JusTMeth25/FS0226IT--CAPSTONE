@@ -1,6 +1,7 @@
 package com.capstone.vinyldex.hotel;
 
 import com.capstone.vinyldex.entity.User;
+import com.capstone.vinyldex.exception.ApiException;
 import com.capstone.vinyldex.repository.UserRepository;
 import com.capstone.vinyldex.security.JwtService;
 import org.slf4j.Logger;
@@ -29,6 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Comandi accettati dopo l'autenticazione:
  *   join {roomId} · move {x,y} · chat {text} · shout {text} · whisper {to,text}
  *   typing {on} · emote {emote} · status {status} · refresh_profile · ping
+ * Solo nella propria stanza:
+ *   place {itemId,x,y,rot} · pickup {itemId} · set_display {itemId,cardId} · kick {userId}
  */
 @Component
 public class HotelSocketHandler extends TextWebSocketHandler {
@@ -46,15 +49,17 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     private final UserRepository userRepository;
     private final RoomRegistry registry;
     private final RoomService roomService;
+    private final FurniService furniService;
     private final Map<String, HotelSession> sessions = new ConcurrentHashMap<>();
 
     public HotelSocketHandler(ObjectMapper objectMapper, JwtService jwtService, UserRepository userRepository,
-                              RoomRegistry registry, RoomService roomService) {
+                              RoomRegistry registry, RoomService roomService, FurniService furniService) {
         this.objectMapper = objectMapper;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.registry = registry;
         this.roomService = roomService;
+        this.furniService = furniService;
     }
 
     @Override
@@ -94,6 +99,9 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         session.touch();
         try {
             dispatch(session, type, node);
+        } catch (ApiException ex) {
+            // Errori previsti (mobile non tuo, carta non posseduta...): il client li mostra.
+            session.send(error(ex.getCode()));
         } catch (RuntimeException ex) {
             log.warn("Comando hotel {} fallito per {}: {}", type, session.user().username(), ex.getMessage());
             session.send(error("server_error"));
@@ -154,6 +162,18 @@ public class HotelSocketHandler extends TextWebSocketHandler {
                 if (room != null) room.setStatus(userId, text(node, "status"));
             }
             case "refresh_profile" -> refreshProfile(session, room);
+            case "place" -> {
+                if (room != null) place(session, room, node);
+            }
+            case "pickup" -> {
+                if (room != null) pickup(session, room, uuid(node, "itemId"));
+            }
+            case "set_display" -> {
+                if (room != null) setDisplay(session, room, uuid(node, "itemId"), text(node, "cardId"));
+            }
+            case "kick" -> {
+                if (room != null && room.data().isOwner(userId)) room.kick(uuid(node, "userId"));
+            }
             default -> session.send(error("unknown_command"));
         }
     }
@@ -183,12 +203,63 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        RoomInstance.JoinResult result = registry.join(session, data.get());
+        RoomInstance.JoinResult result = registry.join(session, data.get(), roomService.loadItems(roomId));
         switch (result) {
             case FULL -> session.send(error("room_full"));
             case CLOSED -> session.send(error("room_closed"));
             case OK -> { }
         }
+    }
+
+    /**
+     * Posiziona un mobile dall'inventario o sposta uno gia' nella stanza. Prima si controlla
+     * che ci stia (stanza viva), poi che sia davvero dell'utente e la stanza sua (database).
+     */
+    private void place(HotelSession session, RoomInstance room, JsonNode node) {
+        UUID userId = session.user().id();
+        if (!room.data().isOwner(userId)) {
+            session.send(error("not_your_room"));
+            return;
+        }
+        UUID itemId = uuid(node, "itemId");
+        if (itemId == null) {
+            session.send(error("item_not_found"));
+            return;
+        }
+        int x = integer(node, "x");
+        int y = integer(node, "y");
+        int rot = integer(node, "rot") == 2 ? 2 : 0;
+
+        // Il tipo si legge dal database, non dal messaggio: forma e regole sono quelle vere.
+        FurniCatalog.FurniDef def = furniService.ownedItem(userId, itemId).def();
+        RoomInstance.PlaceResult fit = room.canPlace(def, x, y, rot, itemId);
+        if (fit != RoomInstance.PlaceResult.OK) {
+            session.send(error("cant_place_" + fit.name().toLowerCase()));
+            return;
+        }
+        room.putItem(furniService.place(userId, itemId, room.data().id(), x, y, room.heightAt(x, y), rot));
+        session.send(Map.of("type", "inventory_changed"));
+    }
+
+    private void pickup(HotelSession session, RoomInstance room, UUID itemId) {
+        UUID userId = session.user().id();
+        if (itemId == null || !room.data().isOwner(userId)) {
+            session.send(error("not_your_room"));
+            return;
+        }
+        furniService.pickup(userId, itemId, room.data().id());
+        room.removeItem(itemId);
+        session.send(Map.of("type", "inventory_changed"));
+    }
+
+    private void setDisplay(HotelSession session, RoomInstance room, UUID itemId, String cardCode) {
+        UUID userId = session.user().id();
+        RoomItemView current = itemId == null ? null : room.item(itemId);
+        if (current == null || !room.data().isOwner(userId)) {
+            session.send(error("not_your_room"));
+            return;
+        }
+        room.putItem(furniService.setDisplay(userId, itemId, cardCode));
     }
 
     private void chat(HotelSession session, RoomInstance room, String style, String text) {
@@ -223,5 +294,14 @@ public class HotelSocketHandler extends TextWebSocketHandler {
 
     private static int integer(JsonNode node, String field) {
         return node.path(field).asInt(-1);
+    }
+
+    private static UUID uuid(JsonNode node, String field) {
+        try {
+            String value = text(node, field);
+            return value == null ? null : UUID.fromString(value);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 }

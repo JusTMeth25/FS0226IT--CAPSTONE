@@ -12,5 +12,9 @@ public enum WalletTransactionType {
     ALBUM_REWARD,
     DAILY_LOGIN,
     BATTLE_REWARD,
-    ADMIN_ADJUST
+    ADMIN_ADJUST,
+    /** Acquisto di un mobile nel negozio dell'hotel. */
+    FURNI_PURCHASE,
+    /** Ricompensa di una sfida fra giocatori nell'hotel. */
+    PVP_REWARD
 }

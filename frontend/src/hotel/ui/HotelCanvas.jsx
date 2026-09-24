@@ -12,16 +12,16 @@ const DRAG_THRESHOLD = 5;
  *
  * Il genitore passa i messaggi del server con ref.current.handle(message).
  */
-const HotelCanvas = forwardRef(function HotelCanvas({ zoom, onTileClick, onAvatarClick }, ref) {
+const HotelCanvas = forwardRef(function HotelCanvas({ zoom, catalog, placement, onTileClick, onAvatarClick, onItemClick, onPlace }, ref) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const engineRef = useRef(null);
-  const callbacks = useRef({ onTileClick, onAvatarClick });
+  const callbacks = useRef({ onTileClick, onAvatarClick, onItemClick, onPlace });
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
-    callbacks.current = { onTileClick, onAvatarClick };
-  }, [onTileClick, onAvatarClick]);
+    callbacks.current = { onTileClick, onAvatarClick, onItemClick, onPlace };
+  }, [onTileClick, onAvatarClick, onItemClick, onPlace]);
 
   useImperativeHandle(ref, () => ({
     handle: (message) => engineRef.current?.handle(message)
@@ -30,7 +30,9 @@ const HotelCanvas = forwardRef(function HotelCanvas({ zoom, onTileClick, onAvata
   useEffect(() => {
     const engine = new HotelEngine(canvasRef.current, {
       onTileClick: (tile) => callbacks.current.onTileClick?.(tile),
-      onAvatarClick: (user) => callbacks.current.onAvatarClick?.(user)
+      onAvatarClick: (user) => callbacks.current.onAvatarClick?.(user),
+      onItemClick: (item, tile) => callbacks.current.onItemClick?.(item, tile),
+      onPlace: (tile, current) => callbacks.current.onPlace?.(tile, current)
     });
     engineRef.current = engine;
 
@@ -61,6 +63,14 @@ const HotelCanvas = forwardRef(function HotelCanvas({ zoom, onTileClick, onAvata
   useEffect(() => {
     engineRef.current?.setZoom(zoom);
   }, [zoom]);
+
+  useEffect(() => {
+    if (engineRef.current) engineRef.current.catalog = new Map((catalog || []).map((def) => [def.type, def]));
+  }, [catalog]);
+
+  useEffect(() => {
+    if (engineRef.current) engineRef.current.placement = placement || null;
+  }, [placement]);
 
   const gesture = useRef(null);
 
@@ -104,7 +114,7 @@ const HotelCanvas = forwardRef(function HotelCanvas({ zoom, onTileClick, onAvata
     <div ref={wrapRef} className="hotel-canvas-wrap">
       <canvas
         ref={canvasRef}
-        className="hotel-canvas"
+        className={`hotel-canvas${placement ? ' placing' : ''}`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}

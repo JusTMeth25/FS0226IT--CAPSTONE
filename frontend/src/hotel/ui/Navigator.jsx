@@ -10,7 +10,7 @@ const TABS = [
  * Navigatore delle stanze, come su Habbo: stanze pubbliche e stanze dei giocatori, con quante
  * persone ci sono dentro adesso. Il conteggio si aggiorna ogni volta che si apre.
  */
-export default function Navigator({ currentRoomId, onJoin, onClose }) {
+export default function Navigator({ currentRoomId, onJoin, onMyRoom, onClose }) {
   const [tab, setTab] = useState('publicRooms');
   const [data, setData] = useState(null);
   const [error, setError] = useState(false);
@@ -33,6 +33,12 @@ export default function Navigator({ currentRoomId, onJoin, onClose }) {
           <button type="button" className="hotel-panel-close" onClick={onClose} aria-label="Chiudi"><i className="ph ph-x" /></button>
         )}
       </header>
+
+      {onMyRoom && (
+        <button type="button" className="hotel-my-room" onClick={onMyRoom}>
+          <i className="ph-fill ph-house-simple" /> Vai alla mia stanza
+        </button>
+      )}
 
       <div className="hotel-tabs" role="tablist">
         {TABS.map((t) => (

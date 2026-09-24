@@ -1,6 +1,13 @@
 import { STEP_MS, directionBetween, insideDiamond, parseLayout, tileCenter, tileTop, viewForDirection } from './iso.js';
 import { AVATAR_FOOT_X, AVATAR_FOOT_Y, AVATAR_H, AVATAR_W, avatarSprite } from './sprites/avatar.js';
 import { hoverTileSprite, renderRoom } from './sprites/room.js';
+import { furniSprite, isAnimated } from './sprites/furni.js';
+
+/** Mobili piatti: si disegnano sotto a tutto, come parte del pavimento. */
+const FLAT_TYPES = new Set(['rug_vinyl', 'dance_tile']);
+
+/** Di quanti pixel base si alza chi e' seduto su una sedia o un divano, rispetto al pavimento. */
+const SEAT_LIFT = 7;
 
 const BUBBLE_H = 20;
 const BUBBLE_GAP = 3;
@@ -20,11 +27,20 @@ const WAVE_MS = 2_500;
  * smussature. Testi e fumetti invece si disegnano a piena risoluzione, per restare leggibili.
  */
 export class HotelEngine {
-  constructor(canvas, { onTileClick, onAvatarClick, reducedMotion = false } = {}) {
+  constructor(canvas, { onTileClick, onAvatarClick, onItemClick, onPlace, reducedMotion = false } = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.onTileClick = onTileClick;
     this.onAvatarClick = onAvatarClick;
+    this.onItemClick = onItemClick;
+    this.onPlace = onPlace;
+
+    /** Catalogo dei mobili (type -> regole), arriva da GET /api/furni/catalog. */
+    this.catalog = new Map();
+    this.items = new Map();
+    this.spriteCache = new Map();
+    /** Posizionamento in corso: { itemId, type, rot } oppure null. */
+    this.placement = null;
     this.reducedMotion = reducedMotion;
 
     this.zoom = 2;
@@ -103,6 +119,9 @@ export class HotelEngine {
       case 'emote': this.setEmote(message.id, message.emote, now); break;
       case 'typing': this.setTyping(message.id, message.on); break;
       case 'chat': this.addBubble(message, now); break;
+      case 'item_added':
+      case 'item_updated': this.items.set(message.item.id, message.item); break;
+      case 'item_removed': this.items.delete(message.id); break;
       default: break;
     }
   }
@@ -114,6 +133,7 @@ export class HotelEngine {
     this.roomImage = renderRoom(this.layout, message.room.floorStyle, message.room.door);
     this.users.clear();
     this.bubbles = [];
+    this.items = new Map((message.items || []).map((item) => [item.id, item]));
     message.users.forEach((user) => this.addUser(user, now));
     this.centerCamera();
   }
@@ -203,7 +223,7 @@ export class HotelEngine {
   avatarAt(cssX, cssY) {
     const world = this.toWorld(cssX, cssY);
     if (!world) return null;
-    const drawn = [...this.users.values()].sort((a, b) => depth(b) - depth(a));
+    const drawn = [...this.users.values()].sort((a, b) => this.userDepth(b) - this.userDepth(a));
     for (const user of drawn) {
       const { sprite, left, top } = this.spriteFor(user, performance.now());
       const sx = Math.floor(world.x - left);
@@ -234,18 +254,145 @@ export class HotelEngine {
   }
 
   pointerMove(cssX, cssY) {
+    if (this.placement) {
+      this.hoverUserId = null;
+      this.hoverTile = this.tileAt(cssX, cssY);
+      return;
+    }
     this.hoverUserId = this.avatarAt(cssX, cssY)?.id || null;
     this.hoverTile = this.hoverUserId ? null : this.tileAt(cssX, cssY);
   }
 
   click(cssX, cssY) {
+    if (this.placement) {
+      const tile = this.tileAt(cssX, cssY);
+      if (tile) this.onPlace?.(tile, this.placement);
+      return;
+    }
     const user = this.avatarAt(cssX, cssY);
     if (user) {
       this.onAvatarClick?.(user);
       return;
     }
+    const item = this.itemAt(cssX, cssY);
+    if (item) {
+      this.onItemClick?.(item, this.tileAt(cssX, cssY));
+      return;
+    }
     const tile = this.tileAt(cssX, cssY);
     if (tile) this.onTileClick?.(tile);
+  }
+
+  /** Mobile sotto il puntatore, al pixel, il piu' in primo piano per primo. */
+  itemAt(cssX, cssY) {
+    const world = this.toWorld(cssX, cssY);
+    if (!world) return null;
+    const now = performance.now();
+    const list = [...this.items.values()]
+      .filter((item) => this.catalog.has(item.type))
+      .sort((a, b) => this.itemDepth(b) - this.itemDepth(a));
+    for (const item of list) {
+      const { sprite, left, top } = this.itemSprite(item, now);
+      const sx = Math.floor(world.x - left);
+      const sy = Math.floor(world.y - top);
+      if (sx < 0 || sy < 0 || sx >= sprite.width || sy >= sprite.height) continue;
+      if (sprite.getContext('2d').getImageData(sx, sy, 1, 1).data[3] > 0) return item;
+    }
+    return null;
+  }
+
+  /** Sedia o divano sotto l'avatar seduto, se c'e'. */
+  seatUnder(user) {
+    if (user.status !== 'sit') return null;
+    const at = user.drawn || user.pos;
+    for (const item of this.items.values()) {
+      const def = this.catalog.get(item.type);
+      if (!def || def.sitDir < 0) continue;
+      const { fx, fy } = this.footprint(item);
+      if (at.x >= item.x && at.x < item.x + fx && at.y >= item.y && at.y < item.y + fy) return item;
+    }
+    return null;
+  }
+
+  /** Profondita' di un avatar: chi e' seduto va disegnato subito dopo la sua seduta, sopra di essa. */
+  userDepth(user) {
+    const seat = this.seatUnder(user);
+    return seat ? this.itemDepth(seat) + 0.02 : depth(user);
+  }
+
+  footprint(item) {
+    const def = this.catalog.get(item.type);
+    if (!def || def.wall) return { fx: 1, fy: 1 };
+    return item.rot === 2 ? { fx: def.length, fy: def.width } : { fx: def.width, fy: def.length };
+  }
+
+  /** Profondita' del mobile: la sua casella piu' vicina a chi guarda. */
+  itemDepth(item) {
+    const { fx, fy } = this.footprint(item);
+    const def = this.catalog.get(item.type);
+    if (def?.wall) return -1000 + item.x + item.y;
+    if (FLAT_TYPES.has(item.type)) return -500 + item.x + item.y;
+    return item.x + fx - 1 + item.y + fy - 1 - 0.01;
+  }
+
+  /**
+   * Sprite del mobile, in cache. I mobili animati (luci del jukebox, pista) hanno una chiave
+   * che cambia ogni 250 ms: si rigenerano solo quando il loro fotogramma cambia davvero.
+   */
+  itemSprite(item, now) {
+    const def = this.catalog.get(item.type);
+    const frame = isAnimated(item.type) && !this.reducedMotion ? Math.floor(now / 250) : 0;
+    const key = `${item.id}|${item.type}|${item.rot}|${item.card?.id || ''}|${item.playing ? 1 : 0}|${frame}`;
+    let cached = this.spriteCache.get(key);
+    if (!cached) {
+      const sprite = furniSprite(item, def, {
+        now: frame * 250,
+        // Quando arriva l'immagine della carta, lo sprite in cache non la contiene: via.
+        onImageLoad: () => this.clearItemCache(item.id)
+      });
+      cached = sprite;
+      if (this.spriteCache.size > 600) this.spriteCache.clear();
+      this.spriteCache.set(key, cached);
+    }
+    const t = tileTop(item.x, item.y, item.z);
+    return { sprite: cached.canvas, left: t.x - cached.anchorX, top: t.y - cached.anchorY };
+  }
+
+  clearItemCache(itemId) {
+    [...this.spriteCache.keys()].forEach((key) => {
+      if (key.startsWith(`${itemId}|`)) this.spriteCache.delete(key);
+    });
+  }
+
+  /** Il mobile in posizionamento starebbe in questa casella? Stesse regole del server, in anticipo. */
+  canPlaceHere(tile) {
+    if (!this.placement || !tile || !this.layout) return false;
+    const def = this.catalog.get(this.placement.type);
+    if (!def) return false;
+    const door = this.room?.door;
+    const rot = this.placement.rot;
+    if (def.wall) {
+      const wx = rot === 2 ? tile.x - 1 : tile.x;
+      const wy = rot === 2 ? tile.y : tile.y - 1;
+      const isDoorTile = (x, y) => door && door.x === x && door.y === y;
+      return !isDoorTile(tile.x, tile.y) && !this.layout.isTile(wx, wy) && !isDoorTile(wx, wy);
+    }
+    const probe = { type: this.placement.type, rot, x: tile.x, y: tile.y };
+    const { fx, fy } = this.footprint(probe);
+    for (let dx = 0; dx < fx; dx += 1) {
+      for (let dy = 0; dy < fy; dy += 1) {
+        const x = tile.x + dx;
+        const y = tile.y + dy;
+        if (this.layout.heightAt(x, y) !== tile.z) return false;
+        if (door && door.x === x && door.y === y) return false;
+        for (const other of this.items.values()) {
+          if (other.id === this.placement.itemId || this.catalog.get(other.type)?.wall) continue;
+          const f = this.footprint(other);
+          if (x >= other.x && x < other.x + f.fx && y >= other.y && y < other.y + f.fy) return false;
+        }
+      }
+    }
+    return true;
   }
 
   // ------------------------------------------------------------------ disegno
@@ -293,6 +440,7 @@ export class HotelEngine {
     }
     const sprite = avatarSprite(user.look, { ...view, pose, frame });
     const center = tileCenter(at.x, at.y, at.z);
+    if (pose === 'sit' && this.seatUnder(user)) center.y -= SEAT_LIFT;
     return { sprite, left: center.x - AVATAR_FOOT_X, top: center.y - AVATAR_FOOT_Y, center };
   }
 
@@ -318,19 +466,36 @@ export class HotelEngine {
 
     ctx.drawImage(roomCanvas, this.camera.x, this.camera.y, roomCanvas.width * scale, roomCanvas.height * scale);
 
+    const drawItem = (item) => {
+      const { sprite, left, top } = this.itemSprite(item, now);
+      const p = toScreen(left, top);
+      ctx.drawImage(sprite, p.x, p.y, sprite.width * scale, sprite.height * scale);
+    };
+    const items = [...this.items.values()].filter((item) => this.catalog.has(item.type));
+    const backItems = items.filter((item) => this.itemDepth(item) < -100).sort((a, b) => this.itemDepth(a) - this.itemDepth(b));
+    backItems.forEach(drawItem);
+
     if (this.hoverTile) {
       const t = tileTop(this.hoverTile.x, this.hoverTile.y, this.hoverTile.z);
       const p = toScreen(t.x - 16, t.y);
       ctx.drawImage(hoverTileSprite(), p.x, p.y, 32 * scale, 16 * scale);
     }
 
-    // Avatar in ordine di profondita': chi e' piu' in basso sullo schermo copre chi sta dietro.
+    // Avatar e mobili in ordine di profondita': chi e' piu' in basso sullo schermo copre chi sta dietro.
     const users = [...this.users.values()];
     users.forEach((u) => { u.drawn = this.advance(u, now); });
-    users.sort((a, b) => depth(a) - depth(b));
+    const scene = [
+      ...users.map((user) => ({ kind: 'user', user, depth: this.userDepth(user) })),
+      ...items.filter((item) => this.itemDepth(item) >= -100).map((item) => ({ kind: 'item', item, depth: this.itemDepth(item) }))
+    ].sort((a, b) => a.depth - b.depth);
 
     const labels = [];
-    users.forEach((user) => {
+    scene.forEach((entry) => {
+      if (entry.kind === 'item') {
+        drawItem(entry.item);
+        return;
+      }
+      const { user } = entry;
       const { sprite, left, top, center } = this.spriteFor(user, now);
       // Ombra ovale sotto i piedi.
       const shadow = toScreen(center.x, center.y);
@@ -349,8 +514,27 @@ export class HotelEngine {
       }
     });
 
+    this.drawPlacement(ctx, now, toScreen, scale);
     labels.forEach((label) => (label.kind === 'typing' ? drawTyping(ctx, label) : drawName(ctx, label)));
     this.drawBubbles(ctx, now);
+  }
+
+  /** Anteprima del mobile che si sta posizionando: trasparente, rossa se non ci sta. */
+  drawPlacement(ctx, now, toScreen, scale) {
+    if (!this.placement || !this.hoverTile) return;
+    const ghost = { id: 'ghost', ...this.placement, x: this.hoverTile.x, y: this.hoverTile.y, z: this.hoverTile.z };
+    const { sprite, left, top } = this.itemSprite(ghost, now);
+    const p = toScreen(left, top);
+    const ok = this.canPlaceHere(this.hoverTile);
+    ctx.globalAlpha = 0.65;
+    ctx.drawImage(sprite, p.x, p.y, sprite.width * scale, sprite.height * scale);
+    if (!ok) {
+      ctx.globalCompositeOperation = 'source-atop';
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.5)';
+      ctx.fillRect(p.x, p.y, sprite.width * scale, sprite.height * scale);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    ctx.globalAlpha = 1;
   }
 
   drawBubbles(ctx, now) {

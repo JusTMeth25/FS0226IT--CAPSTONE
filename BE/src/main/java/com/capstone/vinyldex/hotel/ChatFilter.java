@@ -58,8 +58,13 @@ public class ChatFilter {
     }
 
     static String clean(String raw) {
-        if (raw == null) return "";
-        String text = raw.replaceAll("[\\p{Cntrl}\\p{Cf}]", " ").replaceAll("\\s+", " ").strip();
+        String text = strip(raw);
         return text.length() > MAX_LENGTH ? text.substring(0, MAX_LENGTH) : text;
+    }
+
+    /** Toglie caratteri di controllo e spazi multipli, senza tagliare la lunghezza. */
+    static String strip(String raw) {
+        if (raw == null) return "";
+        return raw.replaceAll("[\\p{Cntrl}\\p{Cf}]", " ").replaceAll("\\s+", " ").strip();
     }
 }

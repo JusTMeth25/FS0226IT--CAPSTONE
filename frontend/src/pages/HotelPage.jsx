@@ -1,10 +1,19 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../hooks/useAuth.js';
+import { useGame } from '../hooks/useGame.js';
 import { useHotelSocket } from '../hotel/useHotelSocket.js';
+import { furniApi } from '../services/furniApi.js';
+import { roomApi } from '../services/roomApi.js';
 import HotelCanvas from '../hotel/ui/HotelCanvas.jsx';
 import ChatBar from '../hotel/ui/ChatBar.jsx';
 import Navigator from '../hotel/ui/Navigator.jsx';
 import Wardrobe from '../hotel/ui/Wardrobe.jsx';
+import Shop from '../hotel/ui/Shop.jsx';
+import Inventory from '../hotel/ui/Inventory.jsx';
+import ItemMenu from '../hotel/ui/ItemMenu.jsx';
+import CardPicker from '../hotel/ui/CardPicker.jsx';
+import CardViewer from '../hotel/ui/CardViewer.jsx';
+import RoomSettings from '../hotel/ui/RoomSettings.jsx';
 import AvatarPreview from '../hotel/ui/AvatarPreview.jsx';
 import { DEFAULT_LOOK } from '../hotel/sprites/avatar.js';
 import '../hotel/hotel.css';
@@ -15,6 +24,14 @@ const ERRORS = {
   room_not_found: 'Questa stanza non esiste piu\'.',
   chat_muted: 'Stai scrivendo troppo in fretta: aspetta 30 secondi.',
   user_not_here: 'Quella persona non e\' in questa stanza.',
+  not_your_room: 'Puoi arredare solo la tua stanza.',
+  not_your_item: 'Questo mobile non e\' tuo.',
+  card_not_owned: 'Puoi esporre solo carte che possiedi (una vetrina per copia).',
+  cant_place_outside: 'Il mobile esce dalla stanza.',
+  cant_place_uneven: 'Il mobile deve stare tutto sullo stesso livello.',
+  cant_place_door: 'Non si puo\' bloccare la porta.',
+  cant_place_occupied: 'Quello spazio e\' gia\' occupato.',
+  cant_place_no_wall: 'Qui non c\'e\' una parete.',
   server_error: 'Qualcosa e\' andato storto. Riprova.'
 };
 
@@ -29,23 +46,37 @@ const STATUS_LABELS = {
 /**
  * VinylDex Hotel: la lobby social in stile Habbo.
  *
- * La pagina tiene lo stato "da pannello" (stanza attuale, chi c'e', pannelli aperti). Tutto
- * cio' che cambia a ogni fotogramma (camminate, fumetti) lo gestisce il motore del canvas.
+ * La pagina tiene lo stato "da pannello" (stanza, presenti, mobili, pannelli aperti). Tutto
+ * cio' che cambia a ogni fotogramma (camminate, fumetti, luci) lo gestisce il motore del canvas.
  */
 export default function HotelPage() {
   const { user, refreshUser } = useAuth();
+  const { gold } = useGame();
   const canvasRef = useRef(null);
   const roomIdRef = useRef(null);
 
   const [me, setMe] = useState(null);
   const [room, setRoom] = useState(null);
   const [people, setPeople] = useState({});
+  const [items, setItems] = useState({});
+  const [catalog, setCatalog] = useState([]);
   const [panel, setPanel] = useState('navigator');
   const [selected, setSelected] = useState(null);
+  const [selectedItemId, setSelectedItemId] = useState(null);
+  const [pickingCardFor, setPickingCardFor] = useState(null);
+  const [viewingCard, setViewingCard] = useState(null);
+  const [placement, setPlacement] = useState(null);
+  const [inventoryVersion, setInventoryVersion] = useState(0);
   const [whisperTo, setWhisperTo] = useState(null);
   const [notice, setNotice] = useState(null);
   const [zoom, setZoom] = useState(() => (window.innerWidth < 600 ? 1 : 2));
   const noticeTimer = useRef(0);
+
+  const catalogByType = useMemo(() => new Map(catalog.map((d) => [d.type, d])), [catalog]);
+
+  useEffect(() => {
+    furniApi.catalog().then((res) => setCatalog(res.furni || [])).catch(() => setCatalog([]));
+  }, []);
 
   const showNotice = useCallback((text) => {
     setNotice(text);
@@ -63,8 +94,14 @@ export default function HotelPage() {
         roomIdRef.current = message.room.id;
         setRoom(message.room);
         setPeople(Object.fromEntries(message.users.map((u) => [u.id, u])));
+        setItems(Object.fromEntries((message.items || []).map((i) => [i.id, i])));
         setPanel(null);
         setSelected(null);
+        setSelectedItemId(null);
+        setPlacement(null);
+        break;
+      case 'room_updated':
+        setRoom((r) => (r ? { ...r, ...message.room } : r));
         break;
       case 'user_joined':
         setPeople((p) => ({ ...p, [message.user.id]: message.user }));
@@ -82,6 +119,27 @@ export default function HotelPage() {
         break;
       case 'user_status':
         setPeople((p) => (p[message.id] ? { ...p, [message.id]: { ...p[message.id], status: message.status } } : p));
+        break;
+      case 'item_added':
+      case 'item_updated':
+        setItems((i) => ({ ...i, [message.item.id]: message.item }));
+        break;
+      case 'item_removed':
+        setItems((i) => {
+          const next = { ...i };
+          delete next[message.id];
+          return next;
+        });
+        setSelectedItemId((id) => (id === message.id ? null : id));
+        break;
+      case 'inventory_changed':
+        setInventoryVersion((v) => v + 1);
+        break;
+      case 'kicked':
+        roomIdRef.current = null;
+        setRoom(null);
+        setPanel('navigator');
+        showNotice('Il proprietario ti ha accompagnato fuori dalla stanza.');
         break;
       case 'error':
         showNotice(ERRORS[message.code] || ERRORS.server_error);
@@ -103,8 +161,51 @@ export default function HotelPage() {
   const online = status === 'online';
   const myLook = me?.look || user?.hotelLook || DEFAULT_LOOK;
   const myStatus = me ? people[me.id]?.status : null;
+  const isOwner = !!(room && me && room.ownerId === me.id);
+  const selectedItem = selectedItemId ? items[selectedItemId] : null;
 
   const toggleStatus = (value) => send({ type: 'status', status: myStatus === value ? 'idle' : value });
+
+  async function goToMyRoom() {
+    try {
+      const res = await roomApi.mine();
+      join(res.room.id);
+    } catch {
+      showNotice('Non riesco ad aprire la tua stanza. Riprova.');
+    }
+  }
+
+  // Durante il posizionamento: R ruota, Esc annulla.
+  useEffect(() => {
+    if (!placement) return undefined;
+    const onKey = (event) => {
+      if (event.target instanceof HTMLInputElement) return;
+      if (event.key === 'r' || event.key === 'R') setPlacement((p) => ({ ...p, rot: p.rot === 2 ? 0 : 2 }));
+      if (event.key === 'Escape') setPlacement(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [placement]);
+
+  function onItemClick(item, tile) {
+    const def = catalogByType.get(item.type);
+    // Pista e tappeti si calpestano: per chi non arreda il clic vale come camminare li'.
+    if (def?.walkable && !isOwner && tile) {
+      send({ type: 'move', x: tile.x, y: tile.y });
+      return;
+    }
+    // Sedie e divani: ci si va a sedere. Gli altri aprono il menu (o la carta, se non si e' il proprietario).
+    if (def?.sitDir >= 0 && !isOwner) {
+      send({ type: 'move', x: item.x, y: item.y });
+      return;
+    }
+    if (!isOwner && item.card) {
+      setViewingCard(item.card);
+      return;
+    }
+    setSelected(null);
+    setSelectedItemId(item.id);
+  }
 
   return (
     <section className="hotel-page">
@@ -112,8 +213,15 @@ export default function HotelPage() {
         <HotelCanvas
           ref={canvasRef}
           zoom={zoom}
+          catalog={catalog}
+          placement={placement}
           onTileClick={(tile) => send({ type: 'move', x: tile.x, y: tile.y })}
-          onAvatarClick={(u) => setSelected(u)}
+          onAvatarClick={(u) => { setSelectedItemId(null); setSelected(u); }}
+          onItemClick={onItemClick}
+          onPlace={(tile, current) => {
+            send({ type: 'place', itemId: current.itemId, x: tile.x, y: tile.y, rot: current.rot });
+            setPlacement(null);
+          }}
         />
 
         {!room && <div className="hotel-view" aria-hidden="true"><span className="hotel-view-title">VinylDex Hotel</span></div>}
@@ -128,6 +236,23 @@ export default function HotelPage() {
         {!online && <div className="hotel-status">{STATUS_LABELS[status]}</div>}
         {notice && <div className="hotel-notice" role="status">{notice}</div>}
 
+        {placement && (
+          <div className="hotel-placement-bar" role="status">
+            <span><i className="ph-fill ph-hand-grabbing" /> {catalogByType.get(placement.type)?.name}: clicca una casella</span>
+            {!catalogByType.get(placement.type)?.wall && (
+              <button type="button" className="btn btn-secondary btn-small" onClick={() => setPlacement((p) => ({ ...p, rot: p.rot === 2 ? 0 : 2 }))}>
+                <i className="ph-fill ph-arrow-clockwise" /> Ruota (R)
+              </button>
+            )}
+            {catalogByType.get(placement.type)?.wall && (
+              <button type="button" className="btn btn-secondary btn-small" onClick={() => setPlacement((p) => ({ ...p, rot: p.rot === 2 ? 0 : 2 }))}>
+                <i className="ph-fill ph-swap" /> Cambia parete (R)
+              </button>
+            )}
+            <button type="button" className="btn btn-secondary btn-small" onClick={() => setPlacement(null)}>Annulla</button>
+          </div>
+        )}
+
         {selected && (
           <div className="hotel-panel hotel-user-card" role="dialog" aria-label={`Profilo di ${selected.username}`}>
             <button type="button" className="hotel-panel-close" onClick={() => setSelected(null)} aria-label="Chiudi"><i className="ph ph-x" /></button>
@@ -140,14 +265,43 @@ export default function HotelPage() {
                   <i className="ph-fill ph-ear" /> Sussurra
                 </button>
               )}
+              {isOwner && selected.id !== me?.id && (
+                <button type="button" className="btn btn-secondary btn-small" onClick={() => { send({ type: 'kick', userId: selected.id }); setSelected(null); }}>
+                  <i className="ph-fill ph-door-open" /> Accompagna fuori
+                </button>
+              )}
             </div>
           </div>
+        )}
+
+        {selectedItem && (
+          <ItemMenu
+            item={selectedItem}
+            def={catalogByType.get(selectedItem.type)}
+            isOwner={isOwner}
+            onClose={() => setSelectedItemId(null)}
+            onViewCard={() => setViewingCard(selectedItem.card)}
+            onChooseCard={() => { setPickingCardFor(selectedItem); setSelectedItemId(null); }}
+            onRotate={() => send({ type: 'place', itemId: selectedItem.id, x: selectedItem.x, y: selectedItem.y, rot: selectedItem.rot === 2 ? 0 : 2 })}
+            onMove={() => { setPlacement({ itemId: selectedItem.id, type: selectedItem.type, rot: selectedItem.rot }); setSelectedItemId(null); }}
+            onPickup={() => { send({ type: 'pickup', itemId: selectedItem.id }); setSelectedItemId(null); }}
+          />
+        )}
+
+        {pickingCardFor && (
+          <CardPicker
+            current={items[pickingCardFor.id]?.card}
+            onClose={() => setPickingCardFor(null)}
+            onClear={() => { send({ type: 'set_display', itemId: pickingCardFor.id, cardId: null }); setPickingCardFor(null); }}
+            onPick={(card) => { send({ type: 'set_display', itemId: pickingCardFor.id, cardId: card.id }); setPickingCardFor(null); }}
+          />
         )}
 
         {panel === 'navigator' && (
           <Navigator
             currentRoomId={room?.id}
             onJoin={join}
+            onMyRoom={goToMyRoom}
             onClose={room ? () => setPanel(null) : null}
           />
         )}
@@ -163,15 +317,50 @@ export default function HotelPage() {
             }}
           />
         )}
+        {panel === 'shop' && (
+          <Shop
+            catalog={catalog}
+            gold={gold}
+            onClose={() => setPanel(null)}
+            onBought={(def) => {
+              refreshUser();
+              setInventoryVersion((v) => v + 1);
+              showNotice(`${def.name} aggiunto all'inventario!`);
+            }}
+          />
+        )}
+        {panel === 'inventory' && (
+          <Inventory
+            catalogByType={catalogByType}
+            canPlace={isOwner}
+            version={inventoryVersion}
+            onClose={() => setPanel(null)}
+            onPlace={(item) => { setPlacement({ itemId: item.id, type: item.type, rot: 0 }); setPanel(null); }}
+          />
+        )}
+        {panel === 'settings' && room && isOwner && <RoomSettings room={room} onClose={() => setPanel(null)} />}
       </div>
+
+      {viewingCard && <CardViewer card={viewingCard} onClose={() => setViewingCard(null)} />}
 
       <div className="hotel-toolbar">
         <button type="button" className={`hotel-tool${panel === 'navigator' ? ' active' : ''}`} onClick={() => setPanel(panel === 'navigator' ? null : 'navigator')} title="Navigatore">
           <i className="ph-fill ph-compass" /><span>Stanze</span>
         </button>
+        <button type="button" className={`hotel-tool${panel === 'shop' ? ' active' : ''}`} onClick={() => setPanel(panel === 'shop' ? null : 'shop')} title="Negozio">
+          <i className="ph-fill ph-storefront" /><span>Negozio</span>
+        </button>
+        <button type="button" className={`hotel-tool${panel === 'inventory' ? ' active' : ''}`} onClick={() => setPanel(panel === 'inventory' ? null : 'inventory')} title="Inventario">
+          <i className="ph-fill ph-package" /><span>Borsa</span>
+        </button>
         <button type="button" className={`hotel-tool${panel === 'wardrobe' ? ' active' : ''}`} onClick={() => setPanel(panel === 'wardrobe' ? null : 'wardrobe')} title="Guardaroba">
           <i className="ph-fill ph-t-shirt" /><span>Look</span>
         </button>
+        {isOwner && (
+          <button type="button" className={`hotel-tool${panel === 'settings' ? ' active' : ''}`} onClick={() => setPanel(panel === 'settings' ? null : 'settings')} title="Impostazioni stanza">
+            <i className="ph-fill ph-gear-six" /><span>Stanza</span>
+          </button>
+        )}
 
         <ChatBar send={send} whisperTo={whisperTo} onClearWhisper={() => setWhisperTo(null)} disabled={!online || !room} />
 

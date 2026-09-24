@@ -29,9 +29,10 @@ public class RoomInstance {
     private static final Set<String> EMOTES = Set.of("wave", "blow", "laugh");
     private static final Set<String> STATUSES = Set.of("idle", "dance", "sit");
 
-    private final RoomData data;
+    private volatile RoomData data;
     private final RoomLayout layout;
     private final Map<UUID, Occupant> occupants = new LinkedHashMap<>();
+    private final Map<UUID, RoomItemView> items = new LinkedHashMap<>();
     private long emptySince = System.currentTimeMillis();
 
     private static final class Occupant {
@@ -59,8 +60,13 @@ public class RoomInstance {
     }
 
     public RoomInstance(RoomData data) {
+        this(data, List.of());
+    }
+
+    public RoomInstance(RoomData data, List<RoomItemView> initialItems) {
         this.data = data;
         this.layout = RoomLayout.parse(data.layout());
+        initialItems.forEach(item -> items.put(item.id(), item));
     }
 
     public RoomData data() {
@@ -90,10 +96,44 @@ public class RoomInstance {
                 Math.max(0, layout.heightAt(data.doorX(), data.doorY())), data.doorDir());
         occupants.put(userId, occupant);
         session.setRoomId(data.id());
+        stepInside(occupant);
 
         session.send(roomState(userId));
         broadcastExcept(userId, Map.of("type", "user_joined", "user", view(occupant)));
         return JoinResult.OK;
+    }
+
+    /**
+     * Appena entrati si fa un passo oltre la porta, nella direzione in cui si guarda, come su
+     * Habbo. Senza, chi entra comparirebbe sopra chi e' ancora fermo sulla soglia e lo coprirebbe.
+     */
+    private void stepInside(Occupant occupant) {
+        int[] delta = DIRECTION_DELTAS[((data.doorDir() % 8) + 8) % 8];
+        // Prima la casella davanti alla porta, poi quelle libere piu' vicine (fino a due passi).
+        List<int[]> candidates = new ArrayList<>();
+        candidates.add(new int[]{data.doorX() + delta[0], data.doorY() + delta[1]});
+        for (int radius = 1; radius <= 2; radius++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dy = -radius; dy <= radius; dy++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) == radius) {
+                        candidates.add(new int[]{data.doorX() + dx, data.doorY() + dy});
+                    }
+                }
+            }
+        }
+        UUID userId = occupant.user.id();
+        for (int[] c : candidates) {
+            int x = c[0];
+            int y = c[1];
+            if (!layout.isTile(x, y) || (x == data.doorX() && y == data.doorY())) continue;
+            List<Pathfinder.Step> steps = Pathfinder.find(layout, occupant.x, occupant.y, x, y,
+                    (tx, ty) -> isBlocked(userId, tx, ty, x, y));
+            if (steps.isEmpty()) continue;
+            occupant.path.addAll(steps);
+            occupant.targetX = x;
+            occupant.targetY = y;
+            return;
+        }
     }
 
     public synchronized void leave(UUID userId) {
@@ -110,7 +150,7 @@ public class RoomInstance {
         if (occupant == null) return;
 
         List<Pathfinder.Step> steps = Pathfinder.find(layout, occupant.x, occupant.y, toX, toY,
-                (x, y) -> isOccupiedByOther(userId, x, y));
+                (x, y) -> isBlocked(userId, x, y, toX, toY));
         if (steps.isEmpty()) return;
 
         occupant.path.clear();
@@ -130,20 +170,13 @@ public class RoomInstance {
             Pathfinder.Step next = occupant.path.peekFirst();
             if (next == null) continue;
 
-            // Qualcuno si e' fermato sulla prossima casella: si ricalcola il resto del percorso.
-            if (isOccupiedByOther(occupant.user.id(), next.x(), next.y())) {
-                List<Pathfinder.Step> detour = Pathfinder.find(layout, occupant.x, occupant.y,
-                        occupant.targetX, occupant.targetY, (x, y) -> isOccupiedByOther(occupant.user.id(), x, y));
+            // Qualcuno si e' fermato sulla casella d'arrivo: ci si ferma dove si e'.
+            if (occupant.path.size() == 1 && isOccupiedByOther(occupant.user.id(), next.x(), next.y())) {
                 occupant.path.clear();
-                occupant.path.addAll(detour);
-                if (detour.isEmpty()) {
-                    // Nessuna strada libera: ci si ferma qui e si libera la destinazione prenotata.
-                    occupant.targetX = occupant.x;
-                    occupant.targetY = occupant.y;
-                }
+                occupant.targetX = occupant.x;
+                occupant.targetY = occupant.y;
                 broadcast(pathMessage(occupant));
-                next = occupant.path.peekFirst();
-                if (next == null) continue;
+                continue;
             }
 
             occupant.path.pollFirst();
@@ -151,7 +184,37 @@ public class RoomInstance {
             occupant.x = next.x();
             occupant.y = next.y();
             occupant.z = next.z();
+
+            // Arrivati su una sedia o un divano ci si siede, girati come la seduta.
+            if (occupant.path.isEmpty()) {
+                RoomItemView seat = floorItemAt(occupant.x, occupant.y);
+                if (seat != null && seat.def().sittable()) {
+                    occupant.status = "sit";
+                    occupant.dir = seat.def().sitDirFor(seat.rot());
+                    broadcast(statusMessage(occupant));
+                }
+            }
         }
+    }
+
+    /**
+     * Casella non utilizzabile nel percorso verso (toX, toY).
+     *
+     * I mobili solidi bloccano sempre. Gli altri avatar invece si possono attraversare e
+     * bloccano solo la casella d'arrivo: con avatar solidi, chi sta fermo subito dentro la porta
+     * intrappolerebbe sulla soglia chiunque entri dopo di lui.
+     */
+    private boolean isBlocked(UUID userId, int x, int y, int toX, int toY) {
+        RoomItemView item = floorItemAt(x, y);
+        if (item != null && !item.def().passable()) return true;
+        return x == toX && y == toY && isOccupiedByOther(userId, x, y);
+    }
+
+    private RoomItemView floorItemAt(int x, int y) {
+        for (RoomItemView item : items.values()) {
+            if (item.covers(x, y)) return item;
+        }
+        return null;
     }
 
     /**
@@ -216,6 +279,99 @@ public class RoomInstance {
         broadcast(statusMessage(occupant));
     }
 
+    // ------------------------------------------------------------------ mobili
+
+    public enum PlaceResult { OK, OUTSIDE, UNEVEN, DOOR, OCCUPIED, NO_WALL }
+
+    /**
+     * Il mobile sta in quella posizione? Controlla solo la stanza (caselle, dislivelli, porta,
+     * avatar e altri mobili): proprieta' e inventario li verifica FurniService.
+     *
+     * @param ignoreId il mobile che si sta spostando, che non deve scontrarsi con se' stesso
+     */
+    public synchronized PlaceResult canPlace(FurniCatalog.FurniDef def, int x, int y, int rot, UUID ignoreId) {
+        RoomData room = data;
+        if (def.wall()) {
+            if (!layout.isTile(x, y)) return PlaceResult.OUTSIDE;
+            if (x == room.doorX() && y == room.doorY()) return PlaceResult.DOOR;
+            int wallX = rot == 2 ? x - 1 : x;
+            int wallY = rot == 2 ? y : y - 1;
+            boolean wallThere = !layout.isTile(wallX, wallY) && !(wallX == room.doorX() && wallY == room.doorY());
+            if (!wallThere) return PlaceResult.NO_WALL;
+            for (RoomItemView other : items.values()) {
+                if (!other.id().equals(ignoreId) && other.def().wall()
+                        && other.x() == x && other.y() == y && other.rot() == rot) {
+                    return PlaceResult.OCCUPIED;
+                }
+            }
+            return PlaceResult.OK;
+        }
+
+        int height = layout.heightAt(x, y);
+        for (int dx = 0; dx < def.footprintX(rot); dx++) {
+            for (int dy = 0; dy < def.footprintY(rot); dy++) {
+                int tx = x + dx;
+                int ty = y + dy;
+                if (!layout.isTile(tx, ty)) return PlaceResult.OUTSIDE;
+                if (layout.heightAt(tx, ty) != height) return PlaceResult.UNEVEN;
+                if (tx == room.doorX() && ty == room.doorY()) return PlaceResult.DOOR;
+                for (RoomItemView other : items.values()) {
+                    if (!other.id().equals(ignoreId) && other.covers(tx, ty)) return PlaceResult.OCCUPIED;
+                }
+                if (!def.passable()) {
+                    for (Occupant o : occupants.values()) {
+                        if ((o.x == tx && o.y == ty) || (o.targetX == tx && o.targetY == ty)) {
+                            return PlaceResult.OCCUPIED;
+                        }
+                    }
+                }
+            }
+        }
+        return PlaceResult.OK;
+    }
+
+    public int heightAt(int x, int y) {
+        return Math.max(0, layout.heightAt(x, y));
+    }
+
+    public synchronized RoomItemView item(UUID itemId) {
+        return items.get(itemId);
+    }
+
+    /** Aggiunge o aggiorna un mobile (posizionato, spostato, carta cambiata) e lo mostra a tutti. */
+    public synchronized void putItem(RoomItemView item) {
+        boolean existed = items.containsKey(item.id());
+        items.put(item.id(), item);
+        broadcast(Map.of("type", existed ? "item_updated" : "item_added", "item", item));
+    }
+
+    public synchronized void removeItem(UUID itemId) {
+        if (items.remove(itemId) != null) broadcast(Map.of("type", "item_removed", "id", itemId));
+    }
+
+    /** Nome, descrizione o porta cambiati dal proprietario. */
+    public synchronized void updateData(RoomData updated) {
+        this.data = updated;
+        Map<String, Object> room = new LinkedHashMap<>();
+        room.put("name", updated.name());
+        room.put("description", updated.description());
+        room.put("doorMode", updated.doorMode());
+        room.put("maxUsers", updated.maxUsers());
+        broadcast(Map.of("type", "room_updated", "room", room));
+    }
+
+    /** Il proprietario allontana un visitatore, che torna al navigatore. */
+    public synchronized boolean kick(UUID userId) {
+        Occupant occupant = occupants.get(userId);
+        if (occupant == null || data.isOwner(userId)) return false;
+        occupant.session.send(Map.of("type", "kicked"));
+        occupant.session.setRoomId(null);
+        leave(userId);
+        return true;
+    }
+
+    // ------------------------------------------------------------------ utenti
+
     /** Aspetto o livello cambiati (guardaroba, level up): tutti i presenti vedono la novita'. */
     public synchronized void updateUser(HotelUser user) {
         Occupant occupant = occupants.get(user.id());
@@ -240,8 +396,12 @@ public class RoomInstance {
         room.put("floorStyle", data.floorStyle());
         room.put("wallStyle", data.wallStyle());
         room.put("isPublic", data.publicRoom());
+        room.put("ownerId", data.ownerId());
+        room.put("doorMode", data.doorMode());
+        room.put("maxUsers", data.maxUsers());
 
-        return Map.of("type", "room_state", "room", room, "users", users, "you", you);
+        return Map.of("type", "room_state", "room", room, "users", users, "you", you,
+                "items", List.copyOf(items.values()));
     }
 
     private static Map<String, Object> view(Occupant o) {

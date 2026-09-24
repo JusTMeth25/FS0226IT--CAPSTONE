@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -57,11 +58,11 @@ public class RoomRegistry {
      * perche' vuota nello stesso istante in cui qualcuno ci sta entrando. I dati vanno letti dal
      * database prima (loader), mai dentro compute.
      */
-    public RoomInstance.JoinResult join(HotelSession session, RoomData data) {
+    public RoomInstance.JoinResult join(HotelSession session, RoomData data, List<RoomItemView> items) {
         leaveRoom(session);
         RoomInstance.JoinResult[] result = new RoomInstance.JoinResult[1];
         rooms.compute(data.id(), (id, existing) -> {
-            RoomInstance room = existing != null ? existing : new RoomInstance(data);
+            RoomInstance room = existing != null ? existing : new RoomInstance(data, items);
             result[0] = room.join(session);
             return room;
         });

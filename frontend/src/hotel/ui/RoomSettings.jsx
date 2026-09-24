@@ -1,0 +1,59 @@
+import { useState } from 'react';
+import { roomApi } from '../../services/roomApi.js';
+
+/** Impostazioni della propria stanza. Le modifiche arrivano subito a chi e' dentro. */
+export default function RoomSettings({ room, onClose }) {
+  const [name, setName] = useState(room.name || '');
+  const [description, setDescription] = useState(room.description || '');
+  const [doorMode, setDoorMode] = useState(room.doorMode || 'open');
+  const [maxUsers, setMaxUsers] = useState(room.maxUsers || 20);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function save(event) {
+    event.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      await roomApi.updateSettings(room.id, { name, description, doorMode, maxUsers: Number(maxUsers) });
+      onClose();
+    } catch {
+      setError('Salvataggio non riuscito. Controlla il nome e riprova.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form className="hotel-panel hotel-settings" onSubmit={save} aria-label="Impostazioni stanza">
+      <header className="hotel-panel-header">
+        <h3><i className="ph-fill ph-gear-six" /> La mia stanza</h3>
+        <button type="button" className="hotel-panel-close" onClick={onClose} aria-label="Chiudi"><i className="ph ph-x" /></button>
+      </header>
+      <div className="hotel-settings-body">
+        <label>Nome
+          <input className="hotel-chat-input" value={name} maxLength={60} onChange={(e) => setName(e.target.value)} required />
+        </label>
+        <label>Descrizione
+          <input className="hotel-chat-input" value={description} maxLength={255} onChange={(e) => setDescription(e.target.value)} />
+        </label>
+        <label>Porta
+          <select className="hotel-chat-input" value={doorMode} onChange={(e) => setDoorMode(e.target.value)}>
+            <option value="open">Aperta: entra chiunque</option>
+            <option value="closed">Chiusa: solo io</option>
+          </select>
+        </label>
+        <label>Capienza: {maxUsers}
+          <input type="range" min="1" max="25" value={maxUsers} onChange={(e) => setMaxUsers(e.target.value)} />
+        </label>
+      </div>
+      {error && <p className="hotel-panel-error">{error}</p>}
+      <footer className="hotel-panel-footer">
+        <button type="button" className="btn btn-secondary" onClick={onClose}>Annulla</button>
+        <button type="submit" className="btn btn-primary" disabled={saving}>
+          <i className="ph-fill ph-floppy-disk" /> {saving ? 'Salvataggio…' : 'Salva'}
+        </button>
+      </footer>
+    </form>
+  );
+}
