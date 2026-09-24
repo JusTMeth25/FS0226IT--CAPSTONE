@@ -57,6 +57,7 @@ export class HotelEngine {
     this.jukeboxOn = false;
     /** Cuori del rispetto che salgono sopra la testa di chi lo riceve. */
     this.hearts = [];
+    this.sips = [];
     this.reducedMotion = reducedMotion;
 
     this.zoom = 2;
@@ -138,7 +139,8 @@ export class HotelEngine {
       case 'item_added':
       case 'item_updated': this.items.set(message.item.id, message.item); break;
       case 'item_removed': this.items.delete(message.id); break;
-      case 'hand_item': this.setHandItem(message.id, message.item); break;
+      case 'hand_item': this.setHandItem(message.id, message.item, message.left); break;
+      case 'consume': this.setConsume(message.id, message.item, message.left, now); break;
       case 'user_away': {
         const user = this.users.get(message.id);
         if (user) user.away = message.away;
@@ -170,6 +172,7 @@ export class HotelEngine {
     this.items = new Map((message.items || []).map((item) => [item.id, item]));
     this.jukeboxOn = (message.jukebox?.track ?? -1) >= 0;
     this.hearts = [];
+    this.sips = [];
     message.users.forEach((user) => this.addUser(user, now));
     this.centerCamera();
   }
@@ -215,9 +218,21 @@ export class HotelEngine {
     user.emoteUntil = now + WAVE_MS;
   }
 
-  setHandItem(id, item) {
+  setHandItem(id, item, left) {
     const user = this.users.get(id);
-    if (user) user.handItem = item;
+    if (!user) return;
+    user.handItem = item;
+    user.handLeft = left ?? 3;
+  }
+
+  /** Un sorso o un morso: il braccio va alla bocca e sale una scritta, visibili a tutti. */
+  setConsume(id, item, left, now) {
+    const user = this.users.get(id);
+    if (!user) return;
+    user.handLeft = left;
+    user.sipUntil = now + 900;
+    this.sips.push({ userId: id, text: item === 'book' ? 'sfoglia' : ['pizza', 'gelato'].includes(item) ? 'gnam!' : 'glu glu', born: now });
+    if (this.sips.length > 20) this.sips.shift();
   }
 
   setTyping(id, on) {
@@ -603,7 +618,7 @@ export class HotelEngine {
         ctx.drawImage(sprite, p.x, p.y, width, height);
       }
       ctx.globalAlpha = 1;
-      if (user.handItem) drawDrink(ctx, user, p, scale * AVATAR_SCALE, viewForDirection(user.dir ?? 2));
+      if (user.handItem) drawDrink(ctx, user, p, scale * AVATAR_SCALE, viewForDirection(user.dir ?? 2), now < (user.sipUntil || 0));
       const head = toScreen(center.x, top + sink);
       user.headY = head.y;
       user.screenX = head.x;
@@ -629,6 +644,7 @@ export class HotelEngine {
 
     this.drawPlacement(ctx, now, toScreen, scale);
     this.drawHearts(ctx, now);
+    this.drawSips(ctx, now);
     const animate = !this.reducedMotion;
     // La gemma resta leggibile anche con lo zoom indietro.
     const gemScale = Math.max(1, Math.round(scale * 2));
@@ -661,6 +677,25 @@ export class HotelEngine {
       ctx.font = 'bold 12px "Segoe UI", system-ui, sans-serif';
       ctx.fillStyle = '#ffffff';
       ctx.fillText('+1', x + 10, y);
+      ctx.globalAlpha = 1;
+    });
+  }
+
+  /** Scritte dei sorsi e dei morsi ("glu glu", "gnam!") che salgono sopra chi consuma. */
+  drawSips(ctx, now) {
+    this.sips = this.sips.filter((s) => now - s.born < 1_200);
+    this.sips.forEach((sip) => {
+      const user = this.users.get(sip.userId);
+      if (!user || user.screenX === undefined) return;
+      const t = (now - sip.born) / 1_200;
+      ctx.globalAlpha = 1 - t * t;
+      ctx.font = 'bold 12px "Segoe UI", system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#1a1030';
+      ctx.fillText(sip.text, user.screenX + 21, (user.headY ?? 0) - 9 - t * 26);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(sip.text, user.screenX + 20, (user.headY ?? 0) - 10 - t * 26);
       ctx.globalAlpha = 1;
     });
   }
@@ -710,24 +745,29 @@ function depth(user) {
  * Oggetto in mano all'avatar: bicchiere, tazza, cocktail o cono gelato, nella mano verso chi
  * guarda (che cambia lato se lo sprite e' specchiato).
  */
-function drawDrink(ctx, user, p, scale, view) {
+function drawDrink(ctx, user, p, scale, view, sipping) {
   const color = DRINK_COLORS[user.handItem] || '#22d3ee';
-  const x = p.x + (view.flip ? 6 : 36) * scale;
-  const y = p.y + 55 * scale;
+  // Mentre beve o mangia, l'oggetto sale alla bocca.
+  const x = p.x + (sipping ? (view.flip ? 12 : 30) : (view.flip ? 6 : 36)) * scale;
+  const y = p.y + (sipping ? 30 : 55) * scale;
+  // Quanto ne resta, da 3 a 1: la bevanda cala, il cibo si accorcia.
+  const left = Math.max(1, Math.min(3, user.handLeft ?? 3));
   const s = scale;
   const rect = (dx, dy, w, h, c) => {
     ctx.fillStyle = c;
     ctx.fillRect(x + dx * s, y + dy * s, w * s, h * s);
   };
   switch (user.handItem) {
-    case 'pizza':
-      rect(-1, 0, 11, 8, '#1a1030');
-      rect(0, 1, 9, 6, '#e8b45a');
-      rect(1, 1, 7, 4, '#ef4444');
+    case 'pizza': {
+      const w = 3 + left * 2;
+      rect(-1, 0, w + 2, 8, '#1a1030');
+      rect(0, 1, w, 6, '#e8b45a');
+      rect(1, 1, w - 2, 4, '#ef4444');
       rect(2, 2, 2, 1, '#fde68a');
-      rect(5, 3, 2, 1, '#fde68a');
+      if (left > 1) rect(5, 3, 2, 1, '#fde68a');
       rect(3, 4, 1, 1, '#16a34a');
       break;
+    }
     case 'book':
       rect(-1, -1, 9, 11, '#1a1030');
       rect(0, 0, 7, 9, color);
@@ -740,13 +780,13 @@ function drawDrink(ctx, user, p, scale, view) {
       rect(2, 3, 4, 8, '#d9a066');
       rect(3, 5, 2, 1, '#b07a45');
       rect(0, -4, 8, 7, '#1a1030');
-      rect(1, -3, 6, 5, color);
-      rect(2, -3, 2, 1, '#ffe4f1');
-      rect(3, -5, 2, 2, '#ef4444');
+      rect(1, -3 + (3 - left), 6, 5 - (3 - left), color);
+      rect(2, -3 + (3 - left), 2, 1, '#ffe4f1');
+      if (left === 3) rect(3, -5, 2, 2, '#ef4444');
       break;
     case 'cocktail':
       rect(-1, -1, 10, 5, '#1a1030');
-      rect(0, 0, 8, 3, color);
+      rect(0, 3 - left, 8, left, color);
       rect(3, 3, 2, 5, '#1a1030');
       rect(1, 7, 6, 2, '#1a1030');
       rect(5, -5, 1, 5, '#ec4899');
@@ -756,7 +796,7 @@ function drawDrink(ctx, user, p, scale, view) {
     case 'tea':
       rect(-1, 1, 9, 8, '#1a1030');
       rect(0, 2, 7, 6, '#f5f5f5');
-      rect(0, 2, 7, 2, color);
+      rect(0, 2 + (3 - left), 7, 1 + Math.min(1, left - 1), color);
       rect(7, 3, 2, 3, '#f5f5f5');
       rect(2, -2, 1, 2, 'rgba(255, 255, 255, 0.5)');
       rect(4, -3, 1, 2, 'rgba(255, 255, 255, 0.5)');
@@ -764,7 +804,7 @@ function drawDrink(ctx, user, p, scale, view) {
     default:
       rect(-1, -1, 8, 11, '#1a1030');
       rect(0, 0, 6, 9, '#e5e7eb');
-      rect(0, 2, 6, 7, color);
+      rect(0, 9 - left * 2 - 1, 6, left * 2 + 1, color);
       rect(1, 3, 1, 4, 'rgba(255, 255, 255, 0.6)');
   }
 }

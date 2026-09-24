@@ -128,6 +128,8 @@ public final class NpcDialog {
             case REFEREE -> "Benvenuto nell'Arena, " + user + ". Clicca un giocatore e sfidalo!";
             case CHEF -> "Benvenuto in pizzeria, " + user + "! Il forno e' caldo, una margherita?";
             case LIBRARIAN -> "Benvenuto in biblioteca, " + user + ". Sussurra, qui si legge!";
+            case FIGHTER -> pick(random, List.of("Ehi " + user + ", hai il coraggio di sfidarmi?",
+                    "Ciao " + user + "! Le mie carte sono pronte, e le tue?"));
             case GUEST -> pick(random, List.of("Ciao " + user + "!", "Ehi " + user + ", come va?", "Ciao! Bella stanza, vero?"));
         };
     }
@@ -182,6 +184,51 @@ public final class NpcDialog {
         };
     }
 
+    // ------------------------------------------------------------------ sfide e scambi
+
+    public static String acceptChallenge(String user, Random random) {
+        return pick(random, List.of("Accetto, " + user + "! Vediamo cosa sai fare.", "Sfida accettata! Preparati, " + user + ".",
+                "Ci sto! Scegli bene le tue carte, " + user + "."));
+    }
+
+    public static String refuseChallenge(NpcRoster.Role role) {
+        return role == NpcRoster.Role.REFEREE ? "Io arbitro, non gioco! Sfida uno degli sfidanti." : "Adesso non posso, sono gia' impegnato!";
+    }
+
+    public static String challengeYou(String user, Random random) {
+        return pick(random, List.of(user + ", ti sfido! Accetti?", "Ehi " + user + ", facciamo una partita?",
+                "Tu, " + user + "! Sfida a tre round, ci stai?"));
+    }
+
+    public static String matchWon(String user) {
+        return "Bella partita, " + user + ", ma stavolta ho vinto io!";
+    }
+
+    public static String matchLost(String user) {
+        return "Complimenti " + user + ", mi hai battuto! La prossima volta non ti va cosi' liscia.";
+    }
+
+    public static String matchDraw(String user) {
+        return "Pareggio! Sei tosto, " + user + ".";
+    }
+
+    public static String tradeOffer(String user, Random random) {
+        return pick(random, List.of(user + ", ho una proposta di scambio per te!", "Ehi " + user + ", scambiamo una carta?",
+                user + ", guarda cosa ti offro in cambio di una tua doppia!"));
+    }
+
+    public static String tradeDone(String user) {
+        return "Affare fatto, " + user + "! Goditi la carta nuova.";
+    }
+
+    public static String tradeUnfair(String user) {
+        return "Mmh, " + user + ", cosi' ci rimetto troppo. Offrimi qualcosa di piu' raro!";
+    }
+
+    public static String tradeDeclined(String user) {
+        return "Peccato, " + user + ". Magari la prossima volta!";
+    }
+
     public static String dancing() {
         return "Si balla!";
     }
@@ -213,6 +260,8 @@ public final class NpcDialog {
             case CHEF -> List.of("Pizza calda appena sfornata!", "Oggi c'e' la speciale al neon: pomodoro e fiordilatte viola... scherzo!",
                     "Chi vuole un trancio?");
             case LIBRARIAN -> List.of("Shhh, per favore.", "Nuovi arrivi sullo scaffale dei manga.", "I libri si restituiscono entro domani!");
+            case FIGHTER -> List.of("Chi ha il coraggio di sfidarmi?", "La mia squadra oggi e' imbattibile.",
+                    "Scambio carte doppie, chi ci sta?");
             case GUEST -> List.of("Che bella giornata!", "Qualcuno vuole scambiare carte?", "Adoro questo posto.",
                     "Ho appena aperto un pacchetto fortunato!", "Ci vediamo al Neon Bar stasera?");
         });

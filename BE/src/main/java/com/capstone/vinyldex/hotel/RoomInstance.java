@@ -39,7 +39,11 @@ public class RoomInstance {
     private static final long NPC_GREET_COOLDOWN_MILLIS = 20_000;
     /** Quanti messaggi di ogni conversazione NPC-giocatore si ricordano per il modello. */
     private static final int NPC_MEMORY_LINES = 12;
-    private static final long DRINK_MILLIS = 90_000;
+    /** Un oggetto in mano dura cinque minuti, o finche' non lo si finisce. */
+    private static final long DRINK_MILLIS = 5 * 60_000;
+    /** Sorsi o morsi per finire un oggetto, e pausa minima fra uno e l'altro. */
+    static final int HAND_ITEM_SIPS = 3;
+    private static final long SIP_PAUSE_MILLIS = 900;
 
     /** Brani del jukebox: il client li genera con WebAudio (src/hotel/music.js). */
     public static final int JUKEBOX_TRACKS = 4;
@@ -95,6 +99,9 @@ public class RoomInstance {
         int targetY;
         String handItem;
         long handItemUntil;
+        /** Quanto ne resta (sorsi, morsi, pagine) e quando si e' consumato l'ultimo. */
+        int handItemLeft;
+        long lastSipAt;
         /** Collegato ma su un'altra pagina del sito: gli altri lo vedono sbiadito. */
         boolean away;
         /** Mobile da usare appena si arriva (per esempio il bancone del bar). */
@@ -613,6 +620,7 @@ public class RoomInstance {
         if (!occupants.containsKey(user.user.id()) || !occupants.containsKey(npc.user.id())) return;
         face(npc, user);
         user.handItem = item;
+        user.handItemLeft = HAND_ITEM_SIPS;
         user.handItemUntil = System.currentTimeMillis() + DRINK_MILLIS;
         broadcast(handMessage(user));
         say(npc, NpcDialog.served(npc.npc.role(), user.user.username(), item, random), user, false, 0);
@@ -1057,6 +1065,50 @@ public class RoomInstance {
         broadcast(Map.of("type", "respect", "from", fromId, "to", toId, "total", receivedTotal));
     }
 
+    // ------------------------------------------------------------------ NPC visti da fuori (sfide, scambi)
+
+    /** L'NPC come "utente": nome e aspetto, per i messaggi di sfide e scambi. Null se non c'e'. */
+    public synchronized HotelUser npcUser(UUID npcId) {
+        Occupant npc = occupants.get(npcId);
+        return npc != null && npc.isNpc() ? npc.user : null;
+    }
+
+    public synchronized NpcRoster.Role npcRole(UUID npcId) {
+        Occupant npc = occupants.get(npcId);
+        return npc != null && npc.isNpc() ? npc.npc.role() : null;
+    }
+
+    /** NPC presenti con uno di questi mestieri. */
+    public synchronized List<UUID> npcsWithRole(Set<NpcRoster.Role> roles) {
+        return occupants.values().stream().filter(o -> o.isNpc() && roles.contains(o.npc.role()))
+                .map(o -> o.user.id()).toList();
+    }
+
+    /** Giocatori veri presenti e sulla pagina dell'hotel (non "assenti"). */
+    public synchronized List<UUID> activePlayers() {
+        return occupants.values().stream().filter(o -> !o.isNpc() && !o.away).map(o -> o.user.id()).toList();
+    }
+
+    /** Un NPC parla da fuori (per esempio durante una sfida), girato verso chi nomina. */
+    public synchronized void npcSay(UUID npcId, String text, UUID towards) {
+        Occupant npc = occupants.get(npcId);
+        if (npc == null || !npc.isNpc()) return;
+        Occupant to = towards == null ? null : occupants.get(towards);
+        say(npc, text, to, false, 0);
+    }
+
+    /** Durante una sfida l'NPC resta fermo a giocare, senza passeggiare. */
+    public synchronized void npcBusy(UUID npcId, boolean busy) {
+        Occupant npc = occupants.get(npcId);
+        if (npc == null || !npc.isNpc()) return;
+        npc.nextThinkAt = busy ? Long.MAX_VALUE : System.currentTimeMillis() + 3_000;
+        if (busy) {
+            npc.path.clear();
+            npc.targetX = npc.x;
+            npc.targetY = npc.y;
+        }
+    }
+
     public synchronized boolean contains(UUID userId) {
         return occupants.containsKey(userId);
     }
@@ -1069,8 +1121,30 @@ public class RoomInstance {
             case "pizza_oven" -> "pizza";
             default -> DRINKS.get(Math.floorMod((int) System.nanoTime(), DRINKS.size()));
         };
+        occupant.handItemLeft = HAND_ITEM_SIPS;
         occupant.handItemUntil = System.currentTimeMillis() + DRINK_MILLIS;
         broadcast(handMessage(occupant));
+    }
+
+    /**
+     * Un sorso (o un morso, o una pagina) dell'oggetto in mano: lo vedono tutti. All'ultimo
+     * l'oggetto e' finito e sparisce dalla mano.
+     *
+     * @return codice d'errore, oppure null
+     */
+    public synchronized String consume(UUID userId) {
+        Occupant occupant = occupants.get(userId);
+        if (occupant == null || occupant.handItem == null) return "nothing_in_hand";
+        long now = System.currentTimeMillis();
+        if (now - occupant.lastSipAt < SIP_PAUSE_MILLIS) return null;
+        occupant.lastSipAt = now;
+        occupant.handItemLeft = Math.max(0, occupant.handItemLeft - 1);
+        broadcast(Map.of("type", "consume", "id", userId, "item", occupant.handItem, "left", occupant.handItemLeft));
+        if (occupant.handItemLeft == 0) {
+            occupant.handItem = null;
+            broadcast(handMessage(occupant));
+        }
+        return null;
     }
 
     /** Distanza di al massimo una casella (anche in diagonale) da una qualsiasi casella del mobile. */
@@ -1110,6 +1184,7 @@ public class RoomInstance {
         message.put("type", "hand_item");
         message.put("id", o.user.id());
         message.put("item", o.handItem);
+        message.put("left", o.handItem == null ? 0 : o.handItemLeft);
         return message;
     }
 
@@ -1167,6 +1242,7 @@ public class RoomInstance {
         view.put("dir", o.dir);
         view.put("status", o.status);
         view.put("handItem", o.handItem);
+        view.put("handLeft", o.handItem == null ? 0 : o.handItemLeft);
         view.put("away", o.away);
         if (o.isNpc()) {
             view.put("npc", Map.of("role", o.npc.role().name().toLowerCase(), "title", o.npc.role().title(),

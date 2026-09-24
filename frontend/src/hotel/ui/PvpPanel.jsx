@@ -53,6 +53,12 @@ export default function PvpPanel({ pvp, clockOffset, send, onClose }) {
   const boost = boostChoice.on && boostChoice.round === pvp?.round;
   const setBoost = (on) => setBoostChoice({ round: pvp?.round, on });
   const countdown = useCountdown(pvp?.deadline, clockOffset);
+  // La sfida in arrivo ha un suo conto alla rovescia (in ora locale): allo scadere il popup si
+  // chiude da solo, anche se il messaggio di scadenza del server non dovesse arrivare.
+  const incomingLeft = useCountdown(pvp?.stage === 'incoming' ? pvp.expiresAt : null, 0);
+  useEffect(() => {
+    if (incomingLeft === 0) onClose();
+  }, [incomingLeft, onClose]);
 
   const myCards = useMemo(() => dedupeCollection(collection)
     .filter((c) => c.stats)
@@ -64,7 +70,10 @@ export default function PvpPanel({ pvp, clockOffset, send, onClose }) {
   if (pvp.stage === 'incoming') {
     return (
       <div className="hotel-panel pvp-panel pvp-incoming" role="alertdialog" aria-label="Sfida in arrivo">
-        <header className="hotel-panel-header"><h3><i className="ph-fill ph-sword" /> Sfida!</h3></header>
+        <header className="hotel-panel-header">
+          <h3><i className="ph-fill ph-sword" /> Sfida!</h3>
+          {incomingLeft !== null && <span className={`pvp-timer${incomingLeft <= 5 ? ' urgent' : ''}`}>{incomingLeft}s</span>}
+        </header>
         <p className="pvp-text"><strong>{pvp.from.username}</strong> ti sfida a una battaglia di carte.</p>
         <div className="pvp-actions">
           <button type="button" className="btn btn-secondary btn-small" onClick={() => send({ type: 'challenge_reply', challengeId: pvp.challengeId, accept: false })}>Rifiuta</button>

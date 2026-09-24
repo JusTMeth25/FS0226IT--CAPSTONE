@@ -5,6 +5,7 @@ import com.capstone.vinyldex.entity.UserCard;
 import com.capstone.vinyldex.repository.UserCardRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -13,6 +14,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
@@ -27,6 +29,9 @@ import java.util.concurrent.ScheduledFuture;
  * Tempi: 20 secondi per accettare, 60 per scegliere la squadra, 20 per la categoria e 20 per
  * la carta. Allo scadere decide il server (categoria e carta a caso); chi non sceglie la
  * squadra, chi esce dalla stanza o chiude la connessione perde a tavolino.
+ *
+ * In Arena si gioca anche contro gli sfidanti NPC: accettano le sfide, ogni tanto sfidano
+ * loro i giocatori e fanno le loro mosse da soli, con qualche secondo di "riflessione".
  */
 @Service
 public class PvpService {
@@ -55,18 +60,27 @@ public class PvpService {
         }
     }
 
+    /** NPC che giocano: gli sfidanti dell'Arena. */
+    static final Set<NpcRoster.Role> PLAYING_NPCS = Set.of(NpcRoster.Role.FIGHTER);
+    /** Dopo una sfida di un NPC, lo stesso giocatore non viene risfidato per qualche minuto. */
+    private static final long NPC_CHALLENGE_COOLDOWN_MILLIS = 4 * 60_000;
+
     private final RoomRegistry registry;
     private final UserCardRepository userCardRepository;
     private final PvpRewardService rewardService;
+    private final NpcDeals npcDeals;
     private final SecureRandom random = new SecureRandom();
 
     private final Map<UUID, Challenge> challenges = new ConcurrentHashMap<>();
     private final Map<UUID, LiveGame> gamesByUser = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> npcChallengedAt = new ConcurrentHashMap<>();
 
-    public PvpService(RoomRegistry registry, UserCardRepository userCardRepository, PvpRewardService rewardService) {
+    public PvpService(RoomRegistry registry, UserCardRepository userCardRepository, PvpRewardService rewardService,
+                      NpcDeals npcDeals) {
         this.registry = registry;
         this.userCardRepository = userCardRepository;
         this.rewardService = rewardService;
+        this.npcDeals = npcDeals;
     }
 
     // ------------------------------------------------------------------ sfida
@@ -77,8 +91,8 @@ public class PvpService {
         RoomInstance room = registry.get(from.roomId());
         if (toId == null || toId.equals(fromId)) return "cannot_challenge_yourself";
         if (room == null || !room.contains(toId)) return "user_not_here";
-        if (room.isNpc(toId)) return "npc_no_challenge";
         if (isBusy(fromId)) return "already_in_match";
+        if (room.isNpc(toId)) return challengeNpc(from, room, toId);
         if (isBusy(toId)) return "opponent_busy";
 
         HotelSession to = registry.sessionOf(toId);
@@ -105,32 +119,176 @@ public class PvpService {
         UUID userId = session.user().id();
         if (challenge == null || !challenge.to().equals(userId)) return "challenge_expired";
         challenges.remove(challengeId);
+        RoomInstance room = registry.get(challenge.roomId());
+        boolean fromNpc = room != null && room.isNpc(challenge.from());
 
         if (!accept) {
-            send(challenge.from(), Map.of("type", "challenge_declined", "challengeId", challengeId,
+            if (fromNpc) room.npcSay(challenge.from(), NpcDialog.tradeDeclined(session.user().username()), userId);
+            else send(challenge.from(), Map.of("type", "challenge_declined", "challengeId", challengeId,
                     "by", session.user().username()));
             return null;
         }
 
-        HotelSession challenger = registry.sessionOf(challenge.from());
-        RoomInstance room = registry.get(challenge.roomId());
+        HotelUser challenger = fromNpc ? room.npcUser(challenge.from()) : userOf(challenge.from());
         if (challenger == null || room == null || !room.contains(challenge.from()) || !room.contains(userId)) {
             return "user_not_here";
         }
         if (isBusy(challenge.from()) || isBusy(userId)) return "opponent_busy";
+        start(room, challenge.roomId(), challenger, session.user());
+        return null;
+    }
 
-        PvpGame game = new PvpGame(challenge.from(), challenger.user().username(), userId, session.user().username(), random);
-        LiveGame live = new LiveGame(game, challenge.roomId());
-        gamesByUser.put(challenge.from(), live);
-        gamesByUser.put(userId, live);
+    private HotelUser userOf(UUID userId) {
+        HotelSession session = registry.sessionOf(userId);
+        return session == null ? null : session.user();
+    }
+
+    /** Avvia la partita fra lo sfidante (a) e lo sfidato (b); se uno dei due e' un NPC, gioca da solo. */
+    private void start(RoomInstance room, UUID roomId, HotelUser a, HotelUser b) {
+        PvpGame game = new PvpGame(a.id(), a.username(), b.id(), b.username(), random);
+        LiveGame live = new LiveGame(game, roomId);
+        gamesByUser.put(a.id(), live);
+        gamesByUser.put(b.id(), live);
 
         synchronized (live) {
             long deadline = System.currentTimeMillis() + TEAM_MILLIS;
-            challenger.send(startMessage(game, challenger.user(), session.user(), "a", deadline));
-            session.send(startMessage(game, session.user(), challenger.user(), "b", deadline));
+            send(a.id(), startMessage(game, a, b, "a", deadline));
+            send(b.id(), startMessage(game, b, a, "b", deadline));
             live.timer = registry.schedule(() -> onTeamTimeout(live), TEAM_MILLIS);
         }
+        for (HotelUser player : List.of(a, b)) {
+            if (room.isNpc(player.id())) {
+                room.npcBusy(player.id(), true);
+                npcLater(live, 2_500 + random.nextInt(2_000), () -> npcTeam(live, room, player.id()));
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------ NPC in Arena
+
+    /** Un giocatore sfida un NPC: in Arena gli sfidanti accettano dopo un attimo, gli altri no. */
+    private String challengeNpc(HotelSession from, RoomInstance room, UUID npcId) {
+        NpcRoster.Role role = room.npcRole(npcId);
+        if (!NpcRoster.ARENA.equals(room.data().id()) || !PLAYING_NPCS.contains(role)) {
+            room.npcSay(npcId, NpcDialog.refuseChallenge(role), from.user().id());
+            return "npc_no_challenge";
+        }
+        if (isBusy(npcId)) {
+            room.npcSay(npcId, NpcDialog.refuseChallenge(role), from.user().id());
+            return "opponent_busy";
+        }
+        HotelUser npc = room.npcUser(npcId);
+        HotelUser user = from.user();
+        from.send(Map.of("type", "challenge_sent", "challengeId", UUID.randomUUID(),
+                "to", Map.of("id", npcId, "username", npc.username())));
+        registry.schedule(() -> {
+            if (isBusy(npcId) || isBusy(user.id()) || !room.contains(user.id())) return;
+            room.npcSay(npcId, NpcDialog.acceptChallenge(user.username(), random), user.id());
+            start(room, room.data().id(), user, npc);
+        }, 1_500);
         return null;
+    }
+
+    /**
+     * Ogni tanto uno sfidante dell'Arena sfida un giocatore presente, che non stia gia' giocando
+     * e che non sia stato sfidato da poco. Il giocatore accetta o rifiuta come per le sfide vere.
+     */
+    @Scheduled(fixedDelay = 25_000, initialDelay = 30_000)
+    public void npcChallenges() {
+        RoomInstance room = registry.get(NpcRoster.ARENA);
+        if (room == null) return;
+        long now = System.currentTimeMillis();
+        List<UUID> players = room.activePlayers().stream()
+                .filter(id -> !isBusy(id) && now - npcChallengedAt.getOrDefault(id, 0L) > NPC_CHALLENGE_COOLDOWN_MILLIS)
+                .filter(id -> challenges.values().stream().noneMatch(c -> c.to().equals(id) || c.from().equals(id)))
+                .toList();
+        List<UUID> fighters = room.npcsWithRole(PLAYING_NPCS).stream().filter(id -> !isBusy(id)).toList();
+        if (players.isEmpty() || fighters.isEmpty() || random.nextInt(3) != 0) return;
+
+        UUID npcId = fighters.get(random.nextInt(fighters.size()));
+        UUID userId = players.get(random.nextInt(players.size()));
+        HotelSession session = registry.sessionOf(userId);
+        HotelUser npc = room.npcUser(npcId);
+        if (session == null || npc == null) return;
+        npcChallengedAt.put(userId, now);
+
+        Challenge challenge = new Challenge(UUID.randomUUID(), npcId, userId, room.data().id());
+        challenges.put(challenge.id(), challenge);
+        room.npcSay(npcId, NpcDialog.challengeYou(session.user().username(), random), userId);
+        session.send(Map.of("type", "challenge_received", "challengeId", challenge.id(),
+                "from", Map.of("id", npcId, "username", npc.username()), "expiresIn", CHALLENGE_MILLIS));
+        registry.schedule(() -> {
+            if (challenges.remove(challenge.id()) != null) {
+                send(userId, Map.of("type", "challenge_expired", "challengeId", challenge.id()));
+            }
+        }, CHALLENGE_MILLIS);
+    }
+
+    /** Mossa di un NPC fra qualche istante, solo se la partita e' ancora in corso. */
+    private void npcLater(LiveGame live, long delay, Runnable move) {
+        registry.schedule(() -> {
+            synchronized (live) {
+                if (!live.finished) move.run();
+            }
+        }, delay);
+    }
+
+    private UUID npcIn(LiveGame live, RoomInstance room) {
+        if (room == null) return null;
+        if (room.isNpc(live.game.a().userId())) return live.game.a().userId();
+        if (room.isNpc(live.game.b().userId())) return live.game.b().userId();
+        return null;
+    }
+
+    private void npcTeam(LiveGame live, RoomInstance room, UUID npcId) {
+        PvpGame game = live.game;
+        if (game.phase() != PvpGame.Phase.TEAM) return;
+        boolean ready = game.setTeam(npcId, npcDeals.team(room.npcRole(npcId), random));
+        send(game.opponent(npcId).userId(), Map.of("type", "pvp_opponent_ready"));
+        if (ready) beginRound(live);
+    }
+
+    /** Categoria scelta dall'NPC: quella in cui la sua carta migliore ancora da giocare e' piu' forte. */
+    private void npcCategory(LiveGame live, UUID npcId) {
+        PvpGame game = live.game;
+        if (game.phase() != PvpGame.Phase.CATEGORY) return;
+        PvpGame.Player me = game.player(npcId);
+        String best = PvpGame.CATEGORIES.get(0);
+        int bestValue = -1;
+        for (String category : PvpGame.CATEGORIES) {
+            for (int i = 0; i < me.team().size(); i++) {
+                if (me.used.contains(i)) continue;
+                int value = me.team().get(i).stat(category);
+                if (value > bestValue) {
+                    bestValue = value;
+                    best = category;
+                }
+            }
+        }
+        if (game.chooseCategory(npcId, best)) {
+            cancelTimer(live);
+            announceCategory(live);
+        }
+    }
+
+    /** Carta scelta dall'NPC: di solito la piu' forte nella categoria, a volte una a sorpresa. */
+    private void npcCard(LiveGame live, UUID npcId) {
+        PvpGame game = live.game;
+        if (game.phase() != PvpGame.Phase.CARDS || game.hasPicked(npcId)) return;
+        PvpGame.Player me = game.player(npcId);
+        List<Integer> free = new ArrayList<>();
+        for (int i = 0; i < me.team().size(); i++) if (!me.used.contains(i)) free.add(i);
+        if (free.isEmpty()) return;
+        int pick = free.get(0);
+        for (int i : free) if (me.team().get(i).stat(game.category()) > me.team().get(pick).stat(game.category())) pick = i;
+        if (random.nextInt(4) == 0) pick = free.get(random.nextInt(free.size()));
+        boolean boost = !me.boostUsed && (game.round() == PvpGame.ROUNDS || random.nextInt(3) == 0);
+        if (!game.pickCard(npcId, pick, boost)) return;
+        send(game.opponent(npcId).userId(), Map.of("type", "pvp_opponent_picked"));
+        if (game.bothPicked()) {
+            cancelTimer(live);
+            resolveRound(live);
+        }
     }
 
     // ------------------------------------------------------------------ partita
@@ -192,12 +350,17 @@ public class PvpService {
         return null;
     }
 
-    /** Resa, uscita dalla stanza o disconnessione: vince l'altro. Annulla anche le sfide in sospeso. */
+    /**
+     * Resa, uscita dalla stanza o disconnessione: vince l'altro. Annulla anche le sfide in sospeso
+     * e lo dice a entrambi, anche a chi se ne va: altrimenti il suo popup resterebbe aperto
+     * nella stanza nuova.
+     */
     public void userLeft(UUID userId) {
         challenges.values().removeIf(c -> {
             if (!c.from().equals(userId) && !c.to().equals(userId)) return false;
-            UUID other = c.from().equals(userId) ? c.to() : c.from();
-            send(other, Map.of("type", "challenge_expired", "challengeId", c.id()));
+            Map<String, Object> expired = Map.of("type", "challenge_expired", "challengeId", c.id());
+            send(c.from(), expired);
+            send(c.to(), expired);
             return true;
         });
         LiveGame live = gamesByUser.get(userId);
@@ -228,6 +391,8 @@ public class PvpService {
                     announceCategory(live);
                 }
             }, CATEGORY_MILLIS);
+            UUID npc = npcIn(live, registry.get(live.roomId));
+            if (npc != null && npc.equals(game.chooser())) npcLater(live, 2_000 + random.nextInt(1_500), () -> npcCategory(live, npc));
         } else {
             for (PvpGame.Player p : List.of(game.a(), game.b())) {
                 send(p.userId(), roundMessage(game, p, 0));
@@ -250,6 +415,8 @@ public class PvpService {
                 resolveRound(live);
             }
         }, CARD_MILLIS);
+        UUID npc = npcIn(live, registry.get(live.roomId));
+        if (npc != null) npcLater(live, 1_500 + random.nextInt(3_000), () -> npcCard(live, npc));
     }
 
     private void resolveRound(LiveGame live) {
@@ -293,9 +460,13 @@ public class PvpService {
         game.end();
         release(live);
 
+        RoomInstance npcRoom = registry.get(live.roomId);
+        UUID npc = npcIn(live, npcRoom);
         PvpRewardService.Outcome outcome;
         try {
-            outcome = rewardService.finish(game.a().userId(), game.b().userId(), winnerId,
+            outcome = npc != null
+                    ? npcOutcome(game, npcRoom, npc, winnerId)
+                    : rewardService.finish(game.a().userId(), game.b().userId(), winnerId,
                     game.a().score(), game.b().score(), forfeit, game.history());
         } catch (RuntimeException ex) {
             log.error("Salvataggio della partita {} fallito", game.id(), ex);
@@ -305,6 +476,12 @@ public class PvpService {
 
         send(game.a().userId(), endMessage(game, true, winnerId, forfeit, outcome.a()));
         send(game.b().userId(), endMessage(game, false, winnerId, forfeit, outcome.b()));
+        if (npc != null) {
+            npcRoom.npcBusy(npc, false);
+            String rival = game.opponent(npc).username();
+            npcRoom.npcSay(npc, winnerId == null ? NpcDialog.matchDraw(rival)
+                    : winnerId.equals(npc) ? NpcDialog.matchWon(rival) : NpcDialog.matchLost(rival), game.opponent(npc).userId());
+        }
 
         RoomInstance room = registry.get(live.roomId);
         if (room != null) {
@@ -318,6 +495,16 @@ public class PvpService {
             announce.put("forfeit", forfeit);
             room.announce(announce);
         }
+    }
+
+    /** Partita contro un NPC: premio solo al giocatore, con il limite giornaliero delle partite con gli NPC. */
+    private PvpRewardService.Outcome npcOutcome(PvpGame game, RoomInstance room, UUID npc, UUID winnerId) {
+        UUID human = game.opponent(npc).userId();
+        PvpRewardService.PlayerReward reward = npcDeals.reward(human, room.npcUser(npc).username(),
+                human.equals(winnerId), winnerId == null);
+        PvpRewardService.PlayerReward none = new PvpRewardService.PlayerReward(0, 0, true, 0);
+        boolean humanIsA = game.a().userId().equals(human);
+        return new PvpRewardService.Outcome(game.id(), humanIsA ? reward : none, humanIsA ? none : reward);
     }
 
     private void release(LiveGame live) {
@@ -337,7 +524,7 @@ public class PvpService {
         if (session != null) session.send(message);
     }
 
-    private static PvpGame.CardInfo cardInfo(Card card) {
+    static PvpGame.CardInfo cardInfo(Card card) {
         Map<String, Integer> stats = Map.of("fans", card.getFans(), "style", card.getStyle(),
                 "influence", card.getInfluence(), "energy", card.getEnergy());
         return new PvpGame.CardInfo(card.getCode(), card.getName(), card.getRarity(), card.getImgUrl(),

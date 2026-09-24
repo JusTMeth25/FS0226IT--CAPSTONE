@@ -38,6 +38,7 @@ public final class NpcRoster {
         REFEREE("Arbitro", false),
         CHEF("Pizzaiolo", false),
         LIBRARIAN("Bibliotecaria", false),
+        FIGHTER("Sfidante", true),
         GUEST("Ospite", true);
 
         private final String title;
@@ -106,7 +107,9 @@ public final class NpcRoster {
                     walker("sofia", "Sofia", Role.GUEST, "s0.h2.hc2.sh1.p3.t1.f1.a3", 8, 11, 5))),
             Map.entry(ARENA, List.of(
                     worker("rocco", "Rocco", Role.REFEREE, "s4.h9.hc7.sh8.p1.t0.f0.a0", 9, 3, 6),
-                    walker("dario", "Dario", Role.GUEST, "s2.h4.hc6.sh6.p1.t0.f2.a0", 3, 6, 2))),
+                    walker("dario", "Dario", Role.FIGHTER, "s2.h4.hc6.sh6.p1.t0.f2.a0", 3, 6, 2),
+                    walker("kira", "Kira", Role.FIGHTER, "s0.h7.hc4.sh9.p1.t3.f3.a2", 9, 7, 2),
+                    walker("brutus", "Brutus", Role.FIGHTER, "s4.h9.hc7.sh6.p5.t4.f0.a6", 2, 2, 1))),
             Map.entry(RELAX, List.of(
                     walker("luna", "Luna", Role.WAITER, "s1.h3.hc1.sh11.p1.t2.f0.a0", 6, 7, 3, "tea", "coffee"),
                     walker("otto", "Otto", Role.GUEST, "s2.h0.hc9.sh3.p0.t3.f4.a1", 8, 9, 4),

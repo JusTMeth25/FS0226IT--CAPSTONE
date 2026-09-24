@@ -22,10 +22,19 @@ import TradesPanel from '../hotel/ui/TradesPanel.jsx';
 import { useSearchParams } from 'react-router-dom';
 import HotelView from '../hotel/ui/HotelView.jsx';
 import NpcCard from '../hotel/ui/NpcCard.jsx';
+import { NpcTradeOffer, NpcTradePanel } from '../hotel/ui/NpcTrade.jsx';
 import { footprintOf, nextRotation } from '../hotel/sprites/furni.js';
 import { DEFAULT_LOOK } from '../hotel/sprites/avatar.js';
 import { TRACKS, getJukebox } from '../hotel/music.js';
 import '../hotel/hotel.css';
+
+/** L'Arena: solo qui si gioca contro gli NPC sfidanti. */
+const ARENA_ID = '00000000-0000-0000-0000-00000000a002';
+
+/** Cosa si fa con l'oggetto in mano: il verbo del pulsante e la sua icona. */
+const CONSUME = {
+  pizza: ['Mangia', 'ph-pizza'], gelato: ['Mangia', 'ph-ice-cream'], book: ['Leggi', 'ph-book-open']
+};
 
 const ERRORS = {
   room_full: 'La stanza e\' piena. Riprova tra poco.',
@@ -35,10 +44,16 @@ const ERRORS = {
   user_not_here: 'Quella persona non e\' in questa stanza.',
   npc_not_found: 'Quel personaggio non e\' piu\' qui.',
   npc_no_respect: 'Il rispetto si da\' ai giocatori, non al personale dell\'hotel.',
-  npc_no_challenge: 'Il personale dell\'hotel non accetta sfide.',
+  npc_no_challenge: 'Con gli NPC si gioca solo in Arena, contro gli sfidanti.',
+  npc_no_trade: 'Questo personaggio non scambia carte.',
+  npc_trade_unfair: 'Scambio rifiutato: offri una carta di valore piu\' alto.',
+  npc_trade_limit: 'Per oggi hai gia\' fatto tutti gli scambi con gli NPC.',
+  npc_trade_not_offered: 'Quella carta non e\' piu\' nella sua vetrina.',
+  npc_trade_expired: 'L\'offerta di scambio e\' scaduta.',
+  nothing_in_hand: 'Non hai niente in mano.',
   not_your_room: 'Puoi arredare solo la tua stanza.',
   not_your_item: 'Questo mobile non e\' tuo.',
-  card_not_owned: 'Puoi esporre solo carte che possiedi (una vetrina per copia).',
+  card_not_owned: 'Non possiedi quella carta, o non ne hai abbastanza copie (serve una copia per ogni vetrina).',
   cant_place_outside: 'Il mobile esce dalla stanza.',
   cant_place_uneven: 'Il mobile deve stare tutto sullo stesso livello.',
   cant_place_door: 'Non si puo\' bloccare la porta.',
@@ -75,7 +90,7 @@ const STATUS_LABELS = {
  */
 export default function HotelPage() {
   const { user, refreshUser } = useAuth();
-  const { gold } = useGame();
+  const { gold, refreshCollection } = useGame();
   const { sound } = useSound();
   const canvasRef = useRef(null);
   const hotel = useHotel();
@@ -98,6 +113,9 @@ export default function HotelPage() {
   const [pendingTrades, setPendingTrades] = useState(0);
   const [selected, setSelected] = useState(null);
   const [selectedNpc, setSelectedNpc] = useState(null);
+  const [npcOffer, setNpcOffer] = useState(null);
+  const [tradingNpc, setTradingNpc] = useState(null);
+  const [npcShowcase, setNpcShowcase] = useState(null);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [pickingCardFor, setPickingCardFor] = useState(null);
   const [viewingCard, setViewingCard] = useState(null);
@@ -140,6 +158,8 @@ export default function HotelPage() {
         break;
       case 'room_state':
         syncPending.current = false;
+        // Cambiando stanza le sfide in arrivo o in attesa decadono (il server le ha gia' annullate).
+        setPvp((p) => (p && (p.stage === 'incoming' || p.stage === 'sent') ? null : p));
         setRoom(message.room);
         setPeople(Object.fromEntries(message.users.map((u) => [u.id, u])));
         setItems(Object.fromEntries((message.items || []).map((i) => [i.id, i])));
@@ -212,8 +232,32 @@ export default function HotelPage() {
         showNotice(`Rispetto dato! Te ne restano ${message.left} per oggi.`);
         break;
       // ---- sfide fra giocatori: lo stato del pannello segue i messaggi del server
+      // ---- oggetti in mano e scambi con gli NPC
+      case 'hand_item':
+        setPeople((p) => (p[message.id] ? { ...p, [message.id]: { ...p[message.id], handItem: message.item, handLeft: message.left } } : p));
+        break;
+      case 'consume':
+        setPeople((p) => (p[message.id] ? { ...p, [message.id]: { ...p[message.id], handLeft: message.left } } : p));
+        break;
+      case 'npc_trade_offer':
+        setNpcOffer(message);
+        sound.coin();
+        break;
+      case 'npc_trade_expired':
+        setNpcOffer((o) => (o?.offerId === message.offerId ? null : o));
+        break;
+      case 'npc_showcase':
+        setNpcShowcase(message);
+        break;
+      case 'npc_trade_done':
+        setTradingNpc(null);
+        showNotice('Scambio fatto! Trovi la carta nuova nella tua collezione.');
+        sound.coin();
+        refreshCollection();
+        break;
       case 'challenge_received':
-        setPvp({ stage: 'incoming', challengeId: message.challengeId, from: message.from });
+        setPvp({ stage: 'incoming', challengeId: message.challengeId, from: message.from,
+          expiresAt: Date.now() + (message.expiresIn || 20_000) });
         sound.coin();
         break;
       case 'challenge_sent':
@@ -224,7 +268,8 @@ export default function HotelPage() {
         showNotice(`${message.by} ha rifiutato la sfida.`);
         break;
       case 'challenge_expired':
-        setPvp((p) => (p && (p.stage === 'incoming' || p.stage === 'sent') ? null : p));
+        setPvp((p) => (p && (p.stage === 'incoming' || p.stage === 'sent')
+          && (!p.challengeId || p.challengeId === message.challengeId) ? null : p));
         break;
       case 'pvp_start':
         setClockOffset(message.serverTime - Date.now());
@@ -302,7 +347,7 @@ export default function HotelPage() {
       default:
         break;
     }
-  }, [showNotice, sound, refreshUser, send]);
+  }, [showNotice, sound, refreshUser, refreshCollection, send]);
 
   // Iscrizione ai messaggi dell'hotel finche' la pagina e' aperta. La connessione resta del
   // provider: uscendo si resta nella stanza, segnati come assenti; tornando si chiede lo stato
@@ -341,13 +386,17 @@ export default function HotelPage() {
     const challenge = hotel.pendingChallenge;
     if (!challenge) return;
     hotel.takePendingChallenge();
+    // Arrivata mentre si era altrove: si mostra solo se non e' gia' scaduta.
+    const expiresAt = challenge.receivedAt + (challenge.expiresIn || 20_000);
+    if (Date.now() >= expiresAt) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- stato ricevuto dal provider mentre la pagina era chiusa
-    setPvp({ stage: 'incoming', challengeId: challenge.challengeId, from: challenge.from });
+    setPvp({ stage: 'incoming', challengeId: challenge.challengeId, from: challenge.from, expiresAt });
   }, [hotel]);
 
   const join = (roomId) => send({ type: 'join', roomId });
   const myLook = me?.look || user?.hotelLook || DEFAULT_LOOK;
   const myStatus = me ? people[me.id]?.status : null;
+  const myHand = me ? people[me.id]?.handItem : null;
   const isOwner = !!(room && me && room.ownerId === me.id);
   const selectedItem = selectedItemId ? items[selectedItemId] : null;
 
@@ -492,10 +541,19 @@ export default function HotelPage() {
           <NpcCard
             npc={people[selectedNpc.id] || selectedNpc}
             send={send}
+            inArena={room?.id === ARENA_ID}
             onClose={() => setSelectedNpc(null)}
             onWhisper={() => { setWhisperTo(selectedNpc.username); setSelectedNpc(null); }}
+            onChallenge={pvp ? null : () => { send({ type: 'challenge', userId: selectedNpc.id }); setSelectedNpc(null); }}
+            onTrade={() => { setTradingNpc(selectedNpc); setSelectedNpc(null); }}
           />
         )}
+
+        {tradingNpc && (
+          <NpcTradePanel npc={tradingNpc} showcase={npcShowcase} send={send} onClose={() => setTradingNpc(null)} />
+        )}
+
+        {npcOffer && <NpcTradeOffer key={npcOffer.offerId} offer={npcOffer} send={send} onClose={() => setNpcOffer(null)} />}
 
         {selected && (
           <UserCard
@@ -630,6 +688,13 @@ export default function HotelPage() {
         <ChatBar send={send} whisperTo={whisperTo} onClearWhisper={() => setWhisperTo(null)} disabled={!online || !room} />
 
         <div className="hotel-emotes">
+          {myHand && (
+            <button type="button" className="hotel-tool hotel-tool-consume" onClick={() => send({ type: 'consume' })}
+              title={`${(CONSUME[myHand] || ['Bevi'])[0]} (ne restano ${people[me.id]?.handLeft ?? 0})`}>
+              <i className={`ph-fill ${(CONSUME[myHand] || ['Bevi', 'ph-coffee'])[1]}`} />
+              <span>{(CONSUME[myHand] || ['Bevi'])[0]}</span>
+            </button>
+          )}
           <button type="button" className="hotel-tool" onClick={() => send({ type: 'emote', emote: 'wave' })} disabled={!room} title="Saluta">
             <i className="ph-fill ph-hand-waving" />
           </button>

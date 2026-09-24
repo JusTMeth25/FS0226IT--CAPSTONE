@@ -46,14 +46,17 @@ export default function HotelProvider({ children }) {
         break;
     }
 
+    // Una sfida scaduta o annullata sparisce sempre, anche dall'avviso globale.
+    if (message.type === 'challenge_expired') {
+      setPendingChallenge((c) => (c && c.challengeId === message.challengeId ? null : c));
+      setToast((t) => (t?.kind === 'challenge' ? null : t));
+    }
+
     // Nessuna pagina hotel aperta: sfide e scambi diventano un avviso globale.
     if (listeners.current.size === 0) {
       if (message.type === 'challenge_received') {
-        setPendingChallenge(message);
+        setPendingChallenge({ ...message, receivedAt: Date.now() });
         setToast({ kind: 'challenge', text: `${message.from.username} ti sfida nell'hotel!` });
-      } else if (message.type === 'challenge_expired') {
-        setPendingChallenge(null);
-        setToast((t) => (t?.kind === 'challenge' ? null : t));
       } else if (message.type === 'trade_event' && message.kind === 'received') {
         setToast({ kind: 'trade', text: `${message.other} ti ha proposto uno scambio.` });
       } else if (message.type === 'trade_event' && message.kind === 'accepted') {

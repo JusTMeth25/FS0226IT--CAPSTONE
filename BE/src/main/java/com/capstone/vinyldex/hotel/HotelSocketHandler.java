@@ -36,6 +36,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *   challenge {userId} · challenge_reply {challengeId,accept} · pvp_team {cards} · pvp_category {category}
  *   pvp_card {index,boost} · pvp_forfeit · sync · away {on}
  *   npc {npcId,action,item}: ordinare, chiacchierare, far ballare o cambiare musica a un NPC
+ *   consume: un sorso o un morso dell'oggetto in mano
+ *   npc_showcase {npcId} · npc_trade_propose {npcId,give,want} · npc_trade_reply {offerId,accept}
  * Solo nella propria stanza:
  *   place {itemId,x,y,rot} · pickup {itemId} · set_display {itemId,cardId} · kick {userId}
  */
@@ -58,11 +60,12 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     private final FurniService furniService;
     private final HotelSocialService socialService;
     private final PvpService pvpService;
+    private final NpcTradeService npcTradeService;
     private final Map<String, HotelSession> sessions = new ConcurrentHashMap<>();
 
     public HotelSocketHandler(ObjectMapper objectMapper, JwtService jwtService, UserRepository userRepository,
                               RoomRegistry registry, RoomService roomService, FurniService furniService,
-                              HotelSocialService socialService, PvpService pvpService) {
+                              HotelSocialService socialService, PvpService pvpService, NpcTradeService npcTradeService) {
         this.objectMapper = objectMapper;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
@@ -71,6 +74,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         this.furniService = furniService;
         this.socialService = socialService;
         this.pvpService = pvpService;
+        this.npcTradeService = npcTradeService;
     }
 
     @Override
@@ -195,6 +199,14 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             case "respect" -> {
                 if (room != null) respect(session, room, uuid(node, "userId"));
             }
+            case "consume" -> {
+                if (room != null) reply(session, room.consume(userId));
+            }
+            case "npc_trade_reply" -> reply(session, npcTradeService.reply(session, uuid(node, "offerId"),
+                    node.path("accept").asBoolean(false)));
+            case "npc_showcase" -> reply(session, npcTradeService.showcase(session, uuid(node, "npcId")));
+            case "npc_trade_propose" -> reply(session, npcTradeService.propose(session, uuid(node, "npcId"),
+                    text(node, "give"), text(node, "want")));
             case "npc" -> {
                 if (room != null) reply(session, room.npcAction(userId, uuid(node, "npcId"), text(node, "action"), text(node, "item")));
             }

@@ -685,3 +685,66 @@
 @media (min-width: 992px) {
   .hotel-page { height: calc(100dvh - 150px); }
 }
+
+/* ---------- Scambi con gli NPC ---------- */
+.hotel-npc-trade { top: var(--space-sm); left: 50%; transform: translateX(-50%); width: min(560px, calc(100% - 16px)); z-index: 7; }
+.hotel-npc-trade-offer { top: var(--space-sm); left: 50%; transform: translateX(-50%); width: min(380px, calc(100% - 16px)); z-index: 8; }
+.hotel-npc-trade-body { display: flex; flex-direction: column; gap: 10px; padding: 10px 12px; overflow-y: auto; }
+.hotel-npc-trade-body section { display: flex; flex-direction: column; gap: 6px; }
+.hotel-npc-trade-timer { font-weight: 900; font-variant-numeric: tabular-nums; color: #fff; }
+.hotel-npc-trade-pair { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px; }
+.hotel-npc-trade-arrow { font-size: 1.6rem; color: #ffd700; }
+.hotel-trade-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.hotel-trade-mine { max-height: 190px; flex-wrap: wrap; overflow-y: auto; }
+.hotel-trade-card {
+  position: relative;
+  flex: 0 0 96px;
+  width: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 5px;
+  border-radius: 10px;
+  border: 2px solid var(--rarity-color, #8b5cf6);
+  background: var(--hp-surface);
+  color: var(--hp-text);
+  cursor: default;
+  text-align: center;
+}
+button.hotel-trade-card { cursor: pointer; }
+button.hotel-trade-card:hover { background: var(--hp-surface-hover); }
+.hotel-trade-card.selected { box-shadow: 0 0 0 3px #ffd700, 0 0 14px rgba(255, 215, 0, 0.5); }
+.hotel-trade-card img { width: 72px; height: 100px; object-fit: cover; border-radius: 6px; }
+.hotel-trade-card-name { font-size: 0.68rem; font-weight: 800; line-height: 1.15; max-height: 2.3em; overflow: hidden; }
+.hotel-trade-card-rarity { font-size: 0.6rem; color: var(--rarity-color, #aea3dc); font-weight: 800; text-transform: uppercase; }
+.hotel-trade-card-label {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #ffd700;
+  color: #3a2600;
+  font-size: 0.62rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.hotel-trade-fair { margin-right: auto; align-self: center; font-size: 0.75rem; font-weight: 800; }
+.hotel-trade-fair.ok { color: #86efac; }
+.hotel-trade-fair.ko { color: #fca5a5; }
+.hotel-npc-trade .btn, .hotel-npc-trade-offer .btn { padding: 5px 12px; font-size: 0.72rem; letter-spacing: 0.5px; box-shadow: none; }
+
+/* Pulsante per bere, mangiare o leggere l'oggetto in mano. */
+.hotel-tool-consume {
+  width: auto !important;
+  padding: 0 10px !important;
+  gap: 4px;
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, #ffd700, #f59e0b) !important;
+  color: #3a2600 !important;
+  font-weight: 900;
+  font-size: 0.72rem;
+}

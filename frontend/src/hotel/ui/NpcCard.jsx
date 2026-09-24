@@ -24,7 +24,8 @@ const DESCRIPTIONS = {
   referee: 'Arbitra le sfide dell\'Arena.',
   chef: 'Al forno a legna: ordina un trancio e te lo sforna.',
   librarian: 'Conosce ogni libro dello scaffale. Chiedile un consiglio.',
-  guest: 'Un ospite dell\'hotel: salutalo, magari balla con te.'
+  guest: 'Un ospite dell\'hotel: salutalo, balla con lui o scambiate carte.',
+  fighter: 'Sfidante dell\'Arena: gioca a carte con chiunque abbia coraggio, e scambia le sue doppie.'
 };
 
 /**
@@ -32,10 +33,12 @@ const DESCRIPTIONS = {
  * le azioni del suo mestiere: ordinare, chiacchierare, chiedere un consiglio, ballare, musica.
  * Le stesse cose si possono chiedere anche scrivendo in chat ("un caffe' per favore, Marco").
  */
-export default function NpcCard({ npc, send, onClose, onWhisper }) {
+export default function NpcCard({ npc, send, inArena, onClose, onWhisper, onChallenge, onTrade }) {
   const info = npc.npc || {};
   const act = (action, item) => send({ type: 'npc', npcId: npc.id, action, item });
   const canDance = info.role === 'guest' || info.role === 'dj';
+  const trades = info.role === 'guest' || info.role === 'fighter';
+  const fights = info.role === 'fighter' && inArena;
 
   return (
     <div className="hotel-panel hotel-user-card hotel-npc-card" role="dialog" aria-label={`${npc.username}, ${info.title}`}>
@@ -63,6 +66,16 @@ export default function NpcCard({ npc, send, onClose, onWhisper }) {
       )}
 
       <div className="hotel-user-actions">
+        {fights && onChallenge && (
+          <button type="button" className="btn btn-primary btn-small" onClick={onChallenge}>
+            <i className="ph-fill ph-sword" /> Sfida
+          </button>
+        )}
+        {trades && (
+          <button type="button" className="btn btn-primary btn-small" onClick={onTrade}>
+            <i className="ph-fill ph-arrows-left-right" /> Scambia carte
+          </button>
+        )}
         <button type="button" className="btn btn-secondary btn-small" onClick={() => act('talk')}>
           <i className="ph-fill ph-chat-circle-dots" /> Chiacchiera
         </button>

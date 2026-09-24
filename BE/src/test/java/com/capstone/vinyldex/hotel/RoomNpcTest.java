@@ -96,6 +96,19 @@ class RoomNpcTest {
                 .filter(n -> "hand_item".equals(n.path("type").asString()) && anna.toString().equals(n.path("id").asString()))
                 .reduce((a, b) -> b).orElseThrow();
         assertEquals("cocktail", hand.path("item").asString());
+        assertEquals(RoomInstance.HAND_ITEM_SIPS, hand.path("left").asInt());
+
+        // Tre sorsi e il cocktail e' finito: sparisce dalla mano.
+        for (int i = 0; i < RoomInstance.HAND_ITEM_SIPS; i++) {
+            assertNull(room.consume(anna));
+            Thread.sleep(950);
+        }
+        JsonNode empty = received.stream()
+                .filter(n -> "hand_item".equals(n.path("type").asString()) && anna.toString().equals(n.path("id").asString()))
+                .reduce((a, b) -> b).orElseThrow();
+        assertTrue(empty.path("item").isNull(), "finito");
+        assertEquals(RoomInstance.HAND_ITEM_SIPS, received.stream().filter(n -> "consume".equals(n.path("type").asString())).count());
+        assertEquals("nothing_in_hand", room.consume(anna));
         assertTrue(received.stream().anyMatch(n -> "chat".equals(n.path("type").asString())
                 && npcId("Vinnie").toString().equals(n.path("id").asString())), "il barista ha parlato");
     }
