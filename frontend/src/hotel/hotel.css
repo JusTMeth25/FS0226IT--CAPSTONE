@@ -34,27 +34,40 @@
   image-rendering: pixelated;
 }
 
-/* Schermata d'ingresso, prima di entrare in una stanza: skyline notturno a blocchi. */
+/* Schermata d'ingresso, prima di entrare in una stanza: l'hotel al tramonto in pixel art. */
 .hotel-view {
   position: absolute;
   inset: 0;
+  overflow: hidden;
   pointer-events: none;
-  background:
-    linear-gradient(0deg, #120c2b 0 18%, transparent 18%),
-    repeating-linear-gradient(90deg, #1b1340 0 38px, #221852 38px 70px, #160f36 70px 96px);
-  -webkit-mask-image: linear-gradient(0deg, #000 0 45%, transparent 45%);
-  mask-image: linear-gradient(0deg, #000 0 45%, transparent 45%);
+  background: #0b0620;
 }
-.hotel-view-title {
+.hotel-view-canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+.hotel-view-hint {
   position: absolute;
-  left: var(--space-lg);
-  bottom: 50%;
-  font-size: clamp(1.4rem, 4vw, 2.4rem);
-  font-weight: 900;
-  letter-spacing: 3px;
-  text-transform: uppercase;
+  left: var(--space-md);
+  bottom: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: calc(100% - 2 * var(--space-md));
+  padding: 8px 12px;
+  border: 2px solid #0a0716;
+  border-radius: 8px;
+  background: rgba(10, 7, 22, 0.82);
+  box-shadow: inset 0 0 0 1px rgba(236, 72, 153, 0.45), 3px 3px 0 rgba(10, 7, 22, 0.6);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+.hotel-view-hint strong {
   color: #fff;
-  text-shadow: 3px 3px 0 #ec4899, 6px 6px 0 #140d24;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 #ec4899;
 }
 
 .hotel-room-info {

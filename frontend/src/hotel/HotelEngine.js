@@ -2,6 +2,8 @@ import { STEP_MS, directionBetween, insideDiamond, parseLayout, tileCenter, tile
 import { AVATAR_FOOT_X, AVATAR_FOOT_Y, AVATAR_H, AVATAR_W, avatarSprite } from './sprites/avatar.js';
 import { hoverTileSprite, renderRoom } from './sprites/room.js';
 import { furniSprite, isAnimated } from './sprites/furni.js';
+import { GEM_H, GEM_W, drawSparkle, gemSprite } from './sprites/gem.js';
+import { getRarityColor } from '../utils/cardUtils.js';
 
 /** Mobili piatti: si disegnano sotto a tutto, come parte del pavimento. */
 const FLAT_TYPES = new Set(['rug_vinyl', 'dance_tile']);
@@ -173,7 +175,7 @@ export class HotelEngine {
 
   updateUser(user) {
     const existing = this.users.get(user.id);
-    if (existing) Object.assign(existing, { username: user.username, look: user.look, level: user.level });
+    if (existing) Object.assign(existing, { username: user.username, look: user.look, level: user.level, bestCard: user.bestCard });
   }
 
   setPath(id, from, path, now) {
@@ -557,15 +559,30 @@ export class HotelEngine {
       user.headY = head.y;
       user.screenX = head.x;
       if (user.typing) labels.push({ kind: 'typing', x: head.x, y: head.y - 6 });
-      if (user.id === this.hoverUserId || user.id === this.meId || user.away) {
+      const labelY = head.y - (user.typing ? 22 : 6);
+      const hovered = user.id === this.hoverUserId;
+      if (hovered || user.id === this.meId || user.away) {
         const text = user.away ? `${user.username} (assente)` : user.username;
-        labels.push({ kind: 'name', x: head.x, y: head.y - (user.typing ? 22 : 6), text, me: user.id === this.meId });
+        labels.push({
+          kind: 'name', x: head.x, y: labelY, text, me: user.id === this.meId,
+          gem: user.bestCard?.rarity, card: hovered ? user.bestCard : null
+        });
+      } else if (user.bestCard) {
+        // Distintivo della carta migliore: una gemma che galleggia sopra la testa.
+        labels.push({ kind: 'gem', x: head.x, y: labelY, rarity: user.bestCard.rarity, seed: phaseOf(user.id) });
       }
     });
 
     this.drawPlacement(ctx, now, toScreen, scale);
     this.drawHearts(ctx, now);
-    labels.forEach((label) => (label.kind === 'typing' ? drawTyping(ctx, label) : drawName(ctx, label)));
+    const animate = !this.reducedMotion;
+    labels.forEach((label) => {
+      if (label.kind === 'typing') drawTyping(ctx, label);
+      else if (label.kind === 'gem') {
+        const bob = animate ? Math.round(Math.sin(now / 450 + label.seed)) * scale : 0;
+        drawGem(ctx, label.x - (GEM_W * scale) / 2, label.y + bob, label.rarity, scale, now, animate);
+      } else drawName(ctx, label, scale, now, animate);
+    });
     this.drawBubbles(ctx, now);
   }
 
@@ -647,7 +664,7 @@ function drawDrink(ctx, user, p, scale, view) {
   ctx.fillRect(x, y + scale, 3 * scale, 3 * scale);
 }
 
-function drawName(ctx, { x, y, text, me }) {
+function drawName(ctx, { x, y, text, me, gem, card }, scale, now, animate) {
   ctx.font = 'bold 11px "Segoe UI", system-ui, sans-serif';
   const width = ctx.measureText(text).width + 10;
   ctx.fillStyle = me ? 'rgba(139, 92, 246, 0.9)' : 'rgba(10, 16, 36, 0.85)';
@@ -657,6 +674,33 @@ function drawName(ctx, { x, y, text, me }) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(text, x, y - 7);
+  // La gemma sta a sinistra del nome, centrata in altezza sull'etichetta.
+  if (gem) drawGem(ctx, x - width / 2 - GEM_W * scale - 2, y - 7 + (GEM_H * scale) / 2, gem, scale, now, animate);
+  if (card) {
+    ctx.font = 'bold 10px "Segoe UI", system-ui, sans-serif';
+    const label = `Carta migliore: ${card.name}`;
+    const cardWidth = ctx.measureText(label).width + 10;
+    ctx.fillStyle = 'rgba(10, 7, 22, 0.9)';
+    roundRect(ctx, x - cardWidth / 2, y - 30, cardWidth, 13, 4);
+    ctx.fill();
+    ctx.fillStyle = getRarityColor(card.rarity);
+    ctx.fillText(label, x, y - 23.5);
+  }
+}
+
+/** Sfasamento stabile per utente, cosi' le gemme non ondeggiano tutte insieme. */
+function phaseOf(id) {
+  return [...String(id)].reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 7;
+}
+
+/** Gemma della carta migliore con il fondo in (x, bottom); le leggendarie scintillano. */
+function drawGem(ctx, x, bottom, rarity, scale, now, animate) {
+  const left = Math.round(x);
+  const top = Math.round(bottom - GEM_H * scale);
+  ctx.drawImage(gemSprite(rarity), left, top, GEM_W * scale, GEM_H * scale);
+  if (rarity === 'legendary' && (!animate || Math.floor(now / 220) % 7 < 2)) {
+    drawSparkle(ctx, left + 7 * scale, top + scale, scale);
+  }
 }
 
 function drawTyping(ctx, { x, y }) {

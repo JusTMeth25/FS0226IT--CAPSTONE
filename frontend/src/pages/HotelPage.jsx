@@ -20,6 +20,7 @@ import UserCard from '../hotel/ui/UserCard.jsx';
 import PvpPanel from '../hotel/ui/PvpPanel.jsx';
 import TradesPanel from '../hotel/ui/TradesPanel.jsx';
 import { useSearchParams } from 'react-router-dom';
+import HotelView from '../hotel/ui/HotelView.jsx';
 import { DEFAULT_LOOK } from '../hotel/sprites/avatar.js';
 import { TRACKS, getJukebox } from '../hotel/music.js';
 import '../hotel/hotel.css';
@@ -432,7 +433,7 @@ export default function HotelPage() {
           }}
         />
 
-        {!room && <div className="hotel-view" aria-hidden="true"><span className="hotel-view-title">VinylDex Hotel</span></div>}
+        {!room && <HotelView />}
 
         {room && (
           <div className="hotel-room-info">

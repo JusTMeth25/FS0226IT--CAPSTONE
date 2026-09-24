@@ -594,6 +594,7 @@ public class RoomInstance {
         view.put("username", o.user.username());
         view.put("look", o.user.look());
         view.put("level", o.user.level());
+        view.put("bestCard", o.user.bestCard());
         view.put("x", o.x);
         view.put("y", o.y);
         view.put("z", o.z);

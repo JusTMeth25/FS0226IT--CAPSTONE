@@ -124,6 +124,21 @@ public class HotelSocialService {
         return likeRepository.findByRoomIdAndUserId(roomId, userId).isPresent();
     }
 
+    /** Carta migliore posseduta: la mostra il distintivo sopra l'avatar e la scheda profilo. */
+    @Transactional(readOnly = true)
+    public Card bestCard(UUID userId) {
+        return best(userCardRepository.findByUserIdWithCard(userId).stream()
+                .filter(uc -> uc.getQuantity() > 0).toList());
+    }
+
+    /** Vince la rarita' piu' alta; a parita', il prezzo di mercato piu' alto. */
+    static Card best(List<UserCard> cards) {
+        return cards.stream().map(UserCard::getCard)
+                .max(Comparator.comparingInt((Card c) -> RARITY_ORDER.getOrDefault(c.getRarity(), 0))
+                        .thenComparingDouble(c -> c.getMarketPrice() == null ? 0 : c.getMarketPrice()))
+                .orElse(null);
+    }
+
     /**
      * Scheda profilo mostrata cliccando un avatar: aspetto, livello, rispetti, distintivi,
      * la carta migliore e la stanza da visitare. Niente email ne' gold.
@@ -134,10 +149,7 @@ public class HotelSocialService {
         List<UserCard> cards = userCardRepository.findByUserIdWithCard(userId).stream()
                 .filter(uc -> uc.getQuantity() > 0).toList();
 
-        Card best = cards.stream().map(UserCard::getCard)
-                .max(Comparator.comparingInt((Card c) -> RARITY_ORDER.getOrDefault(c.getRarity(), 0))
-                        .thenComparingDouble(c -> c.getMarketPrice() == null ? 0 : c.getMarketPrice()))
-                .orElse(null);
+        Card best = best(cards);
 
         LocalDate today = LocalDate.now(clock);
         Map<String, Object> profile = new LinkedHashMap<>();
