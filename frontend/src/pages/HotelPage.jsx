@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../hooks/useAuth.js';
 import { useGame } from '../hooks/useGame.js';
+import { useSound } from '../hooks/useSound.js';
 import { useHotelSocket } from '../hotel/useHotelSocket.js';
 import { furniApi } from '../services/furniApi.js';
 import { roomApi } from '../services/roomApi.js';
@@ -15,6 +16,7 @@ import CardPicker from '../hotel/ui/CardPicker.jsx';
 import CardViewer from '../hotel/ui/CardViewer.jsx';
 import RoomSettings from '../hotel/ui/RoomSettings.jsx';
 import UserCard from '../hotel/ui/UserCard.jsx';
+import PvpPanel from '../hotel/ui/PvpPanel.jsx';
 import { DEFAULT_LOOK } from '../hotel/sprites/avatar.js';
 import { TRACKS, getJukebox } from '../hotel/music.js';
 import '../hotel/hotel.css';
@@ -39,6 +41,12 @@ const ERRORS = {
   jukebox_cooldown: 'Un attimo: il brano e\' appena cambiato.',
   no_jukebox: 'In questa stanza non c\'e\' un jukebox.',
   not_usable: 'Questo mobile non si usa.',
+  cannot_challenge_yourself: 'Non puoi sfidare te stesso.',
+  already_in_match: 'Sei gia\' in una sfida.',
+  opponent_busy: 'Quel giocatore e\' gia\' impegnato in una sfida.',
+  challenge_expired: 'La sfida e\' scaduta.',
+  invalid_team: 'Scegli 3 carte diverse.',
+  invalid_move: 'Mossa non valida in questo momento.',
   server_error: 'Qualcosa e\' andato storto. Riprova.'
 };
 
@@ -59,6 +67,7 @@ const STATUS_LABELS = {
 export default function HotelPage() {
   const { user, refreshUser } = useAuth();
   const { gold } = useGame();
+  const { sound } = useSound();
   const canvasRef = useRef(null);
   const roomIdRef = useRef(null);
 
@@ -80,6 +89,8 @@ export default function HotelPage() {
   const [jukebox, setJukebox] = useState({ track: -1 });
   const [likes, setLikes] = useState(null);
   const [respectVersion, setRespectVersion] = useState(0);
+  const [pvp, setPvp] = useState(null);
+  const [clockOffset, setClockOffset] = useState(0);
   const noticeTimer = useRef(0);
   const meRef = useRef(null);
   const peopleRef = useRef({});
@@ -166,6 +177,75 @@ export default function HotelPage() {
       case 'respects_left':
         showNotice(`Rispetto dato! Te ne restano ${message.left} per oggi.`);
         break;
+      // ---- sfide fra giocatori: lo stato del pannello segue i messaggi del server
+      case 'challenge_received':
+        setPvp({ stage: 'incoming', challengeId: message.challengeId, from: message.from });
+        sound.coin();
+        break;
+      case 'challenge_sent':
+        setPvp({ stage: 'sent', to: message.to });
+        break;
+      case 'challenge_declined':
+        setPvp(null);
+        showNotice(`${message.by} ha rifiutato la sfida.`);
+        break;
+      case 'challenge_expired':
+        setPvp((p) => (p && (p.stage === 'incoming' || p.stage === 'sent') ? null : p));
+        break;
+      case 'pvp_start':
+        setClockOffset(message.serverTime - Date.now());
+        setPvp({ stage: 'team', matchId: message.matchId, opponent: message.opponent, deadline: message.teamDeadline });
+        setSelected(null);
+        break;
+      case 'pvp_team_ok':
+        setPvp((p) => (p ? { ...p, teamSent: true } : p));
+        break;
+      case 'pvp_opponent_ready':
+        setPvp((p) => (p ? { ...p, opponentReady: true } : p));
+        break;
+      case 'pvp_round':
+        setClockOffset(message.serverTime - Date.now());
+        setPvp((p) => ({
+          ...p, stage: 'round', round: message.round, chooser: message.chooser, category: null,
+          deadline: message.deadline || null, team: message.team, used: message.used, boostUsed: message.boostUsed,
+          score: message.score, picked: false, pickedIndex: null, opponentPicked: false
+        }));
+        break;
+      case 'pvp_category':
+        setPvp((p) => (p ? { ...p, stage: 'round', category: message.category, deadline: message.deadline } : p));
+        break;
+      case 'pvp_card_ok':
+        setPvp((p) => (p ? { ...p, picked: true, pickedIndex: message.index } : p));
+        break;
+      case 'pvp_opponent_picked':
+        setPvp((p) => (p ? { ...p, opponentPicked: true } : p));
+        break;
+      case 'pvp_reveal':
+        setPvp((p) => (p ? { ...p, stage: 'reveal', reveal: message, score: message.score, deadline: null } : p));
+        if (message.winner === 'you') sound.roundWin();
+        else if (message.winner === 'opponent') sound.roundLose();
+        else sound.roundDraw();
+        break;
+      case 'pvp_end':
+        setPvp((p) => ({ ...p, stage: 'end', result: message.result, score: message.score, reward: message.reward, forfeit: message.forfeit, deadline: null }));
+        if (message.result === 'win') sound.battleWin();
+        else if (message.result === 'loss') sound.battleLose();
+        else sound.battleDraw();
+        refreshUser();
+        break;
+      case 'pvp_cancelled':
+        setPvp(null);
+        showNotice('Sfida annullata: nessuno ha scelto la squadra in tempo.');
+        break;
+      case 'pvp_result': {
+        const mine = [message.a, message.b].includes(meRef.current?.username);
+        if (!mine) {
+          showNotice(message.winner
+            ? `${message.winner} ha vinto la sfida ${message.a} contro ${message.b} (${message.scoreA}-${message.scoreB})${message.forfeit ? ' a tavolino' : ''}!`
+            : `Sfida ${message.a} contro ${message.b}: pareggio!`);
+        }
+        break;
+      }
       case 'inventory_changed':
         setInventoryVersion((v) => v + 1);
         break;
@@ -181,7 +261,7 @@ export default function HotelPage() {
       default:
         break;
     }
-  }, [showNotice]);
+  }, [showNotice, sound, refreshUser]);
 
   const { status, send } = useHotelSocket({
     onMessage,
@@ -338,8 +418,11 @@ export default function HotelPage() {
             onKick={() => { send({ type: 'kick', userId: selected.id }); setSelected(null); }}
             onVisit={(roomId) => { join(roomId); setSelected(null); }}
             onViewCard={(card) => setViewingCard(card)}
+            onChallenge={pvp ? null : () => { send({ type: 'challenge', userId: selected.id }); setSelected(null); }}
           />
         )}
+
+        {pvp && <PvpPanel pvp={pvp} clockOffset={clockOffset} send={send} onClose={() => setPvp(null)} />}
 
         {selectedItem && (
           <ItemMenu

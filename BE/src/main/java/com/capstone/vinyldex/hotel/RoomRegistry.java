@@ -91,6 +91,11 @@ public class RoomRegistry {
         }
     }
 
+    /** Connessione aperta dell'utente, oppure null se non e' online. */
+    public HotelSession sessionOf(UUID userId) {
+        return userId == null ? null : sessionsByUser.get(userId);
+    }
+
     public void unregister(HotelSession session) {
         leaveRoom(session);
         if (session.user() != null) sessionsByUser.remove(session.user().id(), session);

@@ -366,6 +366,53 @@
 
 .hotel-card-viewer-link { width: 100%; margin-top: var(--space-sm); }
 
+/* ---------- Sfide fra giocatori ---------- */
+.pvp-panel { top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(520px, calc(100% - 16px)); z-index: 8; }
+.pvp-incoming { top: var(--space-sm); transform: translateX(-50%); width: min(320px, calc(100% - 16px)); }
+.pvp-text { padding: 8px 12px 0; font-size: 0.85rem; }
+.pvp-verdict { font-size: 1.05rem; font-weight: 800; text-align: center; }
+.pvp-reward { font-weight: 800; color: #b45309; text-align: center; }
+.pvp-actions { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 10px 12px; }
+.pvp-hint { margin-right: auto; font-weight: 800; color: #6b6590; }
+.pvp-timer { margin-left: auto; margin-right: 8px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.pvp-timer.urgent { color: #ffd700; animation: pvpPulse 0.8s ease-in-out infinite; }
+@keyframes pvpPulse { 50% { opacity: 0.4; } }
+.pvp-score { display: flex; justify-content: space-between; padding: 6px 12px; background: #e7e0ff; font-size: 0.8rem; }
+.pvp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+  gap: 6px;
+  padding: 8px 12px;
+  max-height: 44vh;
+  overflow-y: auto;
+}
+.pvp-hand, .pvp-categories { display: flex; justify-content: center; gap: 8px; padding: 10px 12px; flex-wrap: wrap; }
+.pvp-card {
+  width: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 8px;
+  border: 2px solid var(--rarity-color, #8b5cf6);
+  background: #fff;
+  color: #1a1330;
+  cursor: pointer;
+}
+.pvp-grid .pvp-card { width: 100%; }
+.pvp-card img { width: 100%; aspect-ratio: 5 / 7; object-fit: cover; border-radius: 5px; }
+.pvp-card-name { font-size: 0.62rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pvp-card-stat { font-size: 0.65rem; color: #4b4570; }
+.pvp-card-stat strong { font-size: 0.85rem; color: #1a1330; }
+.pvp-card.selected { box-shadow: 0 0 0 3px #ffd700; }
+.pvp-card.used { opacity: 0.4; cursor: default; }
+.pvp-card:disabled { cursor: default; }
+.pvp-boost { display: flex; align-items: center; gap: 6px; justify-content: center; padding: 0 12px 10px; font-size: 0.8rem; font-weight: 700; color: #b45309; }
+.pvp-versus { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 10px 12px 14px; }
+.pvp-versus > div { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: 800; padding: 6px; border-radius: 10px; }
+.pvp-versus > div.winner { background: #fff4d6; box-shadow: 0 0 0 2px #ffd700; }
+.pvp-versus > strong { font-size: 1.2rem; color: #ec4899; }
+
 /* ---------- Barra degli strumenti ---------- */
 .hotel-toolbar {
   display: flex;

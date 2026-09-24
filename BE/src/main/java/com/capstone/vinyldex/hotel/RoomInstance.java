@@ -466,6 +466,11 @@ public class RoomInstance {
                 "serverTime", System.currentTimeMillis());
     }
 
+    /** Messaggio a tutti i presenti, per esempio il risultato di una sfida. */
+    public synchronized void announce(Map<String, Object> message) {
+        broadcast(message);
+    }
+
     /** Annuncia a tutta la stanza un rispetto dato: il client fa volare un cuore. */
     public synchronized void announceRespect(UUID fromId, UUID toId, int receivedTotal) {
         broadcast(Map.of("type", "respect", "from", fromId, "to", toId, "total", receivedTotal));

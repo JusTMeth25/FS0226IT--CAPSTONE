@@ -15,6 +15,8 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,6 +33,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *   join {roomId} · move {x,y} · chat {text} · shout {text} · whisper {to,text}
  *   typing {on} · emote {emote} · status {status} · refresh_profile · ping
  *   respect {userId} · use_item {itemId} · jukebox {on}
+ *   challenge {userId} · challenge_reply {challengeId,accept} · pvp_team {cards} · pvp_category {category}
+ *   pvp_card {index,boost} · pvp_forfeit
  * Solo nella propria stanza:
  *   place {itemId,x,y,rot} · pickup {itemId} · set_display {itemId,cardId} · kick {userId}
  */
@@ -52,11 +56,12 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     private final RoomService roomService;
     private final FurniService furniService;
     private final HotelSocialService socialService;
+    private final PvpService pvpService;
     private final Map<String, HotelSession> sessions = new ConcurrentHashMap<>();
 
     public HotelSocketHandler(ObjectMapper objectMapper, JwtService jwtService, UserRepository userRepository,
                               RoomRegistry registry, RoomService roomService, FurniService furniService,
-                              HotelSocialService socialService) {
+                              HotelSocialService socialService, PvpService pvpService) {
         this.objectMapper = objectMapper;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
@@ -64,6 +69,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         this.roomService = roomService;
         this.furniService = furniService;
         this.socialService = socialService;
+        this.pvpService = pvpService;
     }
 
     @Override
@@ -115,7 +121,10 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession raw, CloseStatus status) {
         HotelSession session = sessions.remove(raw.getId());
-        if (session != null) registry.unregister(session);
+        if (session == null) return;
+        // Chi si disconnette durante una sfida la perde a tavolino.
+        if (session.user() != null) pvpService.userLeft(session.user().id());
+        registry.unregister(session);
     }
 
     // ------------------------------------------------------------------ comandi
@@ -145,8 +154,15 @@ public class HotelSocketHandler extends TextWebSocketHandler {
 
         switch (type == null ? "" : type) {
             case "ping" -> session.send(Map.of("type", "pong"));
-            case "join" -> join(session, text(node, "roomId"));
-            case "leave" -> registry.leaveRoom(session);
+            case "join" -> {
+                // Cambiare stanza durante una sfida vale come abbandono.
+                pvpService.userLeft(userId);
+                join(session, text(node, "roomId"));
+            }
+            case "leave" -> {
+                pvpService.userLeft(userId);
+                registry.leaveRoom(session);
+            }
             case "move" -> {
                 if (room != null) room.move(userId, integer(node, "x"), integer(node, "y"));
             }
@@ -184,6 +200,17 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             case "jukebox" -> {
                 if (room != null) reply(session, room.setJukebox(userId, node.path("on").asBoolean(true)));
             }
+            case "challenge" -> reply(session, pvpService.challenge(session, uuid(node, "userId")));
+            case "challenge_reply" -> reply(session, pvpService.reply(session, uuid(node, "challengeId"),
+                    node.path("accept").asBoolean(false)));
+            case "pvp_team" -> {
+                List<String> cards = new ArrayList<>();
+                node.path("cards").forEach(c -> cards.add(c.asString()));
+                reply(session, pvpService.team(session, cards));
+            }
+            case "pvp_category" -> reply(session, pvpService.category(session, text(node, "category")));
+            case "pvp_card" -> reply(session, pvpService.card(session, integer(node, "index"), node.path("boost").asBoolean(false)));
+            case "pvp_forfeit" -> pvpService.userLeft(userId);
             case "kick" -> {
                 if (room != null && room.data().isOwner(userId)) room.kick(uuid(node, "userId"));
             }
