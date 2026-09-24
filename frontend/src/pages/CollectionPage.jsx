@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
 import { useFilterParams } from '../hooks/useFilterParams.js';
 import { CARDS, getArtistClasses } from '../data/cards.js';
-import { RARITIES, RARITY_ORDER, SOURCE_LABELS, getRarityIcon, getSourceLabel, getTotalScore } from '../utils/cardUtils.js';
-import { dedupeCollection } from '../utils/collectionUtils.js';
+import { RARITIES, RARITY_ORDER, SOURCE_LABELS, formatMarketPrice, getRarityIcon, getSourceLabel, getTotalScore } from '../utils/cardUtils.js';
+import { dedupeCollection, getCollectionValue } from '../utils/collectionUtils.js';
 import CardTile from '../components/card/CardTile.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import ScrollToTopButton from '../components/common/ScrollToTopButton.jsx';
@@ -25,6 +25,7 @@ export default function CollectionPage() {
 
   const artistClasses = useMemo(() => getArtistClasses(), []);
   const uniqueCount = useMemo(() => new Set(collection.map((c) => c.id)).size, [collection]);
+  const collectionValue = useMemo(() => getCollectionValue(collection), [collection]);
   const availableSources = useMemo(() => {
     const present = new Set(collection.map((c) => c.source).filter(Boolean));
     return Object.keys(SOURCE_LABELS).filter((s) => present.has(s));
@@ -72,6 +73,15 @@ export default function CollectionPage() {
         <div className="collection-stat">
           <span className="collection-stat-value">{totalCatalogCards > 0 ? Math.round((uniqueCount / totalCatalogCards) * 100) : 0}%</span>
           <span className="collection-stat-label">VinylDex</span>
+        </div>
+        <div
+          className="collection-stat collection-stat-value-worth"
+          title={collectionValue.unpricedCount > 0
+            ? `Stima dai prezzi di mercato. ${collectionValue.unpricedCount} carte senza prezzo (VinylDex, Lorcana, Gundam, Riftbound) non sono incluse.`
+            : 'Stima dai prezzi di mercato delle carte possedute.'}
+        >
+          <span className="collection-stat-value">{formatMarketPrice(collectionValue.total) || '—'}</span>
+          <span className="collection-stat-label">Valore stimato</span>
         </div>
       </div>
 

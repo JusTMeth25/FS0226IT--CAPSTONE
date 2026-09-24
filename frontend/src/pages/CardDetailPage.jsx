@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { lazy, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
 import { findCardById } from '../data/cards.js';
@@ -10,6 +10,10 @@ import CardHero from '../components/card/CardHero.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import RarityAmbience from '../components/fx/RarityAmbience.jsx';
+import ThreeGate from '../components/three/ThreeGate.jsx';
+
+// La carta 3D porta con se' three.js: si scarica solo quando si apre il dettaglio di una carta posseduta.
+const Card3D = lazy(() => import('../components/three/Card3D.jsx'));
 
 export default function CardDetailPage() {
   const { id } = useParams();
@@ -105,7 +109,10 @@ export default function CardDetailPage() {
     <section className="card-detail-page" style={{ '--rarity-color': getRarityColor(ownedEntry.rarity) }}>
       <RarityAmbience rarity={ownedEntry.rarity} />
 
-      <CardHero card={ownedEntry} quantity={ownedEntry.quantity} />
+      <ThreeGate fallback={<CardHero card={ownedEntry} quantity={ownedEntry.quantity} />}>
+        <Card3D card={ownedEntry} />
+        <CardHero card={ownedEntry} quantity={ownedEntry.quantity} hideArt />
+      </ThreeGate>
 
       <h2 className="card-detail-title">{ownedEntry.name}</h2>
       <span className="card-detail-rarity-chip">{getRarityName(ownedEntry.rarity)}</span>

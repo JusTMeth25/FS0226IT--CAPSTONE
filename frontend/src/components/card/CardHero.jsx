@@ -28,11 +28,15 @@ function HoloLayers() {
  * citazione e statistiche. Usata da CardDetailPage e dal modal reveal.
  * L'artwork ha un effetto holo (tilt 3D + riflesso arcobaleno) che segue
  * il puntatore, più marcato per le rarità alte.
+ *
+ * Con `hideArt` l'artwork non viene mostrato: serve quando sopra c'e' gia' la carta 3D, per
+ * non vedere la stessa immagine due volte. Restano citazione, tag e statistiche.
  */
-export default function CardHero({ card, quantity = 1 }) {
+export default function CardHero({ card, quantity = 1, hideArt = false }) {
   const rarityClass = getRarityCSSClass(card.rarity);
 
   if (card.fullImage) {
+    if (hideArt) return null;
     return (
       <CardHoloFrame rarity={card.rarity} className={`card-hero card-hero-full ${rarityClass}`}>
         <img className="card-hero-art" src={resolveCardImage(card)} alt={card.name} />
@@ -47,19 +51,21 @@ export default function CardHero({ card, quantity = 1 }) {
 
   return (
     <div className={`card-hero ${rarityClass}`}>
-      <CardHoloFrame rarity={card.rarity} className="card-hero-art-wrap">
-        <img className="card-hero-art" src={resolveCardImage(card)} alt={card.name} />
-        <div className="card-hero-scrim" />
-        <HoloLayers />
-        <span className="card-hero-rarity-badge" style={{ color, borderColor: color }}>
-          {getRarityName(card.rarity).toUpperCase()} <img className="card-hero-rarity-icon" src={getRarityIcon(card.rarity)} alt="" />
-        </span>
-        {quantity > 1 && <span className="card-hero-qty-badge">×{quantity}</span>}
-        <div className="card-hero-heading">
-          <h2 className="card-hero-name">{card.name}</h2>
-          {card.variant && card.variant !== card.name && <p className="card-hero-variant">{card.variant}</p>}
-        </div>
-      </CardHoloFrame>
+      {!hideArt && (
+        <CardHoloFrame rarity={card.rarity} className="card-hero-art-wrap">
+          <img className="card-hero-art" src={resolveCardImage(card)} alt={card.name} />
+          <div className="card-hero-scrim" />
+          <HoloLayers />
+          <span className="card-hero-rarity-badge" style={{ color, borderColor: color }}>
+            {getRarityName(card.rarity).toUpperCase()} <img className="card-hero-rarity-icon" src={getRarityIcon(card.rarity)} alt="" />
+          </span>
+          {quantity > 1 && <span className="card-hero-qty-badge">×{quantity}</span>}
+          <div className="card-hero-heading">
+            <h2 className="card-hero-name">{card.name}</h2>
+            {card.variant && card.variant !== card.name && <p className="card-hero-variant">{card.variant}</p>}
+          </div>
+        </CardHoloFrame>
+      )}
       <div className="card-hero-body">
         {card.description && <p className="card-hero-quote">&quot;{card.description}&quot;</p>}
         <div className="card-hero-tags">

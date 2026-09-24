@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
 import { useSound } from '../hooks/useSound.js';
 import { useCountUp } from '../hooks/useCountUp.js';
 import { PACKS } from '../data/packs.js';
-import { findBestCardIndex, getRarityColor, getStars, resolveCardImage } from '../utils/cardUtils.js';
+import { RARITY_ORDER, findBestCardIndex, getRarityColor, getStars, resolveCardImage } from '../utils/cardUtils.js';
 import { formatDuration } from '../hooks/useCountdown.js';
 import RevealSpark from '../components/common/RevealSpark.jsx';
 import StarBorder from '../components/common/StarBorder.jsx';
@@ -15,6 +15,25 @@ import { useBodyScrollLock } from '../hooks/useBodyScrollLock.js';
 import RevealStage from '../components/fx/RevealStage.jsx';
 import RarityAnnounce from '../components/fx/RarityAnnounce.jsx';
 import PackVerdict from '../components/fx/PackVerdict.jsx';
+import ThreeGate from '../components/three/ThreeGate.jsx';
+import { useThreeEnabled } from '../components/three/useThreeEnabled.js';
+
+// Lo strappo 3D porta con se' three.js: si scarica solo quando si apre davvero un pacchetto.
+const PackTear3D = lazy(() => import('../components/three/PackTear3D.jsx'));
+// Stessa carta 3D del dettaglio, per ispezionare le carte dal riepilogo del pacchetto.
+const Card3D = lazy(() => import('../components/three/Card3D.jsx'));
+
+// Attesa tra strappo e rivelazione. Con la scena 3D c'e' un'esplosione da guardare, e con una
+// leggendaria anche il vinile d'oro che vola verso lo schermo.
+const TEAR_TO_REVEAL_MS = { css: 550, three: 1200, threeLegendary: 1800 };
+
+/** Rarita' piu' alta del pacchetto, anche se sotto la soglia di "carta migliore". */
+function topRarity(cards) {
+  return cards.reduce(
+    (best, card) => ((RARITY_ORDER[card.rarity] || 0) > (RARITY_ORDER[best] || 0) ? card.rarity : best),
+    'common'
+  );
+}
 
 // Trascinamento orizzontale (in px) necessario per completare lo strappo del pacchetto.
 const TEAR_DRAG_MAX = 120;
@@ -153,6 +172,7 @@ export default function PackOpeningPage() {
   const { sound } = useSound();
   const navigate = useNavigate();
   const displayGold = useCountUp(game.gold);
+  const threeEnabled = useThreeEnabled();
 
   const [phase, setPhase] = useState('select');
   const [selectedPack, setSelectedPack] = useState(null);
@@ -226,7 +246,10 @@ export default function PackOpeningPage() {
     setTorn(true);
     setDragProgress(1);
     sound.packOpen();
-    trackedTimeout(() => setPhase('reveal'), 550);
+    const delay = !threeEnabled
+      ? TEAR_TO_REVEAL_MS.css
+      : topRarity(cards) === 'legendary' ? TEAR_TO_REVEAL_MS.threeLegendary : TEAR_TO_REVEAL_MS.three;
+    trackedTimeout(() => setPhase('reveal'), delay);
   }
 
   function handleTearPointerUp() {
@@ -347,6 +370,13 @@ export default function PackOpeningPage() {
   const isLastCard = revealIndex >= cards.length - 1;
   const bestCardIndex = findBestCardIndex(cards);
 
+  const tearHandlers = {
+    onPointerDown: handleTearPointerDown,
+    onPointerMove: handleTearPointerMove,
+    onPointerUp: handleTearPointerUp,
+    onPointerCancel: handleTearPointerUp
+  };
+
   const halfShift = dragProgress * 160;
   const halfRotate = dragProgress * 30;
   const liveDragStyle = (side) => ({
@@ -362,27 +392,36 @@ export default function PackOpeningPage() {
 
       {phase === 'opening' && (
         <div className="pack-tear-stage">
-          <div
-            className={`pack-tear ${!dragging && !torn ? 'pack-tear-idle' : ''}`}
-            onPointerDown={handleTearPointerDown}
-            onPointerMove={handleTearPointerMove}
-            onPointerUp={handleTearPointerUp}
-            onPointerCancel={handleTearPointerUp}
-          >
+          <ThreeGate fallback={
             <div
-              className={`pack-tear-half pack-tear-half-left ${torn ? 'pack-tear-half-done' : ''}`}
-              style={torn ? undefined : liveDragStyle('left')}
+              className={`pack-tear ${!dragging && !torn ? 'pack-tear-idle' : ''}`}
+              {...tearHandlers}
             >
-              {boxImage ? <img className="pack-tear-img" src={boxImage} alt="" style={{ objectPosition: 'left center' }} draggable={false} /> : <i className={`ph-fill ${icon} pack-tear-icon`} />}
+              <div
+                className={`pack-tear-half pack-tear-half-left ${torn ? 'pack-tear-half-done' : ''}`}
+                style={torn ? undefined : liveDragStyle('left')}
+              >
+                {boxImage ? <img className="pack-tear-img" src={boxImage} alt="" style={{ objectPosition: 'left center' }} draggable={false} /> : <i className={`ph-fill ${icon} pack-tear-icon`} />}
+              </div>
+              <div
+                className={`pack-tear-half pack-tear-half-right ${torn ? 'pack-tear-half-done' : ''}`}
+                style={torn ? undefined : liveDragStyle('right')}
+              >
+                {boxImage && <img className="pack-tear-img" src={boxImage} alt="" style={{ objectPosition: 'right center' }} draggable={false} />}
+              </div>
+              <div className={`pack-tear-flash ${torn ? 'pack-tear-flash-burst' : ''}`} style={torn ? undefined : { opacity: dragProgress * 0.9 }} />
             </div>
-            <div
-              className={`pack-tear-half pack-tear-half-right ${torn ? 'pack-tear-half-done' : ''}`}
-              style={torn ? undefined : liveDragStyle('right')}
-            >
-              {boxImage && <img className="pack-tear-img" src={boxImage} alt="" style={{ objectPosition: 'right center' }} draggable={false} />}
-            </div>
-            <div className={`pack-tear-flash ${torn ? 'pack-tear-flash-burst' : ''}`} style={torn ? undefined : { opacity: dragProgress * 0.9 }} />
-          </div>
+          }>
+            <PackTear3D
+              handlers={tearHandlers}
+              packImage={boxImage}
+              packRarity={PACK_TILT_RARITY[selectedPack?.id] || 'rare'}
+              bestRarity={topRarity(cards)}
+              dragProgress={dragProgress}
+              dragging={dragging}
+              torn={torn}
+            />
+          </ThreeGate>
           <p className="pack-opening-text pack-tear-hint">
             {torn ? <><i className="ph-fill ph-sparkle" /> Le carte stanno per essere rivelate...</> : <><i className="ph-fill ph-arrows-left-right" /> Trascina per aprire il pacchetto!</>}
           </p>
@@ -448,7 +487,10 @@ export default function PackOpeningPage() {
             <button className="btn btn-secondary pack-inspect-close" onClick={() => setInspectedCard(null)}>
               <i className="ph-fill ph-arrow-left" /> Torna al Riepilogo
             </button>
-            <CardHero card={inspectedCard} />
+            <ThreeGate fallback={<CardHero card={inspectedCard} />}>
+              <Card3D card={inspectedCard} />
+              <CardHero card={inspectedCard} hideArt />
+            </ThreeGate>
           </div>
         </div>
       )}

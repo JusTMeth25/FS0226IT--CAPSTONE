@@ -26,3 +26,22 @@ export function dedupeCollection(collection) {
     })
     .map((c) => ({ ...c, quantity: counts.get(c.id) || 1 }));
 }
+
+/**
+ * Valore di mercato indicativo della collezione: prezzo di ogni carta per le copie possedute.
+ *
+ * Il prezzo esiste solo per le carte importate da fonti con dati di mercato (Pokémon, Magic,
+ * Yu-Gi-Oh!, ...): le originali VinylDex e le fonti senza prezzi non contribuiscono, e vengono
+ * contate a parte per poterlo dire all'utente.
+ */
+export function getCollectionValue(collection) {
+  let total = 0;
+  let unpricedCount = 0;
+
+  dedupeCollection(collection).forEach((card) => {
+    if (card.marketPrice > 0) total += card.marketPrice * (card.quantity || 1);
+    else unpricedCount += 1;
+  });
+
+  return { total, unpricedCount };
+}

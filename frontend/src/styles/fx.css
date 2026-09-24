@@ -923,3 +923,50 @@
 
 /* Dentro la schermata intera il riempimento verticale lo da' gia' il contenitore. */
 .auth-screen .auth-page { padding-top: 0; }
+
+/* ========================================
+   SCENE 3D (three.js)
+
+   Il canvas e' trasparente: dietro si vede l'Aurora dell'app. touch-action:none perche'
+   trascinare il dito sulla scena (strappo, rotazione della carta) non deve scorrere la pagina.
+   ======================================== */
+.pack-3d-stage {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  height: 440px;
+  margin: 0 auto;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.pack-3d-stage:active { cursor: grabbing; }
+/* I bordi del canvas sfumano nel trasparente: particelle e meta' della busta che escono dalla
+   scena spariscono dolcemente invece di venire tagliate lungo un rettangolo. */
+.pack-3d-stage > div {
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, #000 14%, #000 86%, transparent),
+    linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent, #000 14%, #000 86%, transparent),
+    linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+  mask-composite: intersect;
+}
+
+.card-3d-stage {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+}
+/* Stesse proporzioni della carta, cosi' la carta riempie quasi tutto il riquadro e testi,
+   descrizione e punti restano leggibili. max-height evita che su schermi bassi esca dalla vista. */
+.card-3d-canvas { width: 100%; aspect-ratio: 5 / 6.6; max-height: 78vh; touch-action: none; }
+.card-3d-flip { font-size: 0.8rem; }
+
+@media (min-width: 992px) {
+  .pack-3d-stage { height: 520px; }
+}
