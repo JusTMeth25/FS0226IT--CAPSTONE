@@ -1,12 +1,13 @@
-import { STEP_MS, directionBetween, insideDiamond, parseLayout, tileCenter, tileTop, viewForDirection } from './iso.js';
-import { AVATAR_FOOT_X, AVATAR_FOOT_Y, AVATAR_H, AVATAR_W, avatarSprite } from './sprites/avatar.js';
+import { DETAIL, HALF_W, STEP_MS, TILE_H, TILE_W, directionBetween, insideDiamond, parseLayout, tileCenter, tileTop, viewForDirection } from './iso.js';
+import { AVATAR_FOOT_X, AVATAR_FOOT_Y, AVATAR_H, AVATAR_SCALE, AVATAR_W, avatarSprite } from './sprites/avatar.js';
 import { hoverTileSprite, renderRoom } from './sprites/room.js';
-import { footprintOf, furniSprite, isAnimated, isFlat } from './sprites/furni.js';
+import { animationState, footprintOf, furniSprite, isFlat } from './sprites/furni.js';
+import { isSolid } from './sprites/pixel.js';
 import { GEM_H, GEM_W, drawSparkle, gemSprite } from './sprites/gem.js';
 import { getRarityColor } from '../utils/cardUtils.js';
 
 /** Di quanti pixel base si alza chi e' seduto su una sedia o un divano, rispetto al pavimento. */
-const SEAT_LIFT = 7;
+const SEAT_LIFT = 7 * DETAIL;
 
 /** Colori delle bibite del bancone (nomi come in RoomInstance.DRINKS). */
 const DRINK_COLORS = { cola: '#5b2a0e', juice: '#f97316', coffee: '#f5f5f5', bubble: '#ec4899' };
@@ -138,16 +139,26 @@ export class HotelEngine {
         break;
       }
       case 'jukebox': this.jukeboxOn = message.track >= 0; break;
+      case 'room_updated': this.updateRoom(message.room); break;
       case 'respect': this.hearts.push({ userId: message.to, born: now }); break;
       default: break;
     }
+  }
+
+  /** Il proprietario ha cambiato pavimento o pareti: si ridisegna la stanza, il resto resta. */
+  updateRoom(changes) {
+    if (!this.room) return;
+    const restyle = (changes.floorStyle && changes.floorStyle !== this.room.floorStyle)
+      || (changes.wallStyle && changes.wallStyle !== this.room.wallStyle);
+    this.room = { ...this.room, ...changes };
+    if (restyle) this.roomImage = renderRoom(this.layout, this.room.floorStyle, this.room.door, this.room.wallStyle);
   }
 
   loadRoom(message, now) {
     this.room = message.room;
     this.meId = message.you;
     this.layout = parseLayout(message.room.layout);
-    this.roomImage = renderRoom(this.layout, message.room.floorStyle, message.room.door);
+    this.roomImage = renderRoom(this.layout, message.room.floorStyle, message.room.door, message.room.wallStyle);
     this.users.clear();
     this.bubbles = [];
     this.items = new Map((message.items || []).map((item) => [item.id, item]));
@@ -250,11 +261,10 @@ export class HotelEngine {
     const drawn = [...this.users.values()].sort((a, b) => this.userDepth(b) - this.userDepth(a));
     for (const user of drawn) {
       const { sprite, left, top } = this.spriteFor(user, performance.now());
-      const sx = Math.floor(world.x - left);
-      const sy = Math.floor(world.y - top);
+      const sx = Math.floor((world.x - left) / AVATAR_SCALE);
+      const sy = Math.floor((world.y - top) / AVATAR_SCALE);
       if (sx < 0 || sy < 0 || sx >= AVATAR_W || sy >= AVATAR_H) continue;
-      const alpha = sprite.getContext('2d').getImageData(sx, sy, 1, 1).data[3];
-      if (alpha > 0) return user;
+      if (isSolid(sprite, sx, sy)) return user;
     }
     return null;
   }
@@ -326,8 +336,7 @@ export class HotelEngine {
       const { sprite, left, top } = this.itemSprite(item, now);
       const sx = Math.floor(world.x - left);
       const sy = Math.floor(world.y - top);
-      if (sx < 0 || sy < 0 || sx >= sprite.width || sy >= sprite.height) continue;
-      if (sprite.getContext('2d').getImageData(sx, sy, 1, 1).data[3] > 0) return item;
+      if (isSolid(sprite, sx, sy)) return item;
     }
     return null;
   }
@@ -381,17 +390,17 @@ export class HotelEngine {
    */
   itemSprite(item, now) {
     const def = this.catalog.get(item.type);
-    const frame = isAnimated(item.type) && !this.reducedMotion ? Math.floor(now / 250) : 0;
     const playing = item.type === 'dance_tile' ? this.jukeboxOn : !!item.playing;
-    const key = `${item.id}|${item.type}|${item.rot}|${item.card?.id || ''}|${playing ? 1 : 0}|${frame}`;
+    const anim = animationState(item, now, { playing, still: this.reducedMotion });
+    // Chiave per aspetto, non per mobile: stesse sedie o stesse piastrelle condividono lo sprite.
+    const key = `${item.type}|${item.rot}|${item.card?.id || ''}|${playing ? 1 : 0}|${anim.key}`;
     let cached = this.spriteCache.get(key);
     if (!cached) {
-      const sprite = furniSprite({ ...item, playing }, def, {
-        now: frame * 250,
+      cached = furniSprite({ ...item, playing, colorIndex: anim.colorIndex }, def, {
+        now: anim.now,
         // Quando arriva l'immagine della carta, lo sprite in cache non la contiene: via.
-        onImageLoad: () => this.clearItemCache(item.id)
+        onImageLoad: () => this.clearCardCache(item.card?.id)
       });
-      cached = sprite;
       if (this.spriteCache.size > 600) this.spriteCache.clear();
       this.spriteCache.set(key, cached);
     }
@@ -399,9 +408,10 @@ export class HotelEngine {
     return { sprite: cached.canvas, left: t.x - cached.anchorX, top: t.y - cached.anchorY };
   }
 
-  clearItemCache(itemId) {
+  clearCardCache(cardId) {
+    if (!cardId) return;
     [...this.spriteCache.keys()].forEach((key) => {
-      if (key.startsWith(`${itemId}|`)) this.spriteCache.delete(key);
+      if (key.includes(`|${cardId}|`)) this.spriteCache.delete(key);
     });
   }
 
@@ -485,7 +495,7 @@ export class HotelEngine {
     const sprite = avatarSprite(user.look, { ...view, pose, frame });
     const center = tileCenter(at.x, at.y, at.z);
     if (pose === 'sit' && this.seatUnder(user)) center.y -= SEAT_LIFT;
-    return { sprite, left: center.x - AVATAR_FOOT_X, top: center.y - AVATAR_FOOT_Y, center };
+    return { sprite, left: center.x - AVATAR_FOOT_X * AVATAR_SCALE, top: center.y - AVATAR_FOOT_Y * AVATAR_SCALE, center };
   }
 
   loop(now) {
@@ -497,7 +507,8 @@ export class HotelEngine {
   draw(now) {
     const { ctx } = this;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    ctx.imageSmoothingEnabled = false;
+    // Zoom indietro: meta' dei pixel, con lo smussamento per non perdere le righe sottili.
+    ctx.imageSmoothingEnabled = this.zoom < 1;
     ctx.clearRect(0, 0, this.cssWidth, this.cssHeight);
     if (!this.roomImage) return;
 
@@ -521,8 +532,8 @@ export class HotelEngine {
 
     if (this.hoverTile) {
       const t = tileTop(this.hoverTile.x, this.hoverTile.y, this.hoverTile.z);
-      const p = toScreen(t.x - 16, t.y);
-      ctx.drawImage(hoverTileSprite(), p.x, p.y, 32 * scale, 16 * scale);
+      const p = toScreen(t.x - HALF_W, t.y);
+      ctx.drawImage(hoverTileSprite(), p.x, p.y, TILE_W * scale, TILE_H * scale);
     }
 
     // Avatar e mobili in ordine di profondita': chi e' piu' in basso sullo schermo copre chi sta dietro.
@@ -545,15 +556,15 @@ export class HotelEngine {
       const shadow = toScreen(center.x, center.y);
       ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
       ctx.beginPath();
-      ctx.ellipse(shadow.x, shadow.y, 8 * scale, 3 * scale, 0, 0, Math.PI * 2);
+      ctx.ellipse(shadow.x, shadow.y, 8 * DETAIL * scale, 3 * DETAIL * scale, 0, 0, Math.PI * 2);
       ctx.fill();
 
       const p = toScreen(left, top);
       // Chi e' su un'altra pagina del sito resta nella stanza, ma sbiadito.
       if (user.away) ctx.globalAlpha = 0.45;
-      ctx.drawImage(sprite, p.x, p.y, AVATAR_W * scale, AVATAR_H * scale);
+      ctx.drawImage(sprite, p.x, p.y, AVATAR_W * AVATAR_SCALE * scale, AVATAR_H * AVATAR_SCALE * scale);
       ctx.globalAlpha = 1;
-      if (user.handItem) drawDrink(ctx, user, p, scale, viewForDirection(user.dir ?? 2));
+      if (user.handItem) drawDrink(ctx, user, p, scale * AVATAR_SCALE, viewForDirection(user.dir ?? 2));
       const head = toScreen(center.x, top);
       user.headY = head.y;
       user.screenX = head.x;
@@ -575,12 +586,14 @@ export class HotelEngine {
     this.drawPlacement(ctx, now, toScreen, scale);
     this.drawHearts(ctx, now);
     const animate = !this.reducedMotion;
+    // La gemma resta leggibile anche con lo zoom indietro.
+    const gemScale = Math.max(1, Math.round(scale * 2));
     labels.forEach((label) => {
       if (label.kind === 'typing') drawTyping(ctx, label);
       else if (label.kind === 'gem') {
-        const bob = animate ? Math.round(Math.sin(now / 450 + label.seed)) * scale : 0;
-        drawGem(ctx, label.x - (GEM_W * scale) / 2, label.y + bob, label.rarity, scale, now, animate);
-      } else drawName(ctx, label, scale, now, animate);
+        const bob = animate ? Math.round(Math.sin(now / 450 + label.seed)) * gemScale : 0;
+        drawGem(ctx, label.x - (GEM_W * gemScale) / 2, label.y + bob, label.rarity, gemScale, now, animate);
+      } else drawName(ctx, label, gemScale, now, animate);
     });
     this.drawBubbles(ctx, now);
   }
@@ -651,16 +664,19 @@ function depth(user) {
 /** Bicchiere in mano all'avatar: nella mano verso chi guarda, che cambia lato se lo sprite e' specchiato. */
 function drawDrink(ctx, user, p, scale, view) {
   const color = DRINK_COLORS[user.handItem] || '#22d3ee';
-  const handX = view.flip ? 2 : 17;
-  const handY = 26;
+  const handX = view.flip ? 6 : 36;
+  const handY = 55;
   const x = p.x + handX * scale;
   const y = p.y + handY * scale;
+  const s = scale;
   ctx.fillStyle = '#140d24';
-  ctx.fillRect(x - scale, y - scale, 5 * scale, 6 * scale);
+  ctx.fillRect(x - s, y - s, 8 * s, 11 * s);
   ctx.fillStyle = '#e5e7eb';
-  ctx.fillRect(x, y, 3 * scale, 4 * scale);
+  ctx.fillRect(x, y, 6 * s, 9 * s);
   ctx.fillStyle = color;
-  ctx.fillRect(x, y + scale, 3 * scale, 3 * scale);
+  ctx.fillRect(x, y + 2 * s, 6 * s, 7 * s);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.fillRect(x + s, y + 3 * s, s, 4 * s);
 }
 
 function drawName(ctx, { x, y, text, me, gem, card }, scale, now, animate) {

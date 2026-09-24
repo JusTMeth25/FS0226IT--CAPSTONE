@@ -1,12 +1,23 @@
 import { useState } from 'react';
 import { roomApi } from '../../services/roomApi.js';
 
+const FLOORS = [
+  ['neon', 'Piastrelle neon'], ['parquet', 'Parquet scuro'], ['carpet', 'Moquette'],
+  ['checker', 'Scacchiera'], ['marble', 'Marmo'], ['arena', 'Ring']
+];
+const WALLS = [
+  ['neon', 'Carta da parati neon'], ['brick', 'Mattoni'], ['teal', 'Verde caffetteria'],
+  ['wood', 'Boiserie in legno'], ['windows', 'Vetrate'], ['arena', 'Pannelli arena']
+];
+
 /** Impostazioni della propria stanza. Le modifiche arrivano subito a chi e' dentro. */
 export default function RoomSettings({ room, onClose }) {
   const [name, setName] = useState(room.name || '');
   const [description, setDescription] = useState(room.description || '');
   const [doorMode, setDoorMode] = useState(room.doorMode || 'open');
   const [maxUsers, setMaxUsers] = useState(room.maxUsers || 20);
+  const [floorStyle, setFloorStyle] = useState(room.floorStyle || 'neon');
+  const [wallStyle, setWallStyle] = useState(room.wallStyle || 'neon');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -15,7 +26,7 @@ export default function RoomSettings({ room, onClose }) {
     setSaving(true);
     setError(null);
     try {
-      await roomApi.updateSettings(room.id, { name, description, doorMode, maxUsers: Number(maxUsers) });
+      await roomApi.updateSettings(room.id, { name, description, doorMode, maxUsers: Number(maxUsers), floorStyle, wallStyle });
       onClose();
     } catch {
       setError('Salvataggio non riuscito. Controlla il nome e riprova.');
@@ -41,6 +52,16 @@ export default function RoomSettings({ room, onClose }) {
           <select className="hotel-chat-input" value={doorMode} onChange={(e) => setDoorMode(e.target.value)}>
             <option value="open">Aperta: entra chiunque</option>
             <option value="closed">Chiusa: solo io</option>
+          </select>
+        </label>
+        <label>Pavimento
+          <select className="hotel-chat-input" value={floorStyle} onChange={(e) => setFloorStyle(e.target.value)}>
+            {FLOORS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select>
+        </label>
+        <label>Pareti
+          <select className="hotel-chat-input" value={wallStyle} onChange={(e) => setWallStyle(e.target.value)}>
+            {WALLS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
         </label>
         <label>Capienza: {maxUsers}

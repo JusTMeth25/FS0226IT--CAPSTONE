@@ -1,5 +1,5 @@
 import { createCanvas, px, shade } from './pixel.js';
-import { AVATAR_FOOT_X, AVATAR_FOOT_Y, avatarSprite } from './avatar.js';
+import { AVATAR_FOOT_X, AVATAR_FOOT_Y, AVATAR_H, AVATAR_W, avatarSprite } from './avatar.js';
 import { viewForDirection } from '../iso.js';
 
 /**
@@ -166,7 +166,7 @@ function palmSprite(rand) {
 /** Aspetto casuale ma valido, nello stesso formato del server (s.h.hc.sh.p). */
 function randomLook(rand) {
   const pick = (n) => Math.floor(rand() * n);
-  return `s${pick(4)}.h${pick(6)}.hc${pick(8)}.sh${pick(10)}.p${pick(8)}`;
+  return `s${pick(6)}.h${pick(10)}.hc${pick(10)}.sh${pick(12)}.p${pick(8)}.t${pick(5)}.f${pick(6)}.a${pick(7)}`;
 }
 
 /** Spostamento in pixel per ogni passo nelle quattro diagonali isometriche. */
@@ -557,6 +557,8 @@ export class HotelViewScene {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
     ctx.fillRect(x - 5, y - 1, 10, 2);
     ctx.fillRect(x - 3, y - 2, 6, 4);
-    ctx.drawImage(avatarSprite(walker.look, { ...view, pose, frame }), x - AVATAR_FOOT_X, y - AVATAR_FOOT_Y);
+    // Gli avatar sono disegnati per le stanze, a doppia risoluzione: qui vanno a meta'.
+    ctx.drawImage(avatarSprite(walker.look, { ...view, pose, frame }), x - AVATAR_FOOT_X / 2, y - AVATAR_FOOT_Y / 2,
+      AVATAR_W / 2, AVATAR_H / 2);
   }
 }

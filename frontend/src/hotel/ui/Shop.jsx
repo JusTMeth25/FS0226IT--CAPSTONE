@@ -7,6 +7,7 @@ const CATEGORY_LABELS = {
   arredo: 'Arredo',
   luci: 'Luci',
   musica: 'Musica',
+  caffe: 'Caffetteria',
   carte: 'Carte',
   pareti: 'Pareti'
 };

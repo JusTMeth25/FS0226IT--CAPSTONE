@@ -100,7 +100,7 @@ export default function HotelPage() {
   const [inventoryVersion, setInventoryVersion] = useState(0);
   const [whisperTo, setWhisperTo] = useState(null);
   const [notice, setNotice] = useState(null);
-  const [zoom, setZoom] = useState(() => (window.innerWidth < 600 ? 1 : 2));
+  const [zoom, setZoom] = useState(() => (window.innerWidth < 600 ? 0.5 : 1));
   const [jukebox, setJukebox] = useState({ track: -1 });
   const [likes, setLikes] = useState(null);
   const [respectVersion, setRespectVersion] = useState(0);
@@ -394,7 +394,7 @@ export default function HotelPage() {
       return;
     }
     // Bancone: si riceve una bibita (camminandoci accanto se serve). Jukebox: cambia brano.
-    if (item.type === 'bar_counter' || item.type === 'jukebox') {
+    if (['bar_counter', 'cafe_counter', 'coffee_machine', 'jukebox'].includes(item.type)) {
       send({ type: 'use_item', itemId: item.id });
       return;
     }
@@ -621,8 +621,8 @@ export default function HotelPage() {
           <button type="button" className={`hotel-tool${myStatus === 'sit' ? ' active' : ''}`} onClick={() => toggleStatus('sit')} disabled={!room} title="Siediti">
             <i className="ph-fill ph-armchair" />
           </button>
-          <button type="button" className="hotel-tool" onClick={() => setZoom((z) => (z === 2 ? 1 : 2))} title="Zoom">
-            <i className={`ph-fill ${zoom === 2 ? 'ph-magnifying-glass-minus' : 'ph-magnifying-glass-plus'}`} />
+          <button type="button" className="hotel-tool" onClick={() => setZoom((z) => (z === 1 ? 0.5 : 1))} title="Zoom">
+            <i className={`ph-fill ${zoom === 1 ? 'ph-magnifying-glass-minus' : 'ph-magnifying-glass-plus'}`} />
           </button>
         </div>
       </div>

@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /** Lettura delle stanze dal database e navigatore dell'hotel. */
@@ -78,9 +79,14 @@ public class RoomService {
                 });
     }
 
-    /** Nome, descrizione, porta e capienza: solo il proprietario. Le modifiche arrivano subito ai presenti. */
+    /** Pavimenti e pareti disponibili: i nomi coincidono con gli stili di src/hotel/sprites/room.js. */
+    public static final Set<String> FLOOR_STYLES = Set.of("neon", "parquet", "carpet", "checker", "marble", "arena");
+    public static final Set<String> WALL_STYLES = Set.of("neon", "brick", "teal", "wood", "windows", "arena");
+
+    /** Nome, descrizione, porta, capienza e stile: solo il proprietario. Le modifiche arrivano subito ai presenti. */
     @Transactional
-    public RoomData updateSettings(UUID userId, UUID roomId, String name, String description, String doorMode, Integer maxUsers) {
+    public RoomData updateSettings(UUID userId, UUID roomId, String name, String description, String doorMode, Integer maxUsers,
+                                   String floorStyle, String wallStyle) {
         Room room = roomRepository.findWithOwner(roomId).orElseThrow(() -> ApiException.notFound("room_not_found"));
         if (room.getOwner() == null || !room.getOwner().getId().equals(userId)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "not_your_room");
@@ -100,6 +106,14 @@ public class RoomService {
             room.setDoorMode(doorMode);
         }
         if (maxUsers != null) room.setMaxUsers(Math.max(1, Math.min(25, maxUsers)));
+        if (floorStyle != null) {
+            if (!FLOOR_STYLES.contains(floorStyle)) throw ApiException.badRequest("invalid_floor_style");
+            room.setFloorStyle(floorStyle);
+        }
+        if (wallStyle != null) {
+            if (!WALL_STYLES.contains(wallStyle)) throw ApiException.badRequest("invalid_wall_style");
+            room.setWallStyle(wallStyle);
+        }
 
         RoomData data = RoomData.from(roomRepository.save(room));
         RoomInstance live = roomRegistry.get(roomId);

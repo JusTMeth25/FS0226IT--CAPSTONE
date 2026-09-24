@@ -216,7 +216,7 @@ public class RoomInstance {
             if (occupant.path.isEmpty() && occupant.pendingUse != null) {
                 RoomItemView target = items.get(occupant.pendingUse);
                 occupant.pendingUse = null;
-                if (target != null && isNextTo(occupant, target)) serveDrink(occupant);
+                if (target != null && isNextTo(occupant, target)) serveDrink(occupant, target.type());
             }
 
             // Arrivati su una sedia o un divano ci si siede, girati come la seduta.
@@ -391,7 +391,7 @@ public class RoomInstance {
         if (items.remove(itemId) != null) broadcast(Map.of("type", "item_removed", "id", itemId));
     }
 
-    /** Nome, descrizione o porta cambiati dal proprietario. */
+    /** Nome, descrizione, porta o stile cambiati dal proprietario. */
     public synchronized void updateData(RoomData updated) {
         this.data = updated;
         Map<String, Object> room = new LinkedHashMap<>();
@@ -399,6 +399,8 @@ public class RoomInstance {
         room.put("description", updated.description());
         room.put("doorMode", updated.doorMode());
         room.put("maxUsers", updated.maxUsers());
+        room.put("floorStyle", updated.floorStyle());
+        room.put("wallStyle", updated.wallStyle());
         broadcast(Map.of("type", "room_updated", "room", room));
     }
 
@@ -426,9 +428,9 @@ public class RoomInstance {
         if (occupant == null || item == null) return "item_not_found";
 
         switch (item.type()) {
-            case "bar_counter" -> {
+            case "bar_counter", "cafe_counter", "coffee_machine" -> {
                 if (isNextTo(occupant, item)) {
-                    serveDrink(occupant);
+                    serveDrink(occupant, item.type());
                     return null;
                 }
                 int[] spot = freeSpotNextTo(userId, item);
@@ -509,8 +511,11 @@ public class RoomInstance {
         return occupants.containsKey(userId);
     }
 
-    private void serveDrink(Occupant occupant) {
-        occupant.handItem = DRINKS.get(Math.floorMod((int) System.nanoTime(), DRINKS.size()));
+    /** Dal bancone esce una bibita a caso, dalla macchina del caffe' sempre un caffe'. */
+    private void serveDrink(Occupant occupant, String from) {
+        occupant.handItem = "coffee_machine".equals(from)
+                ? "coffee"
+                : DRINKS.get(Math.floorMod((int) System.nanoTime(), DRINKS.size()));
         occupant.handItemUntil = System.currentTimeMillis() + DRINK_MILLIS;
         broadcast(handMessage(occupant));
     }

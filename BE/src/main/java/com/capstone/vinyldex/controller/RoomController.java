@@ -21,7 +21,8 @@ import java.util.UUID;
 @RequestMapping("/api/rooms")
 public class RoomController {
 
-    public record SettingsRequest(String name, String description, String doorMode, Integer maxUsers) {
+    public record SettingsRequest(String name, String description, String doorMode, Integer maxUsers,
+                                  String floorStyle, String wallStyle) {
     }
 
     private final RoomService roomService;
@@ -59,6 +60,6 @@ public class RoomController {
     public Map<String, RoomData> updateSettings(@CurrentUser UserPrincipal principal, @PathVariable UUID id,
                                                 @RequestBody SettingsRequest request) {
         return Map.of("room", roomService.updateSettings(principal.getId(), id, request.name(), request.description(),
-                request.doorMode(), request.maxUsers()));
+                request.doorMode(), request.maxUsers(), request.floorStyle(), request.wallStyle()));
     }
 }

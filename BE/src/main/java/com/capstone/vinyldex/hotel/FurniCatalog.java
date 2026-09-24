@@ -101,6 +101,23 @@ public final class FurniCatalog {
         add(new FurniDef("card_pedestal", "Vetrina", "carte", 150, 1, 1, false, false, -1, true, true));
         add(new FurniDef("card_frame", "Quadro carta", "carte", 100, 1, 1, true, false, -1, true, true));
         add(new FurniDef("poster_neon", "Poster neon", "pareti", 40, 1, 1, true, false, -1, false, true));
+        add(new FurniDef("armchair", "Poltrona", "sedute", 90, 1, 1, false, false, 2, false, true));
+        add(new FurniDef("bar_stool", "Sgabello", "sedute", 35, 1, 1, false, false, 2, false, true));
+        add(new FurniDef("beanbag", "Pouf", "sedute", 55, 1, 1, false, false, 2, false, true));
+        add(new FurniDef("cafe_table", "Tavolino bistrot", "arredo", 50, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("coffee_table", "Tavolino basso", "arredo", 80, 2, 1, false, false, -1, false, true));
+        add(new FurniDef("bookshelf", "Libreria", "arredo", 140, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("plant_big", "Ficus", "arredo", 70, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("rug_round", "Tappeto tondo", "arredo", 70, 2, 2, false, true, -1, false, true));
+        add(new FurniDef("arcade", "Cabinato arcade", "arredo", 300, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("cafe_counter", "Bancone caffe'", "caffe", 180, 2, 1, false, false, -1, false, true));
+        add(new FurniDef("coffee_machine", "Macchina del caffe'", "caffe", 160, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("lamp_floor", "Lampada da terra", "luci", 60, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("turntable", "Giradischi", "musica", 220, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("record_shelf", "Espositore vinili", "musica", 130, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("neon_sign", "Insegna neon", "pareti", 90, 1, 1, true, false, -1, false, true));
+        add(new FurniDef("window_wall", "Finestra", "pareti", 70, 1, 1, true, false, -1, false, true));
+        add(new FurniDef("chalkboard", "Lavagna", "pareti", 60, 1, 1, true, false, -1, false, true));
         add(new FurniDef("bar_counter", "Bancone bar", "lobby", 0, 3, 1, false, false, -1, false, false));
         add(new FurniDef("dj_booth", "Consolle DJ", "lobby", 0, 2, 1, false, false, -1, false, false));
     }

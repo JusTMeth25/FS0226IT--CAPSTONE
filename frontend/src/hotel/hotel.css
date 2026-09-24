@@ -219,9 +219,17 @@
 .hotel-panel .hotel-chat-input { background: #0b0720; color: var(--hp-text); border: 2px solid #3b2f72; }
 .hotel-panel .hotel-chat-input::placeholder { color: #6f64a3; }
 
-.hotel-tabs { display: flex; border-bottom: 1px solid var(--hp-line); background: rgba(5, 3, 13, 0.3); }
+.hotel-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--hp-line);
+  background: rgba(5, 3, 13, 0.3);
+  /* Con tante categorie le schede scorrono di lato invece di uscire dal pannello. */
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
 .hotel-tab {
-  flex: 1;
+  flex: 1 0 auto;
+  white-space: nowrap;
   padding: 8px;
   background: none;
   border: none;

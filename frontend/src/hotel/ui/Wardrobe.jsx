@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { authApi } from '../../services/authApi.js';
 import {
-  HAIR_COLORS, HAIR_STYLES, LOOK_PARTS, PANTS, SHIRTS, SHIRT_NAMES, SKINS, formatLook, parseLook
+  ACCESSORIES, HAIR_COLORS, HAIR_COLOR_NAMES, HAIR_STYLES, LOOK_PARTS, PANTS, PANTS_NAMES, SHIRTS, SHIRT_NAMES,
+  SHIRT_TYPES, SHOES, SHOE_NAMES, SKINS, formatLook, parseLook
 } from '../sprites/avatar.js';
 import AvatarPreview from './AvatarPreview.jsx';
 
 /** Nome o campione di colore mostrato accanto alle frecce di ogni parte. */
-const SWATCHES = { s: SKINS, hc: HAIR_COLORS, sh: SHIRTS, p: PANTS };
-const NAMES = { h: HAIR_STYLES, sh: SHIRT_NAMES };
+const SWATCHES = { s: SKINS, hc: HAIR_COLORS, sh: SHIRTS, p: PANTS, f: SHOES };
+const NAMES = { h: HAIR_STYLES, hc: HAIR_COLOR_NAMES, sh: SHIRT_NAMES, t: SHIRT_TYPES, p: PANTS_NAMES, f: SHOE_NAMES, a: ACCESSORIES };
 
 /**
  * Guardaroba: si sceglie l'aspetto parte per parte e si vede subito il risultato, di fronte
@@ -49,8 +50,8 @@ export default function Wardrobe({ look, onClose, onSaved }) {
 
       <div className="hotel-wardrobe-body">
         <div className="hotel-wardrobe-stage">
-          <AvatarPreview look={draft} scale={4} walking />
-          <AvatarPreview look={draft} scale={4} back flip />
+          <AvatarPreview look={draft} scale={2} walking />
+          <AvatarPreview look={draft} scale={2} back flip />
         </div>
 
         <div className="hotel-wardrobe-parts">
@@ -58,14 +59,14 @@ export default function Wardrobe({ look, onClose, onSaved }) {
             <div className="hotel-wardrobe-row" key={key}>
               <span className="hotel-wardrobe-label">{label}</span>
               <button type="button" className="hotel-arrow" onClick={() => cycle(key, count, -1)} aria-label={`${label} precedente`}>
-                <i className="ph-bold ph-caret-left" />
+                <i className="ph-fill ph-caret-left" />
               </button>
               <span className="hotel-wardrobe-value">
                 {SWATCHES[key] && <span className="hotel-swatch" style={{ background: SWATCHES[key][parts[key]] }} />}
                 {NAMES[key] ? NAMES[key][parts[key]] : `${parts[key] + 1}/${count}`}
               </span>
               <button type="button" className="hotel-arrow" onClick={() => cycle(key, count, 1)} aria-label={`${label} successivo`}>
-                <i className="ph-bold ph-caret-right" />
+                <i className="ph-fill ph-caret-right" />
               </button>
             </div>
           ))}

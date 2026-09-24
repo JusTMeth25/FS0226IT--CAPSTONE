@@ -1,18 +1,21 @@
 /**
  * Geometria isometrica dell'hotel, alla risoluzione "base" della pixel art.
  *
- * Tutto il mondo viene disegnato a 1x su un canvas piccolo e poi ingrandito (di solito 2x)
- * senza smussature: cosi' i pixel restano netti come su Habbo. Le misure qui sono in pixel base.
+ * Le misure sono quelle di Habbo: caselle a rombo 2:1 larghe 64 e alte 32, un livello di
+ * altezza vale 16 pixel e le pareti sono alte quasi quattro caselle. A zoom 1 un pixel base
+ * e' un pixel dello schermo, come su Habbo; lo zoom indietro dimezza tutto.
  *
- * Caselle a rombo 2:1: larghe 32, alte 16. Un livello di altezza vale 8 pixel.
- * La casella (x, y) ha il vertice alto in screen = ((x - y) * 16, (x + y) * 8 - z * 8).
+ * La casella (x, y) ha il vertice alto in screen = ((x - y) * 32, (x + y) * 16 - z * 16).
  */
-export const TILE_W = 32;
-export const TILE_H = 16;
+export const TILE_W = 64;
+export const TILE_H = 32;
 export const HALF_W = TILE_W / 2;
 export const HALF_H = TILE_H / 2;
-export const LEVEL_H = 8;
-export const WALL_H = 64;
+export const LEVEL_H = 16;
+export const WALL_H = 148;
+
+/** Quanto sono piu' grandi le misure di oggi rispetto alla prima versione a 32x16. */
+export const DETAIL = TILE_W / 32;
 
 /** Millisecondi per casella: devono coincidere con il tick del server (RoomRegistry.TICK_MILLIS). */
 export const STEP_MS = 500;

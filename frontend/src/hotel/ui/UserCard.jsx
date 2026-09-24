@@ -33,7 +33,7 @@ export default function UserCard({ user, look, isMe, isOwner, respectVersion, on
     <div className="hotel-panel hotel-user-card" role="dialog" aria-label={`Profilo di ${user.username}`}>
       <button type="button" className="hotel-panel-close" onClick={onClose} aria-label="Chiudi"><i className="ph ph-x" /></button>
       <div className="hotel-user-card-top">
-        <AvatarPreview look={look || user.look} scale={3} />
+        <AvatarPreview look={look || user.look} scale={1} />
         <div className="hotel-user-card-info">
           <strong>{user.username}</strong>
           <span>Livello {profile?.level ?? user.level}</span>
