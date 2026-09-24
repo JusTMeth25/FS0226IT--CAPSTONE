@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Comandi accettati dopo l'autenticazione:
  *   join {roomId} · move {x,y} · chat {text} · shout {text} · whisper {to,text}
  *   typing {on} · emote {emote} · status {status} · refresh_profile · ping
+ *   respect {userId} · use_item {itemId} · jukebox {on}
  * Solo nella propria stanza:
  *   place {itemId,x,y,rot} · pickup {itemId} · set_display {itemId,cardId} · kick {userId}
  */
@@ -50,16 +51,19 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     private final RoomRegistry registry;
     private final RoomService roomService;
     private final FurniService furniService;
+    private final HotelSocialService socialService;
     private final Map<String, HotelSession> sessions = new ConcurrentHashMap<>();
 
     public HotelSocketHandler(ObjectMapper objectMapper, JwtService jwtService, UserRepository userRepository,
-                              RoomRegistry registry, RoomService roomService, FurniService furniService) {
+                              RoomRegistry registry, RoomService roomService, FurniService furniService,
+                              HotelSocialService socialService) {
         this.objectMapper = objectMapper;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.registry = registry;
         this.roomService = roomService;
         this.furniService = furniService;
+        this.socialService = socialService;
     }
 
     @Override
@@ -171,6 +175,15 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             case "set_display" -> {
                 if (room != null) setDisplay(session, room, uuid(node, "itemId"), text(node, "cardId"));
             }
+            case "respect" -> {
+                if (room != null) respect(session, room, uuid(node, "userId"));
+            }
+            case "use_item" -> {
+                if (room != null) reply(session, room.useItem(userId, uuid(node, "itemId")));
+            }
+            case "jukebox" -> {
+                if (room != null) reply(session, room.setJukebox(userId, node.path("on").asBoolean(true)));
+            }
             case "kick" -> {
                 if (room != null && room.data().isOwner(userId)) room.kick(uuid(node, "userId"));
             }
@@ -260,6 +273,21 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             return;
         }
         room.putItem(furniService.setDisplay(userId, itemId, cardCode));
+    }
+
+    /** Rispetto a un giocatore presente nella stanza: lo vedono tutti, e chi lo da' sa quanti gliene restano. */
+    private void respect(HotelSession session, RoomInstance room, UUID receiverId) {
+        if (receiverId == null || !room.contains(receiverId)) {
+            session.send(error("user_not_here"));
+            return;
+        }
+        HotelSocialService.RespectResult result = socialService.respect(session.user().id(), receiverId);
+        room.announceRespect(session.user().id(), receiverId, result.receivedTotal());
+        session.send(Map.of("type", "respects_left", "left", result.remainingToday()));
+    }
+
+    private static void reply(HotelSession session, String errorCode) {
+        if (errorCode != null) session.send(error(errorCode));
     }
 
     private void chat(HotelSession session, RoomInstance room, String style, String text) {

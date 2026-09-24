@@ -27,6 +27,14 @@ public class RoomInstance {
             {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}, {-1, -1}};
 
     private static final Set<String> EMOTES = Set.of("wave", "blow", "laugh");
+
+    /** Bibite del bancone: il nome e' anche lo sprite che il client disegna in mano. */
+    private static final List<String> DRINKS = List.of("cola", "juice", "coffee", "bubble");
+    private static final long DRINK_MILLIS = 90_000;
+
+    /** Brani del jukebox: il client li genera con WebAudio (src/hotel/music.js). */
+    public static final int JUKEBOX_TRACKS = 4;
+    private static final long JUKEBOX_COOLDOWN_MILLIS = 3_000;
     private static final Set<String> STATUSES = Set.of("idle", "dance", "sit");
 
     private volatile RoomData data;
@@ -34,6 +42,11 @@ public class RoomInstance {
     private final Map<UUID, Occupant> occupants = new LinkedHashMap<>();
     private final Map<UUID, RoomItemView> items = new LinkedHashMap<>();
     private long emptySince = System.currentTimeMillis();
+
+    /** Brano in corso (-1 = spento) e quando e' partito: i client lo suonano dallo stesso punto. */
+    private int jukeboxTrack = -1;
+    private long jukeboxStartedAt = 0;
+    private long jukeboxChangedAt = 0;
 
     private static final class Occupant {
         final HotelSession session;
@@ -46,6 +59,10 @@ public class RoomInstance {
         final Deque<Pathfinder.Step> path = new ArrayDeque<>();
         int targetX;
         int targetY;
+        String handItem;
+        long handItemUntil;
+        /** Mobile da usare appena si arriva (per esempio il bancone del bar). */
+        UUID pendingUse;
 
         Occupant(HotelSession session, int x, int y, int z, int dir) {
             this.session = session;
@@ -148,6 +165,8 @@ public class RoomInstance {
     public synchronized void move(UUID userId, int toX, int toY) {
         Occupant occupant = occupants.get(userId);
         if (occupant == null) return;
+        // Un nuovo clic annulla l'uso rimasto in sospeso (per esempio andare al bancone).
+        occupant.pendingUse = null;
 
         List<Pathfinder.Step> steps = Pathfinder.find(layout, occupant.x, occupant.y, toX, toY,
                 (x, y) -> isBlocked(userId, x, y, toX, toY));
@@ -166,6 +185,13 @@ public class RoomInstance {
 
     /** Un passo per ogni avatar in cammino. Chiamato dal RoomRegistry ogni 500 ms. */
     public synchronized void tick() {
+        long now = System.currentTimeMillis();
+        for (Occupant occupant : occupants.values()) {
+            if (occupant.handItem != null && now > occupant.handItemUntil) {
+                occupant.handItem = null;
+                broadcast(handMessage(occupant));
+            }
+        }
         for (Occupant occupant : occupants.values()) {
             Pathfinder.Step next = occupant.path.peekFirst();
             if (next == null) continue;
@@ -184,6 +210,12 @@ public class RoomInstance {
             occupant.x = next.x();
             occupant.y = next.y();
             occupant.z = next.z();
+
+            if (occupant.path.isEmpty() && occupant.pendingUse != null) {
+                RoomItemView target = items.get(occupant.pendingUse);
+                occupant.pendingUse = null;
+                if (target != null && isNextTo(occupant, target)) serveDrink(occupant);
+            }
 
             // Arrivati su una sedia o un divano ci si siede, girati come la seduta.
             if (occupant.path.isEmpty()) {
@@ -370,6 +402,125 @@ public class RoomInstance {
         return true;
     }
 
+    // ------------------------------------------------------------------ bancone, jukebox, rispetto
+
+    /**
+     * Usa un mobile della stanza. Il bancone da' una bibita: se si e' lontani ci si cammina
+     * accanto e la si riceve all'arrivo. Il jukebox cambia brano.
+     *
+     * @return codice d'errore, oppure null se tutto e' andato bene
+     */
+    public synchronized String useItem(UUID userId, UUID itemId) {
+        Occupant occupant = occupants.get(userId);
+        RoomItemView item = itemId == null ? null : items.get(itemId);
+        if (occupant == null || item == null) return "item_not_found";
+
+        switch (item.type()) {
+            case "bar_counter" -> {
+                if (isNextTo(occupant, item)) {
+                    serveDrink(occupant);
+                    return null;
+                }
+                int[] spot = freeSpotNextTo(userId, item);
+                if (spot == null) return "too_far";
+                move(userId, spot[0], spot[1]);
+                occupant.pendingUse = itemId;
+                return null;
+            }
+            case "jukebox" -> {
+                boolean mayUse = data.publicRoom() || data.isOwner(userId);
+                if (!mayUse) return "not_your_room";
+                return cycleJukebox();
+            }
+            default -> {
+                return "not_usable";
+            }
+        }
+    }
+
+    /** Spegne il jukebox o passa al brano successivo, con una breve pausa fra un cambio e l'altro. */
+    public synchronized String setJukebox(UUID userId, boolean on) {
+        if (!data.publicRoom() && !data.isOwner(userId)) return "not_your_room";
+        if (!on) {
+            jukeboxTrack = -1;
+            broadcast(jukeboxMessage());
+            return null;
+        }
+        return cycleJukebox();
+    }
+
+    private String cycleJukebox() {
+        long now = System.currentTimeMillis();
+        if (now - jukeboxChangedAt < JUKEBOX_COOLDOWN_MILLIS) return "jukebox_cooldown";
+        boolean hasJukebox = items.values().stream().anyMatch(i -> "jukebox".equals(i.type()));
+        if (!hasJukebox) return "no_jukebox";
+        jukeboxTrack = (jukeboxTrack + 1) % JUKEBOX_TRACKS;
+        jukeboxStartedAt = now;
+        jukeboxChangedAt = now;
+        broadcast(jukeboxMessage());
+        return null;
+    }
+
+    private Map<String, Object> jukeboxMessage() {
+        return Map.of("type", "jukebox", "track", jukeboxTrack, "startedAt", jukeboxStartedAt,
+                "serverTime", System.currentTimeMillis());
+    }
+
+    /** Annuncia a tutta la stanza un rispetto dato: il client fa volare un cuore. */
+    public synchronized void announceRespect(UUID fromId, UUID toId, int receivedTotal) {
+        broadcast(Map.of("type", "respect", "from", fromId, "to", toId, "total", receivedTotal));
+    }
+
+    public synchronized boolean contains(UUID userId) {
+        return occupants.containsKey(userId);
+    }
+
+    private void serveDrink(Occupant occupant) {
+        occupant.handItem = DRINKS.get(Math.floorMod((int) System.nanoTime(), DRINKS.size()));
+        occupant.handItemUntil = System.currentTimeMillis() + DRINK_MILLIS;
+        broadcast(handMessage(occupant));
+    }
+
+    /** Distanza di al massimo una casella (anche in diagonale) da una qualsiasi casella del mobile. */
+    private static boolean isNextTo(Occupant occupant, RoomItemView item) {
+        FurniCatalog.FurniDef def = item.def();
+        int fx = def.footprintX(item.rot());
+        int fy = def.footprintY(item.rot());
+        int dx = occupant.x < item.x() ? item.x() - occupant.x : Math.max(0, occupant.x - (item.x() + fx - 1));
+        int dy = occupant.y < item.y() ? item.y() - occupant.y : Math.max(0, occupant.y - (item.y() + fy - 1));
+        return Math.max(dx, dy) <= 1;
+    }
+
+    /** Casella libera accanto al mobile, la piu' vicina a chi lo usa. */
+    private int[] freeSpotNextTo(UUID userId, RoomItemView item) {
+        Occupant occupant = occupants.get(userId);
+        FurniCatalog.FurniDef def = item.def();
+        int fx = def.footprintX(item.rot());
+        int fy = def.footprintY(item.rot());
+        int[] best = null;
+        int bestDistance = Integer.MAX_VALUE;
+        for (int x = item.x() - 1; x <= item.x() + fx; x++) {
+            for (int y = item.y() - 1; y <= item.y() + fy; y++) {
+                if (item.covers(x, y) || !layout.isTile(x, y)) continue;
+                if (isBlocked(userId, x, y, x, y)) continue;
+                int distance = Math.abs(x - occupant.x) + Math.abs(y - occupant.y);
+                if (distance < bestDistance) {
+                    bestDistance = distance;
+                    best = new int[]{x, y};
+                }
+            }
+        }
+        return best;
+    }
+
+    private static Map<String, Object> handMessage(Occupant o) {
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put("type", "hand_item");
+        message.put("id", o.user.id());
+        message.put("item", o.handItem);
+        return message;
+    }
+
     // ------------------------------------------------------------------ utenti
 
     /** Aspetto o livello cambiati (guardaroba, level up): tutti i presenti vedono la novita'. */
@@ -400,8 +551,15 @@ public class RoomInstance {
         room.put("doorMode", data.doorMode());
         room.put("maxUsers", data.maxUsers());
 
-        return Map.of("type", "room_state", "room", room, "users", users, "you", you,
-                "items", List.copyOf(items.values()));
+        Map<String, Object> state = new LinkedHashMap<>();
+        state.put("type", "room_state");
+        state.put("room", room);
+        state.put("users", users);
+        state.put("you", you);
+        state.put("items", List.copyOf(items.values()));
+        state.put("jukebox", Map.of("track", jukeboxTrack, "startedAt", jukeboxStartedAt));
+        state.put("serverTime", System.currentTimeMillis());
+        return state;
     }
 
     private static Map<String, Object> view(Occupant o) {
@@ -415,6 +573,7 @@ public class RoomInstance {
         view.put("z", o.z);
         view.put("dir", o.dir);
         view.put("status", o.status);
+        view.put("handItem", o.handItem);
         List<int[]> path = new ArrayList<>();
         o.path.forEach(s -> path.add(new int[]{s.x(), s.y(), s.z()}));
         view.put("path", path);

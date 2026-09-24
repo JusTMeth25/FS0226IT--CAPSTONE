@@ -1,5 +1,6 @@
 package com.capstone.vinyldex.controller;
 
+import com.capstone.vinyldex.hotel.HotelSocialService;
 import com.capstone.vinyldex.hotel.RoomData;
 import com.capstone.vinyldex.hotel.RoomService;
 import com.capstone.vinyldex.security.CurrentUser;
@@ -24,9 +25,11 @@ public class RoomController {
     }
 
     private final RoomService roomService;
+    private final HotelSocialService socialService;
 
-    public RoomController(RoomService roomService) {
+    public RoomController(RoomService roomService, HotelSocialService socialService) {
         this.roomService = roomService;
+        this.socialService = socialService;
     }
 
     @GetMapping("/navigator")
@@ -38,6 +41,18 @@ public class RoomController {
     @PostMapping("/mine")
     public Map<String, RoomData> mine(@CurrentUser UserPrincipal principal) {
         return Map.of("room", roomService.ensureMyRoom(principal.getId()));
+    }
+
+    /** "Mi piace" della stanza: quanti in tutto e se c'e' anche quello di chi chiede. */
+    @GetMapping("/{id}/likes")
+    public Map<String, Object> likes(@CurrentUser UserPrincipal principal, @PathVariable UUID id) {
+        return Map.of("likes", socialService.likesByRoom().getOrDefault(id, 0L),
+                "liked", socialService.hasLiked(principal.getId(), id));
+    }
+
+    @PostMapping("/{id}/like")
+    public Map<String, Object> toggleLike(@CurrentUser UserPrincipal principal, @PathVariable UUID id) {
+        return socialService.toggleLike(principal.getId(), id);
     }
 
     @PatchMapping("/{id}")

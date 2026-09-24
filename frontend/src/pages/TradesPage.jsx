@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
 import { useApiResource } from '../hooks/useApiResource.js';
 import { tradeApi } from '../services/tradeApi.js';
@@ -66,7 +67,11 @@ export default function TradesPage() {
   const game = useGame();
   const [tab, setTab] = useState('incoming');
   const [actionError, setActionError] = useState(null);
-  const [form, setForm] = useState({ toUserId: '', offeredCardId: '', offeredGold: 0, requestedCardId: '', requestedGold: 0 });
+  // Dall'hotel si arriva con ?to=nome: il destinatario e' gia' compilato.
+  const [searchParams] = useSearchParams();
+  const [form, setForm] = useState(() => ({
+    toUserId: searchParams.get('to') || '', offeredCardId: '', offeredGold: 0, requestedCardId: '', requestedGold: 0
+  }));
 
   const incoming = useApiResource(() => tradeApi.getIncoming(), []);
   const outgoing = useApiResource(() => tradeApi.getOutgoing(), []);

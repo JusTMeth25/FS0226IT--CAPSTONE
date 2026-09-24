@@ -14,8 +14,9 @@ import ItemMenu from '../hotel/ui/ItemMenu.jsx';
 import CardPicker from '../hotel/ui/CardPicker.jsx';
 import CardViewer from '../hotel/ui/CardViewer.jsx';
 import RoomSettings from '../hotel/ui/RoomSettings.jsx';
-import AvatarPreview from '../hotel/ui/AvatarPreview.jsx';
+import UserCard from '../hotel/ui/UserCard.jsx';
 import { DEFAULT_LOOK } from '../hotel/sprites/avatar.js';
+import { TRACKS, getJukebox } from '../hotel/music.js';
 import '../hotel/hotel.css';
 
 const ERRORS = {
@@ -32,6 +33,12 @@ const ERRORS = {
   cant_place_door: 'Non si puo\' bloccare la porta.',
   cant_place_occupied: 'Quello spazio e\' gia\' occupato.',
   cant_place_no_wall: 'Qui non c\'e\' una parete.',
+  no_respects_left: 'Hai gia\' dato tutti i rispetti di oggi (3 al giorno).',
+  already_respected: 'Oggi gli hai gia\' dato rispetto.',
+  too_far: 'Non riesco ad arrivare al bancone: e\' tutto occupato.',
+  jukebox_cooldown: 'Un attimo: il brano e\' appena cambiato.',
+  no_jukebox: 'In questa stanza non c\'e\' un jukebox.',
+  not_usable: 'Questo mobile non si usa.',
   server_error: 'Qualcosa e\' andato storto. Riprova.'
 };
 
@@ -70,7 +77,17 @@ export default function HotelPage() {
   const [whisperTo, setWhisperTo] = useState(null);
   const [notice, setNotice] = useState(null);
   const [zoom, setZoom] = useState(() => (window.innerWidth < 600 ? 1 : 2));
+  const [jukebox, setJukebox] = useState({ track: -1 });
+  const [likes, setLikes] = useState(null);
+  const [respectVersion, setRespectVersion] = useState(0);
   const noticeTimer = useRef(0);
+  const meRef = useRef(null);
+  const peopleRef = useRef({});
+  useEffect(() => { meRef.current = me; }, [me]);
+  useEffect(() => { peopleRef.current = people; }, [people]);
+
+  // Uscendo dall'hotel la musica si ferma.
+  useEffect(() => () => getJukebox().set(-1, 0), []);
 
   const catalogByType = useMemo(() => new Map(catalog.map((d) => [d.type, d])), [catalog]);
 
@@ -95,6 +112,8 @@ export default function HotelPage() {
         setRoom(message.room);
         setPeople(Object.fromEntries(message.users.map((u) => [u.id, u])));
         setItems(Object.fromEntries((message.items || []).map((i) => [i.id, i])));
+        setJukebox({ track: message.jukebox?.track ?? -1 });
+        getJukebox().set(message.jukebox?.track ?? -1, message.jukebox?.startedAt ?? 0, message.serverTime);
         setPanel(null);
         setSelected(null);
         setSelectedItemId(null);
@@ -132,6 +151,21 @@ export default function HotelPage() {
         });
         setSelectedItemId((id) => (id === message.id ? null : id));
         break;
+      case 'jukebox':
+        setJukebox({ track: message.track });
+        getJukebox().set(message.track, message.startedAt, message.serverTime);
+        break;
+      case 'respect': {
+        const from = peopleRef.current[message.from]?.username || 'Qualcuno';
+        const to = peopleRef.current[message.to]?.username || 'qualcuno';
+        if (message.to === meRef.current?.id) showNotice(`${from} ti ha dato rispetto! Ne hai ${message.total}.`);
+        else if (message.from !== meRef.current?.id) showNotice(`${from} ha dato rispetto a ${to}.`);
+        setRespectVersion((v) => v + 1);
+        break;
+      }
+      case 'respects_left':
+        showNotice(`Rispetto dato! Te ne restano ${message.left} per oggi.`);
+        break;
       case 'inventory_changed':
         setInventoryVersion((v) => v + 1);
         break;
@@ -166,6 +200,23 @@ export default function HotelPage() {
 
   const toggleStatus = (value) => send({ type: 'status', status: myStatus === value ? 'idle' : value });
 
+  useEffect(() => {
+    if (!room?.id) return undefined;
+    let cancelled = false;
+    roomApi.likes(room.id).then((res) => { if (!cancelled) setLikes(res); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [room?.id]);
+
+  async function toggleLike() {
+    try {
+      setLikes(await roomApi.like(room.id));
+    } catch {
+      showNotice('Non e\' stato possibile mettere "mi piace".');
+    }
+  }
+
+  const canUseJukebox = !!room && (room.isPublic || isOwner);
+
   async function goToMyRoom() {
     try {
       const res = await roomApi.mine();
@@ -189,6 +240,11 @@ export default function HotelPage() {
 
   function onItemClick(item, tile) {
     const def = catalogByType.get(item.type);
+    // Bancone: si riceve una bibita (camminandoci accanto se serve). Jukebox: cambia brano.
+    if (item.type === 'bar_counter' || (item.type === 'jukebox' && !isOwner)) {
+      send({ type: 'use_item', itemId: item.id });
+      return;
+    }
     // Pista e tappeti si calpestano: per chi non arreda il clic vale come camminare li'.
     if (def?.walkable && !isOwner && tile) {
       send({ type: 'move', x: tile.x, y: tile.y });
@@ -208,7 +264,7 @@ export default function HotelPage() {
   }
 
   return (
-    <section className="hotel-page">
+    <section className="hotel-page" onPointerDown={() => getJukebox().unlock()}>
       <div className="hotel-stage">
         <HotelCanvas
           ref={canvasRef}
@@ -230,6 +286,22 @@ export default function HotelPage() {
           <div className="hotel-room-info">
             <strong>{room.name}</strong>
             <span>{room.ownerName ? `Stanza di ${room.ownerName}` : 'Stanza pubblica'} · <i className="ph-fill ph-user" /> {Object.keys(people).length}</span>
+            <div className="hotel-room-info-actions">
+              {likes && (
+                <button type="button" className={`hotel-like${likes.liked ? ' liked' : ''}`} onClick={toggleLike} disabled={isOwner}
+                  title={isOwner ? 'I "mi piace" degli altri alla tua stanza' : 'Mi piace questa stanza'}>
+                  <i className={likes.liked ? 'ph-fill ph-heart' : 'ph ph-heart'} /> {likes.likes}
+                </button>
+              )}
+              {jukebox.track >= 0 && (
+                <span className="hotel-now-playing">
+                  <i className="ph-fill ph-music-notes" /> {TRACKS[jukebox.track]?.name}
+                  {canUseJukebox && (
+                    <button type="button" onClick={() => send({ type: 'jukebox', on: false })} title="Spegni il jukebox"><i className="ph-fill ph-stop" /></button>
+                  )}
+                </span>
+              )}
+            </div>
           </div>
         )}
 
@@ -254,24 +326,19 @@ export default function HotelPage() {
         )}
 
         {selected && (
-          <div className="hotel-panel hotel-user-card" role="dialog" aria-label={`Profilo di ${selected.username}`}>
-            <button type="button" className="hotel-panel-close" onClick={() => setSelected(null)} aria-label="Chiudi"><i className="ph ph-x" /></button>
-            <AvatarPreview look={people[selected.id]?.look || selected.look} scale={3} />
-            <div className="hotel-user-card-info">
-              <strong>{selected.username}</strong>
-              <span>Livello {people[selected.id]?.level ?? selected.level}</span>
-              {selected.id !== me?.id && (
-                <button type="button" className="btn btn-secondary btn-small" onClick={() => { setWhisperTo(selected.username); setSelected(null); }}>
-                  <i className="ph-fill ph-ear" /> Sussurra
-                </button>
-              )}
-              {isOwner && selected.id !== me?.id && (
-                <button type="button" className="btn btn-secondary btn-small" onClick={() => { send({ type: 'kick', userId: selected.id }); setSelected(null); }}>
-                  <i className="ph-fill ph-door-open" /> Accompagna fuori
-                </button>
-              )}
-            </div>
-          </div>
+          <UserCard
+            user={selected}
+            look={people[selected.id]?.look}
+            isMe={selected.id === me?.id}
+            isOwner={isOwner}
+            respectVersion={respectVersion}
+            onClose={() => setSelected(null)}
+            onWhisper={() => { setWhisperTo(selected.username); setSelected(null); }}
+            onRespect={() => send({ type: 'respect', userId: selected.id })}
+            onKick={() => { send({ type: 'kick', userId: selected.id }); setSelected(null); }}
+            onVisit={(roomId) => { join(roomId); setSelected(null); }}
+            onViewCard={(card) => setViewingCard(card)}
+          />
         )}
 
         {selectedItem && (
@@ -285,6 +352,8 @@ export default function HotelPage() {
             onRotate={() => send({ type: 'place', itemId: selectedItem.id, x: selectedItem.x, y: selectedItem.y, rot: selectedItem.rot === 2 ? 0 : 2 })}
             onMove={() => { setPlacement({ itemId: selectedItem.id, type: selectedItem.type, rot: selectedItem.rot }); setSelectedItemId(null); }}
             onPickup={() => { send({ type: 'pickup', itemId: selectedItem.id }); setSelectedItemId(null); }}
+            jukeboxOn={jukebox.track >= 0}
+            onJukebox={(on) => send({ type: 'jukebox', on })}
           />
         )}
 

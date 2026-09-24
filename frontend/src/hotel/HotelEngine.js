@@ -9,6 +9,10 @@ const FLAT_TYPES = new Set(['rug_vinyl', 'dance_tile']);
 /** Di quanti pixel base si alza chi e' seduto su una sedia o un divano, rispetto al pavimento. */
 const SEAT_LIFT = 7;
 
+/** Colori delle bibite del bancone (nomi come in RoomInstance.DRINKS). */
+const DRINK_COLORS = { cola: '#5b2a0e', juice: '#f97316', coffee: '#f5f5f5', bubble: '#ec4899' };
+const HEART_MS = 2_200;
+
 const BUBBLE_H = 20;
 const BUBBLE_GAP = 3;
 const BUBBLE_DRIFT_MS = 4_000;
@@ -41,6 +45,10 @@ export class HotelEngine {
     this.spriteCache = new Map();
     /** Posizionamento in corso: { itemId, type, rot } oppure null. */
     this.placement = null;
+    /** Il jukebox suona: la pista si accende e chi ci sta sopra balla. */
+    this.jukeboxOn = false;
+    /** Cuori del rispetto che salgono sopra la testa di chi lo riceve. */
+    this.hearts = [];
     this.reducedMotion = reducedMotion;
 
     this.zoom = 2;
@@ -122,6 +130,9 @@ export class HotelEngine {
       case 'item_added':
       case 'item_updated': this.items.set(message.item.id, message.item); break;
       case 'item_removed': this.items.delete(message.id); break;
+      case 'hand_item': this.setHandItem(message.id, message.item); break;
+      case 'jukebox': this.jukeboxOn = message.track >= 0; break;
+      case 'respect': this.hearts.push({ userId: message.to, born: now }); break;
       default: break;
     }
   }
@@ -134,6 +145,8 @@ export class HotelEngine {
     this.users.clear();
     this.bubbles = [];
     this.items = new Map((message.items || []).map((item) => [item.id, item]));
+    this.jukeboxOn = (message.jukebox?.track ?? -1) >= 0;
+    this.hearts = [];
     message.users.forEach((user) => this.addUser(user, now));
     this.centerCamera();
   }
@@ -177,6 +190,11 @@ export class HotelEngine {
     if (!user) return;
     user.emote = emote;
     user.emoteUntil = now + WAVE_MS;
+  }
+
+  setHandItem(id, item) {
+    const user = this.users.get(id);
+    if (user) user.handItem = item;
   }
 
   setTyping(id, on) {
@@ -301,6 +319,16 @@ export class HotelEngine {
     return null;
   }
 
+  /** L'avatar e' su una piastrella della pista? */
+  onDanceFloor(at) {
+    const x = Math.round(at.x);
+    const y = Math.round(at.y);
+    for (const item of this.items.values()) {
+      if (item.type === 'dance_tile' && item.x === x && item.y === y) return true;
+    }
+    return false;
+  }
+
   /** Sedia o divano sotto l'avatar seduto, se c'e'. */
   seatUnder(user) {
     if (user.status !== 'sit') return null;
@@ -342,10 +370,11 @@ export class HotelEngine {
   itemSprite(item, now) {
     const def = this.catalog.get(item.type);
     const frame = isAnimated(item.type) && !this.reducedMotion ? Math.floor(now / 250) : 0;
-    const key = `${item.id}|${item.type}|${item.rot}|${item.card?.id || ''}|${item.playing ? 1 : 0}|${frame}`;
+    const playing = item.type === 'dance_tile' ? this.jukeboxOn : !!item.playing;
+    const key = `${item.id}|${item.type}|${item.rot}|${item.card?.id || ''}|${playing ? 1 : 0}|${frame}`;
     let cached = this.spriteCache.get(key);
     if (!cached) {
-      const sprite = furniSprite(item, def, {
+      const sprite = furniSprite({ ...item, playing }, def, {
         now: frame * 250,
         // Quando arriva l'immagine della carta, lo sprite in cache non la contiene: via.
         onImageLoad: () => this.clearItemCache(item.id)
@@ -431,7 +460,7 @@ export class HotelEngine {
       frame = Math.floor(now / 125) % 4;
     } else if (user.status === 'sit') {
       pose = 'sit';
-    } else if (user.status === 'dance') {
+    } else if (user.status === 'dance' || (this.jukeboxOn && user.status !== 'sit' && this.onDanceFloor(at))) {
       pose = 'dance';
       frame = animate ? Math.floor(now / 180) % 4 : 0;
     } else if (user.emote === 'wave' && now < user.emoteUntil) {
@@ -506,7 +535,9 @@ export class HotelEngine {
 
       const p = toScreen(left, top);
       ctx.drawImage(sprite, p.x, p.y, AVATAR_W * scale, AVATAR_H * scale);
+      if (user.handItem) drawDrink(ctx, user, p, scale, viewForDirection(user.dir ?? 2));
       const head = toScreen(center.x, top);
+      user.headY = head.y;
       user.screenX = head.x;
       if (user.typing) labels.push({ kind: 'typing', x: head.x, y: head.y - 6 });
       if (user.id === this.hoverUserId || user.id === this.meId) {
@@ -515,8 +546,31 @@ export class HotelEngine {
     });
 
     this.drawPlacement(ctx, now, toScreen, scale);
+    this.drawHearts(ctx, now);
     labels.forEach((label) => (label.kind === 'typing' ? drawTyping(ctx, label) : drawName(ctx, label)));
     this.drawBubbles(ctx, now);
+  }
+
+  /** Cuore che sale sopra chi ha ricevuto rispetto, con la scritta "+1". */
+  drawHearts(ctx, now) {
+    this.hearts = this.hearts.filter((h) => now - h.born < HEART_MS);
+    this.hearts.forEach((heart) => {
+      const user = this.users.get(heart.userId);
+      if (!user || user.screenX === undefined) return;
+      const t = (now - heart.born) / HEART_MS;
+      const x = user.screenX;
+      const y = (user.headY ?? 0) - 20 - t * 40;
+      ctx.globalAlpha = 1 - t * t;
+      ctx.font = 'bold 18px "Segoe UI", system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#ec4899';
+      ctx.fillText('\u2764', x - 10, y);
+      ctx.font = 'bold 12px "Segoe UI", system-ui, sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('+1', x + 10, y);
+      ctx.globalAlpha = 1;
+    });
   }
 
   /** Anteprima del mobile che si sta posizionando: trasparente, rossa se non ci sta. */
@@ -558,6 +612,21 @@ export class HotelEngine {
 function depth(user) {
   const at = user.drawn || user.pos;
   return at.x + at.y + at.z * 0.01;
+}
+
+/** Bicchiere in mano all'avatar: nella mano verso chi guarda, che cambia lato se lo sprite e' specchiato. */
+function drawDrink(ctx, user, p, scale, view) {
+  const color = DRINK_COLORS[user.handItem] || '#22d3ee';
+  const handX = view.flip ? 2 : 17;
+  const handY = 26;
+  const x = p.x + handX * scale;
+  const y = p.y + handY * scale;
+  ctx.fillStyle = '#140d24';
+  ctx.fillRect(x - scale, y - scale, 5 * scale, 6 * scale);
+  ctx.fillStyle = '#e5e7eb';
+  ctx.fillRect(x, y, 3 * scale, 4 * scale);
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y + scale, 3 * scale, 3 * scale);
 }
 
 function drawName(ctx, { x, y, text, me }) {

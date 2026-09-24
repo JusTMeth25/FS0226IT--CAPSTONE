@@ -81,6 +81,7 @@ export default function Navigator({ currentRoomId, onJoin, onMyRoom, onClose }) 
                   <strong>{room.name}</strong>
                   <small>{room.ownerName ? `di ${room.ownerName}` : room.description}</small>
                 </span>
+                {room.likes > 0 && <span className="hotel-room-likes"><i className="ph-fill ph-heart" /> {room.likes}</span>}
                 {room.doorMode === 'closed' && <i className="ph-fill ph-lock" title="Porta chiusa" />}
                 {here && <span className="hotel-room-here">Sei qui</span>}
               </button>

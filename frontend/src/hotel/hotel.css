@@ -72,6 +72,26 @@
   pointer-events: none;
 }
 .hotel-room-info strong { color: #fff; font-size: 0.85rem; }
+.hotel-room-info-actions { display: flex; gap: 6px; margin-top: 4px; pointer-events: auto; flex-wrap: wrap; }
+.hotel-like,
+.hotel-now-playing {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(236, 72, 153, 0.6);
+  background: rgba(236, 72, 153, 0.12);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.hotel-like { cursor: pointer; }
+.hotel-like.liked { background: #ec4899; }
+.hotel-like:disabled { cursor: default; opacity: 0.8; }
+.hotel-now-playing { border-color: rgba(34, 211, 238, 0.6); background: rgba(34, 211, 238, 0.12); }
+.hotel-now-playing button { background: none; border: none; color: #fff; cursor: pointer; padding: 0 0 0 2px; }
+.hotel-room-likes { font-size: 0.7rem; font-weight: 800; color: #ec4899; white-space: nowrap; }
 
 .hotel-status,
 .hotel-notice {
@@ -205,12 +225,37 @@
 .hotel-user-card {
   bottom: var(--space-sm);
   left: var(--space-sm);
-  display: flex;
-  flex-direction: row;
-  align-items: flex-end;
-  gap: 10px;
+  gap: 8px;
   padding: 10px 12px;
+  width: min(360px, calc(100% - 16px));
 }
+.hotel-user-card-top { display: flex; align-items: flex-end; gap: 10px; }
+.hotel-user-stats { display: flex; gap: 10px; font-weight: 700; }
+.hotel-badges { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
+.hotel-badge {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  border: 2px solid #0a0716;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  color: #fff;
+  font-size: 0.85rem;
+}
+.hotel-badge-legend { background: linear-gradient(135deg, #ffd700, #f59e0b); color: #3a2600; }
+.hotel-badge-champion, .hotel-badge-fighter { background: linear-gradient(135deg, #ef4444, #f97316); }
+.hotel-best-card {
+  text-align: left;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 2px solid var(--rarity-color, #8b5cf6);
+  background: #fff;
+  color: #1a1330;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.hotel-user-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .hotel-user-card .hotel-panel-close { position: absolute; top: 6px; right: 6px; background: #1a1330; }
 .hotel-user-card-info { display: flex; flex-direction: column; gap: 4px; padding-right: 24px; }
 .hotel-user-card-info strong { font-size: 1rem; }

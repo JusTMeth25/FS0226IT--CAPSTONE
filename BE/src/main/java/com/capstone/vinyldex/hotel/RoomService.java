@@ -42,13 +42,15 @@ public class RoomService {
     private final RoomItemRepository itemRepository;
     private final UserRepository userRepository;
     private final RoomRegistry roomRegistry;
+    private final HotelSocialService socialService;
 
     public RoomService(RoomRepository roomRepository, RoomItemRepository itemRepository,
-                       UserRepository userRepository, RoomRegistry roomRegistry) {
+                       UserRepository userRepository, RoomRegistry roomRegistry, HotelSocialService socialService) {
         this.roomRepository = roomRepository;
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
         this.roomRegistry = roomRegistry;
+        this.socialService = socialService;
     }
 
     @Transactional(readOnly = true)
@@ -116,16 +118,19 @@ public class RoomService {
      */
     @Transactional(readOnly = true)
     public Map<String, Object> navigator() {
+        Map<UUID, Long> likes = socialService.likesByRoom();
         List<Map<String, Object>> publicRooms = new ArrayList<>();
         for (Room room : roomRepository.findByPublicRoomTrueOrderBySortOrderAsc()) {
-            publicRooms.add(summary(room));
+            publicRooms.add(summary(room, likes));
         }
 
         List<Map<String, Object>> userRooms = new ArrayList<>();
         for (Room room : roomRepository.findUserRoomsWithOwner()) {
-            userRooms.add(summary(room));
+            userRooms.add(summary(room, likes));
         }
-        userRooms.sort(Comparator.comparingInt((Map<String, Object> r) -> (int) r.get("users")).reversed());
+        // Prima le stanze piene di gente, a parita' quelle con piu' "mi piace".
+        userRooms.sort(Comparator.comparingInt((Map<String, Object> r) -> (int) r.get("users"))
+                .thenComparingLong(r -> (long) r.get("likes")).reversed());
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("publicRooms", publicRooms);
@@ -133,7 +138,7 @@ public class RoomService {
         return result;
     }
 
-    private Map<String, Object> summary(Room room) {
+    private Map<String, Object> summary(Room room, Map<UUID, Long> likes) {
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("id", room.getId());
         summary.put("name", room.getName());
@@ -143,6 +148,7 @@ public class RoomService {
         summary.put("maxUsers", room.getMaxUsers());
         summary.put("users", roomRegistry.userCount(room.getId()));
         summary.put("ownerId", room.getOwner() != null ? room.getOwner().getId() : null);
+        summary.put("likes", likes.getOrDefault(room.getId(), 0L));
         return summary;
     }
 }
