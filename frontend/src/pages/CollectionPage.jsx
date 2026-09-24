@@ -25,7 +25,6 @@ export default function CollectionPage() {
 
   const artistClasses = useMemo(() => getArtistClasses(), []);
   const uniqueCount = useMemo(() => new Set(collection.map((c) => c.id)).size, [collection]);
-  const collectionValue = useMemo(() => getCollectionValue(collection), [collection]);
   const availableSources = useMemo(() => {
     const present = new Set(collection.map((c) => c.source).filter(Boolean));
     return Object.keys(SOURCE_LABELS).filter((s) => present.has(s));
@@ -53,6 +52,14 @@ export default function CollectionPage() {
     return unique;
   }, [collection, classFilter, rarityFilter, sourceFilter, sortBy, sortDir]);
 
+  // Con un filtro attivo il valore riguarda solo le carte mostrate; senza filtri e' quello
+  // dell'intera collezione. L'ordinamento non conta: cambia l'ordine, non quali carte ci sono.
+  const hasFilters = Boolean(classFilter || rarityFilter || sourceFilter);
+  const collectionValue = useMemo(
+    () => getCollectionValue(hasFilters ? filteredCards : collection),
+    [hasFilters, filteredCards, collection]
+  );
+
   function resetFilters() {
     resetParams(['class', 'rarity', 'source', 'sort', 'dir']);
   }
@@ -77,11 +84,11 @@ export default function CollectionPage() {
         <div
           className="collection-stat collection-stat-value-worth"
           title={collectionValue.unpricedCount > 0
-            ? `Stima dai prezzi di mercato. ${collectionValue.unpricedCount} carte senza prezzo (VinylDex, Lorcana, Gundam, Riftbound) non sono incluse.`
-            : 'Stima dai prezzi di mercato delle carte possedute.'}
+            ? `Stima dai prezzi di mercato${hasFilters ? ' delle carte filtrate' : ''}. ${collectionValue.unpricedCount} carte senza prezzo (VinylDex, Lorcana, Gundam, Riftbound) non sono incluse.`
+            : `Stima dai prezzi di mercato delle carte ${hasFilters ? 'filtrate' : 'possedute'}.`}
         >
           <span className="collection-stat-value">{formatMarketPrice(collectionValue.total) || '—'}</span>
-          <span className="collection-stat-label">Valore stimato</span>
+          <span className="collection-stat-label">{hasFilters ? 'Valore filtrato' : 'Valore stimato'}</span>
         </div>
       </div>
 
