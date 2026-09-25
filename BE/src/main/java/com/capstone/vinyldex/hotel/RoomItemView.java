@@ -12,12 +12,13 @@ import java.util.UUID;
 public record RoomItemView(UUID id, UUID ownerId, String type, int x, int y, int z, int rot, CardView card) {
 
     /** Carta esposta: id e' il code pubblico, come nel resto delle API. */
-    public record CardView(String id, String name, String rarity, String img, String source, boolean fullImage) {
+    public record CardView(String id, String name, String rarity, String img, String source, boolean fullImage,
+                           Double marketPrice) {
 
         static CardView from(Card card) {
             if (card == null) return null;
             return new CardView(card.getCode(), card.getName(), card.getRarity(), card.getImgUrl(),
-                    card.getSource(), card.isFullImage());
+                    card.getSource(), card.isFullImage(), card.getMarketPrice());
         }
     }
 

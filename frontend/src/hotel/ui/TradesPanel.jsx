@@ -3,6 +3,8 @@ import { tradeApi } from '../../services/tradeApi.js';
 import { useGame } from '../../hooks/useGame.js';
 import { useAuth } from '../../hooks/useAuth.js';
 import { getRarityColor, resolveCardImage } from '../../utils/cardUtils.js';
+import { useOwnedCounts } from '../../hooks/useOwnedCounts.js';
+import CardOwnership from '../../components/trade/CardOwnership.jsx';
 
 const ERRORS = {
   insufficient_quantity_or_gold: 'Non hai piu\' le carte o i gold richiesti.',
@@ -12,7 +14,7 @@ const ERRORS = {
 /** Stato degli scambi: il backend lo scrive in maiuscolo (PENDING), qui si confronta senza badarci. */
 const isPending = (trade) => trade.status?.toLowerCase() === 'pending';
 
-function CardChips({ items, gold, onViewCard }) {
+function CardChips({ items, gold, owned, onViewCard }) {
   if (!items?.length && !gold) return <span className="trade-chip-empty">niente</span>;
   return (
     <span className="trade-chips">
@@ -20,7 +22,10 @@ function CardChips({ items, gold, onViewCard }) {
         <button key={card.id} type="button" className="trade-chip" style={{ '--rarity-color': getRarityColor(card.rarity) }}
           onClick={() => onViewCard(card)} title={`Guarda ${card.name}`}>
           <img src={resolveCardImage(card)} alt="" loading="lazy" />
-          {card.name}{quantity > 1 ? ` ×${quantity}` : ''}
+          <span className="trade-chip-text">
+            {card.name}{quantity > 1 ? ` ×${quantity}` : ''}
+            <CardOwnership card={card} owned={owned.get(card.id) || 0} />
+          </span>
         </button>
       ))}
       {gold > 0 && <span className="trade-chip trade-chip-gold"><i className="ph-fill ph-coin" /> {gold}</span>}
@@ -34,6 +39,7 @@ function CardChips({ items, gold, onViewCard }) {
  */
 export default function TradesPanel({ version, onPendingChange, onClose, onViewCard }) {
   const { refreshCollection } = useGame();
+  const owned = useOwnedCounts();
   const { refreshUser } = useAuth();
   const [tab, setTab] = useState('incoming');
   const [incoming, setIncoming] = useState(null);
@@ -108,11 +114,11 @@ export default function TradesPanel({ version, onPendingChange, onClose, onViewC
               </div>
               <div className="hotel-trade-row">
                 <span className="hotel-trade-label">{tab === 'incoming' ? 'Ricevi' : 'Offri'}</span>
-                <CardChips items={trade.offeredCards} gold={trade.offeredGold} onViewCard={onViewCard} />
+                <CardChips items={trade.offeredCards} gold={trade.offeredGold} owned={owned} onViewCard={onViewCard} />
               </div>
               <div className="hotel-trade-row">
                 <span className="hotel-trade-label">{tab === 'incoming' ? 'Dai' : 'Chiedi'}</span>
-                <CardChips items={trade.requestedCards} gold={trade.requestedGold} onViewCard={onViewCard} />
+                <CardChips items={trade.requestedCards} gold={trade.requestedGold} owned={owned} onViewCard={onViewCard} />
               </div>
               {pending && (
                 <div className="hotel-trade-actions">

@@ -5,8 +5,8 @@ import { bake, createCanvas, mirror, px, shade } from './pixel.js';
  * "s1.h1.hc0.sh0.p0.t0.f0.a0".
  *
  * Gli indici devono restare allineati con HotelLook.java, che controlla quanti ce ne sono per
- * ogni parte. Le ultime tre parti (tipo di maglia, scarpe, accessorio) sono arrivate dopo: un
- * codice vecchio senza di loro vale come se fossero a zero.
+ * ogni parte. Le parti dopo i pantaloni (tipo di maglia, scarpe, accessorio, corporatura) sono
+ * arrivate dopo: un codice vecchio senza di loro vale come se fossero a zero.
  *
  * Lo sprite e' 48x96 pixel, con i piedi sulla riga 92 al centro (x 24): e' il punto che il
  * renderer appoggia sul centro della casella. Si disegna girato verso destra, di tre quarti,
@@ -36,7 +36,10 @@ export const SHIRTS = ['#8b5cf6', '#ec4899', '#22d3ee', '#3b82f6', '#ffd700', '#
   '#f5f5f5', '#1f1f2e', '#141414', '#f97316', '#14b8a6'];
 export const SHIRT_NAMES = ['Viola', 'Magenta', 'Ciano', 'Blu', 'Oro', 'Verde', 'Rosso', 'Bianco',
   'Notte', 'Vinile', 'Arancio', 'Petrolio'];
-export const SHIRT_TYPES = ['T-shirt', 'Felpa', 'Camicia', 'Giacca', 'Canotta'];
+export const SHIRT_TYPES = ['T-shirt', 'Felpa', 'Camicia', 'Giacca', 'Canotta', 'Petto nudo'];
+/** Tipo di maglia "petto nudo": solo con la corporatura da uomo (come controlla HotelLook.java). */
+export const BARE_CHEST = 5;
+export const BODIES = ['Uomo', 'Donna'];
 export const PANTS = ['#2d3a66', '#1a1a24', '#6b7280', '#e5e7eb', '#5b21b6', '#991b1b', '#166534', '#a8865a'];
 export const PANTS_NAMES = ['Jeans', 'Neri', 'Grigi', 'Bianchi', 'Viola', 'Bordeaux', 'Verdi', 'Kaki'];
 export const SHOES = ['#1d1d27', '#f4f4f5', '#dc2626', '#7c3aed', '#6b3e1f', '#06b6d4'];
@@ -44,6 +47,7 @@ export const SHOE_NAMES = ['Nere', 'Sneakers bianche', 'Rosse', 'Viola', 'Stival
 export const ACCESSORIES = ['Nessuno', 'Occhiali', 'Occhiali da sole', 'Cuffie', 'Collana vinile', 'Orecchino', 'Bandana'];
 
 export const LOOK_PARTS = [
+  { key: 'b', label: 'Corporatura', count: BODIES.length },
   { key: 's', label: 'Carnagione', count: SKINS.length },
   { key: 'h', label: 'Capelli', count: HAIR_STYLES.length },
   { key: 'hc', label: 'Colore capelli', count: HAIR_COLORS.length },
@@ -55,12 +59,17 @@ export const LOOK_PARTS = [
 ];
 
 /** Ordine delle parti nel codice salvato: le prime cinque sono quelle della prima versione. */
-const CODE_ORDER = ['s', 'h', 'hc', 'sh', 'p', 't', 'f', 'a'];
+const CODE_ORDER = ['s', 'h', 'hc', 'sh', 'p', 't', 'f', 'a', 'b'];
 
-export const DEFAULT_LOOK = 's1.h1.hc0.sh0.p0.t0.f0.a0';
+export const DEFAULT_LOOK = 's1.h1.hc0.sh0.p0.t0.f0.a0.b0';
+
+/** Il petto nudo e' solo da uomo: con la corporatura da donna diventa una canotta. */
+export function fixLook(parts) {
+  return parts.b === 1 && parts.t === BARE_CHEST ? { ...parts, t: 4 } : parts;
+}
 
 export function parseLook(look) {
-  const parts = { s: 1, h: 1, hc: 0, sh: 0, p: 0, t: 0, f: 0, a: 0 };
+  const parts = { s: 1, h: 1, hc: 0, sh: 0, p: 0, t: 0, f: 0, a: 0, b: 0 };
   (look || DEFAULT_LOOK).split('.').forEach((part) => {
     const match = /^([a-z]+)(\d+)$/.exec(part);
     if (match && match[1] in parts) parts[match[1]] = Number(match[2]);
@@ -68,7 +77,7 @@ export function parseLook(look) {
   LOOK_PARTS.forEach(({ key, count }) => {
     if (!(parts[key] >= 0 && parts[key] < count)) parts[key] = 0;
   });
-  return parts;
+  return fixLook(parts);
 }
 
 export function formatLook(parts) {
@@ -178,9 +187,42 @@ function arm(ctx, x, y0, { up, swing, sleeve, skin, sleeveLength }) {
   px(ctx, hx + 4, top + len + 1, 2, 3, shade(skin, -0.15));
 }
 
+/**
+ * Petto nudo: pettorali e addominali accennati con l'ombra, capezzoli solo di fronte. Serve sia
+ * come "maglia" sia per gli uomini in acqua.
+ */
+function drawBareChest(ctx, y0, { skin, back }) {
+  const top = y0 + 40;
+  block(ctx, 13, top, 23, 25, skin);
+  ctx.clearRect(13, top, 2, 1);
+  ctx.clearRect(34, top, 2, 1);
+  const dark = shade(skin, -0.16);
+  if (back) {
+    // Spalle e colonna vertebrale.
+    px(ctx, 24, top + 4, 1, 18, dark);
+    px(ctx, 17, top + 6, 4, 1, dark);
+    px(ctx, 28, top + 6, 4, 1, dark);
+    return;
+  }
+  px(ctx, 17, top + 9, 7, 1, dark);
+  px(ctx, 26, top + 9, 7, 1, dark);
+  px(ctx, 24, top + 3, 1, 19, shade(skin, -0.1));
+  px(ctx, 19, top + 6, 2, 2, shade(skin, -0.3));
+  px(ctx, 29, top + 6, 2, 2, shade(skin, -0.3));
+  for (let y = top + 13; y < top + 23; y += 4) {
+    px(ctx, 21, y, 3, 1, dark);
+    px(ctx, 26, y, 3, 1, dark);
+  }
+  px(ctx, 24, top + 20, 1, 1, shade(skin, -0.35));
+}
+
 function drawTorso(ctx, y0, parts, { shirt, skin, back }) {
   const type = parts.t;
   const top = y0 + 40;
+  if (type === BARE_CHEST) {
+    drawBareChest(ctx, y0, { skin, back });
+    return;
+  }
   // Canotta: spalle scoperte, maglia piu' stretta in alto.
   if (type === 4) {
     block(ctx, 14, top + 3, 21, 22, shirt);
@@ -247,6 +289,55 @@ function drawTorso(ctx, y0, parts, { shirt, skin, back }) {
 }
 
 const HEAD = { cx: 24, rx: 13, ry: 13.5, power: 2.8 };
+
+/** Colori delle cuffie da piscina: si sceglie in base al look, cosi' ognuno ha sempre la sua. */
+const CAP_COLORS = ['#ef4444', '#3b82f6', '#fbbf24', '#ec4899', '#22c55e', '#f5f5f5', '#8b5cf6', '#f97316'];
+
+/**
+ * Costume intero da bagno al posto della maglia: spalle e braccia scoperte, le spalline, una
+ * riga bianca sul fianco. Il colore e' quello della maglia, cosi' si riconosce chi e'.
+ */
+function drawSwimsuit(ctx, y0, { color, skin, back }) {
+  const top = y0 + 40;
+  block(ctx, 13, top, 23, 25, skin);
+  ctx.clearRect(13, top, 2, 1);
+  ctx.clearRect(34, top, 2, 1);
+  // Clavicole e petto appena in ombra.
+  px(ctx, 17, top + 3, 15, 1, shade(skin, -0.1));
+  block(ctx, 15, top + 8, 19, 17, color);
+  px(ctx, 17, top, 3, 9, color);
+  px(ctx, 29, top, 3, 9, color);
+  if (!back) {
+    // Scollatura arrotondata davanti.
+    px(ctx, 20, top + 8, 9, 2, skin);
+    px(ctx, 21, top + 10, 7, 1, skin);
+  }
+  px(ctx, 15, top + 8, 2, 17, '#ffffff');
+  px(ctx, 32, top + 8, 1, 17, shade(color, -0.3));
+  px(ctx, 15, top + 24, 19, 1, shade(color, -0.3));
+}
+
+/** Cuffia da piscina: una calotta liscia e lucida al posto dei capelli, con gli occhialini. */
+function drawSwimCap(ctx, y0, color, back) {
+  const cy = y0 + 24;
+  blob(ctx, 24, cy - 6, 14.5, 9.5, color, 2.2);
+  if (back) {
+    blob(ctx, 24, cy - 2, 14, 9, color, 2.4);
+    px(ctx, 12, cy - 3, 25, 1, shade(color, -0.25));
+  } else {
+    px(ctx, 10, cy - 7, 9, 9, color);
+  }
+  px(ctx, 16, cy - 13, 8, 2, shade(color, 0.45));
+  px(ctx, 14, cy - 11, 3, 1, shade(color, 0.3));
+}
+
+function drawGoggles(ctx, y0) {
+  const cy = y0 + 24;
+  px(ctx, 20, cy - 9, 18, 1, '#1f2937');
+  px(ctx, 23, cy - 11, 5, 3, '#22d3ee');
+  px(ctx, 30, cy - 11, 4, 3, '#22d3ee');
+  px(ctx, 23, cy - 11, 1, 1, '#e0f2fe');
+}
 
 function drawHead(ctx, y0, { skin, back }) {
   const cy = y0 + 24;
@@ -493,18 +584,25 @@ function drawAccessory(ctx, y0, a, back) {
   }
 }
 
-function drawAvatar(look, { back, pose, frame }) {
+/**
+ * @param outfit null, 'sea' (costume in mare) o 'pool' (costume e cuffia in piscina)
+ */
+function drawAvatar(look, { back, pose, frame, outfit }) {
   const { canvas, ctx } = createCanvas(AVATAR_W, AVATAR_H, { readable: true });
   const parts = parseLook(look);
   const skin = SKINS[parts.s];
+  const swim = !!outfit;
+  const man = parts.b !== 1;
   const shirt = SHIRTS[parts.sh];
-  const pants = PANTS[parts.p];
-  const shoe = SHOES[parts.f];
+  // In acqua: costume del colore della maglia, gambe e piedi nudi.
+  const pants = swim ? shirt : PANTS[parts.p];
+  const shoe = swim ? skin : SHOES[parts.f];
+  const legColor = swim ? skin : null;
   const hairColor = HAIR_COLORS[parts.hc];
   const o = poseOffsets(pose, frame);
   const y0 = o.bodyY + (o.sit ? 10 : 0);
   // Maniche: corte per T-shirt, assenti per la canotta, lunghe per il resto.
-  const sleeveLength = parts.t === 0 ? 7 : parts.t === 4 ? 0 : 17;
+  const sleeveLength = swim || parts.t === BARE_CHEST ? 0 : parts.t === 0 ? 7 : parts.t === 4 ? 0 : 17;
 
   // Gambe: sedute si piegano in avanti, in piedi oscillano con il passo.
   if (o.sit) {
@@ -514,30 +612,38 @@ function drawAvatar(look, { back, pose, frame }) {
     px(ctx, 29, y0 + 78, 12, 5, shoe);
     px(ctx, 29, y0 + 82, 12, 1, shade(shoe, -0.35));
   } else {
-    leg(ctx, 14, y0 + 68, o.backLeg, shade(pants, -0.12), shade(shoe, -0.1), back);
+    leg(ctx, 14, y0 + 68, o.backLeg, shade(legColor || pants, -0.12), shade(shoe, -0.1), back);
     px(ctx, 14, y0 + 63, 21, 6, pants);
-    leg(ctx, 25, y0 + 68, o.frontLeg, pants, shoe, back);
+    leg(ctx, 25, y0 + 68, o.frontLeg, legColor || pants, shoe, back);
   }
 
   const sleeve = shirt;
   arm(ctx, 8, y0, { up: o.backUp, swing: o.backArm, sleeve: shade(sleeve, -0.12), skin: shade(skin, -0.08), sleeveLength });
   // Collo in ombra sotto la testa.
   px(ctx, 20, y0 + 35, 9, 7, shade(skin, -0.18));
-  drawTorso(ctx, y0, parts, { shirt, skin, back });
-  if (parts.t !== 4 && !o.sit) px(ctx, 14, y0 + 63, 21, 2, shade(pants, -0.25)); // cintura
+  // In acqua gli uomini stanno a petto nudo (con il pantaloncino), le donne con il costume intero.
+  if (swim && man) drawBareChest(ctx, y0, { skin, back });
+  else if (swim) drawSwimsuit(ctx, y0, { color: shirt, skin, back });
+  else drawTorso(ctx, y0, parts, { shirt, skin, back });
+  if (!o.sit && (swim ? man : parts.t !== 4)) px(ctx, 14, y0 + 63, 21, 2, shade(pants, -0.25)); // cintura / elastico
   arm(ctx, 35, y0, { up: o.frontUp, swing: o.frontArm, sleeve, skin, sleeveLength });
 
   drawHead(ctx, y0, { skin, back });
-  drawHair(ctx, y0, parts.h, hairColor, back);
-  // Capelli lunghi, caschetto e ricci coprono le orecchie; gli altri le lasciano fuori.
-  if (![2, 6, 8].includes(parts.h)) drawEars(ctx, y0, skin, back);
+  const capped = outfit === 'pool';
+  if (capped) drawSwimCap(ctx, y0, CAP_COLORS[(parts.hc + parts.sh) % CAP_COLORS.length], back);
+  else drawHair(ctx, y0, parts.h, hairColor, back);
+  // Capelli lunghi, caschetto e ricci coprono le orecchie; gli altri (e la cuffia) le lasciano fuori.
+  if (capped || ![2, 6, 8].includes(parts.h)) drawEars(ctx, y0, skin, back);
   if (!back) {
     faceWindow(ctx, y0, skin);
     drawFace(ctx, y0, skin);
     drawBrows(ctx, y0, hairColor);
-    drawHairFront(ctx, y0, parts.h, hairColor);
+    if (capped) drawGoggles(ctx, y0);
+    else drawHairFront(ctx, y0, parts.h, hairColor);
   }
-  drawAccessory(ctx, y0, parts.a, back);
+  // In acqua si tolgono solo le cuffie della musica e la bandana; occhiali, occhiali da sole,
+  // collana e orecchino restano addosso.
+  if (!swim || ![3, 6].includes(parts.a)) drawAccessory(ctx, y0, parts.a, back);
 
   outline(ctx, AVATAR_W, AVATAR_H);
   return bake(canvas);
@@ -549,11 +655,11 @@ const cache = new Map();
  * Sprite pronto da disegnare, in cache: lo stesso avatar nella stessa posa viene generato
  * una volta sola, non a ogni fotogramma.
  */
-export function avatarSprite(look, { back = false, flip = false, pose = 'stand', frame = 0 } = {}) {
-  const key = `${look}|${back}|${flip}|${pose}|${frame}`;
+export function avatarSprite(look, { back = false, flip = false, pose = 'stand', frame = 0, outfit = null } = {}) {
+  const key = `${look}|${back}|${flip}|${pose}|${frame}|${outfit || ''}`;
   let sprite = cache.get(key);
   if (!sprite) {
-    const base = drawAvatar(look, { back, pose, frame });
+    const base = drawAvatar(look, { back, pose, frame, outfit });
     sprite = flip ? mirror(base) : base;
     if (cache.size > 2000) cache.clear();
     cache.set(key, sprite);

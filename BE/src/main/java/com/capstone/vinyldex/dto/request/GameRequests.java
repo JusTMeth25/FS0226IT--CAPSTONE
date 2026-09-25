@@ -83,7 +83,9 @@ public final class GameRequests {
             String mode,
             String result,
             Integer stagesCleared,
-            Boolean wonAllStages
+            Boolean wonAllStages,
+            // Carte schierate (code pubblici): contano per le "piu' usate" mostrate nell'hotel.
+            List<String> cards
     ) {
         public boolean isTournament() {
             return "tournament".equalsIgnoreCase(mode);
@@ -95,6 +97,11 @@ public final class GameRequests {
 
         public boolean wonAllStagesOrFalse() {
             return Boolean.TRUE.equals(wonAllStages);
+        }
+
+        /** Al massimo tre carte diverse: una squadra non ne ha di piu'. */
+        public List<String> teamCodes() {
+            return cards == null ? List.of() : cards.stream().filter(c -> c != null && !c.isBlank()).distinct().limit(3).toList();
         }
     }
 }

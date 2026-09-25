@@ -4,6 +4,7 @@ import com.capstone.vinyldex.dto.request.GameRequests;
 import com.capstone.vinyldex.entity.User;
 import com.capstone.vinyldex.entity.WalletTransactionType;
 import com.capstone.vinyldex.exception.ApiException;
+import com.capstone.vinyldex.repository.UserCardRepository;
 import com.capstone.vinyldex.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,11 +40,14 @@ public class BattleService {
     private final UserRepository userRepository;
     private final WalletService walletService;
     private final LevelService levelService;
+    private final UserCardRepository userCardRepository;
 
-    public BattleService(UserRepository userRepository, WalletService walletService, LevelService levelService) {
+    public BattleService(UserRepository userRepository, WalletService walletService, LevelService levelService,
+                         UserCardRepository userCardRepository) {
         this.userRepository = userRepository;
         this.walletService = walletService;
         this.levelService = levelService;
+        this.userCardRepository = userCardRepository;
     }
 
     @Transactional
@@ -64,6 +68,9 @@ public class BattleService {
             user.setBattlesWon(user.getBattlesWon() + outcome.battlesWon());
         }
         user = userRepository.save(user);
+        // Le carte schierate contano come usate: sopra l'avatar dell'hotel si vedono le preferite.
+        List<String> team = request.teamCodes();
+        if (!team.isEmpty()) userCardRepository.countBattle(userId, team);
 
         return new BattleRewardResult(user.getGold(), user.getXp(), user.getLevel(),
                 new MissionService.Rewards(outcome.gold(), outcome.xp()));

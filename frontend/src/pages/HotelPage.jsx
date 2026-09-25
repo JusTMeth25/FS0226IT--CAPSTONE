@@ -496,6 +496,16 @@ export default function HotelPage() {
     setPackOpening({ id: Date.now(), packId, cards: res.cards });
   }
 
+  /** Carta venduta al negozio o all'edicola: gold e collezione cambiano, e forse le carte in mostra. */
+  function cardSold(sale, card, quantity) {
+    sound.coin();
+    showNotice(`${quantity > 1 ? `Vendute ${quantity} copie di` : 'Venduta'} ${card.name}: +${sale.earned} gold!`);
+    refreshUser();
+    refreshCollection();
+    // Le carte sopra la testa possono cambiare: il server le rilegge.
+    send({ type: 'refresh_profile' });
+  }
+
   function openBag(tab) {
     setInventoryTab(tab);
     setPanel('inventory');
@@ -727,6 +737,7 @@ export default function HotelPage() {
               setInventoryVersion((v) => v + 1);
               showNotice(`${def.name} aggiunto all'inventario!`);
             }}
+            onCardSold={cardSold}
           />
         )}
         {panel === 'inventory' && (
@@ -748,6 +759,7 @@ export default function HotelPage() {
             buying={buyingPack}
             onBuy={buyPack}
             onOpenBag={() => openBag('packs')}
+            onCardSold={cardSold}
             onClose={() => setPanel(null)}
           />
         )}

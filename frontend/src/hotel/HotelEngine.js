@@ -1,7 +1,7 @@
 import { DETAIL, HALF_W, STEP_MS, TILE_H, TILE_W, directionBetween, insideDiamond, parseLayout, tileCenter, tileTop, viewForDirection } from './iso.js';
 import { AVATAR_FOOT_X, AVATAR_FOOT_Y, AVATAR_H, AVATAR_SCALE, AVATAR_W, avatarSprite } from './sprites/avatar.js';
 import { hoverTileSprite, renderRoom } from './sprites/room.js';
-import { animationState, footprintOf, furniSprite, isFlat } from './sprites/furni.js';
+import { animationState, cardImage, footprintOf, furniSprite, isFlat } from './sprites/furni.js';
 import { isSolid } from './sprites/pixel.js';
 import { GEM_H, GEM_W, drawSparkle, gemSprite } from './sprites/gem.js';
 import { getRarityColor } from '../utils/cardUtils.js';
@@ -15,8 +15,11 @@ const DRINK_COLORS = {
   pizza: '#fbbf24', book: '#8b5cf6', popcorn: '#fde68a', water: '#7dd3fc'
 };
 
-/** Mobili in cui si nuota, con il lato in caselle: la piscina e il mare della spiaggia. */
-const WATER = { pool_water: 1, sea_water: 2 };
+/**
+ * Mobili in cui si nuota: lato in caselle e costume. In mare si va in costume, in piscina
+ * anche con la cuffia.
+ */
+const WATER = { pool_water: { size: 1, outfit: 'pool' }, sea_water: { size: 2, outfit: 'sea' } };
 
 /** Di quanto scende in acqua chi nuota: resta fuori dalla vita in su, come su Habbo. */
 const SWIM_SINK = 30;
@@ -214,7 +217,9 @@ export class HotelEngine {
 
   updateUser(user) {
     const existing = this.users.get(user.id);
-    if (existing) Object.assign(existing, { username: user.username, look: user.look, level: user.level, bestCard: user.bestCard });
+    if (existing) {
+      Object.assign(existing, { username: user.username, look: user.look, level: user.level, bestCard: user.bestCard, topCards: user.topCards });
+    }
   }
 
   setPath(id, from, path, now) {
@@ -395,19 +400,20 @@ export class HotelEngine {
   }
 
   /** L'avatar e' nell'acqua della piscina? */
-  inWater(at) {
+  /** Che acqua c'e' in quel punto: 'pool', 'sea' oppure null se si e' all'asciutto. */
+  waterAt(at) {
     // Le caselle d'acqua (piscina e mare) si ricalcolano solo quando cambiano i mobili.
     if (!this.waterTiles) {
-      this.waterTiles = new Set();
+      this.waterTiles = new Map();
       this.items.forEach((item) => {
-        const size = WATER[item.type];
-        if (!size) return;
-        for (let dx = 0; dx < size; dx += 1) {
-          for (let dy = 0; dy < size; dy += 1) this.waterTiles.add(`${item.x + dx},${item.y + dy}`);
+        const water = WATER[item.type];
+        if (!water) return;
+        for (let dx = 0; dx < water.size; dx += 1) {
+          for (let dy = 0; dy < water.size; dy += 1) this.waterTiles.set(`${item.x + dx},${item.y + dy}`, water.outfit);
         }
       });
     }
-    return this.waterTiles.has(`${Math.round(at.x)},${Math.round(at.y)}`);
+    return this.waterTiles.get(`${Math.round(at.x)},${Math.round(at.y)}`) || null;
   }
 
   /** Sedia o divano sotto l'avatar seduto, se c'e'. */
@@ -551,10 +557,12 @@ export class HotelEngine {
       pose = 'wave';
       frame = animate ? Math.floor(now / 250) % 2 : 0;
     }
-    const sprite = avatarSprite(user.look, { ...view, pose, frame });
+    // In acqua si nuota in costume (e con la cuffia in piscina); seduti a bordo vasca no.
+    const water = user.status !== 'sit' ? this.waterAt(at) : null;
+    const sprite = avatarSprite(user.look, { ...view, pose, frame, outfit: water });
     const center = tileCenter(at.x, at.y, at.z);
     if (pose === 'sit' && this.seatUnder(user)) center.y -= SEAT_LIFT;
-    return { sprite, left: center.x - AVATAR_FOOT_X * AVATAR_SCALE, top: center.y - AVATAR_FOOT_Y * AVATAR_SCALE, center };
+    return { sprite, left: center.x - AVATAR_FOOT_X * AVATAR_SCALE, top: center.y - AVATAR_FOOT_Y * AVATAR_SCALE, center, water };
   }
 
   loop(now) {
@@ -610,8 +618,8 @@ export class HotelEngine {
         return;
       }
       const { user } = entry;
-      const { sprite, left, top, center } = this.spriteFor(user, now);
-      const swimming = user.status !== 'sit' && this.inWater(user.drawn || user.pos);
+      const { sprite, left, top, center, water } = this.spriteFor(user, now);
+      const swimming = !!water;
       const sink = swimming ? SWIM_SINK : 0;
       const shadow = toScreen(center.x, center.y);
       if (!swimming) {
@@ -664,6 +672,13 @@ export class HotelEngine {
           kind: 'name', x: head.x, y: labelY, text, me: user.id === this.meId,
           gem: user.bestCard?.rarity, card: hovered ? user.bestCard : null
         });
+        // Le tre carte di bandiera stanno sopra l'etichetta (e sopra "Carta migliore" se c'e').
+        if (user.topCards?.length) {
+          labels.push({ kind: 'cards', x: head.x, y: labelY - (hovered && user.bestCard ? 34 : 18), cards: user.topCards, seed: phaseOf(user.id) });
+        }
+      } else if (user.topCards?.length) {
+        // Le carte piu' usate in battaglia (o le piu' preziose) in miniatura sopra la testa.
+        labels.push({ kind: 'cards', x: head.x, y: labelY, cards: user.topCards, seed: phaseOf(user.id) });
       } else if (user.bestCard) {
         // Distintivo della carta migliore: una gemma che galleggia sopra la testa.
         labels.push({ kind: 'gem', x: head.x, y: labelY, rarity: user.bestCard.rarity, seed: phaseOf(user.id) });
@@ -676,10 +691,14 @@ export class HotelEngine {
     const animate = !this.reducedMotion;
     // La gemma resta leggibile anche con lo zoom indietro.
     const gemScale = Math.max(1, Math.round(scale * 2));
+    const cardScale = Math.max(1, Math.round(scale * 2)) / 2;
     labels.forEach((label) => {
       if (label.kind === 'typing') drawTyping(ctx, label);
       else if (label.kind === 'staff') drawStaffTag(ctx, label, gemScale);
-      else if (label.kind === 'gem') {
+      else if (label.kind === 'cards') {
+        const bob = animate ? Math.round(Math.sin(now / 450 + label.seed)) * cardScale : 0;
+        drawTopCards(ctx, label.x, label.y + bob, label.cards, cardScale, now, animate);
+      } else if (label.kind === 'gem') {
         const bob = animate ? Math.round(Math.sin(now / 450 + label.seed)) * gemScale : 0;
         drawGem(ctx, label.x - (GEM_W * gemScale) / 2, label.y + bob, label.rarity, gemScale, now, animate);
       } else drawName(ctx, label, gemScale, now, animate);
@@ -896,6 +915,43 @@ function drawName(ctx, { x, y, text, me, gem, card, npc }, scale, now, animate) 
     ctx.fillStyle = getRarityColor(card.rarity);
     ctx.fillText(label, x, y - 23.5);
   }
+}
+
+/** Miniatura di una carta sopra la testa, in pixel a zoom 1. */
+const MINI_W = 15;
+const MINI_H = 21;
+
+/**
+ * Le tre carte di bandiera in miniatura, a ventaglio, centrate su x e con il fondo in bottom:
+ * quella in mezzo sta un po' piu' in alto. Il bordo ha il colore della rarita'.
+ */
+function drawTopCards(ctx, x, bottom, cards, scale, now, animate) {
+  const w = MINI_W * scale;
+  const h = MINI_H * scale;
+  const gap = 3 * scale;
+  const order = cards.length === 3 ? [1, 0, 2] : cards.map((_, i) => i);
+  const left = x - (cards.length * w + (cards.length - 1) * gap) / 2;
+  ctx.imageSmoothingEnabled = true;
+  // Prima le laterali, poi quella centrale sopra.
+  [...order].reverse().forEach((index) => {
+    const card = cards[index];
+    const slot = cards.length === 3 ? [1, 0, 2].indexOf(index) : index;
+    const cx = Math.round(left + slot * (w + gap));
+    const lift = cards.length === 3 && index === 0 ? 3 * scale : 0;
+    const cy = Math.round(bottom - h - lift);
+    ctx.fillStyle = '#1a1030';
+    ctx.fillRect(cx - scale, cy - scale, w + 2 * scale, h + 2 * scale);
+    ctx.fillStyle = getRarityColor(card.rarity);
+    ctx.fillRect(cx, cy, w, h);
+    const img = cardImage(card);
+    if (img) ctx.drawImage(img, cx + scale, cy + scale, w - 2 * scale, h - 2 * scale);
+    else {
+      ctx.fillStyle = '#2a1f55';
+      ctx.fillRect(cx + scale, cy + scale, w - 2 * scale, h - 2 * scale);
+    }
+    if (card.rarity === 'legendary' && (!animate || Math.floor(now / 220) % 7 < 2)) drawSparkle(ctx, cx + w - 3 * scale, cy, scale);
+  });
+  ctx.imageSmoothingEnabled = false;
 }
 
 /** Sfasamento stabile per utente, cosi' le gemme non ondeggiano tutte insieme. */

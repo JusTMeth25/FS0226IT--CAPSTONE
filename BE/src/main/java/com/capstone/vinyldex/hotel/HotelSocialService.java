@@ -124,11 +124,43 @@ public class HotelSocialService {
         return likeRepository.findByRoomIdAndUserId(roomId, userId).isPresent();
     }
 
-    /** Carta migliore posseduta: la mostra il distintivo sopra l'avatar e la scheda profilo. */
+    /** Carte in mostra sopra l'avatar: la migliore (per il distintivo) e le tre "di bandiera". */
+    public record Showcase(Card best, List<Card> top) {
+    }
+
     @Transactional(readOnly = true)
-    public Card bestCard(UUID userId) {
-        return best(userCardRepository.findByUserIdWithCard(userId).stream()
-                .filter(uc -> uc.getQuantity() > 0).toList());
+    public Showcase showcase(UUID userId) {
+        List<UserCard> cards = userCardRepository.findByUserIdWithCard(userId).stream()
+                .filter(uc -> uc.getQuantity() > 0).toList();
+        return new Showcase(best(cards), top(cards));
+    }
+
+    /** Carte sopra la testa dell'avatar. */
+    static final int TOP_CARDS = 3;
+
+    /**
+     * Le tre carte di bandiera: prima quelle piu' usate in battaglia; se non se ne sono mai
+     * giocate (o meno di tre), si completa con le piu' costose della collezione.
+     */
+    static List<Card> top(List<UserCard> cards) {
+        List<Card> top = new ArrayList<>(cards.stream()
+                .filter(uc -> uc.getBattlesUsed() > 0)
+                .sorted(Comparator.comparingInt(UserCard::getBattlesUsed).reversed()
+                        .thenComparing(uc -> -price(uc.getCard())))
+                .limit(TOP_CARDS)
+                .map(UserCard::getCard)
+                .toList());
+        cards.stream().map(UserCard::getCard)
+                .filter(c -> top.stream().noneMatch(t -> t.getId().equals(c.getId())))
+                .sorted(Comparator.comparingDouble((Card c) -> -price(c))
+                        .thenComparing(c -> -RARITY_ORDER.getOrDefault(c.getRarity(), 0)))
+                .limit(TOP_CARDS - top.size())
+                .forEach(top::add);
+        return top;
+    }
+
+    private static double price(Card card) {
+        return card.getMarketPrice() == null ? 0 : card.getMarketPrice();
     }
 
     /** Vince la rarita' piu' alta; a parita', il prezzo di mercato piu' alto. */

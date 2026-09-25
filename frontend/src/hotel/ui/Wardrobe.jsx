@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { authApi } from '../../services/authApi.js';
 import {
-  ACCESSORIES, HAIR_COLORS, HAIR_COLOR_NAMES, HAIR_STYLES, LOOK_PARTS, PANTS, PANTS_NAMES, SHIRTS, SHIRT_NAMES,
-  SHIRT_TYPES, SHOES, SHOE_NAMES, SKINS, formatLook, parseLook
+  ACCESSORIES, BARE_CHEST, BODIES, HAIR_COLORS, HAIR_COLOR_NAMES, HAIR_STYLES, LOOK_PARTS, PANTS, PANTS_NAMES, SHIRTS,
+  SHIRT_NAMES, SHIRT_TYPES, SHOES, SHOE_NAMES, SKINS, fixLook, formatLook, parseLook
 } from '../sprites/avatar.js';
 import AvatarPreview from './AvatarPreview.jsx';
 
 /** Nome o campione di colore mostrato accanto alle frecce di ogni parte. */
 const SWATCHES = { s: SKINS, hc: HAIR_COLORS, sh: SHIRTS, p: PANTS, f: SHOES };
-const NAMES = { h: HAIR_STYLES, hc: HAIR_COLOR_NAMES, sh: SHIRT_NAMES, t: SHIRT_TYPES, p: PANTS_NAMES, f: SHOE_NAMES, a: ACCESSORIES };
+const NAMES = { b: BODIES, h: HAIR_STYLES, hc: HAIR_COLOR_NAMES, sh: SHIRT_NAMES, t: SHIRT_TYPES, p: PANTS_NAMES, f: SHOE_NAMES, a: ACCESSORIES };
 
 /**
  * Guardaroba: si sceglie l'aspetto parte per parte e si vede subito il risultato, di fronte
@@ -20,12 +20,17 @@ export default function Wardrobe({ look, onClose, onSaved }) {
   const [error, setError] = useState(null);
   const draft = formatLook(parts);
 
+  // Con la corporatura da donna il tipo di maglia salta il petto nudo.
+  const countOf = (key, count, p) => (key === 't' && p.b === 1 ? BARE_CHEST : count);
   const cycle = (key, count, delta) => {
-    setParts((p) => ({ ...p, [key]: (p[key] + delta + count) % count }));
+    setParts((p) => {
+      const n = countOf(key, count, p);
+      return fixLook({ ...p, [key]: (p[key] + delta + n) % n });
+    });
   };
 
   const randomize = () => {
-    setParts(Object.fromEntries(LOOK_PARTS.map(({ key, count }) => [key, Math.floor(Math.random() * count)])));
+    setParts(fixLook(Object.fromEntries(LOOK_PARTS.map(({ key, count }) => [key, Math.floor(Math.random() * count)]))));
   };
 
   async function save() {

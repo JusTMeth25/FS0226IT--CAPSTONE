@@ -6,6 +6,8 @@ import { tradeApi } from '../services/tradeApi.js';
 import { dedupeCollection } from '../utils/collectionUtils.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
+import CardOwnership from '../components/trade/CardOwnership.jsx';
+import { useOwnedCounts } from '../hooks/useOwnedCounts.js';
 
 function uniqueOwnedCards(collection) {
   return dedupeCollection(collection).map((c) => ({ ...c, owned: c.quantity }));
@@ -25,7 +27,24 @@ function TradeStatusBadge({ status }) {
   return <span className={`trade-status-badge trade-status-${key}`}>{STATUS_LABELS[key] || status}</span>;
 }
 
+/** Carte di uno scambio, ognuna con quante copie ne hai e il prezzo di mercato. */
+function TradeCards({ items, gold, owned }) {
+  if (!items?.length && !gold) return <span>—</span>;
+  return (
+    <span className="trade-card-lines">
+      {items?.map(({ card, quantity }) => (
+        <span key={card.id} className="trade-card-line">
+          <strong>{card.name}</strong>{quantity > 1 ? ` ×${quantity}` : ''}
+          <CardOwnership card={card} owned={owned.get(card.id) || 0} />
+        </span>
+      ))}
+      {gold > 0 && <span className="trade-card-line"><i className="ph-fill ph-coin" /> {gold} gold</span>}
+    </span>
+  );
+}
+
 function TradeList({ trades, loading, error, onReload, direction, onAccept, onReject, onCancel }) {
+  const owned = useOwnedCounts();
   if (loading) return <LoadingSpinner label="Carico gli scambi…" />;
   if (error) {
     return (
@@ -48,10 +67,9 @@ function TradeList({ trades, loading, error, onReload, direction, onAccept, onRe
             <span className="listing-item-name">
               {direction === 'incoming' ? `Da: ${trade.fromUser?.username}` : `A: ${trade.toUser?.username}`}
             </span>
-            <span className="listing-item-meta">
-              Offre: {trade.offeredCards?.map((c) => c.card?.name).join(', ') || '—'} {trade.offeredGold ? `+ ${trade.offeredGold} gold` : ''}
-              {' → '}
-              Richiede: {trade.requestedCards?.map((c) => c.card?.name).join(', ') || '—'} {trade.requestedGold ? `+ ${trade.requestedGold} gold` : ''}
+            <span className="listing-item-meta trade-item-cards">
+              <span className="trade-item-side">Offre: <TradeCards items={trade.offeredCards} gold={trade.offeredGold} owned={owned} /></span>
+              <span className="trade-item-side">Richiede: <TradeCards items={trade.requestedCards} gold={trade.requestedGold} owned={owned} /></span>
             </span>
           </div>
           <TradeStatusBadge status={trade.status} />

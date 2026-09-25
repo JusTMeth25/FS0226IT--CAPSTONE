@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useGame } from '../../hooks/useGame.js';
 import { dedupeCollection } from '../../utils/collectionUtils.js';
-import { getRarityColor, getTotalScore, resolveCardImage } from '../../utils/cardUtils.js';
+import { RARITIES, SOURCE_LABELS, getRarityColor, getSourceLabel, getTotalScore, resolveCardImage } from '../../utils/cardUtils.js';
 
 const CATEGORIES = [
   { key: 'fans', label: 'Fans', icon: 'ph-users-three' },
@@ -60,10 +60,22 @@ export default function PvpPanel({ pvp, clockOffset, send, onClose }) {
     if (incomingLeft === 0) onClose();
   }, [incomingLeft, onClose]);
 
-  const myCards = useMemo(() => dedupeCollection(collection)
+  // Stessi filtri della pagina Battaglie: nome, rarita' e fonte.
+  const [search, setSearch] = useState('');
+  const [rarity, setRarity] = useState('');
+  const [source, setSource] = useState('');
+  const allCards = useMemo(() => dedupeCollection(collection)
     .filter((c) => c.stats)
-    .sort((a, b) => getTotalScore(b) - getTotalScore(a))
-    .slice(0, 60), [collection]);
+    .sort((a, b) => getTotalScore(b) - getTotalScore(a)), [collection]);
+  const sources = useMemo(() => {
+    const present = new Set(allCards.map((c) => c.source).filter(Boolean));
+    return Object.keys(SOURCE_LABELS).filter((key) => present.has(key));
+  }, [allCards]);
+  const myCards = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return allCards.filter((c) => (!rarity || c.rarity === rarity) && (!source || c.source === source)
+      && (!q || c.name.toLowerCase().includes(q)));
+  }, [allCards, search, rarity, source]);
 
   if (!pvp) return null;
 
@@ -121,8 +133,29 @@ export default function PvpPanel({ pvp, clockOffset, send, onClose }) {
         <p className="pvp-text">{pvp.teamSent ? 'Squadra pronta! Aspetto l\'avversario…' : 'Scegli 3 carte per la tua squadra.'}{pvp.opponentReady && ' L\'avversario e\' pronto.'}</p>
         {!pvp.teamSent && (
           <>
+            <div className="pvp-filters">
+              <input className="pvp-filter" type="search" placeholder="Cerca per nome…" value={search}
+                onChange={(e) => setSearch(e.target.value)} aria-label="Cerca per nome" />
+              <select className="pvp-filter" value={rarity} onChange={(e) => setRarity(e.target.value)} aria-label="Rarita'">
+                <option value="">Tutte le rarità</option>
+                {Object.entries(RARITIES).map(([key, r]) => <option key={key} value={key}>{r.name}</option>)}
+              </select>
+              {sources.length > 1 && (
+                <select className="pvp-filter" value={source} onChange={(e) => setSource(e.target.value)} aria-label="Fonte">
+                  <option value="">Tutte le fonti</option>
+                  {sources.map((key) => <option key={key} value={key}>{getSourceLabel(key)}</option>)}
+                </select>
+              )}
+              <span className="pvp-hint">{myCards.length}/{allCards.length}</span>
+            </div>
+            {team.length > 0 && (
+              <div className="pvp-team-picked">
+                {team.map((card) => <MiniCard key={card.id} card={card} selected onClick={() => toggle(card)} />)}
+              </div>
+            )}
             <div className="pvp-grid">
-              {myCards.map((card) => (
+              {myCards.length === 0 && <p className="pvp-text">Nessuna carta con questi filtri.</p>}
+              {myCards.slice(0, 150).map((card) => (
                 <MiniCard key={card.id} card={card} selected={team.some((c) => c.id === card.id)} onClick={() => toggle(card)} />
               ))}
             </div>

@@ -314,11 +314,11 @@ r.row('arcade', 22, 24, 4).add('claw_machine', 26, 21)
 r.add('plant_big', 1, 24).add('plant_big', 26, 1).add('plant_big', 15, 24).add('lamp_floor', 26, 17)
 r.add('window_wall', 1, 8, 2).add('window_wall', 1, 16, 2).add('window_wall', 1, 20, 2)
 r.add('poster_neon', 16, 1, 0)
-r.worker('vera', 'Vera', 'RECEPTIONIST', 's1.h8.hc6.sh0.p1.t2.f0.a1', 3, 15, 2)
+r.worker('vera', 'Vera', 'RECEPTIONIST', 's1.h8.hc6.sh0.p1.t2.f0.a1.b1', 3, 15, 2)
 r.worker('marco', 'Marco', 'BARISTA', 's3.h0.hc0.sh8.p1.t3.f0.a0', 19, 3, 4, 'coffee', 'cola', 'juice', 'bubble')
 r.walker('leo', 'Leo', 'WAITER', 's2.h9.hc7.sh7.p1.t2.f0.a0', 20, 11, 5, 'coffee', 'cola', 'juice')
-r.walker('sofia', 'Sofia', 'GUEST', 's0.h2.hc2.sh1.p3.t1.f1.a3', 10, 15, 5)
-r.walker('greta', 'Greta', 'GUEST', 's1.h6.hc3.sh4.p3.t4.f3.a1', 19, 21, 4)
+r.walker('sofia', 'Sofia', 'GUEST', 's0.h2.hc2.sh1.p3.t1.f1.a3.b1', 10, 15, 5)
+r.walker('greta', 'Greta', 'GUEST', 's1.h6.hc3.sh4.p3.t4.f3.a1.b1', 19, 21, 4)
 
 # ------------------------------------------------------------------ Arena
 
@@ -337,7 +337,7 @@ r.add('plant_palm', 1, 22).add('plant_palm', 24, 22).add('trophy', 5, 1).add('tr
 r.add('cafe_counter', 21, 19).add('coffee_machine', 23, 19)
 r.worker('rocco', 'Rocco', 'REFEREE', 's4.h9.hc7.sh8.p1.t0.f0.a0', 12, 7, 4)
 r.walker('dario', 'Dario', 'FIGHTER', 's2.h4.hc6.sh6.p1.t0.f2.a0', 5, 16, 4)
-r.walker('kira', 'Kira', 'FIGHTER', 's0.h7.hc4.sh9.p1.t3.f3.a2', 20, 15, 4)
+r.walker('kira', 'Kira', 'FIGHTER', 's0.h7.hc4.sh9.p1.t3.f3.a2.b1', 20, 15, 4)
 r.walker('brutus', 'Brutus', 'FIGHTER', 's4.h9.hc7.sh6.p5.t4.f0.a6', 4, 4, 3)
 
 # ------------------------------------------------------------------ Sala Relax
@@ -353,9 +353,9 @@ r.lounge(5, 15).lounge(18, 8, 'armchair').lounge(17, 17)
 r.add('rug_vinyl', 5, 7).add('sofa_vinyl', 5, 6, 0).add('coffee_table', 5, 8).add('sofa_vinyl', 5, 9, 4)
 r.add('plant_big', 1, 22).add('plant_big', 24, 22).add('lamp_floor', 10, 21).add('globe', 13, 21)
 r.add('window_wall', 1, 6, 2).add('window_wall', 1, 17, 2).add('window_wall', 7, 1, 0)
-r.walker('luna', 'Luna', 'WAITER', 's1.h3.hc1.sh11.p1.t2.f0.a0', 12, 12, 6, 'tea', 'coffee')
+r.walker('luna', 'Luna', 'WAITER', 's1.h3.hc1.sh11.p1.t2.f0.a0.b1', 12, 12, 6, 'tea', 'coffee')
 r.walker('otto', 'Otto', 'GUEST', 's2.h0.hc9.sh3.p0.t3.f4.a1', 17, 14, 5)
-r.walker('mira', 'Mira', 'GUEST', 's5.h6.hc0.sh4.p6.t1.f3.a5', 7, 13, 5)
+r.walker('mira', 'Mira', 'GUEST', 's5.h6.hc0.sh4.p6.t1.f3.a5.b1', 7, 13, 5)
 
 # ------------------------------------------------------------------ Piscina
 
@@ -381,7 +381,7 @@ r.add('plant_palm', 1, 1).add('plant_palm', 26, 1).add('plant_palm', 1, 24).add(
 r.add('window_wall', 1, 6, 2).add('window_wall', 1, 18, 2).add('window_wall', 21, 1, 0)
 r.worker('rico', 'Rico', 'BARISTA', 's3.h5.hc5.sh10.p0.t0.f1.a2', 11, 3, 4, 'cocktail', 'juice', 'cola', 'bubble')
 r.worker('bruno', 'Bruno', 'LIFEGUARD', 's4.h9.hc7.sh6.p5.t4.f2.a2', 20, 13, 6)
-r.walker('nina', 'Nina', 'GUEST', 's0.h7.hc4.sh2.p3.t4.f5.a2', 13, 12, 4)
+r.walker('nina', 'Nina', 'GUEST', 's0.h7.hc4.sh2.p3.t4.f5.a2.b1', 13, 12, 4)
 r.walker('teo', 'Teo', 'GUEST', 's2.h1.hc8.sh5.p7.t4.f1.a0', 6, 19, 4)
 
 # ------------------------------------------------------------------ Neon Bar
@@ -406,7 +406,7 @@ r.add('neon_sign', 12, 1, 0).add('neon_sign', 20, 1, 0).add('poster_neon', 1, 7,
 r.worker('vinnie', 'Vinnie', 'BARISTA', 's2.h4.hc4.sh9.p1.t3.f0.a4', 3, 5, 2, 'cocktail', 'cola', 'bubble', 'juice')
 r.worker('byte', 'DJ Byte', 'DJ', 's5.h1.hc5.sh8.p1.t1.f5.a3', 12, 2, 4)
 r.walker('gio', 'Gio', 'WAITER', 's1.h0.hc1.sh7.p1.t2.f0.a0', 17, 12, 5, 'cocktail', 'cola', 'bubble')
-r.walker('stella', 'Stella', 'GUEST', 's0.h2.hc6.sh1.p4.t4.f3.a4', 12, 11, 3)
+r.walker('stella', 'Stella', 'GUEST', 's0.h2.hc6.sh1.p4.t4.f3.a4.b1', 12, 11, 3)
 r.walker('remo', 'Remo', 'GUEST', 's3.h4.hc0.sh9.p0.t1.f2.a3', 20, 11, 4)
 
 # ------------------------------------------------------------------ Giardino
@@ -426,9 +426,9 @@ r.add('rug_round', 5, 20).add('beanbag', 4, 20, 0).add('beanbag', 7, 21, 4)
 r.add('lamp_floor', 13, 1).add('lamp_floor', 28, 1).add('lamp_floor', 28, 24).add('fire_pit', 25, 8)
 r.add('bench', 24, 6, 0).add('bench', 24, 10, 4)
 r.worker('gigi', 'Gigi', 'ICE_CREAM', 's1.h5.hc7.sh7.p3.t0.f1.a0', 24, 16, 4, 'gelato')
-r.walker('flora', 'Flora', 'GARDENER', 's3.h7.hc1.sh5.p7.t2.f4.a6', 6, 15, 5)
+r.walker('flora', 'Flora', 'GARDENER', 's3.h7.hc1.sh5.p7.t2.f4.a6.b1', 6, 15, 5)
 r.walker('pietro', 'Pietro', 'GUEST', 's0.h1.hc3.sh10.p0.t0.f1.a0', 18, 7, 5)
-r.walker('alma', 'Alma', 'GUEST', 's5.h8.hc2.sh3.p3.t1.f1.a5', 11, 19, 4)
+r.walker('alma', 'Alma', 'GUEST', 's5.h8.hc2.sh3.p3.t1.f1.a5.b1', 11, 19, 4)
 
 # ------------------------------------------------------------------ Pizzeria
 
@@ -443,7 +443,7 @@ for tx in (5, 9, 13, 17):
 r.add('plant_big', 22, 1).add('plant_big', 1, 20).add('plant_big', 22, 20).add('lamp_floor', 20, 1)
 r.add('chalkboard', 16, 1, 0).add('window_wall', 1, 5, 2).add('window_wall', 1, 15, 2).add('neon_sign', 8, 1, 0)
 r.worker('salvatore', 'Salvatore', 'CHEF', 's2.h5.hc7.sh7.p1.t2.f0.a0', 8, 3, 4, 'pizza')
-r.walker('carla', 'Carla', 'WAITER', 's1.h7.hc1.sh6.p1.t2.f0.a0', 11, 10, 6, 'pizza', 'cola', 'juice')
+r.walker('carla', 'Carla', 'WAITER', 's1.h7.hc1.sh6.p1.t2.f0.a0.b1', 11, 10, 6, 'pizza', 'cola', 'juice')
 r.walker('enzo', 'Enzo', 'GUEST', 's3.h0.hc7.sh3.p0.t3.f4.a1', 15, 14, 4)
 
 # ------------------------------------------------------------------ Sala Giochi
@@ -478,9 +478,9 @@ for tx, ty in [(6, 14), (11, 14), (6, 18), (11, 18)]:
 r.lounge(17, 15, 'armchair').lounge(17, 19, 'armchair')
 r.add('rug_round', 21, 13).add('globe', 24, 22).add('plant_big', 24, 12).add('lamp_floor', 14, 22)
 r.add('window_wall', 1, 9, 2).add('window_wall', 1, 13, 2)
-r.worker('agata', 'Agata', 'LIBRARIAN', 's1.h3.hc9.sh11.p1.t2.f4.a1', 8, 6, 4, 'book', 'tea')
+r.worker('agata', 'Agata', 'LIBRARIAN', 's1.h3.hc9.sh11.p1.t2.f4.a1.b1', 8, 6, 4, 'book', 'tea')
 r.walker('ugo', 'Ugo', 'GUEST', 's3.h9.hc9.sh7.p7.t3.f4.a1', 8, 16, 4)
-r.walker('lia', 'Lia', 'GUEST', 's0.h8.hc8.sh4.p3.t1.f1.a0', 19, 12, 4)
+r.walker('lia', 'Lia', 'GUEST', 's0.h8.hc8.sh4.p3.t1.f1.a0.b1', 19, 12, 4)
 
 # ------------------------------------------------------------------ Terrazza
 
@@ -500,7 +500,7 @@ r.lounge(21, 6, 'armchair')
 r.add('plant_palm', 1, 1).add('plant_palm', 26, 1).add('plant_palm', 26, 22).add('lamp_floor', 1, 22)
 r.add('lamp_floor', 12, 9).add('lamp_floor', 24, 17)
 r.worker('nico', 'Nico', 'BARISTA', 's5.h0.hc7.sh8.p1.t3.f0.a2', 11, 3, 4, 'cocktail', 'bubble', 'juice')
-r.walker('bea', 'Bea', 'GUEST', 's1.h2.hc4.sh1.p4.t4.f3.a2', 16, 16, 5)
+r.walker('bea', 'Bea', 'GUEST', 's1.h2.hc4.sh1.p4.t4.f3.a2.b1', 16, 16, 5)
 r.walker('ivo', 'Ivo', 'GUEST', 's2.h1.hc3.sh10.p0.t0.f1.a0', 7, 17, 4)
 
 # ------------------------------------------------------------------ Spiaggia
@@ -527,9 +527,9 @@ r.add('volley_net', 4, 25).add('sand_castle', 11, 18).add('sand_castle', 15, 25)
 r.add('palm_tree', 1, 1).add('palm_tree', 1, 12).add('palm_tree', 1, 26).add('palm_tree', 17, 1)
 r.add('icecream_cart', 3, 1)
 r.worker('sandro', 'Sandro', 'BARISTA', 's4.h1.hc4.sh10.p0.t0.f1.a2', 10, 2, 4, 'cocktail', 'juice', 'cola', 'gelato')
-r.worker('marina', 'Marina', 'LIFEGUARD', 's1.h7.hc2.sh6.p5.t4.f2.a2', 17, 15, 2)
+r.worker('marina', 'Marina', 'LIFEGUARD', 's1.h7.hc2.sh6.p5.t4.f2.a2.b1', 17, 15, 2)
 r.walker('kai', 'Kai', 'GUEST', 's3.h5.hc4.sh2.p7.t4.f1.a0', 24, 12, 4)
-r.walker('sole', 'Sole', 'GUEST', 's0.h8.hc5.sh10.p3.t4.f3.a2', 10, 18, 5)
+r.walker('sole', 'Sole', 'GUEST', 's0.h8.hc5.sh10.p3.t4.f3.a2.b1', 10, 18, 5)
 r.walker('tommy', 'Tommy', 'GUEST', 's2.h9.hc3.sh5.p0.t0.f5.a3', 7, 23, 4)
 
 # ------------------------------------------------------------------ Edicola
@@ -548,7 +548,7 @@ r.add('plant_big', 20, 1).add('plant_big', 1, 18).add('plant_big', 20, 18).add('
 r.add('poster_neon', 1, 12, 2).add('poster_neon', 1, 15, 2).add('card_frame', 13, 1, 0).add('card_frame', 5, 1, 0)
 r.worker('edo', 'Edo', 'NEWSAGENT', 's3.h1.hc9.sh4.p1.t2.f4.a1', 9, 3, 4)
 r.walker('nando', 'Nando', 'GUEST', 's2.h0.hc2.sh9.p0.t0.f2.a0', 12, 10, 4)
-r.walker('bianca', 'Bianca', 'GUEST', 's0.h3.hc6.sh1.p3.t1.f3.a5', 6, 16, 4)
+r.walker('bianca', 'Bianca', 'GUEST', 's0.h3.hc6.sh1.p3.t1.f3.a5.b1', 6, 16, 4)
 
 # ------------------------------------------------------------------ Cinema
 
@@ -566,7 +566,7 @@ for y in (4, 8, 12, 16):
     r.add('movie_poster', 1, y, 2)
 r.add('movie_poster', 4, 1, 0).add('movie_poster', 19, 1, 0)
 r.walker('mario', 'Mario', 'USHER', 's2.h9.hc0.sh8.p1.t2.f0.a0', 18, 21, 4, 'popcorn', 'cola')
-r.walker('irene', 'Irene', 'GUEST', 's1.h6.hc4.sh11.p4.t1.f3.a2', 11, 13, 5)
+r.walker('irene', 'Irene', 'GUEST', 's1.h6.hc4.sh11.p4.t1.f3.a2.b1', 11, 13, 5)
 r.walker('fede', 'Fede', 'GUEST', 's3.h2.hc7.sh2.p0.t3.f1.a1', 11, 18, 4)
 
 # ------------------------------------------------------------------ Palestra
@@ -582,9 +582,9 @@ for x in (13, 15, 17, 19, 21):
     r.add('yoga_mat', x, 17).add('yoga_mat', x, 20)
 r.add('bench', 3, 21, 0).add('lamp_floor', 1, 22).add('plant_big', 24, 22).add('trophy', 1, 1)
 r.add('chalkboard', 3, 1, 0).add('poster_neon', 1, 6, 2).add('poster_neon', 1, 17, 2)
-r.walker('sara', 'Sara', 'TRAINER', 's1.h4.hc4.sh9.p1.t0.f5.a2', 13, 11, 6, 'water')
+r.walker('sara', 'Sara', 'TRAINER', 's1.h4.hc4.sh9.p1.t0.f5.a2.b1', 13, 11, 6, 'water')
 r.walker('gino', 'Gino', 'GUEST', 's4.h9.hc7.sh6.p5.t0.f0.a0', 9, 18, 4)
-r.walker('vale', 'Vale', 'GUEST', 's0.h7.hc1.sh6.p1.t0.f5.a3', 17, 14, 4)
+r.walker('vale', 'Vale', 'GUEST', 's0.h7.hc1.sh6.p1.t0.f5.a3.b1', 17, 14, 4)
 
 
 # ------------------------------------------------------------------ output

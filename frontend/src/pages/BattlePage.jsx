@@ -369,6 +369,8 @@ export default function BattlePage() {
   }
 
   function showFinalResult() {
+    // Le carte schierate: il server le conta come usate (sono quelle mostrate sopra l'avatar nell'hotel).
+    const teamCodes = b.team.filter(Boolean).map((c) => c.id);
     const playerWon = b.roundScores.player > b.roundScores.ai;
     const draw = b.roundScores.player === b.roundScores.ai;
     const result = playerWon ? 'win' : draw ? 'draw' : 'loss';
@@ -390,7 +392,7 @@ export default function BattlePage() {
         const bonusXP = wonAllStages ? 150 : 0;
         const finalGold = tournamentGold + bonusGold;
         const finalXP = tournamentXP + bonusXP;
-        game.claimBattleReward({ mode: 'tournament', stagesCleared: wonAllStages ? TOURNAMENT_ORDER.length : b.tournamentStage, wonAllStages });
+        game.claimBattleReward({ mode: 'tournament', stagesCleared: wonAllStages ? TOURNAMENT_ORDER.length : b.tournamentStage, wonAllStages, cards: teamCodes });
         update({ phase: 'final', finalKind: wonAllStages ? 'tournament-champion' : 'tournament-eliminated', rewards: { gold: finalGold, xp: finalXP }, tournamentGold, tournamentXP });
       } else {
         update({ phase: 'final', finalKind: 'tournament-stage-cleared', tournamentGold, tournamentXP });
@@ -405,7 +407,7 @@ export default function BattlePage() {
     else sound.battleLose();
 
     game.recordBattleResult(result);
-    game.claimBattleReward({ mode: 'single', result });
+    game.claimBattleReward({ mode: 'single', result, cards: teamCodes });
     update({ phase: 'final', finalKind: 'single', rewards: { gold: goldReward, xp: xpReward } });
   }
 

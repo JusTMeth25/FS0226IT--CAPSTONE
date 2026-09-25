@@ -1243,6 +1243,7 @@ public class RoomInstance {
         view.put("look", o.user.look());
         view.put("level", o.user.level());
         view.put("bestCard", o.user.bestCard());
+        view.put("topCards", o.user.topCards());
         view.put("x", o.x);
         view.put("y", o.y);
         view.put("z", o.z);

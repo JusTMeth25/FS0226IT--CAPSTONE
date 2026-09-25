@@ -18,5 +18,7 @@ public enum WalletTransactionType {
     /** Ricompensa di una sfida fra giocatori nell'hotel. */
     PVP_REWARD,
     /** Pacchetto comprato in edicola: finisce nella borsa e si apre piu' tardi. */
-    PACK_PURCHASE
+    PACK_PURCHASE,
+    /** Carta rivenduta al negozio dell'hotel in cambio di gold. */
+    CARD_BUYBACK
 }

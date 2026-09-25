@@ -824,3 +824,45 @@ button.hotel-trade-card:hover { background: var(--hp-surface-hover); }
 }
 .hotel-pack-opening { max-width: 980px; margin: 0 auto; }
 .hotel-pack-overlay-close { position: fixed; top: 14px; right: 14px; z-index: 2; font-size: 1.4rem; }
+
+/* ---------- Filtri nella scelta della squadra (Arena) ---------- */
+.pvp-filters { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 0 10px 6px; }
+.pvp-filter {
+  flex: 1 1 120px;
+  min-width: 0;
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--hp-line);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--hp-text);
+  font-size: 0.75rem;
+}
+.pvp-filter option { background: #1a1238; }
+.pvp-team-picked { display: flex; gap: 6px; padding: 0 10px 6px; }
+.pvp-team-picked .pvp-card { width: 64px; }
+
+.trade-chip-text { display: inline-flex; flex-direction: column; align-items: flex-start; text-align: left; }
+.hotel-trade-card .card-ownership { justify-content: center; font-size: 0.6rem; }
+
+/* ---------- Vendita delle carte al negozio ---------- */
+.hotel-tab-sell { color: #fcd34d; }
+.hotel-buyback { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.hotel-buyback-search { margin: 0 10px 6px; }
+.hotel-buyback-list { list-style: none; margin: 0; padding: 0 8px 8px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.hotel-buyback-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 10px;
+  background: var(--hp-surface);
+  border: 1px solid var(--hp-line);
+  border-left: 3px solid var(--rarity-color);
+}
+.hotel-buyback-row img { width: 34px; height: 48px; object-fit: cover; border-radius: 4px; }
+.hotel-buyback-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.hotel-buyback-info strong { font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hotel-buyback-info small { font-size: 0.66rem; color: var(--hp-muted); }
+.hotel-buyback-info .hotel-buyback-offer { color: #fcd34d; }
+.hotel-buyback-actions { display: flex; flex-direction: column; gap: 4px; }
+.hotel-buyback-actions .btn { padding: 4px 8px; font-size: 0.66rem; white-space: nowrap; }

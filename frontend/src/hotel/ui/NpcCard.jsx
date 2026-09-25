@@ -78,7 +78,7 @@ export default function NpcCard({ npc, send, inArena, onClose, onWhisper, onChal
         )}
         {info.role === 'newsagent' && (
           <button type="button" className="btn btn-gold btn-small" onClick={onBuyPacks}>
-            <i className="ph-fill ph-cards" /> Compra pacchetti
+            <i className="ph-fill ph-cards" /> Pacchetti e vendita carte
           </button>
         )}
         {trades && (

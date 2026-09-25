@@ -155,7 +155,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        HotelUser hotelUser = HotelUser.from(user.get(), socialService.bestCard(userId));
+        HotelUser hotelUser = HotelUser.from(user.get(), socialService.showcase(userId));
         session.authenticate(hotelUser);
         registry.register(session);
         session.send(Map.of("type", "hello", "user", hotelUser));
@@ -253,7 +253,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     /** Rilegge aspetto e livello dal database, dopo un salvataggio dal guardaroba. */
     private void refreshProfile(HotelSession session, RoomInstance room) {
         userRepository.findById(session.user().id()).ifPresent(user -> {
-            HotelUser updated = HotelUser.from(user, socialService.bestCard(user.getId()));
+            HotelUser updated = HotelUser.from(user, socialService.showcase(user.getId()));
             session.authenticate(updated);
             session.send(Map.of("type", "hello", "user", updated));
             if (room != null) room.updateUser(updated);
@@ -275,8 +275,9 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        // Ogni ingresso rilegge la carta migliore: dopo un pacchetto fortunato basta cambiare stanza.
-        session.authenticate(session.user().withBestCard(socialService.bestCard(session.user().id())));
+        // Ogni ingresso rilegge le carte in mostra: dopo un pacchetto fortunato o una battaglia basta
+        // cambiare stanza.
+        session.authenticate(session.user().withShowcase(socialService.showcase(session.user().id())));
         RoomInstance.JoinResult result = registry.join(session, data.get(), roomService.loadItems(roomId));
         switch (result) {
             case FULL -> session.send(error("room_full"));

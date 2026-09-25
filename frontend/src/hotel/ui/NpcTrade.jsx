@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useGame } from '../../hooks/useGame.js';
 import { RARITY_ORDER, getRarityColor, getRarityName, resolveCardImage } from '../../utils/cardUtils.js';
 import { dedupeCollection } from '../../utils/collectionUtils.js';
+import { useOwnedCounts } from '../../hooks/useOwnedCounts.js';
+import CardOwnership from '../../components/trade/CardOwnership.jsx';
 
 /** Stessa formula del server (NpcDeals.value): serve solo per dire in anticipo se l'offerta e' equa. */
 const RARITY_VALUE = { common: 10, uncommon: 25, rare: 60, epic: 150, legendary: 400 };
@@ -10,12 +12,13 @@ function cardValue(card) {
   return (RARITY_VALUE[card?.rarity] || 10) + (price > 0 ? Math.round(Math.min(price, 200) * 2) : 0);
 }
 
-function TradeCard({ card, label, selected, onClick }) {
+function TradeCard({ card, label, owned, selected, onClick }) {
   const content = (
     <>
       <img src={resolveCardImage(card)} alt={card.name} loading="lazy" />
       <span className="hotel-trade-card-name">{card.name}</span>
       <span className="hotel-trade-card-rarity">{getRarityName(card.rarity)}</span>
+      {owned !== undefined && <CardOwnership card={card} owned={owned} />}
       {label && <span className="hotel-trade-card-label">{label}</span>}
     </>
   );
@@ -32,6 +35,7 @@ function TradeCard({ card, label, selected, onClick }) {
  * doppia. Scade dopo qualche secondo, come le sfide.
  */
 export function NpcTradeOffer({ offer, send, onClose }) {
+  const owned = useOwnedCounts();
   const [left, setLeft] = useState(Math.round(offer.expiresIn / 1000));
   useEffect(() => {
     const timer = setInterval(() => setLeft((s) => Math.max(0, s - 1)), 1000);
@@ -49,9 +53,9 @@ export function NpcTradeOffer({ offer, send, onClose }) {
         <span className="hotel-npc-trade-timer">{left}s</span>
       </header>
       <div className="hotel-npc-trade-pair">
-        <TradeCard card={offer.give} label="Ti da'" />
+        <TradeCard card={offer.give} label="Ti da'" owned={owned.get(offer.give.id) || 0} />
         <i className="ph-fill ph-arrows-left-right hotel-npc-trade-arrow" />
-        <TradeCard card={offer.want} label="Vuole" />
+        <TradeCard card={offer.want} label="Vuole" owned={owned.get(offer.want.id) || 0} />
       </div>
       <p className="hotel-panel-hint">Una tua carta in cambio di una che non hai ancora.</p>
       <footer className="hotel-panel-footer">
@@ -70,6 +74,7 @@ export function NpcTradeOffer({ offer, send, onClose }) {
  */
 export function NpcTradePanel({ npc, showcase, send, onClose }) {
   const { collection } = useGame();
+  const owned = useOwnedCounts();
   const [want, setWant] = useState(null);
   const [give, setGive] = useState(null);
   const [query, setQuery] = useState('');
@@ -102,7 +107,8 @@ export function NpcTradePanel({ npc, showcase, send, onClose }) {
           <div className="hotel-trade-row">
             {!cards && <span className="hotel-room-empty">Carico la vetrina…</span>}
             {cards?.map(({ card, value }) => (
-              <TradeCard key={card.id} card={card} selected={want?.card.id === card.id} onClick={() => setWant({ card, value })} />
+              <TradeCard key={card.id} card={card} owned={owned.get(card.id) || 0}
+                selected={want?.card.id === card.id} onClick={() => setWant({ card, value })} />
             ))}
           </div>
         </section>
@@ -112,7 +118,7 @@ export function NpcTradePanel({ npc, showcase, send, onClose }) {
           <div className="hotel-trade-row hotel-trade-mine">
             {mine.length === 0 && <span className="hotel-room-empty">Nessuna carta.</span>}
             {mine.map((card) => (
-              <TradeCard key={card.id} card={card} label={card.quantity > 1 ? `x${card.quantity}` : null}
+              <TradeCard key={card.id} card={card} owned={card.quantity ?? 1}
                 selected={give?.id === card.id} onClick={() => setGive(card)} />
             ))}
           </div>

@@ -317,6 +317,7 @@ public class PvpService {
             PvpGame game = live.game;
             if (game.phase() != PvpGame.Phase.TEAM) return "invalid_phase";
             boolean ready = game.setTeam(session.user().id(), team);
+            userCardRepository.countBattle(session.user().id(), codes);
             session.send(Map.of("type", "pvp_team_ok"));
             send(game.opponent(session.user().id()).userId(), Map.of("type", "pvp_opponent_ready"));
             if (ready) beginRound(live);

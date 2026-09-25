@@ -42,6 +42,10 @@ public class UserCard {
     @Column(name = "quantity", nullable = false)
     private int quantity = 1;
 
+    /** Volte in cui la carta e' stata schierata in battaglia (sito e hotel). */
+    @Column(name = "battles_used", nullable = false)
+    private int battlesUsed = 0;
+
     public UserCard(User user, Card card, int quantity) {
         this.user = user;
         this.card = card;

@@ -1243,3 +1243,13 @@ input.filter-select { cursor: text; }
   .battle-available-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
   .footer-inner { font-size: 0.85rem; padding: var(--space-lg) var(--space-xl); }
 }
+
+/* Negli scambi: quante copie ne possiedi e il prezzo di mercato di ogni carta. */
+.card-ownership { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 0.68rem; line-height: 1.2; }
+.card-ownership-have { color: #86efac; }
+.card-ownership-new { color: #fcd34d; }
+.card-ownership-price { color: #a5f3fc; }
+.trade-item-cards { display: flex; flex-direction: column; gap: 4px; }
+.trade-item-side { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.trade-card-lines { display: inline-flex; flex-direction: column; gap: 2px; }
+.trade-card-line { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }

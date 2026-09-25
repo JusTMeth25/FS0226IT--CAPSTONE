@@ -53,6 +53,9 @@ export function useHotelSocket({ onMessage, onReconnect, enabled = true }) {
       setStatus('connecting');
       const socket = new WebSocket(hotelSocketUrl());
       socketRef.current = socket;
+      // Il server rimanda "hello" anche quando rilegge il profilo (guardaroba, carte vendute):
+      // solo il primo di ogni connessione vuol dire "sono di nuovo online".
+      let greeted = false;
 
       socket.onopen = () => {
         socket.send(JSON.stringify({ type: 'auth', token: getToken() }));
@@ -65,7 +68,8 @@ export function useHotelSocket({ onMessage, onReconnect, enabled = true }) {
         } catch {
           return;
         }
-        if (message.type === 'hello') {
+        if (message.type === 'hello' && !greeted) {
+          greeted = true;
           retryMs = 1_000;
           setStatus('online');
           if (everConnected) handlers.current.onReconnect?.();
