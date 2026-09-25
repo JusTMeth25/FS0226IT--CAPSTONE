@@ -1,11 +1,13 @@
 package com.capstone.vinyldex.hotel;
 
 import com.capstone.vinyldex.entity.Card;
+import com.capstone.vinyldex.entity.NpcTrade;
 import com.capstone.vinyldex.entity.User;
 import com.capstone.vinyldex.entity.UserCard;
 import com.capstone.vinyldex.entity.WalletTransactionType;
 import com.capstone.vinyldex.exception.ApiException;
 import com.capstone.vinyldex.repository.CardRepository;
+import com.capstone.vinyldex.repository.NpcTradeRepository;
 import com.capstone.vinyldex.repository.UserCardRepository;
 import com.capstone.vinyldex.repository.UserRepository;
 import com.capstone.vinyldex.repository.UserWalletTransactionRepository;
@@ -26,7 +28,6 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -66,15 +67,15 @@ public class NpcDeals {
     private final WalletService walletService;
     private final LevelService levelService;
     private final UserWalletTransactionRepository transactionRepository;
+    private final NpcTradeRepository npcTradeRepository;
     private final Clock clock = Clock.systemDefaultZone();
 
     private List<Card> pool = List.of();
     private long poolLoadedAt;
-    private final Map<String, Integer> tradesToday = new ConcurrentHashMap<>();
 
     public NpcDeals(CardRepository cardRepository, UserCardRepository userCardRepository, UserRepository userRepository,
                     UserCardService userCardService, WalletService walletService, LevelService levelService,
-                    UserWalletTransactionRepository transactionRepository) {
+                    UserWalletTransactionRepository transactionRepository, NpcTradeRepository npcTradeRepository) {
         this.cardRepository = cardRepository;
         this.userCardRepository = userCardRepository;
         this.userRepository = userRepository;
@@ -82,6 +83,7 @@ public class NpcDeals {
         this.walletService = walletService;
         this.levelService = levelService;
         this.transactionRepository = transactionRepository;
+        this.npcTradeRepository = npcTradeRepository;
     }
 
     // ------------------------------------------------------------------ valore delle carte
@@ -159,9 +161,10 @@ public class NpcDeals {
     /**
      * Esegue uno scambio accettato: il giocatore da' una copia di `giveCode` e riceve una copia
      * di `getCode`. Tutto in una transazione, dopo aver controllato che la carta sia ancora sua.
+     * Lo scambio resta nello storico, da cui si conta il limite giornaliero.
      */
     @Transactional
-    public Verdict trade(UUID userId, String giveCode, String getCode) {
+    public Verdict trade(UUID userId, String npcName, String giveCode, String getCode) {
         if (tradesToday(userId) >= TRADES_PER_DAY) return Verdict.LIMIT;
         User user = userRepository.findById(userId).orElseThrow(() -> ApiException.notFound("user_not_found"));
         Card give = cardRepository.findByCode(giveCode).orElse(null);
@@ -169,27 +172,30 @@ public class NpcDeals {
         if (give == null || get == null || !userCardService.owns(user, give, 1)) return Verdict.NOT_OWNED;
         userCardService.remove(user, give, 1);
         userCardService.add(user, get, 1);
-        tradesToday.merge(dayKey(userId), 1, Integer::sum);
+        NpcTrade record = new NpcTrade();
+        record.setUserId(userId);
+        record.setNpcName(npcName);
+        record.setGaveCardId(give.getId());
+        record.setGotCardId(get.getId());
+        record.setDay(LocalDate.now(clock));
+        npcTradeRepository.save(record);
         return Verdict.ACCEPTED;
     }
 
     /** Proposta del giocatore: una carta della vetrina dell'NPC in cambio di una sua. */
     @Transactional
-    public Verdict propose(UUID npcId, UUID userId, String giveCode, String wantCode) {
+    public Verdict propose(UUID npcId, String npcName, UUID userId, String giveCode, String wantCode) {
         Card want = showcase(npcId).stream().filter(c -> c.getCode().equals(wantCode)).findFirst().orElse(null);
         if (want == null) return Verdict.NOT_OFFERED;
         Card give = cardRepository.findByCode(giveCode).orElse(null);
         if (give == null) return Verdict.NOT_OWNED;
         if (value(give) < value(want) * FAIRNESS) return Verdict.UNFAIR;
-        return trade(userId, giveCode, wantCode);
+        return trade(userId, npcName, giveCode, wantCode);
     }
 
+    @Transactional(readOnly = true)
     public int tradesToday(UUID userId) {
-        return tradesToday.getOrDefault(dayKey(userId), 0);
-    }
-
-    private String dayKey(UUID userId) {
-        return LocalDate.now(clock) + "/" + userId;
+        return (int) npcTradeRepository.countByUserIdAndDay(userId, LocalDate.now(clock));
     }
 
     // ------------------------------------------------------------------ sfide

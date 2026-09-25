@@ -1,9 +1,11 @@
 package com.capstone.vinyldex.hotel;
 
 import com.capstone.vinyldex.entity.Card;
+import com.capstone.vinyldex.entity.NpcTrade;
 import com.capstone.vinyldex.entity.User;
 import com.capstone.vinyldex.entity.UserCard;
 import com.capstone.vinyldex.repository.CardRepository;
+import com.capstone.vinyldex.repository.NpcTradeRepository;
 import com.capstone.vinyldex.repository.UserCardRepository;
 import com.capstone.vinyldex.repository.UserRepository;
 import com.capstone.vinyldex.repository.UserWalletTransactionRepository;
@@ -13,7 +15,9 @@ import com.capstone.vinyldex.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +41,7 @@ class NpcDealsTest {
     private final UserCardRepository userCards = mock(UserCardRepository.class);
     private final UserRepository users = mock(UserRepository.class);
     private final UserCardService userCardService = mock(UserCardService.class);
+    private final NpcTradeRepository npcTrades = mock(NpcTradeRepository.class);
     private NpcDeals deals;
     private final List<Card> pool = new ArrayList<>();
     private final User anna = new User();
@@ -61,7 +66,7 @@ class NpcDealsTest {
         pool.forEach(c -> when(cards.findByCode(c.getCode())).thenReturn(Optional.of(c)));
         when(users.findById(anna.getId())).thenReturn(Optional.of(anna));
         deals = new NpcDeals(cards, userCards, users, userCardService, mock(WalletService.class),
-                mock(LevelService.class), mock(UserWalletTransactionRepository.class));
+                mock(LevelService.class), mock(UserWalletTransactionRepository.class), npcTrades);
     }
 
     @Test
@@ -86,24 +91,32 @@ class NpcDealsTest {
         UUID npc = UUID.randomUUID();
         Card best = deals.showcase(npc).stream().max((a, b) -> NpcDeals.value(a) - NpcDeals.value(b)).orElseThrow();
 
-        assertEquals(NpcDeals.Verdict.UNFAIR, deals.propose(npc, anna.getId(), "common0", best.getCode()));
-        assertEquals(NpcDeals.Verdict.NOT_OFFERED, deals.propose(npc, anna.getId(), "legendary0", "carta-inventata"));
+        assertEquals(NpcDeals.Verdict.UNFAIR, deals.propose(npc, "Dario", anna.getId(), "common0", best.getCode()));
+        assertEquals(NpcDeals.Verdict.NOT_OFFERED, deals.propose(npc, "Dario", anna.getId(), "legendary0", "carta-inventata"));
         verify(userCardService, never()).remove(any(), any(), eq(1));
 
         when(userCardService.owns(any(), any(), eq(1))).thenReturn(true);
-        assertEquals(NpcDeals.Verdict.ACCEPTED, deals.propose(npc, anna.getId(), "legendary0", best.getCode()));
+        assertEquals(NpcDeals.Verdict.ACCEPTED, deals.propose(npc, "Dario", anna.getId(), "legendary0", best.getCode()));
         verify(userCardService).remove(eq(anna), any(), eq(1));
         verify(userCardService).add(eq(anna), eq(best), eq(1));
     }
 
     @Test
-    @DisplayName("Oltre il limite giornaliero gli scambi con gli NPC si fermano")
+    @DisplayName("Ogni scambio finisce nel database, e il limite giornaliero si conta da li'")
     void dailyLimit() {
         when(userCardService.owns(any(), any(), eq(1))).thenReturn(true);
-        for (int i = 0; i < NpcDeals.TRADES_PER_DAY; i++) {
-            assertEquals(NpcDeals.Verdict.ACCEPTED, deals.trade(anna.getId(), "common0", "common1"));
-        }
-        assertEquals(NpcDeals.Verdict.LIMIT, deals.trade(anna.getId(), "common0", "common1"));
+        assertEquals(NpcDeals.Verdict.ACCEPTED, deals.trade(anna.getId(), "Dario", "common0", "common1"));
+        ArgumentCaptor<NpcTrade> saved = ArgumentCaptor.forClass(NpcTrade.class);
+        verify(npcTrades).save(saved.capture());
+        assertEquals(anna.getId(), saved.getValue().getUserId());
+        assertEquals("Dario", saved.getValue().getNpcName());
+        assertEquals(LocalDate.now(), saved.getValue().getDay());
+
+        // Dopo un riavvio conta quello che c'e' nel database, non la memoria.
+        when(npcTrades.countByUserIdAndDay(anna.getId(), LocalDate.now())).thenReturn((long) NpcDeals.TRADES_PER_DAY);
+        assertEquals(NpcDeals.TRADES_PER_DAY, deals.tradesToday(anna.getId()));
+        assertEquals(NpcDeals.Verdict.LIMIT, deals.trade(anna.getId(), "Dario", "common0", "common1"));
+        verify(npcTrades).save(any());
     }
 
     @Test

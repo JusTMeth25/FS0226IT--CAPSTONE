@@ -107,7 +107,7 @@ public class NpcTradeService {
             return null;
         }
         // L'utente da' la carta chiesta dall'NPC (giveCode dal suo punto di vista e' "want").
-        NpcDeals.Verdict verdict = deals.trade(userId, offer.giveCode(), offer.wantCode());
+        NpcDeals.Verdict verdict = deals.trade(userId, npcName(room, offer.npcId()), offer.giveCode(), offer.wantCode());
         return conclude(session, room, offer.npcId(), verdict, offer.giveCode(), offer.wantCode());
     }
 
@@ -127,7 +127,7 @@ public class NpcTradeService {
         RoomInstance room = registry.get(session.roomId());
         if (room == null || npcId == null || !TRADERS.contains(room.npcRole(npcId))) return "npc_no_trade";
         if (giveCode == null || wantCode == null) return "invalid_trade";
-        NpcDeals.Verdict verdict = deals.propose(npcId, session.user().id(), giveCode, wantCode);
+        NpcDeals.Verdict verdict = deals.propose(npcId, npcName(room, npcId), session.user().id(), giveCode, wantCode);
         return conclude(session, room, npcId, verdict, giveCode, wantCode);
     }
 
@@ -155,6 +155,11 @@ public class NpcTradeService {
                 return "card_not_owned";
             }
         }
+    }
+
+    private static String npcName(RoomInstance room, UUID npcId) {
+        HotelUser npc = room == null ? null : room.npcUser(npcId);
+        return npc == null ? "NPC" : npc.username();
     }
 
     private void send(UUID userId, Object message) {
