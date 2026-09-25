@@ -11,6 +11,9 @@ const CATEGORY_LABELS = {
   piscina: 'Piscina',
   giardino: 'Giardino',
   giochi: 'Giochi',
+  spiaggia: 'Spiaggia',
+  cinema: 'Cinema',
+  palestra: 'Palestra',
   carte: 'Carte',
   pareti: 'Pareti'
 };

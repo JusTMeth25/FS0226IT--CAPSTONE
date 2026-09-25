@@ -23,9 +23,14 @@ import static org.mockito.Mockito.when;
 
 class RoomNpcTest {
 
-    private static final String LAYOUT = String.join("\n",
-            "xxxxxxxxxxxx", "x00000000000", "x00000000000", "x00000000000", "x00000000000", "x00000000000",
-            "000000000000", "x00000000000", "x00000000000", "x00000000000", "x00000000000", "x00000000000");
+    private static final String LAYOUT = bigLayout();
+
+    /** Stanza vuota grande come quelle pubbliche (24x22), con la porta a sinistra in (0, 11). */
+    static String bigLayout() {
+        StringBuilder s = new StringBuilder("x".repeat(25));
+        for (int y = 1; y <= 22; y++) s.append('\n').append(y == 11 ? "0" : "x").append("0".repeat(24));
+        return s.toString();
+    }
 
     private final JsonMapper mapper = JsonMapper.builder().build();
     private final List<JsonNode> received = new ArrayList<>();
@@ -35,7 +40,7 @@ class RoomNpcTest {
     @BeforeEach
     void setUp() throws Exception {
         RoomData data = new RoomData(NpcRoster.NEON_BAR, "Neon Bar", null, null, null, LAYOUT,
-                0, 6, 2, "checker", "neon", "open", 25, true);
+                0, 11, 2, "checker", "neon", "open", 25, true);
         room = new RoomInstance(data, List.of(
                 new RoomItemView(UUID.randomUUID(), null, "bar_counter", 4, 2, 0, 0, null),
                 new RoomItemView(UUID.randomUUID(), null, "jukebox", 11, 1, 0, 0, null)), new Random(1));
@@ -137,7 +142,7 @@ class RoomNpcTest {
     /** Stanza come nel setUp ma con un "modello" finto che risponde subito, o fallisce (null). */
     private RoomInstance roomWithMind(NpcMind.Reply answer, List<NpcMind.Prompt> asked) throws Exception {
         RoomData data = new RoomData(NpcRoster.NEON_BAR, "Neon Bar", "Cocktail al neon", null, null, LAYOUT,
-                0, 6, 2, "checker", "neon", "open", 25, true);
+                0, 11, 2, "checker", "neon", "open", 25, true);
         NpcMind mind = (prompt, onReply) -> {
             asked.add(prompt);
             onReply.accept(answer);

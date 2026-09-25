@@ -12,8 +12,11 @@ const SEAT_LIFT = 7 * DETAIL;
 /** Colori delle bibite del bancone (nomi come in RoomInstance.DRINKS). */
 const DRINK_COLORS = {
   cola: '#5b2a0e', juice: '#f97316', coffee: '#6b3e1f', bubble: '#ec4899', cocktail: '#22d3ee', tea: '#b45309', gelato: '#f9a8d4',
-  pizza: '#fbbf24', book: '#8b5cf6'
+  pizza: '#fbbf24', book: '#8b5cf6', popcorn: '#fde68a', water: '#7dd3fc'
 };
+
+/** Mobili in cui si nuota, con il lato in caselle: la piscina e il mare della spiaggia. */
+const WATER = { pool_water: 1, sea_water: 2 };
 
 /** Di quanto scende in acqua chi nuota: resta fuori dalla vita in su, come su Habbo. */
 const SWIM_SINK = 30;
@@ -110,17 +113,35 @@ export class HotelEngine {
     this.centerCamera();
   }
 
-  /** Centra la stanza nel riquadro visibile. */
+  /**
+   * Centra la stanza nel riquadro visibile. Le stanze grandi come i locali di Habbo non ci stanno
+   * tutte: si parte inquadrando il proprio avatar (o la porta) e il resto si vede trascinando.
+   */
   centerCamera() {
     if (!this.roomImage) return;
-    const { canvas } = this.roomImage;
-    this.camera.x = Math.round((this.cssWidth - canvas.width * this.zoom) / 2);
-    this.camera.y = Math.round((this.cssHeight - canvas.height * this.zoom) / 2 + 20);
+    const { canvas, originX, originY } = this.roomImage;
+    const w = canvas.width * this.zoom;
+    const h = canvas.height * this.zoom;
+    let x = (this.cssWidth - w) / 2;
+    let y = (this.cssHeight - h) / 2 + 20;
+    const me = this.users.get(this.meId);
+    const focus = me ? me.pos : this.room?.door;
+    if (focus && (w > this.cssWidth || h > this.cssHeight)) {
+      const c = tileCenter(focus.x, focus.y, focus.z || 0);
+      if (w > this.cssWidth) x = clamp(this.cssWidth / 2 - (originX + c.x) * this.zoom, this.cssWidth - w, 0);
+      if (h > this.cssHeight) y = clamp(this.cssHeight / 2 - (originY + c.y) * this.zoom, this.cssHeight - h, 0);
+    }
+    this.camera.x = Math.round(x);
+    this.camera.y = Math.round(y);
   }
 
+  /** Trascinando la vista la stanza non sparisce mai del tutto: ne resta sempre un pezzo. */
   pan(dx, dy) {
-    this.camera.x += dx;
-    this.camera.y += dy;
+    if (!this.roomImage) return;
+    const { canvas } = this.roomImage;
+    const keep = 120;
+    this.camera.x = clamp(this.camera.x + dx, keep - canvas.width * this.zoom, this.cssWidth - keep);
+    this.camera.y = clamp(this.camera.y + dy, keep - canvas.height * this.zoom, this.cssHeight - keep);
   }
 
   // ------------------------------------------------------------------ messaggi del server
@@ -137,8 +158,8 @@ export class HotelEngine {
       case 'typing': this.setTyping(message.id, message.on); break;
       case 'chat': this.addBubble(message, now); break;
       case 'item_added':
-      case 'item_updated': this.items.set(message.item.id, message.item); break;
-      case 'item_removed': this.items.delete(message.id); break;
+      case 'item_updated': this.items.set(message.item.id, message.item); this.waterTiles = null; break;
+      case 'item_removed': this.items.delete(message.id); this.waterTiles = null; break;
       case 'hand_item': this.setHandItem(message.id, message.item, message.left); break;
       case 'consume': this.setConsume(message.id, message.item, message.left, now); break;
       case 'user_away': {
@@ -170,6 +191,7 @@ export class HotelEngine {
     this.users.clear();
     this.bubbles = [];
     this.items = new Map((message.items || []).map((item) => [item.id, item]));
+    this.waterTiles = null;
     this.jukeboxOn = (message.jukebox?.track ?? -1) >= 0;
     this.hearts = [];
     this.sips = [];
@@ -231,7 +253,7 @@ export class HotelEngine {
     if (!user) return;
     user.handLeft = left;
     user.sipUntil = now + 900;
-    this.sips.push({ userId: id, text: item === 'book' ? 'sfoglia' : ['pizza', 'gelato'].includes(item) ? 'gnam!' : 'glu glu', born: now });
+    this.sips.push({ userId: id, text: item === 'book' ? 'sfoglia' : ['pizza', 'gelato', 'popcorn'].includes(item) ? 'gnam!' : 'glu glu', born: now });
     if (this.sips.length > 20) this.sips.shift();
   }
 
@@ -374,12 +396,18 @@ export class HotelEngine {
 
   /** L'avatar e' nell'acqua della piscina? */
   inWater(at) {
-    const x = Math.round(at.x);
-    const y = Math.round(at.y);
-    for (const item of this.items.values()) {
-      if (item.type === 'pool_water' && item.x === x && item.y === y) return true;
+    // Le caselle d'acqua (piscina e mare) si ricalcolano solo quando cambiano i mobili.
+    if (!this.waterTiles) {
+      this.waterTiles = new Set();
+      this.items.forEach((item) => {
+        const size = WATER[item.type];
+        if (!size) return;
+        for (let dx = 0; dx < size; dx += 1) {
+          for (let dy = 0; dy < size; dy += 1) this.waterTiles.add(`${item.x + dx},${item.y + dy}`);
+        }
+      });
     }
-    return false;
+    return this.waterTiles.has(`${Math.round(at.x)},${Math.round(at.y)}`);
   }
 
   /** Sedia o divano sotto l'avatar seduto, se c'e'. */
@@ -736,6 +764,10 @@ export class HotelEngine {
   }
 }
 
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
 function depth(user) {
   const at = user.drawn || user.pos;
   return at.x + at.y + at.z * 0.01;
@@ -791,6 +823,22 @@ function drawDrink(ctx, user, p, scale, view, sipping) {
       rect(1, 7, 6, 2, '#1a1030');
       rect(5, -5, 1, 5, '#ec4899');
       rect(4, -6, 4, 2, '#fbbf24');
+      break;
+    case 'popcorn':
+      // Secchiello a righe rosse e bianche, sempre meno pieno.
+      rect(-1, 0, 10, 11, '#1a1030');
+      for (let i = 0; i < 4; i += 1) rect(i * 2, 1, 2, 9, i % 2 ? '#f5f5f5' : '#ef4444');
+      rect(0, -2 + (3 - left), 8, 3, color);
+      rect(1, -3 + (3 - left), 2, 1, '#fffbeb');
+      if (left > 1) rect(5, -3, 2, 1, '#fffbeb');
+      break;
+    case 'water':
+      // Borraccia trasparente con il tappo blu.
+      rect(0, -3, 8, 14, '#1a1030');
+      rect(2, -2, 4, 2, '#2563eb');
+      rect(1, 0, 6, 10, 'rgba(224, 242, 254, 0.85)');
+      rect(1, 10 - left * 3, 6, left * 3, color);
+      rect(2, 1, 1, 6, 'rgba(255, 255, 255, 0.8)');
       break;
     case 'coffee':
     case 'tea':

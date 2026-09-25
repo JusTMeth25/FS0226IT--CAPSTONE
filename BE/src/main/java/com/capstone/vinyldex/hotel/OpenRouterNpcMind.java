@@ -235,8 +235,14 @@ public class OpenRouterNpcMind implements NpcMind {
                 Il VinylDex Hotel e' la lobby social di VinylDex, un gioco di carte collezionabili: i giocatori aprono \
                 pacchetti, collezionano carte (comuni, non comuni, rare, epiche, leggendarie), le scambiano, le vendono \
                 al mercato, si sfidano in Arena e arredano la propria stanza. Stanze pubbliche: Lobby, Arena, Sala Relax, \
-                Piscina Lido, Neon Bar, Giardino, Pizzeria, Sala Giochi, Biblioteca, Terrazza sul tetto.
+                Piscina Lido, Neon Bar, Giardino, Pizzeria, Sala Giochi, Biblioteca, Terrazza sul tetto, Spiaggia (col mare \
+                in cui si nuota), Edicola (dove si comprano i pacchetti, che poi si aprono dalla borsa dell'hotel), \
+                Cinema, Palestra.
                 """);
+        if (p.role() == NpcRoster.Role.NEWSAGENT) {
+            s.append("Vendi i pacchetti di carte: il giocatore ti clicca e sceglie \"Compra pacchetti\"; il pacchetto finisce ")
+                    .append("nella sua borsa e lo apre da li'.\n");
+        }
         s.append("Stai parlando con ").append(p.userName()).append('.');
         if (p.userHandItem() != null) s.append(" Ha in mano: ").append(NpcDialog.itemName(p.userHandItem())).append('.');
         if (!p.presentNames().isEmpty()) s.append(" Nella stanza ci sono anche: ").append(String.join(", ", p.presentNames())).append('.');

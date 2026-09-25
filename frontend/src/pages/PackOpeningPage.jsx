@@ -1,59 +1,14 @@
-import { lazy, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
 import { useSound } from '../hooks/useSound.js';
 import { useCountUp } from '../hooks/useCountUp.js';
 import { PACKS } from '../data/packs.js';
-import { RARITY_ORDER, findBestCardIndex, getRarityColor, getStars, resolveCardImage } from '../utils/cardUtils.js';
 import { formatDuration } from '../hooks/useCountdown.js';
-import RevealSpark from '../components/common/RevealSpark.jsx';
 import StarBorder from '../components/common/StarBorder.jsx';
 import CardHoloFrame from '../components/card/CardHoloFrame.jsx';
-import CardTile, { RarityBadge } from '../components/card/CardTile.jsx';
-import CardHero from '../components/card/CardHero.jsx';
-import { useBodyScrollLock } from '../hooks/useBodyScrollLock.js';
-import RevealStage from '../components/fx/RevealStage.jsx';
-import RarityAnnounce from '../components/fx/RarityAnnounce.jsx';
-import PackVerdict from '../components/fx/PackVerdict.jsx';
-import PackValue from '../components/fx/PackValue.jsx';
-import ThreeGate from '../components/three/ThreeGate.jsx';
-import { useThreeEnabled } from '../components/three/useThreeEnabled.js';
-
-// Lo strappo 3D porta con se' three.js: si scarica solo quando si apre davvero un pacchetto.
-const PackTear3D = lazy(() => import('../components/three/PackTear3D.jsx'));
-// Stessa carta 3D del dettaglio, per ispezionare le carte dal riepilogo del pacchetto.
-const Card3D = lazy(() => import('../components/three/Card3D.jsx'));
-
-// Attesa tra strappo e rivelazione. Con la scena 3D c'e' un'esplosione da guardare, e con una
-// leggendaria anche il vinile d'oro che vola verso lo schermo.
-const TEAR_TO_REVEAL_MS = { css: 550, three: 1200, threeLegendary: 1800 };
-
-/** Rarita' piu' alta del pacchetto, anche se sotto la soglia di "carta migliore". */
-function topRarity(cards) {
-  return cards.reduce(
-    (best, card) => ((RARITY_ORDER[card.rarity] || 0) > (RARITY_ORDER[best] || 0) ? card.rarity : best),
-    'common'
-  );
-}
-
-// Trascinamento orizzontale (in px) necessario per completare lo strappo del pacchetto.
-const TEAR_DRAG_MAX = 120;
-const TEAR_COMPLETE_THRESHOLD = 0.5;
-
-const PACK_ICON = { 'pack-base': 'ph-gift', 'pack-deluxe': 'ph-diamond', 'pack-premium': 'ph-crown' };
-const PACK_GRADIENT = {
-  'pack-base': 'linear-gradient(135deg, var(--neon-purple), var(--neon-magenta))',
-  'pack-deluxe': 'linear-gradient(135deg, var(--neon-blue), var(--neon-cyan))',
-  'pack-premium': 'linear-gradient(135deg, #FFD700, #FFA500)'
-};
-// Artwork dedicata per pacchetto (se assente si usa icona + gradient come fallback).
-const PACK_IMAGE = {
-  'pack-base': '/assets/img/BasePack.png',
-  'pack-deluxe': '/assets/img/DeluxePack.png',
-  'pack-premium': '/assets/img/PremiumPack.png'
-};
-// Intensità dell'effetto tilt/holo sui pacchetti, mappata su una rarità equivalente per tier.
-const PACK_TILT_RARITY = { 'pack-base': 'rare', 'pack-deluxe': 'epic', 'pack-premium': 'legendary' };
+import PackOpeningFlow from '../components/pack/PackOpeningFlow.jsx';
+import { PACK_GRADIENT, PACK_ICON, PACK_IMAGE, PACK_TILT_RARITY } from '../components/pack/packArt.js';
 
 /** Riflesso olografico + sparkle sopra la card pacchetto, stesso pattern usato per le carte. */
 function PackHoloLayers() {
@@ -122,80 +77,20 @@ function PackSelectCard({ pack, gold, isFreeAvailable, cooldownRemaining, gifted
   );
 }
 
-// Intensità della scintillata di rivelazione, scalata per rarità (le comuni ricevono solo un piccolo accenno).
-const REVEAL_SPARK_BY_RARITY = {
-  common: { count: 4, radius: 26, color: '#ccc' },
-  uncommon: { count: 5, radius: 30 },
-  rare: { count: 6, radius: 34 },
-  epic: { count: 9, radius: 42 },
-  legendary: { count: 14, radius: 55, color: '#FFD700' }
-};
-
-function RevealCard({ card, size = 'grid' }) {
-  const color = getRarityColor(card.rarity);
-  const rarityClass = `card-rarity-${card.rarity}`;
-  const sizeClass = size === 'hero' ? 'pack-reveal-card-hero' : '';
-  const spark = REVEAL_SPARK_BY_RARITY[card.rarity] || REVEAL_SPARK_BY_RARITY.common;
-
-  if (card.fullImage) {
-    return (
-      <div className={`pack-reveal-card ${rarityClass} ${sizeClass} pack-reveal-flip`} style={{ overflow: 'hidden', borderRadius: 12, position: 'relative' }}>
-        <img src={resolveCardImage(card)} alt={card.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }} />
-        <RevealSpark color={spark.color || color} count={spark.count} radius={spark.radius} />
-      </div>
-    );
-  }
-
-  return (
-    <div className={`pack-reveal-card ${rarityClass} ${sizeClass} pack-reveal-flip`}>
-      <div className="pack-reveal-card-inner">
-        <div className="pack-reveal-art">
-          <img src={resolveCardImage(card)} alt={card.name} />
-          <RarityBadge rarity={card.rarity} />
-        </div>
-        <div className="pack-reveal-info">
-          <span className="pack-reveal-name">{card.name}</span>
-          <span className="pack-reveal-class">{card.artistClass}</span>
-          <span className="pack-reveal-stars">
-            {Array.from({ length: 5 }, (_, i) => (
-              <i key={i} className={i < getStars(card.rarity) ? 'ph-fill ph-star' : 'ph ph-star'} style={{ color: i < getStars(card.rarity) ? color : '#333' }} />
-            ))}
-          </span>
-        </div>
-      </div>
-      <RevealSpark color={spark.color || color} count={spark.count} radius={spark.radius} />
-    </div>
-  );
-}
-
 export default function PackOpeningPage() {
   const game = useGame();
   const { sound } = useSound();
   const navigate = useNavigate();
   const displayGold = useCountUp(game.gold);
-  const threeEnabled = useThreeEnabled();
 
-  const [phase, setPhase] = useState('select');
   const [selectedPack, setSelectedPack] = useState(null);
   const [cards, setCards] = useState([]);
-  const [revealIndex, setRevealIndex] = useState(0);
-  const [advancing, setAdvancing] = useState(false);
+  // Cresce a ogni apertura: rimonta l'animazione da capo anche aprendo due volte lo stesso pacchetto.
+  const [openingId, setOpeningId] = useState(0);
   const [notice, setNotice] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [inspectedCard, setInspectedCard] = useState(null);
-  // Sul modal di ispezione, blocca lo scroll di sfondo: altrimenti trascinare il dito sulla
-  // carta per l'effetto tilt scorre erroneamente il riepilogo sottostante.
-  useBodyScrollLock(!!inspectedCard);
 
-  // Strappo del pacchetto: l'utente deve trascinare fisicamente le due metà (niente auto-apertura).
-  const [dragProgress, setDragProgress] = useState(0);
-  const [dragging, setDragging] = useState(false);
-  const [torn, setTorn] = useState(false);
-  const dragStartX = useRef(0);
-
-  // I setTimeout di questa pagina aggiornano stato dopo un delay (transizioni di fase, notice
-  // auto-dismiss): se l'utente naviga via prima che scattino, andrebbero a scrivere su un
-  // componente smontato. Li tracciamo qui e li ripuliamo tutti allo smontaggio.
+  // Il messaggio d'errore sparisce da solo: il timer va annullato se si lascia la pagina prima.
   const pendingTimers = useRef(new Set());
   const trackedTimeout = useCallback((fn, ms) => {
     const id = setTimeout(() => { pendingTimers.current.delete(id); fn(); }, ms);
@@ -207,74 +102,6 @@ export default function PackOpeningPage() {
   const basePack = PACKS.find((p) => p.isFree);
   const cooldownRemaining = game.getFreeCooldownRemaining(basePack);
   const isFreeAvailable = game.isFreeAvailable(basePack);
-
-  // Fase 'opening': reset dello stato di trascinamento all'ingresso (l'apertura vera e propria
-  // parte solo quando l'utente trascina il pacchetto, vedi handleTear*).
-  useEffect(() => {
-    if (phase !== 'opening') return undefined;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset intenzionale all'ingresso nella fase 'opening'
-    setDragProgress(0);
-    setDragging(false);
-    setTorn(false);
-    return undefined;
-  }, [phase]);
-
-  // Fase 'reveal': una carta gigante alla volta (stile Pokémon TCG Pocket), avanzamento a tocco.
-  useEffect(() => {
-    if (phase !== 'reveal') return undefined;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset intenzionale all'ingresso nella fase 'reveal'
-    setRevealIndex(0);
-    setAdvancing(false);
-    if (cards[0]) sound.cardReveal(cards[0].rarity);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase]);
-
-  function handleTearPointerDown(e) {
-    if (torn) return;
-    dragStartX.current = e.clientX;
-    setDragging(true);
-    e.currentTarget.setPointerCapture(e.pointerId);
-  }
-
-  function handleTearPointerMove(e) {
-    if (!dragging || torn) return;
-    const delta = Math.abs(e.clientX - dragStartX.current);
-    setDragProgress(Math.min(1, delta / TEAR_DRAG_MAX));
-  }
-
-  function completeTear() {
-    setDragging(false);
-    setTorn(true);
-    setDragProgress(1);
-    sound.packOpen();
-    const delay = !threeEnabled
-      ? TEAR_TO_REVEAL_MS.css
-      : topRarity(cards) === 'legendary' ? TEAR_TO_REVEAL_MS.threeLegendary : TEAR_TO_REVEAL_MS.three;
-    trackedTimeout(() => setPhase('reveal'), delay);
-  }
-
-  function handleTearPointerUp() {
-    if (!dragging || torn) return;
-    setDragging(false);
-    if (dragProgress >= TEAR_COMPLETE_THRESHOLD) {
-      completeTear();
-    } else {
-      setDragProgress(0);
-    }
-  }
-
-  function advanceReveal() {
-    if (advancing) return;
-    if (revealIndex + 1 >= cards.length) {
-      setPhase('summary');
-      return;
-    }
-    setAdvancing(true);
-    const next = revealIndex + 1;
-    setRevealIndex(next);
-    sound.cardReveal(cards[next].rarity);
-    trackedTimeout(() => setAdvancing(false), 450);
-  }
 
   const ERROR_MESSAGES = {
     insufficient_gold: 'Non hai abbastanza gold per questo pacchetto.',
@@ -309,20 +136,15 @@ export default function PackOpeningPage() {
     }
     setSelectedPack(pack);
     setCards(res.cards);
-    setPhase('opening');
+    setOpeningId((n) => n + 1);
   }
 
   function resetToSelect() {
-    setPhase('select');
     setSelectedPack(null);
     setCards([]);
-    setRevealIndex(0);
-    setDragProgress(0);
-    setTorn(false);
-    setInspectedCard(null);
   }
 
-  if (phase === 'select') {
+  if (!selectedPack) {
     return (
       <section className="packs-page">
         <h2 className="section-title text-gradient"><i className="ph-fill ph-gift" /> Apri un Pacchetto</h2>
@@ -364,138 +186,18 @@ export default function PackOpeningPage() {
     );
   }
 
-  const icon = PACK_ICON[selectedPack?.id] || 'ph-gift';
-  const boxImage = PACK_IMAGE[selectedPack?.id];
-  const boxGradient = PACK_GRADIENT[selectedPack?.id];
-  const currentCard = cards[revealIndex];
-  const isLastCard = revealIndex >= cards.length - 1;
-  const bestCardIndex = findBestCardIndex(cards);
-
-  const tearHandlers = {
-    onPointerDown: handleTearPointerDown,
-    onPointerMove: handleTearPointerMove,
-    onPointerUp: handleTearPointerUp,
-    onPointerCancel: handleTearPointerUp
-  };
-
-  const halfShift = dragProgress * 160;
-  const halfRotate = dragProgress * 30;
-  const liveDragStyle = (side) => ({
-    transform: `translateX(${side === 'left' ? '-' : ''}${halfShift}px) rotate(${side === 'left' ? '-' : ''}${halfRotate}deg)`,
-    opacity: 1 - dragProgress * 0.25,
-    transition: dragging ? 'none' : 'transform 0.35s ease, opacity 0.35s ease',
-    background: boxImage ? undefined : boxGradient
-  });
-
   return (
     <section className="pack-opening-page">
       <h2 className="section-title text-gradient">Apertura Pacchetto</h2>
-
-      {phase === 'opening' && (
-        <div className="pack-tear-stage">
-          <ThreeGate fallback={
-            <div
-              className={`pack-tear ${!dragging && !torn ? 'pack-tear-idle' : ''}`}
-              {...tearHandlers}
-            >
-              <div
-                className={`pack-tear-half pack-tear-half-left ${torn ? 'pack-tear-half-done' : ''}`}
-                style={torn ? undefined : liveDragStyle('left')}
-              >
-                {boxImage ? <img className="pack-tear-img" src={boxImage} alt="" style={{ objectPosition: 'left center' }} draggable={false} /> : <i className={`ph-fill ${icon} pack-tear-icon`} />}
-              </div>
-              <div
-                className={`pack-tear-half pack-tear-half-right ${torn ? 'pack-tear-half-done' : ''}`}
-                style={torn ? undefined : liveDragStyle('right')}
-              >
-                {boxImage && <img className="pack-tear-img" src={boxImage} alt="" style={{ objectPosition: 'right center' }} draggable={false} />}
-              </div>
-              <div className={`pack-tear-flash ${torn ? 'pack-tear-flash-burst' : ''}`} style={torn ? undefined : { opacity: dragProgress * 0.9 }} />
-            </div>
-          }>
-            <PackTear3D
-              handlers={tearHandlers}
-              packImage={boxImage}
-              packRarity={PACK_TILT_RARITY[selectedPack?.id] || 'rare'}
-              bestRarity={topRarity(cards)}
-              dragProgress={dragProgress}
-              dragging={dragging}
-              torn={torn}
-            />
-          </ThreeGate>
-          <p className="pack-opening-text pack-tear-hint">
-            {torn ? <><i className="ph-fill ph-sparkle" /> Le carte stanno per essere rivelate...</> : <><i className="ph-fill ph-arrows-left-right" /> Trascina per aprire il pacchetto!</>}
-          </p>
-        </div>
-      )}
-
-      {phase === 'reveal' && currentCard && (
-        <div className="pack-reveal-solo">
-          <p className="pack-reveal-progress">Carta {revealIndex + 1} di {cards.length}</p>
-
-          {/* Un pallino per carta, colorato con la rarita' di quelle gia' viste: mostra
-              a colpo d'occhio com'e' andato il pacchetto senza aspettare il riepilogo. */}
-          <div className="reveal-dots" aria-hidden="true">
-            {cards.map((card, i) => (
-              <span
-                key={`${card.id}-${i}`}
-                className={`reveal-dot${i < revealIndex ? ' seen' : ''}${i === revealIndex ? ' current' : ''}`}
-                style={i <= revealIndex ? { '--dot-color': getRarityColor(card.rarity) } : undefined}
-              />
-            ))}
-          </div>
-
-          {/* key sull'indice: rimonta il palcoscenico a ogni carta, cosi' lampo, raggi e
-              annuncio ripartono da capo invece di restare fermi dalla prima rivelazione. */}
-          <div className="pack-reveal-solo-card" onClick={advanceReveal} key={revealIndex}>
-            <RevealStage rarity={currentCard.rarity}>
-              <RevealCard card={currentCard} size="hero" />
-            </RevealStage>
-            <RarityAnnounce rarity={currentCard.rarity} />
-          </div>
-
-          <button className="btn btn-primary pack-reveal-next" onClick={advanceReveal}>
-            {isLastCard ? <><i className="ph-fill ph-check-circle" /> Vedi il Riepilogo</> : <><i className="ph-fill ph-arrow-right" /> Prossima Carta</>}
-          </button>
-        </div>
-      )}
-
-      {phase === 'summary' && (
-        <>
-          <p className="pack-opening-text"><i className="ph-fill ph-vinyl-record" /> Ecco le tue nuove carte!</p>
-          <PackVerdict cards={cards} />
-          <PackValue cards={cards} />
-          <div className="pack-reveal-grid">
-            {cards.map((card, i) => (
-              <div
-                className={`pack-reveal-slot pack-reveal-flip${i === bestCardIndex ? ' pack-reveal-slot-best' : ''}`}
-                style={i === bestCardIndex ? { '--rarity-color': getRarityColor(card.rarity) } : undefined}
-                key={`${card.id}-${i}`}
-              >
-                <CardTile card={card} onClick={() => setInspectedCard(card)} />
-              </div>
-            ))}
-          </div>
-          <div className="pack-summary-actions">
-            <button className="btn btn-primary" onClick={resetToSelect}><i className="ph-fill ph-gift" /> Apri un Altro</button>
-            <button className="btn btn-secondary" onClick={() => navigate('/collection')}><i className="ph-fill ph-cards" /> Vai alla Collezione</button>
-          </div>
-        </>
-      )}
-
-      {inspectedCard && (
-        <div className="pack-overlay" onClick={() => setInspectedCard(null)}>
-          <div className="pack-inspect-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="btn btn-secondary pack-inspect-close" onClick={() => setInspectedCard(null)}>
-              <i className="ph-fill ph-arrow-left" /> Torna al Riepilogo
-            </button>
-            <ThreeGate fallback={<CardHero card={inspectedCard} />}>
-              <Card3D card={inspectedCard} />
-              <CardHero card={inspectedCard} hideArt />
-            </ThreeGate>
-          </div>
-        </div>
-      )}
+      <PackOpeningFlow
+        key={openingId}
+        packId={selectedPack.id}
+        cards={cards}
+        actions={[
+          { label: 'Apri un Altro', icon: 'ph-gift', onClick: resetToSelect, primary: true },
+          { label: 'Vai alla Collezione', icon: 'ph-cards', onClick: () => navigate('/collection') }
+        ]}
+      />
     </section>
   );
 }

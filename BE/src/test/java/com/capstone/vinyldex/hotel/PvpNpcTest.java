@@ -29,8 +29,7 @@ import static org.mockito.Mockito.when;
 
 class PvpNpcTest {
 
-    private static final String ARENA_LAYOUT = String.join("\n", "xxxxxxxxxxxx", "x00000000000", "x00000000000",
-            "x00011110000", "000011110000", "x00011110000", "x00000000000", "x00000000000", "x00000000000");
+    private static final String ARENA_LAYOUT = RoomNpcTest.bigLayout();
 
     private final JsonMapper mapper = JsonMapper.builder().build();
     private final List<JsonNode> received = new CopyOnWriteArrayList<>();
@@ -87,7 +86,7 @@ class PvpNpcTest {
         session.authenticate(new HotelUser(annaId, "anna", HotelLook.DEFAULT, 1));
         registry.register(session);
         RoomData arena = new RoomData(NpcRoster.ARENA, "Arena", null, null, null, ARENA_LAYOUT,
-                0, 4, 2, "arena", "brick", "open", 25, true);
+                0, 11, 2, "arena", "brick", "open", 25, true);
         registry.join(session, arena, List.of());
 
         UUID kira = null;
@@ -145,7 +144,7 @@ class PvpNpcTest {
         session.authenticate(new HotelUser(annaId, "anna", HotelLook.DEFAULT, 1));
         registry.register(session);
         registry.join(session, new RoomData(NpcRoster.ARENA, "Arena", null, null, null, ARENA_LAYOUT,
-                0, 4, 2, "arena", "brick", "open", 25, true), List.of());
+                0, 11, 2, "arena", "brick", "open", 25, true), List.of());
 
         // La sfida spontanea parte una volta su tre: si riprova finche' non arriva.
         for (int i = 0; i < 60 && last("challenge_received") == null; i++) pvp.npcChallenges();

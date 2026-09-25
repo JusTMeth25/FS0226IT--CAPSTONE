@@ -51,8 +51,7 @@ public class NpcTradeService {
     @Scheduled(fixedDelay = 40_000, initialDelay = 45_000)
     public void spontaneousOffers() {
         long now = System.currentTimeMillis();
-        for (UUID roomId : List.of(NpcRoster.LOBBY, NpcRoster.ARENA, NpcRoster.RELAX, NpcRoster.POOL, NpcRoster.NEON_BAR,
-                NpcRoster.GARDEN, NpcRoster.PIZZERIA, NpcRoster.GAMES, NpcRoster.LIBRARY, NpcRoster.ROOFTOP)) {
+        for (UUID roomId : NpcRoster.rooms()) {
             RoomInstance room = registry.get(roomId);
             if (room == null || random.nextInt(4) != 0) continue;
             List<UUID> players = room.activePlayers().stream()

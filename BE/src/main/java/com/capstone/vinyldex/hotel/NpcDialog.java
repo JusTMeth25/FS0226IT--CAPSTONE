@@ -49,6 +49,14 @@ public final class NpcDialog {
         ITEM_WORDS.put("leggere", "book");
         ITEM_WORDS.put("gelato", "gelato");
         ITEM_WORDS.put("cono", "gelato");
+        ITEM_WORDS.put("popcorn", "popcorn");
+        ITEM_WORDS.put("pop corn", "popcorn");
+        // "acqua" da sola e' anche il mare e la piscina: conta solo come "dell'acqua" o "un'acqua".
+        ITEM_WORDS.put("dell acqua", "water");
+        ITEM_WORDS.put("un acqua", "water");
+        ITEM_WORDS.put("d acqua", "water");
+        ITEM_WORDS.put("borraccia", "water");
+        ITEM_WORDS.put("water", "water");
     }
 
     private static final List<String> GENERIC_ORDER = List.of("bere", "bibita", "drink", "sete", "ordinare", "ordino", "menu");
@@ -60,10 +68,12 @@ public final class NpcDialog {
     private static final List<String> BYE = List.of("bye", "addio", "vado", "notte", "arrivederci");
 
     /** Nomi leggibili degli oggetti, per le frasi. */
-    private static final Map<String, String> ITEM_NAMES = Map.of(
-            "coffee", "un caffe'", "cola", "una cola", "juice", "un succo d'arancia", "bubble", "una bibita frizzante",
-            "cocktail", "un cocktail al neon", "tea", "una tazza di te'", "gelato", "un gelato",
-            "pizza", "un trancio di pizza", "book", "un bel libro");
+    private static final Map<String, String> ITEM_NAMES = Map.ofEntries(
+            Map.entry("coffee", "un caffe'"), Map.entry("cola", "una cola"), Map.entry("juice", "un succo d'arancia"),
+            Map.entry("bubble", "una bibita frizzante"), Map.entry("cocktail", "un cocktail al neon"),
+            Map.entry("tea", "una tazza di te'"), Map.entry("gelato", "un gelato"), Map.entry("pizza", "un trancio di pizza"),
+            Map.entry("book", "un bel libro"), Map.entry("popcorn", "un secchiello di popcorn"),
+            Map.entry("water", "una borraccia d'acqua fresca"));
 
     private NpcDialog() {
     }
@@ -128,6 +138,10 @@ public final class NpcDialog {
             case REFEREE -> "Benvenuto nell'Arena, " + user + ". Clicca un giocatore e sfidalo!";
             case CHEF -> "Benvenuto in pizzeria, " + user + "! Il forno e' caldo, una margherita?";
             case LIBRARIAN -> "Benvenuto in biblioteca, " + user + ". Sussurra, qui si legge!";
+            case NEWSAGENT -> pick(random, List.of("Ciao " + user + "! Giornali, fumetti e pacchetti di carte: cosa ti do?",
+                    "Benvenuto in edicola, " + user + "! Cliccami per comprare i pacchetti."));
+            case USHER -> "Buona visione, " + user + "! Popcorn e cola li porto io.";
+            case TRAINER -> pick(random, List.of("Forza " + user + ", dieci giri di tapis roulant!", "Ciao " + user + "! Ti serve acqua?"));
             case FIGHTER -> pick(random, List.of("Ehi " + user + ", hai il coraggio di sfidarmi?",
                     "Ciao " + user + "! Le mie carte sono pronte, e le tue?"));
             case GUEST -> pick(random, List.of("Ciao " + user + "!", "Ehi " + user + ", come va?", "Ciao! Bella stanza, vero?"));
@@ -177,7 +191,8 @@ public final class NpcDialog {
 
     public static String cannotDance(NpcRoster.Role role) {
         return switch (role) {
-            case BARISTA, WAITER, ICE_CREAM, CHEF -> "Sono in servizio, ballo dopo il turno!";
+            case BARISTA, WAITER, ICE_CREAM, CHEF, NEWSAGENT, USHER -> "Sono in servizio, ballo dopo il turno!";
+            case TRAINER -> "Balla pure, e' un ottimo allenamento! Io conto le ripetizioni.";
             case LIBRARIAN -> "In biblioteca? Shhh!";
             case LIFEGUARD -> "Devo tenere d'occhio la vasca, scusa!";
             default -> "Magari dopo!";
@@ -245,6 +260,13 @@ public final class NpcDialog {
         return "Io non servo da bere, chiedi al bancone!";
     }
 
+    /** L'edicolante ha venduto un pacchetto. */
+    public static String packSold(String user, String packName, Random random) {
+        return pick(random, List.of("Ecco il tuo " + packName + ", " + user + "! Lo trovi nella borsa.",
+                packName + " per " + user + ": buona fortuna con le leggendarie!",
+                "Affare fatto, " + user + "! Aprilo dalla borsa quando vuoi."));
+    }
+
     /** Battute dette ogni tanto, senza che nessuno chieda nulla. */
     public static String idle(NpcRoster.Role role, Random random) {
         return pick(random, switch (role) {
@@ -260,6 +282,10 @@ public final class NpcDialog {
             case CHEF -> List.of("Pizza calda appena sfornata!", "Oggi c'e' la speciale al neon: pomodoro e fiordilatte viola... scherzo!",
                     "Chi vuole un trancio?");
             case LIBRARIAN -> List.of("Shhh, per favore.", "Nuovi arrivi sullo scaffale dei manga.", "I libri si restituiscono entro domani!");
+            case NEWSAGENT -> List.of("Pacchetti freschi appena arrivati!", "Il Premium ha una leggendaria garantita, eh!",
+                    "Giornali, fumetti, carte VinylDex!");
+            case USHER -> List.of("Il film sta per iniziare!", "Popcorn caldi, chi li vuole?", "Spegnete i telefoni, per favore.");
+            case TRAINER -> List.of("Uno, due, tre, respira!", "Chi fa una serie di addominali con me?", "Bevete acqua, e' importante!");
             case FIGHTER -> List.of("Chi ha il coraggio di sfidarmi?", "La mia squadra oggi e' imbattibile.",
                     "Scambio carte doppie, chi ci sta?");
             case GUEST -> List.of("Che bella giornata!", "Qualcuno vuole scambiare carte?", "Adoro questo posto.",
@@ -269,8 +295,10 @@ public final class NpcDialog {
 
     public static String smallTalk(NpcRoster.Role role, String user, Random random) {
         return pick(random, switch (role) {
-            case BARISTA, WAITER, ICE_CREAM, CHEF -> List.of("Dimmi pure, " + user + ": cosa ti porto?", "Eccomi, " + user + "! Hai gia' scelto?");
-            case RECEPTIONIST, LIBRARIAN -> List.of("Dimmi pure, " + user + ", come posso aiutarti?", "Eccomi, " + user + "!");
+            case BARISTA, WAITER, ICE_CREAM, CHEF, USHER -> List.of("Dimmi pure, " + user + ": cosa ti porto?", "Eccomi, " + user + "! Hai gia' scelto?");
+            case NEWSAGENT -> List.of("Vuoi un pacchetto, " + user + "? Cliccami e scegli quale.",
+                    "Il Deluxe oggi va a ruba, " + user + "!");
+            case RECEPTIONIST, LIBRARIAN, TRAINER -> List.of("Dimmi pure, " + user + ", come posso aiutarti?", "Eccomi, " + user + "!");
             default -> List.of("Dimmi pure, " + user + ".", "Tutto bene, " + user + "?", "Eccomi, " + user + "!");
         });
     }

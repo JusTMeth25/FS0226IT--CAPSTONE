@@ -748,3 +748,79 @@ button.hotel-trade-card:hover { background: var(--hp-surface-hover); }
   font-weight: 900;
   font-size: 0.72rem;
 }
+
+/* ---------- Schermo intero ---------- */
+.hotel-page.is-fullscreen {
+  height: 100dvh;
+  min-height: 0;
+  padding: 8px;
+  background: #07050f;
+}
+.hotel-page.is-fullscreen .hotel-stage { border-radius: 12px; }
+/* Dove il browser non ha lo schermo intero (iPhone) la pagina copre tutto il resto. */
+.hotel-page.is-pseudo-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+}
+
+/* ---------- Edicola e pacchetti nella borsa ---------- */
+.hotel-newsstand { top: var(--space-sm); right: var(--space-sm); width: min(460px, calc(100% - 16px)); }
+.hotel-newsstand-bag { margin: 0 10px 10px; align-self: flex-start; }
+.hotel-pack-grid {
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+  gap: 8px;
+  overflow-y: auto;
+}
+.hotel-pack-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 10px;
+  background: var(--hp-surface);
+  border: 1px solid var(--hp-line);
+  text-align: center;
+}
+.hotel-pack-card strong { font-size: 0.78rem; }
+.hotel-pack-card small { font-size: 0.65rem; color: var(--hp-muted); min-height: 2.4em; }
+.hotel-pack-card .btn { width: 100%; margin-top: auto; padding: 5px 6px; font-size: 0.7rem; border-radius: 8px; }
+.hotel-pack-art {
+  position: relative;
+  width: 72px;
+  height: 100px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  font-size: 2rem;
+  color: #fff;
+}
+.hotel-pack-art img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5)); }
+.hotel-pack-owned {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--hp-accent);
+  color: #1a1030;
+  font-size: 0.7rem;
+}
+
+/* Apertura di un pacchetto sopra la stanza: la stessa della pagina Pacchetti. */
+.hotel-pack-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  overflow-y: auto;
+  padding: var(--space-md);
+  background: radial-gradient(ellipse at center, rgba(40, 20, 80, 0.94), rgba(5, 3, 12, 0.97));
+  animation: overlayFadeIn 0.3s ease;
+}
+.hotel-pack-opening { max-width: 980px; margin: 0 auto; }
+.hotel-pack-overlay-close { position: fixed; top: 14px; right: 14px; z-index: 2; font-size: 1.4rem; }

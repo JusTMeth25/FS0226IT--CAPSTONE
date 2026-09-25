@@ -234,12 +234,13 @@ export function GameProvider({ children }) {
     claimLoginReward,
     claimBattleReward,
     recordBattleResult,
-    refreshCollection
+    refreshCollection,
+    refreshPacks: refreshPacksInfo
   }), [
     gold, xp, levelInfo, collection, remoteCatalogSize, favorites, stats, freePacks,
     remoteLastFreePackAt, user, remoteLoaded, isFreeAvailable, getFreeCooldownRemaining,
     openPack, toggleFavorite, claimMission, claimLoginReward, claimBattleReward,
-    recordBattleResult, refreshCollection
+    recordBattleResult, refreshCollection, refreshPacksInfo
   ]);
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

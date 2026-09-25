@@ -16,5 +16,7 @@ public enum WalletTransactionType {
     /** Acquisto di un mobile nel negozio dell'hotel. */
     FURNI_PURCHASE,
     /** Ricompensa di una sfida fra giocatori nell'hotel. */
-    PVP_REWARD
+    PVP_REWARD,
+    /** Pacchetto comprato in edicola: finisce nella borsa e si apre piu' tardi. */
+    PACK_PURCHASE
 }

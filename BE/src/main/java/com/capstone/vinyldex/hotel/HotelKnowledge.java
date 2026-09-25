@@ -56,6 +56,8 @@ public class HotelKnowledge implements Supplier<String> {
                 carte al mercato, salendo di livello e completando gli album.
                 - Nell'hotel: rispetto (3 al giorno da dare ad altri giocatori), stanza personale da arredare con i \
                 mobili del negozio pagati in gold, vetrine per esporre le carte, sfide PvP cliccando un giocatore.
+                - In Edicola (stanza pubblica dell'hotel) si comprano i pacchetti allo stesso prezzo del sito: vanno \
+                nella borsa e si aprono da li', con la stessa apertura della pagina Pacchetti.
                 """);
         List<Pack> packs = packRepository.findAllActiveWithRates().stream()
                 .sorted(Comparator.comparingInt(Pack::getPriceGold))

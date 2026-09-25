@@ -10,7 +10,9 @@ const ITEMS = {
   cocktail: { label: 'Cocktail', icon: 'ph-martini' },
   gelato: { label: 'Gelato', icon: 'ph-ice-cream' },
   pizza: { label: 'Pizza', icon: 'ph-pizza' },
-  book: { label: 'Un libro', icon: 'ph-book-open' }
+  book: { label: 'Un libro', icon: 'ph-book-open' },
+  popcorn: { label: 'Popcorn', icon: 'ph-popcorn' },
+  water: { label: 'Acqua', icon: 'ph-drop' }
 };
 
 const DESCRIPTIONS = {
@@ -25,7 +27,10 @@ const DESCRIPTIONS = {
   chef: 'Al forno a legna: ordina un trancio e te lo sforna.',
   librarian: 'Conosce ogni libro dello scaffale. Chiedile un consiglio.',
   guest: 'Un ospite dell\'hotel: salutalo, balla con lui o scambiate carte.',
-  fighter: 'Sfidante dell\'Arena: gioca a carte con chiunque abbia coraggio, e scambia le sue doppie.'
+  fighter: 'Sfidante dell\'Arena: gioca a carte con chiunque abbia coraggio, e scambia le sue doppie.',
+  newsagent: 'Vende giornali, fumetti e i pacchetti di carte VinylDex.',
+  usher: 'La maschera del cinema: ti porta popcorn e cola al posto.',
+  trainer: 'Istruttrice della palestra: ti allena e ti porta l\'acqua.'
 };
 
 /**
@@ -33,7 +38,7 @@ const DESCRIPTIONS = {
  * le azioni del suo mestiere: ordinare, chiacchierare, chiedere un consiglio, ballare, musica.
  * Le stesse cose si possono chiedere anche scrivendo in chat ("un caffe' per favore, Marco").
  */
-export default function NpcCard({ npc, send, inArena, onClose, onWhisper, onChallenge, onTrade }) {
+export default function NpcCard({ npc, send, inArena, onClose, onWhisper, onChallenge, onTrade, onBuyPacks }) {
   const info = npc.npc || {};
   const act = (action, item) => send({ type: 'npc', npcId: npc.id, action, item });
   const canDance = info.role === 'guest' || info.role === 'dj';
@@ -69,6 +74,11 @@ export default function NpcCard({ npc, send, inArena, onClose, onWhisper, onChal
         {fights && onChallenge && (
           <button type="button" className="btn btn-primary btn-small" onClick={onChallenge}>
             <i className="ph-fill ph-sword" /> Sfida
+          </button>
+        )}
+        {info.role === 'newsagent' && (
+          <button type="button" className="btn btn-gold btn-small" onClick={onBuyPacks}>
+            <i className="ph-fill ph-cards" /> Compra pacchetti
           </button>
         )}
         {trades && (

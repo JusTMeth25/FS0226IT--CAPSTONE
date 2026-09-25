@@ -4,6 +4,7 @@ import com.capstone.vinyldex.entity.User;
 import com.capstone.vinyldex.exception.ApiException;
 import com.capstone.vinyldex.repository.UserRepository;
 import com.capstone.vinyldex.security.JwtService;
+import com.capstone.vinyldex.service.PackService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,6 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *   npc {npcId,action,item}: ordinare, chiacchierare, far ballare o cambiare musica a un NPC
  *   consume: un sorso o un morso dell'oggetto in mano
  *   npc_showcase {npcId} · npc_trade_propose {npcId,give,want} · npc_trade_reply {offerId,accept}
+ *   buy_pack {packId}: comprare un pacchetto in edicola (va nella borsa)
  * Solo nella propria stanza:
  *   place {itemId,x,y,rot} · pickup {itemId} · set_display {itemId,cardId} · kick {userId}
  */
@@ -61,11 +65,14 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     private final HotelSocialService socialService;
     private final PvpService pvpService;
     private final NpcTradeService npcTradeService;
+    private final PackService packService;
+    private final Random random = new Random();
     private final Map<String, HotelSession> sessions = new ConcurrentHashMap<>();
 
     public HotelSocketHandler(ObjectMapper objectMapper, JwtService jwtService, UserRepository userRepository,
                               RoomRegistry registry, RoomService roomService, FurniService furniService,
-                              HotelSocialService socialService, PvpService pvpService, NpcTradeService npcTradeService) {
+                              HotelSocialService socialService, PvpService pvpService, NpcTradeService npcTradeService,
+                              PackService packService) {
         this.objectMapper = objectMapper;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
@@ -75,6 +82,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         this.socialService = socialService;
         this.pvpService = pvpService;
         this.npcTradeService = npcTradeService;
+        this.packService = packService;
     }
 
     @Override
@@ -210,6 +218,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             case "npc" -> {
                 if (room != null) reply(session, room.npcAction(userId, uuid(node, "npcId"), text(node, "action"), text(node, "item")));
             }
+            case "buy_pack" -> buyPack(session, room, text(node, "packId"));
             case "use_item" -> {
                 if (room != null) reply(session, room.useItem(userId, uuid(node, "itemId")));
             }
@@ -340,6 +349,24 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         HotelSocialService.RespectResult result = socialService.respect(session.user().id(), receiverId);
         room.announceRespect(session.user().id(), receiverId, result.receivedTotal());
         session.send(Map.of("type", "respects_left", "left", result.remainingToday()));
+    }
+
+    /** In edicola si compra un pacchetto: i gold vanno via subito, il pacchetto finisce nella borsa. */
+    private void buyPack(HotelSession session, RoomInstance room, String packId) {
+        if (room == null || !NpcRoster.NEWSSTAND.equals(room.data().id())) {
+            session.send(error("not_at_newsstand"));
+            return;
+        }
+        if (packId == null) {
+            session.send(error("pack_not_found"));
+            return;
+        }
+        UUID userId = session.user().id();
+        PackService.PackPurchase purchase = packService.buyPack(userId, packId);
+        room.npcsWithRole(Set.of(NpcRoster.Role.NEWSAGENT)).stream().findFirst().ifPresent(newsagent ->
+                room.npcSay(newsagent, NpcDialog.packSold(session.user().username(), purchase.name(), random), userId));
+        session.send(Map.of("type", "pack_bought", "packId", purchase.packId(), "name", purchase.name(),
+                "owned", purchase.owned(), "gold", purchase.gold()));
     }
 
     private static void reply(HotelSession session, String errorCode) {

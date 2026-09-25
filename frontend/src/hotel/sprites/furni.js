@@ -248,6 +248,47 @@ function outline(ctx, w, h) {
  *  - d(u, v, z, color, w, h): rettangolino di pixel su una faccia
  *  - front(fn): parti sul lato davanti, che con rot 4 e 6 finiscono dietro al mobile
  */
+/** Onde del mare e della battigia: passi dell'animazione e ms per passo. */
+const SEA_STEPS = 8;
+const SEA_PERIOD = 260;
+/** Film sullo schermo del cinema: sei fotogrammi, due scene che si alternano. */
+const SCREEN_STEPS = 6;
+const SCREEN_PERIOD = 600;
+
+function lerpColor(a, b, t) {
+  const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
+  const pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
+  const k = Math.max(0, Math.min(1, t));
+  return `rgb(${pa.map((v, i) => Math.round(v + (pb[i] - v) * k)).join(',')})`;
+}
+
+/**
+ * Un pixel del film: x lungo lo schermo, z in altezza. Scena 0 un tramonto con il sole che
+ * scende dietro le montagne, scena 1 un vinile che gira sotto la luce.
+ */
+function filmPixel(x, z, step, scene) {
+  const h = (z - 28) / 102;
+  if (scene === 0) {
+    const ridge = 0.24 + Math.sin(x * 0.07) * 0.08 + Math.sin(x * 0.23 + 1) * 0.04;
+    if (h < ridge) return h < ridge - 0.03 ? '#241336' : '#3b1f52';
+    const sunX = 60 + step * 12;
+    const sunH = 0.62 - step * 0.05;
+    if ((x - sunX) ** 2 + ((h - sunH) * 102) ** 2 < 150) return '#fde68a';
+    return lerpColor('#f97316', '#4c1d95', (h - 0.2) / 0.8);
+  }
+  const dx = x - 96;
+  const dz = (h - 0.5) * 102;
+  const radius = Math.hypot(dx, dz);
+  if (radius > 44) return (x + z) % 7 === 0 ? '#1b1330' : '#0b0716';
+  if (radius < 2) return '#0b0716';
+  if (radius < 11) return radius < 9 ? '#ec4899' : '#f9a8d4';
+  const angle = Math.atan2(dz, dx);
+  const spin = ((step * 1.05) % (Math.PI * 2)) - Math.PI;
+  const diff = Math.abs(((angle - spin + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+  if (diff < 0.22) return '#5b5378';
+  return Math.floor(radius) % 3 === 0 ? '#211c33' : '#111018';
+}
+
 const WOOD = '#8a5a3b';
 const WOOD_DARK = '#5b3a26';
 
@@ -629,6 +670,240 @@ const DRAW = {
       for (let i = 0; i < 16; i += 1) d(0.1 + i * 0.18, 0.9, 14, i % 2 ? '#ec4899' : '#22d3ee', 3, 2);
     });
   },
+  // ---------------------------------------------------------------- spiaggia
+
+  sea_water(b, { d, now }) {
+    // Mare aperto: niente contorno, creste di onda che corrono verso riva (verso u = 0). Le
+    // creste distano una casella, cosi' continuano da un riquadro all'altro senza cuciture.
+    const phase = ((now || 0) / SEA_PERIOD) % SEA_STEPS / SEA_STEPS;
+    b({ u0: 0, v0: 0, u1: 2, v1: 2, z1: 0, color: '#1f7fb6' });
+    for (let k = 0; k < 2; k += 1) {
+      const crest = k + 1 - phase;
+      for (let v = 0.02; v < 2; v += 0.035) {
+        const u = crest + Math.sin(v * Math.PI * 2) * 0.06;
+        if (u <= 0.02 || u >= 1.98) continue;
+        d(u, v, 0, '#e6f7ff', 3, 1);
+        d(u + 0.06, v, 0, '#7cc8ec', 3, 1);
+        d(u - 0.1, v, 0, '#1a6d9e', 2, 1);
+      }
+    }
+    [[0.4, 0.5], [1.3, 1.6], [0.8, 1.2], [1.7, 0.3]].forEach(([u, v], i) => {
+      d(u - phase * 0.3, v, 0, i % 2 ? '#bfe9ff' : '#ffffff', 4, 1);
+    });
+  },
+  sea_foam(b, { d, now }) {
+    // Battigia: sabbia bagnata e l'acqua che sale e scende, con la schiuma sul bordo.
+    const phase = ((now || 0) / SEA_PERIOD) % SEA_STEPS / SEA_STEPS;
+    const reach = 0.25 + (Math.sin(phase * Math.PI * 2) + 1) * 0.28;
+    b({ u0: 0, v0: 0, u1: 1, v1: 1, z1: 0, color: '#c9a86a' });
+    for (let v = 0.02; v < 1; v += 0.035) {
+      const edge = 1 - reach + Math.sin(v * Math.PI * 4 + phase * 6) * 0.05;
+      for (let u = Math.max(0.02, edge); u < 0.99; u += 0.06) d(u, v, 0, u - edge < 0.12 ? '#9fd6ee' : '#56aedb', 2, 1);
+      if (edge > 0.02 && edge < 0.98) d(edge - 0.03, v, 0, '#ffffff', 3, 1);
+    }
+  },
+  beach_towel(b, { d }) {
+    b({ u0: 0.12, v0: 0.06, u1: 0.88, v1: 1.94, z1: 1, color: '#f43f5e' });
+    for (let i = 0; i < 6; i += 1) b({ u0: 0.12, v0: 0.2 + i * 0.3, u1: 0.88, v1: 0.32 + i * 0.3, z0: 1, z1: 1, color: '#fef3c7' });
+    b({ u0: 0.3, v0: 0.1, u1: 0.7, v1: 0.34, z0: 1, z1: 5, color: '#fef3c7', tex: 'fabric' });
+    d(0.5, 1.3, 1, '#fbbf24', 4, 2);
+  },
+  sand_castle(b, { c, d }) {
+    b({ u0: 0.14, v0: 0.14, u1: 0.86, v1: 0.86, z1: 16, color: '#e2c07f', tex: 'stone' });
+    [[0.24, 0.24], [0.76, 0.24], [0.24, 0.76], [0.76, 0.76]].forEach(([u, v]) => c({ u, v, r: 0.1, z0: 16, z1: 30, color: '#d9b36c', tex: 'stone' }));
+    c({ u: 0.5, v: 0.5, r: 0.16, z0: 16, z1: 42, color: '#e8c98c', tex: 'stone' });
+    b({ u0: 0.49, v0: 0.49, u1: 0.51, v1: 0.51, z0: 42, z1: 56, color: '#6b4a2a' });
+    d(0.52, 0.5, 56, '#ef4444', 6, 4);
+  },
+  beach_bar(b, { c, d, front }) {
+    // Chiosco con il bancone in legno chiaro e il tetto di paglia su quattro pali.
+    b({ u0: 0.04, v0: 0.3, u1: 1.96, v1: 0.9, z1: 40, color: '#c08a4e', tex: 'wood' });
+    b({ u0: 0, v0: 0.26, u1: 2, v1: 0.94, z0: 40, z1: 44, color: '#8a5a3b', tex: 'wood' });
+    [[0.06, 0.06], [1.86, 0.06]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.08, v1: v + 0.08, z1: 104, color: '#6b4a2a', tex: 'wood' }));
+    ['#f97316', '#22d3ee', '#fbbf24'].forEach((col, i) => c({ u: 0.5 + i * 0.5, v: 0.6, r: 0.06, z0: 44, z1: 56, color: '#e0f2fe', top: col }));
+    b({ u0: -0.08, v0: -0.08, u1: 2.08, v1: 0.9, z0: 104, z1: 112, color: '#d9b36c', left: '#c9a35c', right: '#a8843f', tex: 'fabric' });
+    b({ u0: 0.2, v0: 0.1, u1: 1.8, v1: 0.6, z0: 112, z1: 122, color: '#e2c07f', tex: 'fabric' });
+    front(() => {
+      for (let i = 0; i < 20; i += 1) d(-0.06 + i * 0.11, 0.9, 104 - (i % 3), '#b8913f', 2, 6 + (i % 3) * 2);
+      for (let i = 0; i < 5; i += 1) d(0.14 + i * 0.36, 0.9, 30, '#8a5a3b', 6, 22);
+      d(0.7, 0.94, 38, '#22d3ee', 22, 3);
+    });
+  },
+  palm_tree(b, { c, palm }) {
+    c({ u: 0.5, v: 0.5, r: 0.22, z0: 0, z1: 3, color: '#d9b36c' });
+    for (let z = 0; z < 118; z += 7) {
+      const lean = z / 118;
+      c({ u: 0.5 + lean * 0.18, v: 0.5 - lean * 0.18, r: 0.07 - lean * 0.015, z0: z, z1: z + 6, color: '#8a6433', top: '#a07a45', tex: 'wood' });
+    }
+    palm({ u: 0.68, v: 0.32, z: 122, length: 44, color: '#1f9d55', seed: 7 });
+    c({ u: 0.66, v: 0.34, r: 0.05, z0: 110, z1: 116, color: '#6b4a2a' });
+  },
+  volley_net(b, { d }) {
+    [[0.1, 0.46], [2.84, 0.46]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.06, v1: v + 0.08, z1: 76, color: '#e5e7eb', tex: 'metal' }));
+    b({ u0: 0.12, v0: 0.48, u1: 2.88, v1: 0.52, z0: 72, z1: 76, color: '#f5f5f5' });
+    for (let u = 0.2; u < 2.85; u += 0.1) {
+      for (let z = 46; z < 72; z += 4) d(u, 0.5, z, 'rgba(245, 245, 245, 0.75)', 1, 1);
+    }
+    for (let z = 46; z <= 70; z += 6) {
+      for (let u = 0.16; u < 2.86; u += 0.035) d(u, 0.5, z, 'rgba(245, 245, 245, 0.75)', 1, 1);
+    }
+  },
+
+  // ---------------------------------------------------------------- edicola
+
+  newsstand(b, { d, front }) {
+    // Chiosco dell'edicola: bancone verde, riviste in esposizione, pile di giornali e la tenda.
+    b({ u0: 0.02, v0: 0.3, u1: 2.98, v1: 0.9, z1: 40, color: '#166534', left: '#15803d', right: '#0f4d27' });
+    b({ u0: 0, v0: 0.26, u1: 3, v1: 0.94, z0: 40, z1: 44, color: '#d4d4d8', tex: 'metal' });
+    [[0.3, '#f5f5f5'], [1.1, '#fef3c7'], [2.0, '#f5f5f5']].forEach(([u, col]) => {
+      b({ u0: u, v0: 0.4, u1: u + 0.5, v1: 0.8, z0: 44, z1: 52, color: col });
+      d(u + 0.05, 0.8, 50, '#1f2937', 10, 1);
+    });
+    [[0.06, 0.06], [2.86, 0.06]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.08, v1: v + 0.08, z1: 110, color: '#14532d' }));
+    for (let i = 0; i < 12; i += 1) {
+      b({ u0: i * 0.25, v0: -0.04, u1: (i + 1) * 0.25, v1: 0.5, z0: 108, z1: 114, color: i % 2 ? '#f5f5f5' : '#16a34a' });
+    }
+    front(() => {
+      const covers = ['#ef4444', '#3b82f6', '#fbbf24', '#8b5cf6', '#ec4899', '#22c55e', '#f97316', '#14b8a6'];
+      for (let i = 0; i < 8; i += 1) {
+        d(0.1 + i * 0.36, 0.9, 36, covers[i], 9, 12);
+        d(0.14 + i * 0.36, 0.9, 32, '#ffffff', 5, 2);
+      }
+      for (let i = 0; i < 8; i += 1) d(0.14 + i * 0.36, 0.9, 18, covers[(i + 3) % 8], 8, 10);
+      d(0.9, 0.5, 106, '#fbbf24', 40, 5);
+    });
+  },
+  pack_display(b, { d, front }) {
+    // Espositore girevole dei pacchetti VinylDex: base, fusto e tre ripiani con le bustine.
+    b({ u0: 0.2, v0: 0.2, u1: 0.8, v1: 0.8, z1: 6, color: '#27272a' });
+    b({ u0: 0.44, v0: 0.44, u1: 0.56, v1: 0.56, z0: 6, z1: 96, color: '#a1a1aa', tex: 'metal' });
+    const packs = [['#8b5cf6', '#ec4899'], ['#3b82f6', '#22d3ee'], ['#f59e0b', '#fde68a']];
+    [30, 56, 82].forEach((z, i) => {
+      b({ u0: 0.16, v0: 0.16, u1: 0.84, v1: 0.84, z0: z - 2, z1: z, color: '#52525b' });
+      const [a, c2] = packs[i];
+      b({ u0: 0.2, v0: 0.3, u1: 0.4, v1: 0.7, z0: z, z1: z + 18, color: a, top: c2 });
+      b({ u0: 0.6, v0: 0.3, u1: 0.8, v1: 0.7, z0: z, z1: z + 18, color: a, top: c2 });
+    });
+    front(() => {
+      [30, 56, 82].forEach((z, i) => {
+        d(0.26, 0.7, z + 14, packs[i][1], 4, 2);
+        d(0.66, 0.7, z + 14, packs[i][1], 4, 2);
+      });
+      d(0.34, 0.84, 104, '#fbbf24', 12, 6);
+      d(0.38, 0.84, 102, '#1a1030', 6, 1);
+    });
+  },
+  magazine_rack(b, { d, front }) {
+    b({ u0: 0.14, v0: 0.3, u1: 0.86, v1: 0.8, z1: 72, color: '#3f3f46', tex: 'metal' });
+    front(() => {
+      const covers = ['#ef4444', '#3b82f6', '#fbbf24', '#8b5cf6', '#22c55e', '#ec4899'];
+      [8, 30, 52].forEach((z, row) => {
+        for (let i = 0; i < 2; i += 1) {
+          d(0.2 + i * 0.34, 0.8, z + 18, covers[(row * 2 + i) % covers.length], 9, 16);
+          d(0.24 + i * 0.34, 0.8, z + 14, '#ffffff', 5, 2);
+          d(0.24 + i * 0.34, 0.8, z + 8, '#1f2937', 6, 1);
+        }
+      });
+    });
+  },
+  street_lamp(b, { c }) {
+    c({ u: 0.5, v: 0.5, r: 0.14, z0: 0, z1: 10, color: '#1f2937' });
+    c({ u: 0.5, v: 0.5, r: 0.04, z0: 10, z1: 124, color: '#374151', tex: 'metal' });
+    c({ u: 0.5, v: 0.5, r: 0.16, z0: 124, z1: 142, color: '#fde68a', top: '#1f2937' });
+    c({ u: 0.5, v: 0.5, r: 0.2, z0: 142, z1: 146, color: '#1f2937' });
+  },
+
+  // ---------------------------------------------------------------- cinema
+
+  cinema_screen(b, { d, now, front }) {
+    // Schermo grande su due gambe, con la cornice nera e un film che scorre.
+    [[0.3, 0.4], [5.6, 0.4]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.1, v1: v + 0.1, z1: 20, color: '#111018' }));
+    b({ u0: 0, v0: 0.36, u1: 6, v1: 0.56, z0: 20, z1: 136, color: '#111018' });
+    front(() => {
+      const step = Math.floor((now || 0) / SCREEN_PERIOD) % SCREEN_STEPS;
+      const scene = Math.floor(step / 3) % 2;
+      const cols = 6 * 32;
+      for (let i = 4; i < cols - 4; i += 1) {
+        const u = i / 32;
+        for (let z = 28; z < 130; z += 2) {
+          d(u, 0.56, z, filmPixel(i, z, step, scene), 1, 2);
+        }
+      }
+    });
+  },
+  cinema_seat(b) {
+    // Poltroncina rossa con lo schienale verso chi guarda: si guarda lo schermo (verso -v).
+    [[0.14, 0.2], [0.8, 0.2]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.06, v1: v + 0.6, z1: 34, color: '#27272a' }));
+    b({ u0: 0.2, v0: 0.16, u1: 0.8, v1: 0.76, z0: 14, z1: 22, color: '#b91c1c', tex: 'fabric' });
+    b({ u0: 0.18, v0: 0.72, u1: 0.82, v1: 0.88, z0: 14, z1: 56, color: '#991b1b', tex: 'fabric' });
+    b({ u0: 0.18, v0: 0.72, u1: 0.82, v1: 0.88, z0: 56, z1: 58, color: '#fbbf24' });
+  },
+  popcorn_machine(b, { d, front }) {
+    b({ u0: 0.14, v0: 0.2, u1: 0.86, v1: 0.8, z1: 36, color: '#b91c1c', tex: 'metal' });
+    b({ u0: 0.16, v0: 0.22, u1: 0.84, v1: 0.78, z0: 36, z1: 84, color: '#fee2e2', left: '#fecaca', right: '#fca5a5', top: '#fef2f2' });
+    b({ u0: 0.14, v0: 0.2, u1: 0.86, v1: 0.8, z0: 84, z1: 96, color: '#dc2626', glow: true });
+    b({ u0: 0.18, v0: 0.24, u1: 0.82, v1: 0.76, z0: 36, z1: 52, color: '#fde68a', top: '#fef3c7' });
+    front(() => {
+      for (let i = 0; i < 14; i += 1) d(0.2 + (i % 7) * 0.09, 0.78, 58 + Math.floor(i / 7) * 6 + (i % 3), '#fffbeb', 2, 2);
+      d(0.3, 0.8, 94, '#fbbf24', 14, 5);
+      d(0.26, 0.8, 26, '#fbbf24', 18, 3);
+    });
+  },
+
+  // ---------------------------------------------------------------- palestra
+
+  treadmill(b, { d, now, front }) {
+    const step = Math.floor((now || 0) / 200) % 4;
+    b({ u0: 0.14, v0: 0.1, u1: 0.86, v1: 1.9, z1: 10, color: '#27272a' });
+    b({ u0: 0.2, v0: 0.2, u1: 0.8, v1: 1.8, z0: 10, z1: 12, color: '#3f3f46' });
+    for (let v = 0.24 + step * 0.05; v < 1.78; v += 0.2) b({ u0: 0.22, v0: v, u1: 0.78, v1: v + 0.03, z0: 12, z1: 12, color: '#52525b' });
+    [[0.14, 0.1], [0.8, 0.1]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.06, v1: v + 0.08, z0: 10, z1: 64, color: '#a1a1aa', tex: 'metal' }));
+    b({ u0: 0.14, v0: 0.06, u1: 0.86, v1: 0.24, z0: 62, z1: 72, color: '#18181b' });
+    front(() => {
+      d(0.34, 0.24, 72, step % 2 ? '#22d3ee' : '#22c55e', 10, 3);
+      d(0.3, 0.24, 66, '#ef4444', 2, 2);
+    });
+  },
+  weight_bench(b, { c }) {
+    [[0.2, 0.3], [0.2, 0.66], [1.74, 0.3], [1.74, 0.66]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.06, v1: v + 0.06, z1: 18, color: '#27272a' }));
+    b({ u0: 0.12, v0: 0.3, u1: 1.88, v1: 0.72, z0: 18, z1: 24, color: '#1f2937', tex: 'fabric' });
+    [[0.2, 0.18], [0.2, 0.84]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.06, v1: v + 0.06, z1: 50, color: '#a1a1aa', tex: 'metal' }));
+    b({ u0: 0.22, v0: -0.1, u1: 0.26, v1: 1.1, z0: 50, z1: 52, color: '#d4d4d8', tex: 'metal' });
+    [-0.06, 1.04].forEach((v) => c({ u: 0.24, v, r: 0.12, z0: 44, z1: 58, color: '#111018' }));
+  },
+  punching_bag(b, { c }) {
+    c({ u: 0.5, v: 0.5, r: 0.2, z0: 0, z1: 4, color: '#27272a' });
+    c({ u: 0.5, v: 0.5, r: 0.03, z0: 4, z1: 128, color: '#6b7280', tex: 'metal' });
+    b({ u0: 0.48, v0: 0.2, u1: 0.52, v1: 0.52, z0: 124, z1: 128, color: '#6b7280' });
+    c({ u: 0.5, v: 0.2, r: 0.01, z0: 104, z1: 124, color: '#9ca3af' });
+    c({ u: 0.5, v: 0.2, r: 0.18, z0: 40, z1: 104, color: '#b91c1c', top: '#7f1d1d', tex: 'fabric' });
+    c({ u: 0.5, v: 0.2, r: 0.185, z0: 70, z1: 74, color: '#111018' });
+  },
+  yoga_mat(b) {
+    b({ u0: 0.16, v0: 0.06, u1: 0.84, v1: 1.94, z1: 1, color: '#14b8a6' });
+    b({ u0: 0.16, v0: 0.06, u1: 0.84, v1: 0.22, z0: 1, z1: 7, color: '#0d9488', tex: 'fabric' });
+  },
+  dumbbell_rack(b, { c }) {
+    b({ u0: 0.08, v0: 0.3, u1: 1.92, v1: 0.74, z1: 22, color: '#27272a', tex: 'metal' });
+    b({ u0: 0.08, v0: 0.2, u1: 1.92, v1: 0.3, z0: 16, z1: 44, color: '#3f3f46', tex: 'metal' });
+    ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#8b5cf6'].forEach((color, i) => {
+      const u = 0.2 + i * 0.36;
+      c({ u, v: 0.4, r: 0.07, z0: 22, z1: 30, color });
+      c({ u, v: 0.64, r: 0.07, z0: 22, z1: 30, color });
+      b({ u0: u - 0.02, v0: 0.4, u1: u + 0.02, v1: 0.64, z0: 25, z1: 27, color: '#9ca3af' });
+    });
+  },
+  water_cooler(b, { c, d, front }) {
+    b({ u0: 0.2, v0: 0.2, u1: 0.8, v1: 0.8, z1: 54, color: '#f5f5f5', left: '#e5e7eb', right: '#cbd5e1' });
+    c({ u: 0.5, v: 0.5, r: 0.24, z0: 54, z1: 92, color: '#7dd3fc', top: '#bae6fd' });
+    c({ u: 0.5, v: 0.5, r: 0.08, z0: 92, z1: 96, color: '#2563eb' });
+    front(() => {
+      d(0.3, 0.8, 40, '#2563eb', 4, 4);
+      d(0.56, 0.8, 40, '#ef4444', 4, 4);
+      d(0.34, 0.8, 30, '#1f2937', 14, 3);
+    });
+  },
+
   dj_booth(b, { c, d, now, front }) {
     b({ u0: 0.05, v0: 0.1, u1: 1.95, v1: 0.9, z1: 34, color: '#1f1f2e', left: '#18182a', right: '#101019', tex: 'metal' });
     b({ u0: 0.05, v0: 0.1, u1: 1.95, v1: 0.9, z0: 34, z1: 38, color: '#8b5cf6', glow: true });
@@ -642,6 +917,9 @@ const DRAW = {
     });
   }
 };
+
+/** Mobili senza contorno, che si fondono con i vicini dello stesso tipo. */
+const SEAMLESS = new Set(['pool_water', 'sea_water', 'sea_foam']);
 
 // ------------------------------------------------------------------ mobili a parete
 
@@ -711,6 +989,15 @@ function drawWallItem(ctx, ox, oy, item, img, rarityColor, now) {
     R(16, 17, 38, 102, '#e5e0d8');
     R(5, 28, 70, 71, '#e5e0d8');
     R(2, 31, 32, 36, '#cbc3b5');
+  } else if (type === 'movie_poster') {
+    // Locandina di un film: cornice dorata, titolo e un vinile che brilla.
+    R(5, 28, 36, 100, '#b8872e');
+    R(7, 26, 38, 98, (a, h) => lerpColor('#1e1b4b', '#be185d', (h - 38) / 60));
+    R(10, 23, 84, 90, '#fde68a');
+    R(12, 21, 52, 72, '#111018');
+    R(15, 18, 60, 64, '#ec4899');
+    R(10, 23, 42, 44, '#fde68a');
+    R(10, 17, 46, 47, '#f5f5f5');
   } else if (type === 'chalkboard') {
     R(4, 29, 40, 90, WOOD);
     R(6, 27, 42, 88, (a, h) => ((a * 7 + h * 3) % 29 === 0 ? '#3d5c4a' : '#23392d'));
@@ -842,8 +1129,8 @@ export function furniSprite(item, def, { now = 0, onImageLoad } = {}) {
     }
   }
 
-  // L'acqua della piscina non ha contorno: le caselle vicine si fondono in una vasca unica.
-  if (item.type !== 'pool_water') outline(ctx, width, height);
+  // L'acqua della piscina e il mare non hanno contorno: le caselle vicine si fondono insieme.
+  if (!SEAMLESS.has(item.type)) outline(ctx, width, height);
   return { canvas: bake(canvas), anchorX: ox, anchorY: oy };
 }
 
@@ -858,6 +1145,10 @@ const ANIMATIONS = {
   arcade: { period: 400, steps: 2 },
   neon_sign: { period: 1800, steps: 7 },
   pool_water: { period: 600, steps: 4 },
+  sea_water: { period: SEA_PERIOD, steps: SEA_STEPS },
+  sea_foam: { period: SEA_PERIOD, steps: SEA_STEPS },
+  cinema_screen: { period: SCREEN_PERIOD, steps: SCREEN_STEPS },
+  treadmill: { period: 200, steps: 4 },
   aquarium: { period: 300, steps: 6 },
   fireplace: { period: 150, steps: 4 },
   fountain: { period: 250, steps: 4 },

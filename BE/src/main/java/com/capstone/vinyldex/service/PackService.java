@@ -121,6 +121,26 @@ public class PackService {
         return new OpenPackResult(cards.stream().map(CardDto::from).toList(), gold);
     }
 
+    /**
+     * Compra un pacchetto senza aprirlo, come in edicola: si pagano i gold e il pacchetto va nella
+     * borsa (fra i pacchetti da aprire), da dove si apre con la modalita' "gift".
+     */
+    @Transactional
+    public PackPurchase buyPack(UUID userId, String packCode) {
+        Pack pack = packRepository.findByCodeWithRates(packCode)
+                .filter(Pack::isActive)
+                .orElseThrow(() -> ApiException.notFound("pack_not_found"));
+        if (pack.getPriceGold() <= 0) throw ApiException.badRequest("pack_not_for_sale");
+
+        User user = walletService.adjustGold(userId, -pack.getPriceGold(), WalletTransactionType.PACK_PURCHASE,
+                pack.getId().toString(), "Edicola: " + pack.getName());
+        UserPackCredit credit = packCreditRepository.findByUserIdAndPackCode(userId, pack.getCode())
+                .orElseGet(() -> new UserPackCredit(user, pack.getCode(), 0));
+        credit.setQuantity(credit.getQuantity() + 1);
+        packCreditRepository.save(credit);
+        return new PackPurchase(pack.getCode(), pack.getName(), credit.getQuantity(), user.getGold());
+    }
+
     private void consumeGiftCredit(UUID userId, String packCode) {
         UserPackCredit credit = packCreditRepository.findByUserIdAndPackCode(userId, packCode)
                 .filter(c -> c.getQuantity() > 0)
@@ -146,5 +166,9 @@ public class PackService {
     }
 
     public record OpenPackResult(List<CardDto> cards, int gold) {
+    }
+
+    /** Esito di un acquisto in edicola: quanti pacchetti di quel tipo ci sono ora nella borsa. */
+    public record PackPurchase(String packId, String name, int owned, int gold) {
     }
 }

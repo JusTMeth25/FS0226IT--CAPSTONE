@@ -986,7 +986,8 @@ public class RoomInstance {
         if (occupant == null || item == null) return "item_not_found";
 
         switch (item.type()) {
-            case "bar_counter", "cafe_counter", "coffee_machine", "icecream_cart", "pizza_oven" -> {
+            case "bar_counter", "cafe_counter", "coffee_machine", "icecream_cart", "pizza_oven", "beach_bar",
+                 "popcorn_machine", "water_cooler" -> {
                 if (isNextTo(occupant, item)) {
                     serveDrink(occupant, item.type());
                     return null;
@@ -1113,12 +1114,18 @@ public class RoomInstance {
         return occupants.containsKey(userId);
     }
 
-    /** Dal bancone esce una bibita a caso, dalla macchina del caffe' un caffe', dal carretto un gelato. */
+    /**
+     * Dal bancone esce una bibita a caso, dalla macchina del caffe' un caffe', dal carretto un gelato,
+     * dal chiosco della spiaggia qualcosa di fresco, dal distributore della palestra acqua.
+     */
     private void serveDrink(Occupant occupant, String from) {
         occupant.handItem = switch (from) {
             case "coffee_machine" -> "coffee";
             case "icecream_cart" -> "gelato";
             case "pizza_oven" -> "pizza";
+            case "popcorn_machine" -> "popcorn";
+            case "water_cooler" -> "water";
+            case "beach_bar" -> System.nanoTime() % 2 == 0 ? "cocktail" : "juice";
             default -> DRINKS.get(Math.floorMod((int) System.nanoTime(), DRINKS.size()));
         };
         occupant.handItemLeft = HAND_ITEM_SIPS;

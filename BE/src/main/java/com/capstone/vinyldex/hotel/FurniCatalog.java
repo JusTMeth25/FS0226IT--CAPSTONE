@@ -133,8 +133,30 @@ public final class FurniCatalog {
         add(new FurniDef("claw_machine", "Pesca-peluche", "giochi", 240, 1, 1, false, false, -1, false, true));
         add(new FurniDef("globe", "Mappamondo", "arredo", 90, 1, 1, false, false, -1, false, true));
         add(new FurniDef("fire_pit", "Braciere", "giardino", 150, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("beach_towel", "Telo da mare", "spiaggia", 30, 1, 2, false, true, -1, false, true));
+        add(new FurniDef("sand_castle", "Castello di sabbia", "spiaggia", 45, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("beach_bar", "Chiosco in paglia", "spiaggia", 220, 2, 1, false, false, -1, false, true));
+        add(new FurniDef("palm_tree", "Palma", "spiaggia", 90, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("volley_net", "Rete da beach volley", "spiaggia", 110, 3, 1, false, false, -1, false, true));
+        add(new FurniDef("magazine_rack", "Espositore riviste", "arredo", 60, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("street_lamp", "Lampione", "luci", 70, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("cinema_seat", "Poltroncina del cinema", "cinema", 50, 1, 1, false, false, 0, false, true));
+        add(new FurniDef("popcorn_machine", "Macchina dei popcorn", "cinema", 150, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("movie_poster", "Locandina", "pareti", 50, 1, 1, true, false, -1, false, true));
+        add(new FurniDef("treadmill", "Tapis roulant", "palestra", 260, 1, 2, false, false, -1, false, true));
+        add(new FurniDef("weight_bench", "Panca pesi", "palestra", 140, 2, 1, false, false, 4, false, true));
+        add(new FurniDef("punching_bag", "Sacco da boxe", "palestra", 120, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("yoga_mat", "Tappetino", "palestra", 35, 1, 2, false, true, -1, false, true));
+        add(new FurniDef("dumbbell_rack", "Rastrelliera manubri", "palestra", 130, 2, 1, false, false, -1, false, true));
+        add(new FurniDef("water_cooler", "Distributore d'acqua", "palestra", 90, 1, 1, false, false, -1, false, true));
         add(new FurniDef("bar_counter", "Bancone bar", "lobby", 0, 3, 1, false, false, -1, false, false));
         add(new FurniDef("dj_booth", "Consolle DJ", "lobby", 0, 2, 1, false, false, -1, false, false));
+        // Arredi fissi dei locali pubblici: il mare, l'edicola, lo schermo del cinema.
+        add(new FurniDef("sea_water", "Mare", "spiaggia", 0, 2, 2, false, true, -1, false, false));
+        add(new FurniDef("sea_foam", "Battigia", "spiaggia", 0, 1, 1, false, true, -1, false, false));
+        add(new FurniDef("newsstand", "Chiosco dell'edicola", "edicola", 0, 3, 1, false, false, -1, false, false));
+        add(new FurniDef("pack_display", "Espositore pacchetti", "edicola", 0, 1, 1, false, false, -1, false, false));
+        add(new FurniDef("cinema_screen", "Schermo del cinema", "cinema", 0, 6, 1, false, false, -1, false, false));
     }
 
     private FurniCatalog() {

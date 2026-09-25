@@ -215,6 +215,69 @@ const FLOORS = {
     };
   })(),
 
+  // Sabbia: granelli fitti, increspature lasciate dal vento e qualche conchiglia.
+  sand: (() => {
+    const base = rgb('#e8cf9a');
+    const light = rgb('#f4e2b8');
+    const dark = rgb('#d4b57a');
+    const shells = ['#fdf2f8', '#fbcfe8', '#fde68a'].map(rgb);
+    return (X, Y, sx, sy) => {
+      const n = noise(sx, sy);
+      if (n > 0.9993) return shells[Math.floor(noise(sy, sx, 3) * shells.length)];
+      // Increspature: onde lunghe e storte, piu' chiare sulla cresta.
+      const ripple = Math.sin((X + Y * 0.6) * 7 + smoothNoise(X * 0.7, Y * 0.7, 41) * 6);
+      let color = mix(base, ripple > 0.75 ? light : ripple < -0.8 ? dark : base, 0.6);
+      color = mix(color, dark, smoothNoise(X * 0.4, Y * 0.4, 43) * 0.35);
+      return tint(color, (n - 0.5) * 0.12);
+    };
+  })(),
+
+  // Sampietrini: cubetti di pietra a file sfalsate, lucidi in cima e con le fughe scure.
+  cobble: (() => {
+    const stones = ['#8f8a93', '#7d7884', '#9b95a0', '#86808d'].map(rgb);
+    const grout = rgb('#3a3540');
+    return (X, Y, sx, sy) => {
+      const row = Math.floor(Y * 4);
+      const along = X * 4 + (row % 2 ? 0.5 : 0);
+      const col = Math.floor(along);
+      const u = frac(along);
+      const v = frac(Y * 4);
+      const edge = Math.min(u, 1 - u, v, 1 - v);
+      if (edge < 0.07) return grout;
+      const base = stones[Math.floor(noise(col, row, 17) * stones.length)];
+      // Il cubetto e' bombato: piu' chiaro verso l'alto a sinistra, piu' scuro sui bordi.
+      const bulge = (0.5 - Math.hypot(u - 0.4, v - 0.4)) * 0.25;
+      return tint(base, bulge + (edge < 0.14 ? -0.12 : 0) + (noise(sx, sy) - 0.5) * 0.06);
+    };
+  })(),
+
+  // Moquette del cinema: rosso scuro con un motivo di piccoli rombi dorati.
+  cinema: (() => {
+    const base = rgb('#4a1420');
+    const alt = rgb('#541826');
+    const gold = rgb('#b8872e');
+    return (X, Y, sx, sy) => {
+      const du = Math.abs(frac(X * 2) - 0.5);
+      const dv = Math.abs(frac(Y * 2) - 0.5);
+      if (Math.abs(du + dv - 0.28) < 0.035) return tint(gold, (noise(sx, sy) - 0.5) * 0.1);
+      const weave = (sx + sy) % 2 === 0 ? 0.03 : -0.02;
+      return tint(mix(base, alt, smoothNoise(X, Y, 51)), weave + (noise(sx, sy) - 0.5) * 0.05);
+    };
+  })(),
+
+  // Gomma da palestra: grigio scuro con i coriandoli colorati e le righe dipinte.
+  rubber: (() => {
+    const base = rgb('#2e3238');
+    const flecks = ['#ef4444', '#3b82f6', '#facc15', '#e5e7eb'].map(rgb);
+    const lane = rgb('#f59e0b');
+    return (X, Y, sx, sy) => {
+      if (Math.abs(frac(X / 4) * 4 - 0.02) < 0.03) return lane;
+      const n = noise(sx, sy);
+      if (n > 0.985) return tint(flecks[Math.floor(noise(sy, sx, 7) * flecks.length)], -0.2);
+      return tint(base, (n - 0.5) * 0.08 + (frac(Y) < 0.02 ? -0.12 : 0));
+    };
+  })(),
+
   // Tappeto da ring: gomma rossa con le corde dorate ai bordi di ogni quadrato.
   arena: (() => {
     const mat = rgb('#5e1f2b');
@@ -398,6 +461,127 @@ const WALLS = {
       const t = (h - 37) / (height - 37);
       const color = sky[Math.min(sky.length - 1, Math.floor((1 - t) * sky.length))];
       return noise(col, h) > 0.996 ? rgb('#ffffff') : color;
+    };
+  })(),
+
+  // Orizzonte sul mare: staccionata bianca, il mare fino all'orizzonte e il cielo con le nuvole.
+  seaside: (() => {
+    const skyTop = rgb('#3fa2e0');
+    const skyLow = rgb('#b9e6ff');
+    const cloud = rgb('#ffffff');
+    const seaFar = rgb('#2b8fc4');
+    const seaNear = rgb('#1f6fa3');
+    const glint = rgb('#d9f3ff');
+    const fence = rgb('#f5f1e6');
+    const post = rgb('#d9d0bd');
+    return (col, h, height, side, sy) => {
+      if (h < 3) return rgb('#b89a64');
+      // Staccionata: due traverse e i paletti, con la sabbia che si vede in mezzo.
+      if (h < 30) {
+        if (col % 24 < 4) return h > 27 ? tint(post, 0.2) : post;
+        if ((h >= 10 && h < 14) || (h >= 22 && h < 26)) return tint(fence, h % 4 === 0 ? -0.08 : 0);
+        return mix(rgb('#e8cf9a'), rgb('#d4b57a'), h / 30);
+      }
+      const horizon = 62;
+      if (h < horizon) {
+        const t = (h - 30) / (horizon - 30);
+        let color = mix(seaNear, seaFar, t);
+        const wave = Math.sin(col * 0.35 + h * 1.7 + smoothNoise(col * 0.05, h * 0.3, 61) * 5);
+        if (wave > 0.93) color = mix(color, glint, 0.6);
+        return tint(color, (noise(col, sy) - 0.5) * 0.04);
+      }
+      if (h === horizon) return tint(seaFar, 0.25);
+      const t = (h - horizon) / (height - horizon);
+      let color = mix(skyLow, skyTop, t);
+      const c = fbm(col * 0.025, h * 0.06, 71);
+      if (c > 0.62) color = mix(color, cloud, Math.min(1, (c - 0.62) * 5));
+      return color;
+    };
+  })(),
+
+  // Vetrine dei negozi: zoccolo in pietra, vetrine illuminate, tende a righe e insegne colorate.
+  shops: (() => {
+    const stone = rgb('#6b6570');
+    const frame = rgb('#2b2233');
+    const glassLow = rgb('#f6d27a');
+    const glassHigh = rgb('#fbe7b5');
+    const plaster = rgb('#c9b79c');
+    const awnings = [['#dc2626', '#fef2f2'], ['#16a34a', '#f0fdf4'], ['#2563eb', '#eff6ff'], ['#9333ea', '#faf5ff']]
+      .map(([a, b]) => [rgb(a), rgb(b)]);
+    const board = { shadow: rgb('#1c1820'), board: rgb('#4a4450'), trim: rgb('#8a8290') };
+    return (col, h, height, side, sy) => {
+      const bb = baseboard(h, board);
+      if (bb) return bb;
+      const shop = Math.floor(col / 96);
+      const inShop = col % 96;
+      if (h < 22) return tint(stone, (noise(col, sy) - 0.5) * 0.1 + (h % 11 === 0 ? -0.2 : 0));
+      if (inShop < 8 || inShop > 88) return tint(plaster, (noise(col, sy) - 0.5) * 0.06);
+      const [stripeA, stripeB] = awnings[Math.floor(noise(shop, 5) * awnings.length)];
+      if (h >= 84 && h < 100) {
+        // Tenda a righe con il bordo a smerli.
+        if (h < 88 && (inShop % 8) < 4) return tint(plaster, -0.1);
+        return tint(Math.floor(inShop / 6) % 2 ? stripeA : stripeB, h > 96 ? 0.1 : 0);
+      }
+      if (h >= 100) {
+        if (h > 108 && h < 122 && inShop > 20 && inShop < 76) {
+          const letter = noise(Math.floor(inShop / 5), shop) > 0.45 && h % 4 !== 0;
+          return letter ? rgb('#fbbf24') : frame;
+        }
+        return tint(plaster, (noise(col, sy) - 0.5) * 0.06);
+      }
+      if (h < 26 || h > 80 || inShop < 12 || inShop > 84 || (inShop > 46 && inShop < 50)) return frame;
+      // Vetrina accesa: calda in basso, con i riflessi in diagonale e la merce sugli scaffali.
+      const t = (h - 26) / 54;
+      let color = mix(glassLow, glassHigh, t);
+      if (h % 18 === 8) color = tint(color, -0.35);
+      else if (h % 18 > 8 && h % 18 < 14 && noise(col >> 2, h >> 2) > 0.5) {
+        color = mix(color, rgb(['#ef4444', '#3b82f6', '#22c55e', '#a855f7'][Math.floor(noise(col >> 2, shop) * 4)]), 0.7);
+      }
+      if ((col + h) % 40 < 2) color = mix(color, rgb('#ffffff'), 0.5);
+      return color;
+    };
+  })(),
+
+  // Sipario di velluto rosso: pieghe morbide, frangia dorata in basso e una mantovana in cima.
+  curtain: (() => {
+    const velvet = rgb('#8b1a2b');
+    const deep = rgb('#4f0d18');
+    const gold = rgb('#d4a73a');
+    return (col, h, height, side, sy) => {
+      if (h < 2) return rgb('#1a0a0e');
+      if (h > height - 18) {
+        const scallop = h < height - 14 + Math.abs(Math.sin(col * 0.2)) * 4;
+        if (scallop && h < height - 12) return tint(gold, h % 2 ? -0.1 : 0.1);
+        return tint(mix(velvet, deep, 0.3), Math.sin(col * 0.5) * 0.08);
+      }
+      if (h < 10) return (col + h) % 3 === 0 ? tint(gold, -0.3) : gold;
+      const fold = Math.sin(col * 0.33 + Math.sin(h * 0.02) * 0.6);
+      const color = mix(deep, velvet, (fold + 1) / 2);
+      return tint(color, (fold > 0.9 ? 0.15 : 0) + (noise(col, sy) - 0.5) * 0.03);
+    };
+  })(),
+
+  // Palestra: parete dipinta in basso, specchi a tutta larghezza sopra e una fascia arancione.
+  mirror: (() => {
+    const paint = rgb('#3f4a5a');
+    const stripe = rgb('#f59e0b');
+    const glassLow = rgb('#9fb4c7');
+    const glassHigh = rgb('#d6e4ef');
+    const frame = rgb('#c0c7cf');
+    const board = { shadow: rgb('#15181d'), board: rgb('#2a2f36'), trim: rgb('#f59e0b') };
+    return (col, h, height, side, sy) => {
+      const bb = baseboard(h, board);
+      if (bb) return bb;
+      if (h < 30) return tint(paint, (noise(col, sy) - 0.5) * 0.05);
+      if (h < 36) return stripe;
+      if (h > height - 12) return tint(paint, 0.1);
+      if (h < 38 || h > height - 15 || col % 64 < 2) return frame;
+      const t = (h - 38) / (height - 53);
+      let color = mix(glassLow, glassHigh, t);
+      const diag = (col + h * 0.8) % 70;
+      if (diag < 4) color = mix(color, rgb('#ffffff'), 0.55);
+      else if (diag > 9 && diag < 11) color = mix(color, rgb('#ffffff'), 0.3);
+      return color;
     };
   })(),
 

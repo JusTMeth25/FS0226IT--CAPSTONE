@@ -23,6 +23,9 @@ import { useSearchParams } from 'react-router-dom';
 import HotelView from '../hotel/ui/HotelView.jsx';
 import NpcCard from '../hotel/ui/NpcCard.jsx';
 import { NpcTradeOffer, NpcTradePanel } from '../hotel/ui/NpcTrade.jsx';
+import Newsstand from '../hotel/ui/Newsstand.jsx';
+import HotelPackOpening from '../hotel/ui/HotelPackOpening.jsx';
+import { PACKS } from '../data/packs.js';
 import { footprintOf, nextRotation } from '../hotel/sprites/furni.js';
 import { DEFAULT_LOOK } from '../hotel/sprites/avatar.js';
 import { TRACKS, getJukebox } from '../hotel/music.js';
@@ -33,8 +36,19 @@ const ARENA_ID = '00000000-0000-0000-0000-00000000a002';
 
 /** Cosa si fa con l'oggetto in mano: il verbo del pulsante e la sua icona. */
 const CONSUME = {
-  pizza: ['Mangia', 'ph-pizza'], gelato: ['Mangia', 'ph-ice-cream'], book: ['Leggi', 'ph-book-open']
+  pizza: ['Mangia', 'ph-pizza'], gelato: ['Mangia', 'ph-ice-cream'], book: ['Leggi', 'ph-book-open'],
+  popcorn: ['Mangia', 'ph-popcorn'], water: ['Bevi', 'ph-drop']
 };
+
+/** Mobili che si usano cliccandoli: bibite, cibo, jukebox. */
+const USABLE = ['bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'pizza_oven', 'jukebox',
+  'beach_bar', 'popcorn_machine', 'water_cooler'];
+
+/** Il chiosco e l'espositore dell'edicola aprono il banco dei pacchetti. */
+const NEWSSTAND_ITEMS = ['newsstand', 'pack_display'];
+
+/** Schermo intero vero dove il browser lo permette; altrimenti (iPhone) la pagina copre tutto. */
+const canFullscreen = typeof document !== 'undefined' && !!document.documentElement.requestFullscreen;
 
 const ERRORS = {
   room_full: 'La stanza e\' piena. Riprova tra poco.',
@@ -71,6 +85,10 @@ const ERRORS = {
   challenge_expired: 'La sfida e\' scaduta.',
   invalid_team: 'Scegli 3 carte diverse.',
   invalid_move: 'Mossa non valida in questo momento.',
+  not_at_newsstand: 'I pacchetti si comprano in Edicola.',
+  pack_not_found: 'Questo pacchetto non e\' piu\' in vendita.',
+  pack_not_for_sale: 'Questo pacchetto non si compra: arriva solo in regalo.',
+  insufficient_gold: 'Non hai abbastanza gold.',
   server_error: 'Qualcosa e\' andato storto. Riprova.'
 };
 
@@ -90,7 +108,7 @@ const STATUS_LABELS = {
  */
 export default function HotelPage() {
   const { user, refreshUser } = useAuth();
-  const { gold, refreshCollection } = useGame();
+  const { gold, refreshCollection, freePacks, openPack, refreshPacks } = useGame();
   const { sound } = useSound();
   const canvasRef = useRef(null);
   const hotel = useHotel();
@@ -129,6 +147,12 @@ export default function HotelPage() {
   const [respectVersion, setRespectVersion] = useState(0);
   const [pvp, setPvp] = useState(null);
   const [clockOffset, setClockOffset] = useState(0);
+  const [buyingPack, setBuyingPack] = useState(null);
+  const [inventoryTab, setInventoryTab] = useState('furni');
+  const [packOpening, setPackOpening] = useState(null);
+  const [openingBusy, setOpeningBusy] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const pageRef = useRef(null);
   const noticeTimer = useRef(0);
   const meRef = useRef(null);
   const peopleRef = useRef({});
@@ -325,6 +349,13 @@ export default function HotelPage() {
         }
         break;
       }
+      case 'pack_bought':
+        setBuyingPack(null);
+        sound.coin();
+        showNotice(`${message.name} nella borsa! Ne hai ${message.owned}.`);
+        refreshUser();
+        refreshPacks();
+        break;
       case 'inventory_changed':
         setInventoryVersion((v) => v + 1);
         break;
@@ -334,6 +365,7 @@ export default function HotelPage() {
         showNotice('Il proprietario ti ha accompagnato fuori dalla stanza.');
         break;
       case 'error':
+        setBuyingPack(null);
         // Un server che non conosce ancora "sync" (per esempio avviato prima dell'aggiornamento):
         // invece di un errore si rientra nella stanza in cui si era.
         if (message.code === 'unknown_command' && syncPending.current) {
@@ -347,7 +379,7 @@ export default function HotelPage() {
       default:
         break;
     }
-  }, [showNotice, sound, refreshUser, refreshCollection, send]);
+  }, [showNotice, sound, refreshUser, refreshCollection, refreshPacks, send]);
 
   // Iscrizione ai messaggi dell'hotel finche' la pagina e' aperta. La connessione resta del
   // provider: uscendo si resta nella stanza, segnati come assenti; tornando si chiede lo stato
@@ -399,6 +431,7 @@ export default function HotelPage() {
   const myHand = me ? people[me.id]?.handItem : null;
   const isOwner = !!(room && me && room.ownerId === me.id);
   const selectedItem = selectedItemId ? items[selectedItemId] : null;
+  const bagPacks = PACKS.reduce((sum, pack) => sum + (freePacks[pack.id] || 0), 0);
 
   const toggleStatus = (value) => send({ type: 'status', status: myStatus === value ? 'idle' : value });
 
@@ -440,6 +473,62 @@ export default function HotelPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, [placement, catalogByType]);
 
+  /** Compra in edicola: la risposta (pack_bought o un errore) arriva dal server. */
+  function buyPack(packId) {
+    setBuyingPack(packId);
+    send({ type: 'buy_pack', packId });
+  }
+
+  /** Apre un pacchetto della borsa con la stessa animazione della pagina Pacchetti. */
+  async function openBagPack(packId) {
+    if (openingBusy) return;
+    setOpeningBusy(true);
+    const res = await openPack(packId, 'gift');
+    setOpeningBusy(false);
+    if (res.error) {
+      sound.error();
+      showNotice(res.error === 'no_gift_available'
+        ? 'Non hai piu\' pacchetti di questo tipo nella borsa.'
+        : 'Non riesco ad aprire il pacchetto. Riprova.');
+      return;
+    }
+    setPanel(null);
+    setPackOpening({ id: Date.now(), packId, cards: res.cards });
+  }
+
+  function openBag(tab) {
+    setInventoryTab(tab);
+    setPanel('inventory');
+  }
+
+  // Schermo intero come su Habbo: la stanza occupa tutto lo schermo, pannelli compresi.
+  useEffect(() => {
+    const onChange = () => setFullscreen(!!pageRef.current && document.fullscreenElement === pageRef.current);
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
+
+  // Senza l'API (iPhone) lo schermo intero e' solo una classe: Esc la toglie come farebbe il browser.
+  useEffect(() => {
+    if (!fullscreen || canFullscreen) return undefined;
+    const onKey = (event) => { if (event.key === 'Escape') setFullscreen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [fullscreen]);
+
+  async function toggleFullscreen() {
+    if (!canFullscreen) {
+      setFullscreen((f) => !f);
+      return;
+    }
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await pageRef.current?.requestFullscreen();
+    } catch {
+      showNotice('Il browser non permette lo schermo intero.');
+    }
+  }
+
   function onItemClick(item, tile) {
     const def = catalogByType.get(item.type);
     // In modalita' arredo il proprietario seleziona il mobile per ruotarlo, spostarlo, raccoglierlo.
@@ -449,8 +538,12 @@ export default function HotelPage() {
       return;
     }
     // Bancone: si riceve una bibita (camminandoci accanto se serve). Jukebox: cambia brano.
-    if (['bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'pizza_oven', 'jukebox'].includes(item.type)) {
+    if (USABLE.includes(item.type)) {
       send({ type: 'use_item', itemId: item.id });
+      return;
+    }
+    if (NEWSSTAND_ITEMS.includes(item.type)) {
+      setPanel('newsstand');
       return;
     }
     // Pista e tappeti si calpestano: fuori dalla modalita' arredo il clic vale come camminare li'.
@@ -475,7 +568,11 @@ export default function HotelPage() {
   }
 
   return (
-    <section className="hotel-page" onPointerDown={() => getJukebox().unlock()}>
+    <section
+      ref={pageRef}
+      className={`hotel-page${fullscreen ? ' is-fullscreen' : ''}${fullscreen && !canFullscreen ? ' is-pseudo-fullscreen' : ''}`}
+      onPointerDown={() => getJukebox().unlock()}
+    >
       <div className="hotel-stage">
         <HotelCanvas
           ref={canvasRef}
@@ -546,6 +643,7 @@ export default function HotelPage() {
             onWhisper={() => { setWhisperTo(selectedNpc.username); setSelectedNpc(null); }}
             onChallenge={pvp ? null : () => { send({ type: 'challenge', userId: selectedNpc.id }); setSelectedNpc(null); }}
             onTrade={() => { setTradingNpc(selectedNpc); setSelectedNpc(null); }}
+            onBuyPacks={() => { setPanel('newsstand'); setSelectedNpc(null); }}
           />
         )}
 
@@ -636,8 +734,21 @@ export default function HotelPage() {
             catalogByType={catalogByType}
             canPlace={isOwner}
             version={inventoryVersion}
+            packs={freePacks}
+            initialTab={inventoryTab}
             onClose={() => setPanel(null)}
             onPlace={(item) => { setPlacement({ itemId: item.id, type: item.type, rot: 0 }); setPanel(null); }}
+            onOpenPack={openBagPack}
+          />
+        )}
+        {panel === 'newsstand' && (
+          <Newsstand
+            gold={gold}
+            owned={freePacks}
+            buying={buyingPack}
+            onBuy={buyPack}
+            onOpenBag={() => openBag('packs')}
+            onClose={() => setPanel(null)}
           />
         )}
         {panel === 'settings' && room && isOwner && <RoomSettings room={room} onClose={() => setPanel(null)} />}
@@ -655,6 +766,15 @@ export default function HotelPage() {
 
       {viewingCard && <CardViewer card={viewingCard} onClose={() => setViewingCard(null)} />}
 
+      {packOpening && (
+        <HotelPackOpening
+          opening={packOpening}
+          left={freePacks[packOpening.packId] || 0}
+          onAgain={() => openBagPack(packOpening.packId)}
+          onClose={() => setPackOpening(null)}
+        />
+      )}
+
       <div className="hotel-toolbar">
         <button type="button" className={`hotel-tool${panel === 'navigator' ? ' active' : ''}`} onClick={() => setPanel(panel === 'navigator' ? null : 'navigator')} title="Navigatore">
           <i className="ph-fill ph-compass" /><span>Stanze</span>
@@ -662,8 +782,10 @@ export default function HotelPage() {
         <button type="button" className={`hotel-tool${panel === 'shop' ? ' active' : ''}`} onClick={() => setPanel(panel === 'shop' ? null : 'shop')} title="Negozio">
           <i className="ph-fill ph-storefront" /><span>Negozio</span>
         </button>
-        <button type="button" className={`hotel-tool${panel === 'inventory' ? ' active' : ''}`} onClick={() => setPanel(panel === 'inventory' ? null : 'inventory')} title="Inventario">
+        <button type="button" className={`hotel-tool${panel === 'inventory' ? ' active' : ''}`}
+          onClick={() => (panel === 'inventory' ? setPanel(null) : openBag(bagPacks > 0 ? 'packs' : 'furni'))} title="Borsa: mobili e pacchetti">
           <i className="ph-fill ph-package" /><span>Borsa</span>
+          {bagPacks > 0 && <b className="hotel-tool-badge">{bagPacks}</b>}
         </button>
         <button type="button" className={`hotel-tool${panel === 'wardrobe' ? ' active' : ''}`} onClick={() => setPanel(panel === 'wardrobe' ? null : 'wardrobe')} title="Guardaroba">
           <i className="ph-fill ph-t-shirt" /><span>Look</span>
@@ -706,6 +828,10 @@ export default function HotelPage() {
           </button>
           <button type="button" className="hotel-tool" onClick={() => setZoom((z) => (z === 1 ? 0.5 : 1))} title="Zoom">
             <i className={`ph-fill ${zoom === 1 ? 'ph-magnifying-glass-minus' : 'ph-magnifying-glass-plus'}`} />
+          </button>
+          <button type="button" className={`hotel-tool${fullscreen ? ' active' : ''}`} onClick={toggleFullscreen}
+            title={fullscreen ? 'Esci dallo schermo intero (Esc)' : 'Schermo intero'}>
+            <i className={`ph-fill ${fullscreen ? 'ph-corners-in' : 'ph-corners-out'}`} />
           </button>
         </div>
       </div>
