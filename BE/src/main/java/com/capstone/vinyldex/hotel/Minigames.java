@@ -33,6 +33,14 @@ public final class Minigames {
             "arcade", new Game("rhythm", "Vinyl Rush", "note", 60, 10_000, 90_000, false),
             "pool_table", new Game("pool", "Biliardo", "buche", 7, 4_000, 120_000, false));
 
+    /** Esito di una partita: un errore, oppure il punteggio accettato e se e' un nuovo record. */
+    public record Outcome(String error, Game game, int score, boolean record) {
+
+        static Outcome failed(String error) {
+            return new Outcome(error, null, 0, false);
+        }
+    }
+
     /** Miglior punteggio della stanza per un gioco. */
     public record Best(String username, int score) {
     }

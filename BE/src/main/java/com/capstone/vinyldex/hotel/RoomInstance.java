@@ -1149,15 +1149,16 @@ public class RoomInstance {
      * Risultato di una partita: il server lo controlla, aggiorna il record della stanza e lo
      * annuncia a tutti.
      *
-     * @return codice d'errore, oppure null
+     * @return l'esito: un errore, oppure il punteggio accettato e se e' un nuovo record (il premio in
+     * gold lo decide chi chiama, che puo' usare il database)
      */
-    public synchronized String minigameResult(UUID userId, int score) {
+    public synchronized Minigames.Outcome minigameResult(UUID userId, int score) {
         Occupant occupant = occupants.get(userId);
-        if (occupant == null || occupant.game == null) return "minigame_not_running";
+        if (occupant == null || occupant.game == null) return Minigames.Outcome.failed("minigame_not_running");
         Minigames.Game game = occupant.game;
         int valid = Minigames.validScore(game, score, System.currentTimeMillis() - occupant.gameStartedAt);
         stopGame(occupant);
-        if (valid < 0) return "minigame_too_fast";
+        if (valid < 0) return Minigames.Outcome.failed("minigame_too_fast");
 
         Minigames.Best best = records.get(game.key());
         boolean record = valid > 0 && (best == null || valid > best.score());
@@ -1175,7 +1176,7 @@ public class RoomInstance {
         message.put("best", best);
         broadcast(message);
         trainerSays(occupant, NpcDialog.workoutDone(game.unit(), occupant.user.username(), valid, record));
-        return null;
+        return new Minigames.Outcome(null, game, valid, record);
     }
 
     /** Il giocatore chiude il minigioco prima della fine. */

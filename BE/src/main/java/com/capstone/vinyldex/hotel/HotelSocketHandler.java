@@ -17,6 +17,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -69,13 +70,15 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     private final NpcTradeService npcTradeService;
     private final PackService packService;
     private final PackRecapService packRecapService;
+    private final MinigameRewardService minigameRewardService;
     private final Random random = new Random();
     private final Map<String, HotelSession> sessions = new ConcurrentHashMap<>();
 
     public HotelSocketHandler(ObjectMapper objectMapper, JwtService jwtService, UserRepository userRepository,
                               RoomRegistry registry, RoomService roomService, FurniService furniService,
                               HotelSocialService socialService, PvpService pvpService, NpcTradeService npcTradeService,
-                              PackService packService, PackRecapService packRecapService) {
+                              PackService packService, PackRecapService packRecapService,
+                              MinigameRewardService minigameRewardService) {
         this.objectMapper = objectMapper;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
@@ -87,6 +90,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         this.npcTradeService = npcTradeService;
         this.packService = packService;
         this.packRecapService = packRecapService;
+        this.minigameRewardService = minigameRewardService;
     }
 
     @Override
@@ -228,7 +232,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
                 if (room != null) packRecapService.announceLatest(session, room);
             }
             case "minigame_result" -> {
-                if (room != null) reply(session, room.minigameResult(userId, integer(node, "score")));
+                if (room != null) minigameResult(session, room, integer(node, "score"));
             }
             case "minigame_quit" -> {
                 if (room != null) room.minigameQuit(userId);
@@ -364,6 +368,24 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         HotelSocialService.RespectResult result = socialService.respect(session.user().id(), receiverId);
         room.announceRespect(session.user().id(), receiverId, result.receivedTotal());
         session.send(Map.of("type", "respects_left", "left", result.remainingToday()));
+    }
+
+    /** Fine di un minigioco: il punteggio lo controlla la stanza, un nuovo record vale dei gold. */
+    private void minigameResult(HotelSession session, RoomInstance room, int score) {
+        Minigames.Outcome outcome = room.minigameResult(session.user().id(), score);
+        if (outcome.error() != null) {
+            session.send(error(outcome.error()));
+            return;
+        }
+        if (!outcome.record()) return;
+        MinigameRewardService.Reward reward = minigameRewardService.reward(session.user().id(), outcome.game(), outcome.score());
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put("type", "minigame_reward");
+        message.put("game", outcome.game().key());
+        message.put("gold", reward.gold());
+        message.put("left", reward.left());
+        message.put("reason", reward.reason());
+        session.send(message);
     }
 
     /** In edicola si compra un pacchetto: i gold vanno via subito, il pacchetto finisce nella borsa. */

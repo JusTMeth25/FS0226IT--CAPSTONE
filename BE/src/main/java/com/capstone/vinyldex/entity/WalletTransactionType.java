@@ -20,5 +20,7 @@ public enum WalletTransactionType {
     /** Pacchetto comprato in edicola: finisce nella borsa e si apre piu' tardi. */
     PACK_PURCHASE,
     /** Carta rivenduta al negozio dell'hotel in cambio di gold. */
-    CARD_BUYBACK
+    CARD_BUYBACK,
+    /** Premio per un record della stanza in un minigioco dell'hotel. */
+    MINIGAME_REWARD
 }

@@ -365,6 +365,7 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
       <p className="hotel-panel-hint">{game.help}</p>
       <p className="mg-record">
         <i className="ph-fill ph-crown" /> Record della stanza: {best ? `${best.score} ${start.unit} (${best.username})` : 'nessuno, fallo tu!'}
+        {' · '}batterlo vale fino a 50 gold
       </p>
 
       {phase === 'ready' && <div className="mg-countdown">{countdown}</div>}
@@ -388,6 +389,9 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
         <div className="mg-result">
           <strong>{result ? result.score : finalScore} {start.unit}</strong>
           {result?.record && <span className="mg-new-record"><i className="ph-fill ph-crown" /> Nuovo record della stanza!</span>}
+          {result?.reward?.gold > 0 && <span className="mg-reward"><i className="ph-fill ph-coin" /> +{result.reward.gold} gold</span>}
+          {result?.reward?.reason === 'limit' && <span className="mg-reward-note">Per oggi i record premiati sono finiti: torna domani.</span>}
+          {result?.reward?.reason === 'low_score' && <span className="mg-reward-note">Record troppo basso per un premio: punta piu&apos; in alto!</span>}
           <div className="mg-buttons">
             <button type="button" className="btn btn-secondary btn-small" onClick={onClose}>Chiudi</button>
             <button type="button" className="btn btn-primary btn-small" onClick={onReplay}><i className="ph-fill ph-arrow-counter-clockwise" /> Rigioca</button>

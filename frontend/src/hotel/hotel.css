@@ -906,3 +906,5 @@ button.hotel-trade-card:hover { background: var(--hp-surface-hover); }
 
 /* Nel navigatore, accanto ai giocatori, quanti personaggi dell'hotel ci sono. */
 .hotel-room-npcs { margin-left: 4px; opacity: 0.75; font-size: 0.85em; }
+.mg-reward { color: #fcd34d; font-size: 1.2rem; font-weight: 800; }
+.mg-reward-note { color: var(--hp-muted); font-size: 0.75rem; text-align: center; }

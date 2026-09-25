@@ -78,9 +78,9 @@ class RoomMinigameTest {
         assertEquals("box", start.path("game").asString());
         assertEquals("box", last("minigame").path("game").asString());
 
-        assertEquals("minigame_too_fast", room.minigameResult(anna, 50));
+        assertEquals("minigame_too_fast", room.minigameResult(anna, 50).error());
         assertTrue(last("minigame").path("game").isNull(), "la partita si chiude comunque");
-        assertEquals("minigame_not_running", room.minigameResult(anna, 50));
+        assertEquals("minigame_not_running", room.minigameResult(anna, 50).error());
     }
 
     @Test

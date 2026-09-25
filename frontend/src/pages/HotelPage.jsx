@@ -369,6 +369,14 @@ export default function HotelPage() {
           setMinigame((m) => (m && !m.finished ? null : m));
         }
         break;
+      case 'minigame_reward':
+        setMinigameResult((r) => ({ ...r, reward: message }));
+        if (message.gold > 0) {
+          sound.coin();
+          showNotice(`Record premiato: +${message.gold} gold! Premi rimasti oggi: ${message.left}.`);
+          refreshUser();
+        }
+        break;
       case 'minigame_score': {
         if (message.id === meRef.current?.id) setMinigameResult(message);
         if (message.record) {
