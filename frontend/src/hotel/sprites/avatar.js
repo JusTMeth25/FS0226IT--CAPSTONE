@@ -137,6 +137,13 @@ function poseOffsets(pose, frame) {
     return { ...pose0, bodyY: bob, backUp: frame % 4 < 2, frontUp: frame % 4 >= 2, backLeg: bob ? 2 : -2, frontLeg: bob ? -2 : 2 };
   }
   if (pose === 'wave') return { ...pose0, frontUp: true, frontArm: frame % 2 ? 2 : 0 };
+  // Esercizi e giochi: corsa (passo lungo), pugni alternati, bilanciere su e giu' da seduti.
+  if (pose === 'run') {
+    const swing = [0, 5, 0, -5][frame % 4];
+    return { ...pose0, backLeg: -swing, frontLeg: swing, backArm: swing, frontArm: -swing, bodyY: frame % 2 ? -2 : 0 };
+  }
+  if (pose === 'punch') return { ...pose0, frontUp: frame % 2 === 1, backUp: frame % 2 === 0, frontArm: 3, bodyY: frame % 2 };
+  if (pose === 'lift') return { ...pose0, sit: true, frontUp: true, backUp: true, liftUp: frame % 2 === 1 };
   if (pose === 'sit') return { ...pose0, sit: true };
   return pose0;
 }
@@ -162,10 +169,10 @@ function leg(ctx, x, top, swing, pants, shoe, back) {
 }
 
 /** Braccio: manica (corta, lunga o assente) e mano. Alzato per salutare o ballare. */
-function arm(ctx, x, y0, { up, swing, sleeve, skin, sleeveLength }) {
+function arm(ctx, x, y0, { up, swing, sleeve, skin, sleeveLength, reach = 0 }) {
   if (up) {
-    // Braccio alzato: sale sopra la spalla, la mano aperta in alto.
-    const top = y0 + 22;
+    // Braccio alzato: sale sopra la spalla, la mano aperta in alto (piu' in alto se spinge un peso).
+    const top = y0 + 22 - reach;
     px(ctx, x, top, 6, 20, skin);
     if (sleeveLength > 0) px(ctx, x, top + 20 - Math.min(20, sleeveLength), 6, Math.min(20, sleeveLength), sleeve);
     px(ctx, x - 1, top - 6, 8, 7, skin);
@@ -618,7 +625,9 @@ function drawAvatar(look, { back, pose, frame, outfit }) {
   }
 
   const sleeve = shirt;
-  arm(ctx, 8, y0, { up: o.backUp, swing: o.backArm, sleeve: shade(sleeve, -0.12), skin: shade(skin, -0.08), sleeveLength });
+  // Sulla panca le mani stanno sopra la testa (piu' in alto a braccia tese).
+  const reach = pose === 'lift' ? (o.liftUp ? 14 : 6) : 0;
+  arm(ctx, 8, y0, { up: o.backUp, swing: o.backArm, sleeve: shade(sleeve, -0.12), skin: shade(skin, -0.08), sleeveLength, reach });
   // Collo in ombra sotto la testa.
   px(ctx, 20, y0 + 35, 9, 7, shade(skin, -0.18));
   // In acqua gli uomini stanno a petto nudo (con il pantaloncino), le donne con il costume intero.
@@ -626,7 +635,7 @@ function drawAvatar(look, { back, pose, frame, outfit }) {
   else if (swim) drawSwimsuit(ctx, y0, { color: shirt, skin, back });
   else drawTorso(ctx, y0, parts, { shirt, skin, back });
   if (!o.sit && (swim ? man : parts.t !== 4)) px(ctx, 14, y0 + 63, 21, 2, shade(pants, -0.25)); // cintura / elastico
-  arm(ctx, 35, y0, { up: o.frontUp, swing: o.frontArm, sleeve, skin, sleeveLength });
+  arm(ctx, 35, y0, { up: o.frontUp, swing: o.frontArm, sleeve, skin, sleeveLength, reach });
 
   drawHead(ctx, y0, { skin, back });
   const capped = outfit === 'pool';
@@ -644,6 +653,15 @@ function drawAvatar(look, { back, pose, frame, outfit }) {
   // In acqua si tolgono solo le cuffie della musica e la bandana; occhiali, occhiali da sole,
   // collana e orecchino restano addosso.
   if (!swim || ![3, 6].includes(parts.a)) drawAccessory(ctx, y0, parts.a, back);
+  if (pose === 'lift') {
+    // Bilanciere tenuto sopra la testa (per ultimo, davanti alla testa): sbarra e due dischi per parte.
+    const barY = y0 + 11 - reach;
+    px(ctx, 1, barY, 46, 2, '#9ca3af');
+    px(ctx, 1, barY - 5, 4, 12, '#1f2937');
+    px(ctx, 43, barY - 5, 4, 12, '#1f2937');
+    px(ctx, 5, barY - 3, 2, 8, '#4b5563');
+    px(ctx, 41, barY - 3, 2, 8, '#4b5563');
+  }
 
   outline(ctx, AVATAR_W, AVATAR_H);
   return bake(canvas);

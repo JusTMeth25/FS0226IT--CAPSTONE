@@ -260,6 +260,23 @@ public final class NpcDialog {
         return "Io non servo da bere, chiedi al bancone!";
     }
 
+    /** L'istruttrice vede qualcuno cominciare un esercizio (o un gioco). */
+    public static String workoutStart(String game, String user, Random random) {
+        return switch (game) {
+            case "bench" -> pick(random, List.of("Forza " + user + ", schiena dritta e spingi!", "Dai " + user + ", vediamo quante ne fai!"));
+            case "run" -> pick(random, List.of("Via, " + user + "! Tieni il ritmo!", "Corri " + user + ", corri!"));
+            case "box" -> pick(random, List.of("Guardia alta, " + user + "!", "Destro, sinistro, montante: vai " + user + "!"));
+            default -> "Buona fortuna, " + user + "!";
+        };
+    }
+
+    /** Commento a fine partita, con il punteggio. */
+    public static String workoutDone(String unit, String user, int score, boolean record) {
+        if (record) return "Record della stanza, " + user + ": " + score + " " + unit + "! Incredibile!";
+        if (score == 0) return "Non mollare, " + user + ", la prossima va meglio!";
+        return score + " " + unit + ", brava/o " + user + "! Riprova e batti il record.";
+    }
+
     /** L'edicolante ha venduto un pacchetto. */
     public static String packSold(String user, String packName, Random random) {
         return pick(random, List.of("Ecco il tuo " + packName + ", " + user + "! Lo trovi nella borsa.",

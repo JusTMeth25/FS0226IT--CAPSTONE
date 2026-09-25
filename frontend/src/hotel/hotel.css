@@ -866,3 +866,40 @@ button.hotel-trade-card:hover { background: var(--hp-surface-hover); }
 .hotel-buyback-info .hotel-buyback-offer { color: #fcd34d; }
 .hotel-buyback-actions { display: flex; flex-direction: column; gap: 4px; }
 .hotel-buyback-actions .btn { padding: 4px 8px; font-size: 0.66rem; white-space: nowrap; }
+
+/* ---------- Minigiochi (palestra, sala giochi) ---------- */
+.hotel-minigame { left: 50%; bottom: var(--space-sm); transform: translateX(-50%); width: min(440px, calc(100% - 16px)); z-index: 9; }
+.mg-record { margin: 0 10px 6px; font-size: 0.72rem; color: #fcd34d; }
+.mg-countdown { font-size: 3rem; font-weight: 800; text-align: center; color: #fff; padding: 16px 0; }
+.mg-stage { padding: 6px 12px 10px; }
+.mg-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--hp-muted); font-size: 0.8rem; margin-top: 8px; }
+.mg-big { font-size: 2rem; font-weight: 800; color: #fff; line-height: 1; display: flex; align-items: baseline; gap: 6px; }
+.mg-big small { font-size: 0.75rem; font-weight: 600; color: var(--hp-muted); }
+.mg-meter { position: relative; height: 16px; border-radius: 99px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.mg-meter > span:not(.mg-zone):not(.mg-cue) { display: block; height: 100%; background: linear-gradient(90deg, #22d3ee, #8b5cf6); transition: width 60ms linear; }
+.mg-bench { display: flex; align-items: flex-end; gap: 18px; }
+.mg-meter-vertical { width: 22px; height: 120px; display: flex; align-items: flex-end; }
+.mg-meter-vertical > span { width: 100%; background: linear-gradient(0deg, #f59e0b, #ef4444) !important; }
+.mg-target { position: relative; height: 90px; border-radius: 14px; display: grid; place-items: center; font-size: 3rem; color: #fff;
+  background: rgba(255, 255, 255, 0.06); border: 2px solid var(--hp-line); overflow: hidden; }
+.mg-target.hit { background: rgba(34, 197, 94, 0.35); }
+.mg-target-time { position: absolute; left: 0; bottom: 0; height: 4px; background: #fbbf24; }
+.mg-claw-box { position: relative; height: 110px; border-radius: 12px; background: linear-gradient(180deg, rgba(186, 230, 253, 0.25), rgba(236, 72, 153, 0.15));
+  border: 2px solid rgba(236, 72, 153, 0.6); overflow: hidden; }
+.mg-claw-hand { position: absolute; top: 4px; transform: translateX(-50%); font-size: 1.6rem; color: #e5e7eb; transition: top 0.3s ease; }
+.mg-claw-hand.down { top: 58px; }
+.mg-claw-prize { position: absolute; bottom: 8px; width: 22px; height: 22px; transform: translateX(-50%); border-radius: 50% 50% 40% 40%; box-shadow: inset -3px -3px 0 rgba(0, 0, 0, 0.2); }
+.mg-lanes { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; height: 150px; }
+.mg-lane { position: relative; border-radius: 8px; background: rgba(255, 255, 255, 0.05); overflow: hidden; }
+.mg-lane.hit { background: rgba(34, 211, 238, 0.3); }
+.mg-note { position: absolute; left: 15%; width: 70%; height: 10px; border-radius: 99px; background: #ec4899; transform: translateY(-50%); box-shadow: 0 0 8px #ec4899; }
+.mg-line { position: absolute; left: 0; right: 0; top: 89%; height: 2px; background: #fbbf24; }
+.mg-power { height: 22px; }
+.mg-zone { position: absolute; top: 0; bottom: 0; background: rgba(34, 197, 94, 0.55); }
+.mg-cue { position: absolute; top: -2px; bottom: -2px; width: 4px; background: #fff; transform: translateX(-50%); }
+.mg-buttons { display: flex; gap: 8px; padding: 0 10px 10px; flex-wrap: wrap; }
+.mg-button { flex: 1 1 0; min-width: 80px; touch-action: manipulation; user-select: none; }
+.mg-result { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 4px 10px 0; }
+.mg-result strong { font-size: 1.6rem; color: #fff; }
+.mg-new-record { color: #fcd34d; font-weight: 700; }
+.hotel-minigame { overflow-y: auto; }

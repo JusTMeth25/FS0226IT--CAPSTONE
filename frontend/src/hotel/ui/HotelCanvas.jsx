@@ -24,7 +24,8 @@ const HotelCanvas = forwardRef(function HotelCanvas({ zoom, catalog, placement, 
   }, [onTileClick, onAvatarClick, onItemClick, onPlace]);
 
   useImperativeHandle(ref, () => ({
-    handle: (message) => engineRef.current?.handle(message)
+    handle: (message) => engineRef.current?.handle(message),
+    pulse: () => engineRef.current?.pulse()
   }), []);
 
   useEffect(() => {

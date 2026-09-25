@@ -1,0 +1,399 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+/**
+ * Minigiochi sui mobili dell'hotel. Si gioca qui, nel browser; il server ha fatto partire la
+ * partita (minigame_start) e alla fine riceve solo il punteggio, che controlla.
+ *
+ * Ogni gioco e' una piccola simulazione aggiornata a ogni fotogramma: `init` crea lo stato,
+ * `tick` lo fa avanzare di dt millisecondi, `press` reagisce a un tasto (o a un pulsante sullo
+ * schermo), `view` lo disegna. Lo stato vive in un ref; a ogni fotogramma se ne fa una copia
+ * (`snap`) che React disegna.
+ */
+
+const rand = (min, max) => min + Math.random() * (max - min);
+
+const GAMES = {
+  // Panca piana: ogni pressione spinge il bilanciere; se ti fermi torna giu'. Arrivato in cima
+  // e' una ripetizione. Piu' ne fai, piu' pesa.
+  bench: {
+    help: 'Premi SPAZIO (o il pulsante) il piu\' velocemente possibile per spingere il bilanciere.',
+    duration: 25_000,
+    keys: { ' ': 'push', Enter: 'push' },
+    buttons: [['push', 'Spingi!', 'ph-barbell']],
+    init: () => ({ lift: 0, reps: 0 }),
+    tick(s, dt) {
+      s.lift = Math.max(0, s.lift - dt * (0.025 + s.reps * 0.0012));
+    },
+    press(s, action, pulse) {
+      if (action !== 'push') return;
+      s.lift += 11 - Math.min(6, s.reps * 0.2);
+      if (s.lift >= 100) {
+        s.lift = 0;
+        s.reps += 1;
+        pulse();
+      }
+    },
+    score: (s) => s.reps,
+    done: (s, max) => s.reps >= max,
+    view: (s) => (
+      <div className="mg-bench">
+        <div className="mg-meter mg-meter-vertical"><span style={{ height: `${s.lift}%` }} /></div>
+        <div className="mg-big">{s.reps}<small>ripetizioni</small></div>
+      </div>
+    )
+  },
+
+  // Tapis roulant: alterna sinistro e destro; il ritmo giusto fa salire la velocita'.
+  run: {
+    help: 'Alterna FRECCIA SINISTRA e FRECCIA DESTRA (o A e D) per correre: piu\' sei regolare, piu\' vai veloce.',
+    duration: 20_000,
+    keys: { ArrowLeft: 'left', a: 'left', A: 'left', ArrowRight: 'right', d: 'right', D: 'right' },
+    buttons: [['left', 'Sinistro', 'ph-footprints'], ['right', 'Destro', 'ph-footprints']],
+    init: () => ({ speed: 0, meters: 0, last: null }),
+    tick(s, dt) {
+      s.speed = Math.max(0, s.speed - dt * 0.0016);
+      s.meters += (s.speed * dt) / 1000;
+    },
+    press(s, action, pulse) {
+      if (action === s.last) {
+        s.speed = Math.max(0, s.speed - 1);
+      } else {
+        s.speed = Math.min(9, s.speed + 0.55);
+        pulse();
+      }
+      s.last = action;
+    },
+    score: (s) => Math.floor(s.meters),
+    done: () => false,
+    view: (s) => (
+      <div className="mg-run">
+        <div className="mg-meter"><span style={{ width: `${(s.speed / 9) * 100}%` }} /></div>
+        <div className="mg-row"><span>{(s.speed * 3.6).toFixed(1)} km/h</span><div className="mg-big">{Math.floor(s.meters)}<small>metri</small></div></div>
+      </div>
+    )
+  },
+
+  // Sacco da boxe: compare una direzione, colpisci quella giusta prima che sparisca.
+  box: {
+    help: 'Colpisci la direzione che compare: FRECCIA SINISTRA, SU o DESTRA. Piu\' colpi di fila fanno combo.',
+    duration: 20_000,
+    keys: { ArrowLeft: 'left', ArrowUp: 'up', ArrowRight: 'right' },
+    buttons: [['left', 'Sinistro', 'ph-arrow-left'], ['up', 'Montante', 'ph-arrow-up'], ['right', 'Destro', 'ph-arrow-right']],
+    init: () => ({ target: 'up', left: 1200, window: 1200, points: 0, combo: 0, flash: 0 }),
+    tick(s, dt) {
+      s.left -= dt;
+      s.flash = Math.max(0, s.flash - dt);
+      if (s.left <= 0) {
+        s.combo = 0;
+        GAMES.box.next(s);
+      }
+    },
+    next(s) {
+      s.target = ['left', 'up', 'right'][Math.floor(Math.random() * 3)];
+      s.window = Math.max(480, s.window - 25);
+      s.left = s.window;
+    },
+    press(s, action, pulse) {
+      if (action === s.target) {
+        s.combo += 1;
+        s.points += s.combo >= 5 ? 2 : 1;
+        s.flash = 200;
+        pulse();
+      } else {
+        s.combo = 0;
+      }
+      GAMES.box.next(s);
+    },
+    score: (s) => s.points,
+    done: () => false,
+    view: (s) => (
+      <div className="mg-box">
+        <div className={`mg-target mg-target-${s.target}${s.flash ? ' hit' : ''}`}>
+          <i className={`ph-fill ${{ left: 'ph-arrow-left', up: 'ph-arrow-up', right: 'ph-arrow-right' }[s.target]}`} />
+          <span className="mg-target-time" style={{ width: `${(s.left / s.window) * 100}%` }} />
+        </div>
+        <div className="mg-row"><span>Combo x{s.combo}</span><div className="mg-big">{s.points}<small>colpi</small></div></div>
+      </div>
+    )
+  },
+
+  // Pesca-peluche: la pinza va avanti e indietro, premi quando e' sopra un peluche.
+  claw: {
+    help: 'La pinza si muove da sola: premi SPAZIO quando e\' sopra un peluche. Hai 3 tentativi.',
+    duration: 0,
+    keys: { ' ': 'drop', Enter: 'drop' },
+    buttons: [['drop', 'Cala la pinza', 'ph-hand-grabbing']],
+    init: () => ({ x: 0, t: 0, speed: 0.0022, tries: 3, won: 0, drop: 0, result: null,
+      prizes: [rand(12, 30), rand(42, 58), rand(70, 88)].map((p) => ({ x: p, color: ['#f472b6', '#fbbf24', '#60a5fa'][Math.floor(Math.random() * 3)] })) }),
+    tick(s, dt) {
+      if (s.drop > 0) {
+        s.drop = Math.max(0, s.drop - dt);
+        return;
+      }
+      s.t += dt * s.speed;
+      s.x = 50 + Math.sin(s.t) * 48;
+    },
+    press(s, action, pulse) {
+      if (action !== 'drop' || s.drop > 0 || s.tries <= 0) return;
+      s.tries -= 1;
+      const hit = s.prizes.findIndex((p) => Math.abs(p.x - s.x) < 5);
+      if (hit >= 0) {
+        s.prizes.splice(hit, 1);
+        s.won += 1;
+        s.result = 'Preso!';
+        pulse();
+      } else {
+        s.result = 'Mancato…';
+      }
+      s.drop = 900;
+      s.speed *= 1.25;
+    },
+    score: (s) => s.won,
+    done: (s) => s.tries <= 0 && s.drop === 0,
+    view: (s) => (
+      <div className="mg-claw">
+        <div className="mg-claw-box">
+          <span className={`mg-claw-hand${s.drop ? ' down' : ''}`} style={{ left: `${s.x}%` }}><i className="ph-fill ph-hand-grabbing" /></span>
+          {s.prizes.map((p) => <span key={p.x} className="mg-claw-prize" style={{ left: `${p.x}%`, background: p.color }} />)}
+        </div>
+        <div className="mg-row"><span>{s.result || `Tentativi: ${s.tries}`}</span><div className="mg-big">{s.won}<small>peluche</small></div></div>
+      </div>
+    )
+  },
+
+  // Vinyl Rush: le note scendono su quattro corsie, premi il tasto quando arrivano sulla linea.
+  rhythm: {
+    help: 'Premi la freccia giusta (o D F J K) quando la nota arriva sulla linea in basso.',
+    duration: 25_000,
+    keys: { ArrowLeft: 0, d: 0, D: 0, ArrowDown: 1, f: 1, F: 1, ArrowUp: 2, j: 2, J: 2, ArrowRight: 3, k: 3, K: 3 },
+    buttons: [[0, '←', null], [1, '↓', null], [2, '↑', null], [3, '→', null]],
+    init: () => ({ notes: [], spawn: 600, hits: 0, misses: 0, flash: [0, 0, 0, 0], id: 0 }),
+    tick(s, dt) {
+      s.spawn -= dt;
+      if (s.spawn <= 0) {
+        s.notes.push({ id: (s.id += 1), lane: Math.floor(Math.random() * 4), y: 0 });
+        s.spawn = rand(380, 700);
+      }
+      s.notes.forEach((n) => { n.y += dt * 0.05; });
+      const missed = s.notes.filter((n) => n.y > 105).length;
+      s.misses += missed;
+      s.notes = s.notes.filter((n) => n.y <= 105);
+      s.flash = s.flash.map((f) => Math.max(0, f - dt));
+    },
+    press(s, lane, pulse) {
+      const note = s.notes.find((n) => n.lane === lane && n.y > 78 && n.y < 100);
+      if (note) {
+        s.notes = s.notes.filter((n) => n !== note);
+        s.hits += 1;
+        s.flash[lane] = 180;
+        pulse();
+      } else {
+        s.misses += 1;
+      }
+    },
+    score: (s) => s.hits,
+    done: () => false,
+    view: (s) => (
+      <div className="mg-rhythm">
+        <div className="mg-lanes">
+          {[0, 1, 2, 3].map((lane) => (
+            <div key={lane} className={`mg-lane${s.flash[lane] ? ' hit' : ''}`}>
+              {s.notes.filter((n) => n.lane === lane).map((n) => <span key={n.id} className="mg-note" style={{ top: `${n.y}%` }} />)}
+            </div>
+          ))}
+          <span className="mg-line" />
+        </div>
+        <div className="mg-row"><span>Mancate {s.misses}</span><div className="mg-big">{s.hits}<small>note</small></div></div>
+      </div>
+    )
+  },
+
+  // Biliardo: la forza del tiro oscilla, tira quando e' nella zona verde. Sette tiri.
+  pool: {
+    help: 'La barra della forza sale e scende: premi SPAZIO quando e\' nella zona verde. Hai 7 tiri.',
+    duration: 0,
+    keys: { ' ': 'shoot', Enter: 'shoot' },
+    buttons: [['shoot', 'Tira', 'ph-target']],
+    init: () => ({ power: 0, dir: 1, shots: 7, potted: 0, zone: rand(45, 80), pause: 0, result: null }),
+    tick(s, dt) {
+      if (s.pause > 0) {
+        s.pause = Math.max(0, s.pause - dt);
+        return;
+      }
+      s.power += s.dir * dt * (0.09 + (7 - s.shots) * 0.012);
+      if (s.power >= 100) { s.power = 100; s.dir = -1; }
+      if (s.power <= 0) { s.power = 0; s.dir = 1; }
+    },
+    press(s, action, pulse) {
+      if (action !== 'shoot' || s.pause > 0 || s.shots <= 0) return;
+      s.shots -= 1;
+      const inZone = s.power >= s.zone && s.power <= s.zone + 12;
+      if (inZone) {
+        s.potted += 1;
+        s.result = 'In buca!';
+        pulse();
+      } else {
+        s.result = s.power < s.zone ? 'Troppo piano' : 'Troppo forte';
+      }
+      s.zone = rand(30, 85);
+      s.pause = 700;
+    },
+    score: (s) => s.potted,
+    done: (s) => s.shots <= 0 && s.pause === 0,
+    view: (s) => (
+      <div className="mg-pool">
+        <div className="mg-meter mg-power">
+          <span className="mg-zone" style={{ left: `${s.zone}%`, width: '12%' }} />
+          <span className="mg-cue" style={{ left: `${s.power}%` }} />
+        </div>
+        <div className="mg-row"><span>{s.result || `Tiri: ${s.shots}`}</span><div className="mg-big">{s.potted}<small>buche</small></div></div>
+      </div>
+    )
+  }
+};
+
+/**
+ * @param start messaggio minigame_start del server (gioco, titolo, record della stanza)
+ * @param onFinish chiamato una volta con il punteggio finale
+ * @param onPulse ogni azione riuscita: l'avatar si muove (ripetizione, pugno, passo...)
+ */
+export default function Minigame({ start, result, onFinish, onReplay, onClose, onPulse }) {
+  const game = GAMES[start.game];
+  const state = useRef(null);
+  const [phase, setPhase] = useState('ready');
+  const [snap, setSnap] = useState(null);
+  const [finalScore, setFinalScore] = useState(null);
+  const [countdown, setCountdown] = useState(3);
+  const timeLeft = useRef(game?.duration || 0);
+  const playStart = useRef(0);
+  const finished = useRef(false);
+  // La pagina si ridisegna spesso (chat, NPC...) e ricrea le callback: si tengono in un ref,
+  // cosi' il ciclo del gioco non riparte da capo e il tempo non si azzera.
+  const callbacks = useRef({ onFinish, onPulse });
+  useEffect(() => {
+    callbacks.current = { onFinish, onPulse };
+  }, [onFinish, onPulse]);
+
+  const finish = useCallback(() => {
+    if (finished.current) return;
+    finished.current = true;
+    const score = game.score(state.current);
+    setFinalScore(score);
+    setPhase('done');
+    callbacks.current.onFinish(score);
+  }, [game]);
+
+  // Conto alla rovescia, poi si gioca.
+  useEffect(() => {
+    if (phase !== 'ready') return undefined;
+    state.current = game.init();
+    setSnap({ ...state.current, time: timeLeft.current });
+    const timer = setInterval(() => {
+      setCountdown((c) => {
+        if (c <= 1) {
+          clearInterval(timer);
+          setPhase('play');
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [phase, game]);
+
+  // Ciclo del gioco: un passo a ogni fotogramma.
+  useEffect(() => {
+    if (phase !== 'play') return undefined;
+    let raf = 0;
+    let last = performance.now();
+    playStart.current = last;
+    const loop = (now) => {
+      // La fisica avanza a passi piccoli, ma il tempo di gioco e' quello vero: se il browser
+      // rallenta, la partita non dura di piu'.
+      const dt = Math.min(100, now - last);
+      last = now;
+      game.tick(state.current, dt);
+      if (game.duration) {
+        timeLeft.current = game.duration - (now - playStart.current);
+        if (timeLeft.current <= 0) {
+          finish();
+          return;
+        }
+      }
+      if (game.done(state.current, start.maxScore)) {
+        finish();
+        return;
+      }
+      setSnap({ ...state.current, time: timeLeft.current });
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [phase, game, finish, start.maxScore]);
+
+  const act = useCallback((action) => {
+    if (phase !== 'play' || finished.current) return;
+    game.press(state.current, action, () => callbacks.current.onPulse());
+  }, [phase, game]);
+
+  // Tastiera: si ignora mentre si scrive in chat.
+  useEffect(() => {
+    if (phase !== 'play') return undefined;
+    const onKey = (event) => {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
+      if (event.repeat) return;
+      const action = game.keys[event.key];
+      if (action === undefined) return;
+      event.preventDefault();
+      act(action);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [phase, game, act]);
+
+  if (!game) return null;
+  const best = start.best;
+  const seconds = Math.max(0, Math.ceil((snap?.time || 0) / 1000));
+
+  return (
+    <div className="hotel-panel hotel-minigame" role="dialog" aria-label={start.title}>
+      <header className="hotel-panel-header">
+        <h3><i className="ph-fill ph-trophy" /> {start.title}</h3>
+        {phase === 'play' && game.duration > 0 && <span className={`pvp-timer${seconds <= 5 ? ' urgent' : ''}`}>{seconds}s</span>}
+        <button type="button" className="hotel-panel-close" onClick={onClose} aria-label="Chiudi"><i className="ph ph-x" /></button>
+      </header>
+      <p className="hotel-panel-hint">{game.help}</p>
+      <p className="mg-record">
+        <i className="ph-fill ph-crown" /> Record della stanza: {best ? `${best.score} ${start.unit} (${best.username})` : 'nessuno, fallo tu!'}
+      </p>
+
+      {phase === 'ready' && <div className="mg-countdown">{countdown}</div>}
+
+      {phase === 'play' && snap && (
+        <div className="mg-stage">{game.view(snap)}</div>
+      )}
+
+      {phase === 'play' && (
+        <div className="mg-buttons">
+          {game.buttons.map(([action, label, icon]) => (
+            <button key={String(action)} type="button" className="btn btn-primary mg-button"
+              onPointerDown={(event) => { event.preventDefault(); act(action); }}>
+              {icon && <i className={`ph-fill ${icon}`} />} {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {phase === 'done' && (
+        <div className="mg-result">
+          <strong>{result ? result.score : finalScore} {start.unit}</strong>
+          {result?.record && <span className="mg-new-record"><i className="ph-fill ph-crown" /> Nuovo record della stanza!</span>}
+          <div className="mg-buttons">
+            <button type="button" className="btn btn-secondary btn-small" onClick={onClose}>Chiudi</button>
+            <button type="button" className="btn btn-primary btn-small" onClick={onReplay}><i className="ph-fill ph-arrow-counter-clockwise" /> Rigioca</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

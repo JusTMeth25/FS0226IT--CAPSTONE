@@ -42,6 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *   consume: un sorso o un morso dell'oggetto in mano
  *   npc_showcase {npcId} · npc_trade_propose {npcId,give,want} · npc_trade_reply {offerId,accept}
  *   buy_pack {packId}: comprare un pacchetto in edicola (va nella borsa)
+ *   minigame_result {score} · minigame_quit: fine di un minigioco partito con use_item
  * Solo nella propria stanza:
  *   place {itemId,x,y,rot} · pickup {itemId} · set_display {itemId,cardId} · kick {userId}
  */
@@ -219,6 +220,12 @@ public class HotelSocketHandler extends TextWebSocketHandler {
                 if (room != null) reply(session, room.npcAction(userId, uuid(node, "npcId"), text(node, "action"), text(node, "item")));
             }
             case "buy_pack" -> buyPack(session, room, text(node, "packId"));
+            case "minigame_result" -> {
+                if (room != null) reply(session, room.minigameResult(userId, integer(node, "score")));
+            }
+            case "minigame_quit" -> {
+                if (room != null) room.minigameQuit(userId);
+            }
             case "use_item" -> {
                 if (room != null) reply(session, room.useItem(userId, uuid(node, "itemId")));
             }

@@ -100,6 +100,12 @@ export class HotelEngine {
     cancelAnimationFrame(this.frame);
   }
 
+  /** Un'azione riuscita nel minigioco (ripetizione, pugno, passo): l'avatar si muove subito. */
+  pulse(userId) {
+    const user = this.users.get(userId || this.meId);
+    if (user) user.pulseAt = performance.now();
+  }
+
   resize(cssWidth, cssHeight, dpr) {
     this.cssWidth = cssWidth;
     this.cssHeight = cssHeight;
@@ -165,6 +171,12 @@ export class HotelEngine {
       case 'item_removed': this.items.delete(message.id); this.waterTiles = null; break;
       case 'hand_item': this.setHandItem(message.id, message.item, message.left); break;
       case 'consume': this.setConsume(message.id, message.item, message.left, now); break;
+      case 'minigame': {
+        const user = this.users.get(message.id);
+        if (user) user.game = message.game;
+        break;
+      }
+      case 'minigame_score': this.sips.push({ userId: message.id, text: `${message.score} ${message.unit}${message.record ? ' · record!' : ''}`, born: now }); break;
       case 'user_away': {
         const user = this.users.get(message.id);
         if (user) user.away = message.away;
@@ -548,6 +560,16 @@ export class HotelEngine {
     if (at.walking) {
       pose = 'walk';
       frame = Math.floor(now / 125) % 4;
+    } else if (user.game === 'bench') {
+      // Panca: il bilanciere sale a ogni ripetizione (le proprie in tempo reale, quelle degli altri a ritmo).
+      pose = 'lift';
+      frame = user.id === this.meId ? (now - (user.pulseAt || 0) < 260 ? 1 : 0) : (animate ? Math.floor(now / 700) % 2 : 0);
+    } else if (user.game === 'run') {
+      pose = 'run';
+      frame = animate ? Math.floor(now / (user.id === this.meId && now - (user.pulseAt || 0) > 600 ? 260 : 95)) % 4 : 0;
+    } else if (user.game === 'box') {
+      pose = 'punch';
+      frame = user.id === this.meId ? (now - (user.pulseAt || 0) < 180 ? 1 : 0) : (animate ? Math.floor(now / 320) % 2 : 0);
     } else if (user.status === 'sit') {
       pose = 'sit';
     } else if (user.status === 'dance' || (this.jukeboxOn && user.status !== 'sit' && this.onDanceFloor(at))) {
@@ -561,7 +583,9 @@ export class HotelEngine {
     const water = user.status !== 'sit' ? this.waterAt(at) : null;
     const sprite = avatarSprite(user.look, { ...view, pose, frame, outfit: water });
     const center = tileCenter(at.x, at.y, at.z);
-    if (pose === 'sit' && this.seatUnder(user)) center.y -= SEAT_LIFT;
+    if ((pose === 'sit' || pose === 'lift') && this.seatUnder(user)) center.y -= SEAT_LIFT;
+    // Sul tapis roulant si corre sopra il nastro, non sul pavimento.
+    if (user.game === 'run' && !at.walking) center.y -= 11;
     return { sprite, left: center.x - AVATAR_FOOT_X * AVATAR_SCALE, top: center.y - AVATAR_FOOT_Y * AVATAR_SCALE, center, water };
   }
 

@@ -25,6 +25,7 @@ import NpcCard from '../hotel/ui/NpcCard.jsx';
 import { NpcTradeOffer, NpcTradePanel } from '../hotel/ui/NpcTrade.jsx';
 import Newsstand from '../hotel/ui/Newsstand.jsx';
 import HotelPackOpening from '../hotel/ui/HotelPackOpening.jsx';
+import Minigame from '../hotel/ui/Minigame.jsx';
 import { PACKS } from '../data/packs.js';
 import { footprintOf, nextRotation } from '../hotel/sprites/furni.js';
 import { DEFAULT_LOOK } from '../hotel/sprites/avatar.js';
@@ -42,7 +43,9 @@ const CONSUME = {
 
 /** Mobili che si usano cliccandoli: bibite, cibo, jukebox. */
 const USABLE = ['bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'pizza_oven', 'jukebox',
-  'beach_bar', 'popcorn_machine', 'water_cooler'];
+  'beach_bar', 'popcorn_machine', 'water_cooler',
+  // Minigiochi: panca, tapis roulant, sacco da boxe, pesca-peluche, cabinato arcade, biliardo.
+  'weight_bench', 'treadmill', 'punching_bag', 'claw_machine', 'arcade', 'pool_table'];
 
 /** Il chiosco e l'espositore dell'edicola aprono il banco dei pacchetti. */
 const NEWSSTAND_ITEMS = ['newsstand', 'pack_display'];
@@ -86,6 +89,9 @@ const ERRORS = {
   invalid_team: 'Scegli 3 carte diverse.',
   invalid_move: 'Mossa non valida in questo momento.',
   not_at_newsstand: 'I pacchetti si comprano in Edicola.',
+  item_busy: 'C\'e\' gia\' qualcuno che lo sta usando: aspetta il tuo turno.',
+  minigame_too_fast: 'Partita troppo breve: il punteggio non vale.',
+  minigame_not_running: 'La partita e\' gia\' finita.',
   pack_not_found: 'Questo pacchetto non e\' piu\' in vendita.',
   pack_not_for_sale: 'Questo pacchetto non si compra: arriva solo in regalo.',
   insufficient_gold: 'Non hai abbastanza gold.',
@@ -152,6 +158,8 @@ export default function HotelPage() {
   const [packOpening, setPackOpening] = useState(null);
   const [openingBusy, setOpeningBusy] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  const [minigame, setMinigame] = useState(null);
+  const [minigameResult, setMinigameResult] = useState(null);
   const pageRef = useRef(null);
   const noticeTimer = useRef(0);
   const meRef = useRef(null);
@@ -346,6 +354,26 @@ export default function HotelPage() {
           showNotice(message.winner
             ? `${message.winner} ha vinto la sfida ${message.a} contro ${message.b} (${message.scoreA}-${message.scoreB})${message.forfeit ? ' a tavolino' : ''}!`
             : `Sfida ${message.a} contro ${message.b}: pareggio!`);
+        }
+        break;
+      }
+      case 'minigame_start':
+        setMinigame({ ...message, key: Date.now() });
+        setMinigameResult(null);
+        setPanel(null);
+        break;
+      case 'minigame':
+        // Il server ha chiuso la partita (ci si e' mossi, o e' scaduta): il pannello si chiude,
+        // a meno che non stia gia' mostrando il risultato.
+        if (message.id === meRef.current?.id && !message.game) {
+          setMinigame((m) => (m && !m.finished ? null : m));
+        }
+        break;
+      case 'minigame_score': {
+        if (message.id === meRef.current?.id) setMinigameResult(message);
+        if (message.record) {
+          showNotice(`${message.username}: ${message.score} ${message.unit} a ${message.title}, nuovo record della stanza!`);
+          if (message.id === meRef.current?.id) sound.coin();
         }
         break;
       }
@@ -681,6 +709,24 @@ export default function HotelPage() {
         )}
 
         {pvp && <PvpPanel pvp={pvp} clockOffset={clockOffset} send={send} onClose={() => setPvp(null)} />}
+
+        {minigame && (
+          <Minigame
+            key={minigame.key}
+            start={minigame}
+            result={minigameResult}
+            onPulse={() => canvasRef.current?.pulse()}
+            onFinish={(score) => {
+              setMinigame((m) => (m ? { ...m, finished: true } : m));
+              send({ type: 'minigame_result', score });
+            }}
+            onReplay={() => send({ type: 'use_item', itemId: minigame.itemId })}
+            onClose={() => {
+              if (!minigame.finished) send({ type: 'minigame_quit' });
+              setMinigame(null);
+            }}
+          />
+        )}
 
         {selectedItem && (
           <ItemMenu

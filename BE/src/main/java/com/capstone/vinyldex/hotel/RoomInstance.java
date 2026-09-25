@@ -69,6 +69,8 @@ public class RoomInstance {
     private final NpcMind mind;
     /** Ultimi messaggi fra ogni NPC e ogni giocatore, per risposte coerenti con quanto detto. */
     private final Map<String, Deque<NpcMind.Line>> conversations = new HashMap<>();
+    /** Record della stanza per ogni minigioco (si azzerano quando la stanza si svuota e si scarica). */
+    private final Map<String, Minigames.Best> records = new HashMap<>();
 
     private record Pending(long dueAt, Runnable action) {
     }
@@ -109,6 +111,12 @@ public class RoomInstance {
         /** Ordinazione da ritirare arrivati dal barista: chi la prepara e cosa. */
         UUID orderFrom;
         String orderItem;
+        /** Minigioco in corso su un mobile (panca, sacco, arcade...), da quando e da dove si era partiti. */
+        Minigames.Game game;
+        UUID gameItem;
+        long gameStartedAt;
+        int gameFromX;
+        int gameFromY;
 
         /** Solo per gli NPC: chi sono, quando pensano alla prossima mossa, cosa stanno facendo. */
         NpcRoster.NpcSpec npc;
@@ -264,8 +272,9 @@ public class RoomInstance {
     public synchronized void move(UUID userId, int toX, int toY) {
         Occupant occupant = occupants.get(userId);
         if (occupant == null) return;
-        // Un nuovo clic annulla l'uso rimasto in sospeso (per esempio andare al bancone).
+        // Un nuovo clic annulla l'uso rimasto in sospeso (per esempio andare al bancone) e il minigioco.
         occupant.pendingUse = null;
+        if (occupant.game != null) stopGame(occupant);
 
         // Posto gia' preso su un divano: si va sull'altro posto libero della stessa seduta.
         int[] seat = freeSeat(userId, toX, toY);
@@ -294,6 +303,8 @@ public class RoomInstance {
                 occupant.handItem = null;
                 broadcast(handMessage(occupant));
             }
+            // Partita lasciata a meta' (pagina chiusa, giocatore distratto): il mobile si libera.
+            if (occupant.game != null && now - occupant.gameStartedAt > occupant.game.maxMillis()) stopGame(occupant);
         }
         for (Occupant occupant : occupants.values()) {
             Pathfinder.Step next = occupant.path.peekFirst();
@@ -317,7 +328,12 @@ public class RoomInstance {
             if (occupant.path.isEmpty() && occupant.pendingUse != null) {
                 RoomItemView target = items.get(occupant.pendingUse);
                 occupant.pendingUse = null;
-                if (target != null && isNextTo(occupant, target)) serveDrink(occupant, target.type());
+                Minigames.Game game = target == null ? null : Minigames.forFurni(target.type()).orElse(null);
+                if (game != null && (isNextTo(occupant, target) || target.covers(occupant.x, occupant.y))) {
+                    startGame(occupant, target, game);
+                } else if (target != null && isNextTo(occupant, target)) {
+                    serveDrink(occupant, target.type());
+                }
             }
             if (occupant.path.isEmpty() && occupant.orderFrom != null) {
                 Occupant barista = occupants.get(occupant.orderFrom);
@@ -985,6 +1001,9 @@ public class RoomInstance {
         RoomItemView item = itemId == null ? null : items.get(itemId);
         if (occupant == null || item == null) return "item_not_found";
 
+        Minigames.Game game = Minigames.forFurni(item.type()).orElse(null);
+        if (game != null) return useGame(occupant, item, game);
+
         switch (item.type()) {
             case "bar_counter", "cafe_counter", "coffee_machine", "icecream_cart", "pizza_oven", "beach_bar",
                  "popcorn_machine", "water_cooler" -> {
@@ -1007,6 +1026,178 @@ public class RoomInstance {
                 return "not_usable";
             }
         }
+    }
+
+    // ------------------------------------------------------------------ minigiochi
+
+    /**
+     * Un mobile da minigioco: se si e' gia' al posto giusto la partita parte subito, altrimenti ci
+     * si cammina (sulla panca ci si siede) e parte all'arrivo. Un giocatore alla volta per mobile.
+     */
+    private String useGame(Occupant occupant, RoomItemView item, Minigames.Game game) {
+        if (occupant.isNpc()) return "not_usable";
+        UUID userId = occupant.user.id();
+        boolean busy = occupants.values().stream()
+                .anyMatch(o -> o != occupant && item.id().equals(o.gameItem));
+        if (busy) return "item_busy";
+        if (occupant.game != null) stopGame(occupant);
+
+        if (game.onItem() && item.def().sittable()) {
+            // Panca: ci si siede sopra, su un posto libero.
+            if (item.covers(occupant.x, occupant.y)) {
+                startGame(occupant, item, game);
+                return null;
+            }
+            int[] seat = null;
+            FurniCatalog.FurniDef def = item.def();
+            for (int dx = 0; dx < def.footprintX(item.rot()) && seat == null; dx++) {
+                for (int dy = 0; dy < def.footprintY(item.rot()) && seat == null; dy++) {
+                    if (!isOccupiedByOther(userId, item.x() + dx, item.y() + dy)) seat = new int[]{item.x() + dx, item.y() + dy};
+                }
+            }
+            if (seat == null) return "item_busy";
+            move(userId, seat[0], seat[1]);
+            if (occupant.path.isEmpty()) return "too_far";
+            occupant.pendingUse = item.id();
+            return null;
+        }
+        if (isNextTo(occupant, item)) {
+            startGame(occupant, item, game);
+            return null;
+        }
+        int[] spot = freeSpotNextTo(userId, item);
+        if (spot == null) return "too_far";
+        move(userId, spot[0], spot[1]);
+        occupant.pendingUse = item.id();
+        return null;
+    }
+
+    /** Casella del tapis roulant su cui si corre e direzione in cui si guarda la console. */
+    private static int[] beltSpot(RoomItemView item) {
+        return switch (item.rot()) {
+            case 2 -> new int[]{item.x() + 1, item.y(), 6};
+            case 4 -> new int[]{item.x(), item.y(), 4};
+            case 6 -> new int[]{item.x(), item.y(), 2};
+            default -> new int[]{item.x(), item.y() + 1, 0};
+        };
+    }
+
+    private void startGame(Occupant occupant, RoomItemView item, Minigames.Game game) {
+        occupant.game = game;
+        occupant.gameItem = item.id();
+        occupant.gameStartedAt = System.currentTimeMillis();
+        occupant.gameFromX = occupant.x;
+        occupant.gameFromY = occupant.y;
+        if (game.onItem() && !item.def().sittable()) {
+            // Tapis roulant: si sale sul nastro.
+            int[] belt = beltSpot(item);
+            occupant.path.clear();
+            occupant.path.add(new Pathfinder.Step(belt[0], belt[1], Math.max(0, layout.heightAt(belt[0], belt[1]))));
+            broadcast(pathMessage(occupant));
+            occupant.path.clear();
+            occupant.x = belt[0];
+            occupant.y = belt[1];
+            occupant.targetX = belt[0];
+            occupant.targetY = belt[1];
+            occupant.dir = belt[2];
+            occupant.status = "idle";
+        } else if (item.def().sittable()) {
+            occupant.status = "sit";
+            occupant.dir = item.def().sitDirFor(item.rot());
+        } else {
+            int cx = Math.max(item.x(), Math.min(occupant.x, item.x() + item.def().footprintX(item.rot()) - 1));
+            int cy = Math.max(item.y(), Math.min(occupant.y, item.y() + item.def().footprintY(item.rot()) - 1));
+            occupant.dir = directionBetween(occupant.x, occupant.y, cx, cy, occupant.dir);
+            occupant.status = "idle";
+        }
+        broadcast(statusMessage(occupant));
+        broadcast(gameMessage(occupant));
+
+        Map<String, Object> start = new LinkedHashMap<>();
+        start.put("type", "minigame_start");
+        start.put("game", game.key());
+        start.put("title", game.title());
+        start.put("unit", game.unit());
+        start.put("maxScore", game.maxScore());
+        start.put("itemId", item.id());
+        start.put("best", records.get(game.key()));
+        occupant.send(start);
+        trainerSays(occupant, NpcDialog.workoutStart(game.key(), occupant.user.username(), random));
+    }
+
+    /** Fine della partita: il mobile si libera e dal tapis roulant si scende. */
+    private void stopGame(Occupant occupant) {
+        RoomItemView item = occupant.gameItem == null ? null : items.get(occupant.gameItem);
+        boolean treadmill = occupant.game != null && occupant.game.onItem() && item != null && !item.def().sittable();
+        occupant.game = null;
+        occupant.gameItem = null;
+        if (treadmill) {
+            int[] off = isOccupiedByOther(occupant.user.id(), occupant.gameFromX, occupant.gameFromY)
+                    ? freeSpotNextTo(occupant.user.id(), item) : new int[]{occupant.gameFromX, occupant.gameFromY};
+            if (off != null) {
+                occupant.path.clear();
+                occupant.path.add(new Pathfinder.Step(off[0], off[1], Math.max(0, layout.heightAt(off[0], off[1]))));
+                occupant.targetX = off[0];
+                occupant.targetY = off[1];
+                broadcast(pathMessage(occupant));
+            }
+        }
+        broadcast(gameMessage(occupant));
+    }
+
+    /**
+     * Risultato di una partita: il server lo controlla, aggiorna il record della stanza e lo
+     * annuncia a tutti.
+     *
+     * @return codice d'errore, oppure null
+     */
+    public synchronized String minigameResult(UUID userId, int score) {
+        Occupant occupant = occupants.get(userId);
+        if (occupant == null || occupant.game == null) return "minigame_not_running";
+        Minigames.Game game = occupant.game;
+        int valid = Minigames.validScore(game, score, System.currentTimeMillis() - occupant.gameStartedAt);
+        stopGame(occupant);
+        if (valid < 0) return "minigame_too_fast";
+
+        Minigames.Best best = records.get(game.key());
+        boolean record = valid > 0 && (best == null || valid > best.score());
+        if (record) records.put(game.key(), best = new Minigames.Best(occupant.user.username(), valid));
+
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put("type", "minigame_score");
+        message.put("id", userId);
+        message.put("username", occupant.user.username());
+        message.put("game", game.key());
+        message.put("title", game.title());
+        message.put("unit", game.unit());
+        message.put("score", valid);
+        message.put("record", record);
+        message.put("best", best);
+        broadcast(message);
+        trainerSays(occupant, NpcDialog.workoutDone(game.unit(), occupant.user.username(), valid, record));
+        return null;
+    }
+
+    /** Il giocatore chiude il minigioco prima della fine. */
+    public synchronized void minigameQuit(UUID userId) {
+        Occupant occupant = occupants.get(userId);
+        if (occupant != null && occupant.game != null) stopGame(occupant);
+    }
+
+    /** L'istruttrice della palestra (se c'e') fa il tifo. */
+    private void trainerSays(Occupant user, String text) {
+        occupants.values().stream()
+                .filter(o -> o.isNpc() && o.npc.role() == NpcRoster.Role.TRAINER)
+                .findFirst()
+                .ifPresent(trainer -> say(trainer, text, user, false, 400));
+    }
+
+    private static Map<String, Object> gameMessage(Occupant o) {
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put("type", "minigame");
+        message.put("id", o.user.id());
+        message.put("game", o.game == null ? null : o.game.key());
+        return message;
     }
 
     /** Spegne il jukebox o passa al brano successivo, con una breve pausa fra un cambio e l'altro. */
@@ -1249,6 +1440,7 @@ public class RoomInstance {
         view.put("z", o.z);
         view.put("dir", o.dir);
         view.put("status", o.status);
+        view.put("game", o.game == null ? null : o.game.key());
         view.put("handItem", o.handItem);
         view.put("handLeft", o.handItem == null ? 0 : o.handItemLeft);
         view.put("away", o.away);
