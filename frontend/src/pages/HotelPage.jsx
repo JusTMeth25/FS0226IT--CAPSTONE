@@ -632,7 +632,13 @@ export default function HotelPage() {
         {room && (
           <div className="hotel-room-info">
             <strong>{room.name}</strong>
-            <span>{room.ownerName ? `Stanza di ${room.ownerName}` : 'Stanza pubblica'} · <i className="ph-fill ph-user" /> {Object.values(people).filter((p) => !p.npc).length}</span>
+            <span>
+              {room.ownerName ? `Stanza di ${room.ownerName}` : 'Stanza pubblica'}
+              {' · '}<span title="Giocatori"><i className="ph-fill ph-user" /> {Object.values(people).filter((p) => !p.npc).length}</span>
+              {Object.values(people).some((p) => p.npc) && (
+                <>{' · '}<span title="Personaggi dell'hotel (NPC)"><i className="ph-fill ph-robot" /> {Object.values(people).filter((p) => p.npc).length}</span></>
+              )}
+            </span>
             <div className="hotel-room-info-actions">
               {likes && (
                 <button type="button" className={`hotel-like${likes.liked ? ' liked' : ''}`} onClick={toggleLike} disabled={isOwner}
@@ -830,6 +836,7 @@ export default function HotelPage() {
           left={freePacks[packOpening.packId] || 0}
           onAgain={() => openBagPack(packOpening.packId)}
           onClose={() => setPackOpening(null)}
+          onSummary={() => send({ type: 'pack_opened' })}
         />
       )}
 

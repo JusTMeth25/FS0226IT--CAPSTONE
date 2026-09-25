@@ -36,7 +36,7 @@ public class HotelSocialService {
     /** Rispetti che ogni giocatore puo' dare al giorno, come su Habbo. */
     public static final int DAILY_RESPECTS = 3;
 
-    private static final Map<String, Integer> RARITY_ORDER = Map.of(
+    static final Map<String, Integer> RARITY_ORDER = Map.of(
             "common", 1, "uncommon", 2, "rare", 3, "epic", 4, "legendary", 5);
 
     private final UserRepository userRepository;

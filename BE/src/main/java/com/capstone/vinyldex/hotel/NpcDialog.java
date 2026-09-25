@@ -277,6 +277,13 @@ public final class NpcDialog {
         return score + " " + unit + ", brava/o " + user + "! Riprova e batti il record.";
     }
 
+    /** Un NPC ha appena aperto un pacchetto e mostra la carta migliore. */
+    public static String packOpened(String packName, String cardName, Random random) {
+        return pick(random, List.of("Guardate cosa c'era nel mio " + packName + ": " + cardName + "!",
+                "Ho appena aperto un " + packName + " e mi e' uscita " + cardName + "!",
+                "Evvai, " + cardName + "! Il " + packName + " oggi porta fortuna."));
+    }
+
     /** L'edicolante ha venduto un pacchetto. */
     public static String packSold(String user, String packName, Random random) {
         return pick(random, List.of("Ecco il tuo " + packName + ", " + user + "! Lo trovi nella borsa.",

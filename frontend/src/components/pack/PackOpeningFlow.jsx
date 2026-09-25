@@ -88,8 +88,9 @@ function RevealCard({ card, size = 'grid' }) {
  * spettacolo. Per un altro pacchetto il genitore rimonta il componente con una key nuova.
  *
  * @param actions pulsanti del riepilogo: [{ label, icon, onClick, primary }]
+ * @param onSummary chiamato una volta, quando si arriva al riepilogo (tutte le carte viste)
  */
-export default function PackOpeningFlow({ packId, cards, actions = [] }) {
+export default function PackOpeningFlow({ packId, cards, actions = [], onSummary }) {
   const { sound } = useSound();
   const threeEnabled = useThreeEnabled();
 
@@ -125,6 +126,13 @@ export default function PackOpeningFlow({ packId, cards, actions = [] }) {
     setAdvancing(false);
     if (cards[0]) sound.cardReveal(cards[0].rarity);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
+
+  // Arrivati al riepilogo: nell'hotel la stanza vede quanto vale il pacchetto.
+  const summaryCallback = useRef(onSummary);
+  useEffect(() => { summaryCallback.current = onSummary; }, [onSummary]);
+  useEffect(() => {
+    if (phase === 'summary') summaryCallback.current?.();
   }, [phase]);
 
   function handleTearPointerDown(e) {

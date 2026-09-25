@@ -42,6 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *   consume: un sorso o un morso dell'oggetto in mano
  *   npc_showcase {npcId} · npc_trade_propose {npcId,give,want} · npc_trade_reply {offerId,accept}
  *   buy_pack {packId}: comprare un pacchetto in edicola (va nella borsa)
+ *   pack_opened: finito di aprire un pacchetto, la stanza vede il riepilogo (valore e carta migliore)
  *   minigame_result {score} · minigame_quit: fine di un minigioco partito con use_item
  * Solo nella propria stanza:
  *   place {itemId,x,y,rot} · pickup {itemId} · set_display {itemId,cardId} · kick {userId}
@@ -67,13 +68,14 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     private final PvpService pvpService;
     private final NpcTradeService npcTradeService;
     private final PackService packService;
+    private final PackRecapService packRecapService;
     private final Random random = new Random();
     private final Map<String, HotelSession> sessions = new ConcurrentHashMap<>();
 
     public HotelSocketHandler(ObjectMapper objectMapper, JwtService jwtService, UserRepository userRepository,
                               RoomRegistry registry, RoomService roomService, FurniService furniService,
                               HotelSocialService socialService, PvpService pvpService, NpcTradeService npcTradeService,
-                              PackService packService) {
+                              PackService packService, PackRecapService packRecapService) {
         this.objectMapper = objectMapper;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
@@ -84,6 +86,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         this.pvpService = pvpService;
         this.npcTradeService = npcTradeService;
         this.packService = packService;
+        this.packRecapService = packRecapService;
     }
 
     @Override
@@ -220,6 +223,10 @@ public class HotelSocketHandler extends TextWebSocketHandler {
                 if (room != null) reply(session, room.npcAction(userId, uuid(node, "npcId"), text(node, "action"), text(node, "item")));
             }
             case "buy_pack" -> buyPack(session, room, text(node, "packId"));
+            case "pack_opened" -> {
+                // Senza stanza o senza un'apertura recente non c'e' niente da mostrare: nessun errore.
+                if (room != null) packRecapService.announceLatest(session, room);
+            }
             case "minigame_result" -> {
                 if (room != null) reply(session, room.minigameResult(userId, integer(node, "score")));
             }

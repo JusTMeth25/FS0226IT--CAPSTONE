@@ -64,6 +64,8 @@ export class HotelEngine {
     /** Cuori del rispetto che salgono sopra la testa di chi lo riceve. */
     this.hearts = [];
     this.sips = [];
+    /** Riepiloghi dei pacchetti aperti: valore e carta migliore sopra la testa per qualche secondo. */
+    this.recaps = [];
     this.reducedMotion = reducedMotion;
 
     this.zoom = 2;
@@ -176,6 +178,7 @@ export class HotelEngine {
         if (user) user.game = message.game;
         break;
       }
+      case 'pack_recap': this.recaps = [...this.recaps.filter((r) => r.userId !== message.id), { userId: message.id, data: message, born: now }]; break;
       case 'minigame_score': this.sips.push({ userId: message.id, text: `${message.score} ${message.unit}${message.record ? ' · record!' : ''}`, born: now }); break;
       case 'user_away': {
         const user = this.users.get(message.id);
@@ -210,6 +213,7 @@ export class HotelEngine {
     this.jukeboxOn = (message.jukebox?.track ?? -1) >= 0;
     this.hearts = [];
     this.sips = [];
+    this.recaps = [];
     message.users.forEach((user) => this.addUser(user, now));
     this.centerCamera();
   }
@@ -727,7 +731,60 @@ export class HotelEngine {
         drawGem(ctx, label.x - (GEM_W * gemScale) / 2, label.y + bob, label.rarity, gemScale, now, animate);
       } else drawName(ctx, label, gemScale, now, animate);
     });
+    this.drawRecaps(ctx, now);
     this.drawBubbles(ctx, now);
+  }
+
+  /**
+   * Riepilogo di un pacchetto sopra chi l'ha aperto: nome del pacchetto, valore delle carte e la
+   * miniatura della piu' costosa. Sale piano e dopo qualche secondo sparisce.
+   */
+  drawRecaps(ctx, now) {
+    this.recaps = this.recaps.filter((r) => now - r.born < RECAP_MS);
+    this.recaps.forEach((recap) => {
+      const user = this.users.get(recap.userId);
+      if (!user || user.headY === undefined) return;
+      const age = now - recap.born;
+      const fade = Math.min(1, (RECAP_MS - age) / 600, age / 200);
+      const { data } = recap;
+      const w = 176;
+      const h = 58;
+      const x = Math.round(user.screenX - w / 2);
+      const y = Math.round(user.headY - h - 34 - Math.min(10, age / 400));
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, fade);
+      ctx.fillStyle = 'rgba(10, 7, 22, 0.92)';
+      roundRect(ctx, x, y, w, h, 8);
+      ctx.fill();
+      const color = getRarityColor(data.top?.rarity);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      roundRect(ctx, x, y, w, h, 8);
+      ctx.stroke();
+      // Miniatura della carta migliore, con il bordo della rarita'.
+      ctx.fillStyle = color;
+      ctx.fillRect(x + 6, y + 6, 33, 46);
+      const img = data.top ? cardImage(data.top) : null;
+      ctx.imageSmoothingEnabled = true;
+      if (img) ctx.drawImage(img, x + 8, y + 8, 29, 42);
+      else {
+        ctx.fillStyle = '#2a1f55';
+        ctx.fillRect(x + 8, y + 8, 29, 42);
+      }
+      ctx.imageSmoothingEnabled = this.zoom < 1;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillStyle = '#c4b5fd';
+      ctx.font = 'bold 10px "Segoe UI", system-ui, sans-serif';
+      ctx.fillText(clip(ctx, `${data.pack} · ${data.count} carte`, w - 54), x + 46, y + 17);
+      ctx.fillStyle = '#fcd34d';
+      ctx.font = 'bold 15px "Segoe UI", system-ui, sans-serif';
+      ctx.fillText(data.total > 0 ? USD.format(data.total) : 'Senza prezzo', x + 46, y + 35);
+      ctx.fillStyle = color;
+      ctx.font = 'bold 10px "Segoe UI", system-ui, sans-serif';
+      ctx.fillText(clip(ctx, `Top: ${data.top?.name || '—'}`, w - 54), x + 46, y + 50);
+      ctx.restore();
+    });
   }
 
   /** Cuore che sale sopra chi ha ricevuto rispetto, con la scritta "+1". */
@@ -939,6 +996,18 @@ function drawName(ctx, { x, y, text, me, gem, card, npc }, scale, now, animate) 
     ctx.fillStyle = getRarityColor(card.rarity);
     ctx.fillText(label, x, y - 23.5);
   }
+}
+
+/** Quanto resta visibile il riepilogo di un pacchetto aperto. */
+const RECAP_MS = 7_000;
+const USD = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
+
+/** Taglia un testo con i puntini perche' stia nella larghezza data. */
+function clip(ctx, text, maxWidth) {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  let cut = text;
+  while (cut.length > 1 && ctx.measureText(`${cut}…`).width > maxWidth) cut = cut.slice(0, -1);
+  return `${cut}…`;
 }
 
 /** Miniatura di una carta sopra la testa, in pixel a zoom 1. */

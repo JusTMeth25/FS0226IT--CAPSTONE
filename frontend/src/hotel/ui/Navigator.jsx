@@ -74,8 +74,10 @@ export default function Navigator({ currentRoomId, onJoin, onMyRoom, onClose }) 
                 onClick={() => onJoin(room.id)}
                 disabled={full && !here}
               >
-                <span className={`hotel-room-occupancy${room.users > 0 ? ' busy' : ''}`}>
+                <span className={`hotel-room-occupancy${room.users > 0 ? ' busy' : ''}`}
+                  title={`${room.users} giocatori${room.npcs ? `, ${room.npcs} personaggi dell'hotel` : ''}`}>
                   <i className="ph-fill ph-user" /> {room.users}
+                  {room.npcs > 0 && <small className="hotel-room-npcs"><i className="ph-fill ph-robot" /> {room.npcs}</small>}
                 </span>
                 <span className="hotel-room-text">
                   <strong>{room.name}</strong>

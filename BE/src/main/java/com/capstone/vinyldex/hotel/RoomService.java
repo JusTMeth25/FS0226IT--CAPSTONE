@@ -163,6 +163,8 @@ public class RoomService {
         summary.put("doorMode", room.getDoorMode());
         summary.put("maxUsers", room.getMaxUsers());
         summary.put("users", roomRegistry.userCount(room.getId()));
+        // Gli NPC delle stanze pubbliche ci sono sempre: nascono con la stanza al primo ingresso.
+        summary.put("npcs", NpcRoster.forRoom(room.getId()).size());
         summary.put("ownerId", room.getOwner() != null ? room.getOwner().getId() : null);
         summary.put("likes", likes.getOrDefault(room.getId(), 0L));
         return summary;
