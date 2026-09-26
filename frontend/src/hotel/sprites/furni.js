@@ -1025,7 +1025,8 @@ export function cardImage(card, onLoad) {
   if (!cached) {
     const img = new Image();
     const src = resolveCardImage(card);
-    const proxied = /^https?:\/\//.test(src);
+    // Le carte EA FC 27 le disegna gia' il backend: non passano dal proxy delle immagini esterne.
+    const proxied = /^https?:\/\//.test(src) && !src.includes('/fc-card.svg');
     // Il proxy sta sul backend, che in sviluppo e' su un'altra porta: senza CORS il canvas
     // diventerebbe illeggibile e addio contorni e clic al pixel.
     if (proxied) img.crossOrigin = 'anonymous';

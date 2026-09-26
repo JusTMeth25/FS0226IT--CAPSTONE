@@ -32,6 +32,17 @@ export const PACKS = [
     dropRates: { common: 0.20, uncommon: 0.25, rare: 0.25, epic: 0.20, legendary: 0.10 },
     guarantees: { rare: 1, epic: 0, legendary: 1 },
     isFree: false
+  },
+  {
+    id: 'pack-ultimate',
+    name: 'Pacchetto Ultimate Team',
+    description: '6 carte EA FC 27 con 1 Rara garantita: giocatori, giocatrici e icone di Ultimate Team.',
+    price: 150,
+    cardCount: 6,
+    dropRates: { common: 0.35, uncommon: 0.30, rare: 0.20, epic: 0.11, legendary: 0.04 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'fc27'
   }
 ];
 

@@ -1,5 +1,6 @@
 package com.capstone.vinyldex.hotel;
 
+import com.capstone.vinyldex.dto.response.CardDto;
 import com.capstone.vinyldex.entity.Card;
 import com.capstone.vinyldex.entity.RoomItem;
 
@@ -13,12 +14,12 @@ public record RoomItemView(UUID id, UUID ownerId, String type, int x, int y, int
 
     /** Carta esposta: id e' il code pubblico, come nel resto delle API. */
     public record CardView(String id, String name, String rarity, String img, String source, boolean fullImage,
-                           Double marketPrice) {
+                           Double marketPrice, Long coinPrice) {
 
         static CardView from(Card card) {
             if (card == null) return null;
             return new CardView(card.getCode(), card.getName(), card.getRarity(), card.getImgUrl(),
-                    card.getSource(), card.isFullImage(), card.getMarketPrice());
+                    card.getSource(), card.isFullImage(), card.getMarketPrice(), CardDto.coinPrice(card));
         }
     }
 

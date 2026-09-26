@@ -26,6 +26,8 @@ public record CollectionEntryDto(
         String setCode,
         String number,
         Double marketPrice,
+        // Solo per le carte EA FC 27: il prezzo in crediti di Ultimate Team.
+        Long coinPrice,
         boolean owned,
         int quantity,
         @JsonProperty("isFavorite") boolean favorite,
@@ -37,7 +39,7 @@ public record CollectionEntryDto(
         return new CollectionEntryDto(
                 base.id(), base.name(), base.artistClass(), base.variant(), base.group(), base.rarity(),
                 base.img(), base.fullImage(), base.stats(), base.description(), base.source(),
-                base.setName(), base.setCode(), base.number(), base.marketPrice(),
+                base.setName(), base.setCode(), base.number(), base.marketPrice(), base.coinPrice(),
                 userCard != null,
                 userCard != null ? userCard.getQuantity() : 0,
                 userCard != null && userCard.isFavorite(),

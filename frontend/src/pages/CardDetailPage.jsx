@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
 import { findCardById } from '../data/cards.js';
 import { PACKS } from '../data/packs.js';
-import { getRarityColor, getRarityName, getSourceLabel, formatMarketPrice } from '../utils/cardUtils.js';
+import { getRarityColor, getRarityName, getSourceLabel, formatCardPrice } from '../utils/cardUtils.js';
 import { cardApi } from '../services/cardApi.js';
 import { useApiResource } from '../hooks/useApiResource.js';
 import CardHero from '../components/card/CardHero.jsx';
@@ -130,10 +130,10 @@ export default function CardDetailPage() {
           <span className="meta-label">Fonte</span>
           <span className="meta-value">{getSourceLabel(ownedEntry.source)}</span>
         </div>
-        {formatMarketPrice(ownedEntry.marketPrice) && (
+        {formatCardPrice(ownedEntry) && (
           <div className="card-detail-meta-item">
-            <span className="meta-label">Valore di mercato</span>
-            <span className="meta-value" style={{ color: 'var(--neon-gold)' }}>{formatMarketPrice(ownedEntry.marketPrice)}</span>
+            <span className="meta-label">{ownedEntry.coinPrice ? 'Prezzo Ultimate Team' : 'Valore di mercato'}</span>
+            <span className="meta-value" style={{ color: 'var(--neon-gold)' }}>{formatCardPrice(ownedEntry)}</span>
           </div>
         )}
       </div>

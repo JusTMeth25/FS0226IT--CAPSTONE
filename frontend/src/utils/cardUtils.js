@@ -1,3 +1,4 @@
+import { BASE_URL } from '../services/apiClient.js';
 /**
  * Utilità pure per la rappresentazione di una carta (rarità, stelle, punteggio).
  * Le carte sono semplici oggetti dati (non classi), coerenti col DTO restituito dal backend.
@@ -26,7 +27,8 @@ export const SOURCE_LABELS = {
   lorcana: 'Disney Lorcana',
   riftbound: 'Riftbound (LoL TCG)',
   gundam: 'Gundam Card Game',
-  dragonball: 'Dragon Ball Super CCG'
+  dragonball: 'Dragon Ball Super CCG',
+  fc27: 'EA FC 27 Ultimate Team'
 };
 
 export function getSourceLabel(source) {
@@ -78,7 +80,33 @@ export function placeholderImage(card) {
 }
 
 export function resolveCardImage(card) {
+  // Carte EA FC 27: la carta in stile Ultimate Team la disegna il backend (con la foto, se c'e').
+  if (card.source === 'fc27' && !card.img) return fcCardImage(card);
   return card.img || placeholderImage(card);
+}
+
+/** URL della carta EA FC 27 disegnata dal backend (FcCardArtController). */
+export function fcCardImage(card) {
+  return `${BASE_URL}/cards/${encodeURIComponent(card.id)}/fc-card.svg`;
+}
+
+const coinFormatter = new Intl.NumberFormat('it-IT', { maximumFractionDigits: 0 });
+
+/** Prezzo in crediti di Ultimate Team delle carte EA FC 27, per esempio "1.750.000 crediti". */
+export function formatCoins(coinPrice) {
+  if (!(coinPrice > 0)) return null;
+  return `${coinFormatter.format(coinPrice)} crediti`;
+}
+
+/**
+ * Prezzo da mostrare per una carta: in crediti per le carte EA FC 27 (con l'equivalente in dollari
+ * usato dal resto del gioco), altrimenti il prezzo di mercato in dollari.
+ */
+export function formatCardPrice(card) {
+  const coins = formatCoins(card?.coinPrice);
+  const usd = formatMarketPrice(card?.marketPrice);
+  if (coins) return usd ? `${coins} (≈ ${usd})` : coins;
+  return usd;
 }
 
 export const RARITY_ORDER = { legendary: 5, epic: 4, rare: 3, uncommon: 2, common: 1 };

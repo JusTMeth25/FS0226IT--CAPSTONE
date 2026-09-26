@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * casella libera, raggiungibile dalla porta. Le posizioni stanno nel codice, la pianta nella
  * migrazione: questo test si accorge se le due cose si separano.
  */
-@SpringBootTest
+@SpringBootTest(properties = "vinyldex.fc27.seed-ea-players=0")
 @EnabledIf("com.capstone.vinyldex.VinylDexApplicationTests#credenzialiDatabasePresenti")
 class PublicRoomsIntegrationTest {
 

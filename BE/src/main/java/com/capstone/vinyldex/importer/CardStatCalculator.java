@@ -102,6 +102,7 @@ public class CardStatCalculator {
             case "gundam" -> gundam(name, meta, popularity, variant);
             case "lorcana" -> lorcana(name, meta, popularity, variant);
             case "riftbound" -> riftbound(name, meta, popularity, variant);
+            case "fc27" -> fc27(meta, popularity);
             default -> new Scores(popularity, variant, 0.45, 0.45);
         };
 
@@ -111,6 +112,47 @@ public class CardStatCalculator {
                 blend(center, scores.style(), card.code(), "style"),
                 blend(center, scores.influence(), card.code(), "influence"),
                 blend(center, scores.energy(), card.code(), "energy"));
+    }
+
+    // ---------------------------------------------------------------- EA FC 27 Ultimate Team
+
+    /**
+     * Calciatori: la valutazione (OVR 60-95) pesa su tutto, le sei statistiche fanno la differenza.
+     * - fans: prezzo in crediti, piu' la valutazione e un bonus per icone ed eroi;
+     * - style: dribbling e passaggio, piu' la versione della carta (icona, eroe, TOTW, oro);
+     * - influence: la valutazione, le icone sopra tutti;
+     * - energy: forza in campo per ruolo (attacco: ritmo, tiro, fisico; difesa: difesa, fisico,
+     *   ritmo; portieri: le prime quattro statistiche da portiere).
+     */
+    private Scores fc27(Map<String, Object> meta, double popularity) {
+        double ovr = orZero(num(meta, "ovr"));
+        double rating = clamp((ovr - 60) / 35);
+        String version = lower(str(meta, "version"));
+        String position = lower(str(meta, "position"));
+        double special = switch (version) {
+            case "icon" -> 1.0;
+            case "hero" -> 0.8;
+            case "totw" -> 0.6;
+            case "gold_rare" -> 0.3;
+            default -> 0.15;
+        };
+        double pac = orZero(num(meta, "pac"));
+        double sho = orZero(num(meta, "sho"));
+        double pas = orZero(num(meta, "pas"));
+        double dri = orZero(num(meta, "dri"));
+        double def = orZero(num(meta, "def"));
+        double phy = orZero(num(meta, "phy"));
+
+        double strength;
+        if ("gk".equals(position)) strength = (pac + sho + pas + dri) / 4;
+        else if (position.matches("cb|lb|rb|lwb|rwb|cdm")) strength = (def * 2 + phy + pac) / 4;
+        else strength = (pac + sho * 2 + phy) / 4;
+
+        return new Scores(
+                clamp(0.6 * popularity + 0.25 * rating + 0.15 * (special >= 0.8 ? 1 : 0)),
+                clamp(0.5 * clamp(((dri + pas) / 2 - 40) / 55) + 0.25 * special + 0.25 * popularity),
+                clamp(0.8 * rating + 0.2 * special),
+                clamp((strength - 45) / 50));
     }
 
     // ---------------------------------------------------------------- Pokemon

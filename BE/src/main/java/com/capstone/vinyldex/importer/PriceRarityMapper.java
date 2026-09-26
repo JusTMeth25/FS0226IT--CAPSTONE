@@ -20,6 +20,10 @@ import java.util.Map;
  *   onepiece   n=3485  0.02 / 0.08 / 0.20 / 4.45  / 40.33 / 124.38 / 1095.24 / 8489.98
  *   dragonball n=1902  0.01 / 0.13 / 0.29 / 0.74  / 4.34  / 12.98  / 149.08 / 2475.01
  *   digimon    n=539   0.05 / 0.15 / 0.41 / 1.98  / 6.62  / 14.78  / 139.95 / 2399.50
+ *   fc27       n=532   0.01 / 0.05 / 0.09 / 0.45  / 4.50  / 75.00  / 200.00 / 450.00
+ *
+ * Per fc27 i prezzi sono crediti di Ultimate Team convertiti in dollari (Fc27Importer.COINS_PER_USD):
+ * 10.000 crediti = uncommon, 50.000 = rare, 400.000 = epic, 1.500.000 = legendary.
  */
 @Component
 public class PriceRarityMapper {
@@ -30,7 +34,8 @@ public class PriceRarityMapper {
             "yugioh", new Thresholds(0.21, 0.4, 1.3, 9),
             "onepiece", new Thresholds(0.2, 4.5, 40, 600),
             "dragonball", new Thresholds(0.3, 0.75, 4.5, 80),
-            "digimon", new Thresholds(0.4, 2, 6.5, 75));
+            "digimon", new Thresholds(0.4, 2, 6.5, 75),
+            "fc27", new Thresholds(0.5, 2.5, 20, 75));
 
     /**
      * @return la rarita' corrispondente al prezzo, oppure null quando manca un prezzo affidabile.
@@ -55,7 +60,8 @@ public class PriceRarityMapper {
             "yugioh", new double[]{0.02, 0.14, 0.21, 0.40, 1.28, 3.15, 15.64, 454.44},
             "onepiece", new double[]{0.02, 0.08, 0.20, 4.45, 40.33, 124.38, 1095.24, 8489.98},
             "dragonball", new double[]{0.01, 0.13, 0.29, 0.74, 4.34, 12.98, 149.08, 2475.01},
-            "digimon", new double[]{0.05, 0.15, 0.41, 1.98, 6.62, 14.78, 139.95, 2399.50});
+            "digimon", new double[]{0.05, 0.15, 0.41, 1.98, 6.62, 14.78, 139.95, 2399.50},
+            "fc27", new double[]{0.01, 0.05, 0.09, 0.45, 4.50, 75.00, 200.00, 450.00});
 
     /**
      * Posizione del prezzo nella distribuzione reale della sua fonte, da 0 (la carta piu' economica)

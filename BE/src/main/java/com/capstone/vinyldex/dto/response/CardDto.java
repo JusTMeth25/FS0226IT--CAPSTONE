@@ -24,7 +24,9 @@ public record CardDto(
         String setName,
         String setCode,
         String number,
-        Double marketPrice
+        Double marketPrice,
+        // Solo per le carte EA FC 27: il prezzo in crediti di Ultimate Team.
+        Long coinPrice
 ) {
 
     public static CardDto from(Card card) {
@@ -44,7 +46,13 @@ public record CardDto(
                 card.getSetName(),
                 card.getSetCode(),
                 card.getNumber(),
-                card.getMarketPrice()
+                card.getMarketPrice(),
+                coinPrice(card)
         );
+    }
+
+    public static Long coinPrice(Card card) {
+        Object raw = card.getMetadata() == null ? null : card.getMetadata().get("coinPrice");
+        return raw instanceof Number n ? n.longValue() : null;
     }
 }

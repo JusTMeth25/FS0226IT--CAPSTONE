@@ -33,6 +33,10 @@ public class PackGenerator {
 
     public List<Card> generate(Pack pack) {
         List<Card> allCards = cardRepository.findAllActiveWithArtistClass();
+        // Pacchetto di una sola fonte (per esempio Ultimate Team): si pesca solo fra quelle carte.
+        if (pack.getSource() != null && !pack.getSource().isBlank()) {
+            allCards = allCards.stream().filter(c -> pack.getSource().equals(c.getSource())).toList();
+        }
         if (allCards.isEmpty()) {
             return List.of();
         }

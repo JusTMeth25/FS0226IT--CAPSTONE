@@ -16,6 +16,8 @@ public interface CardRepository extends JpaRepository<Card, UUID> {
 
     Optional<Card> findBySourceAndExternalId(String source, String externalId);
 
+    long countBySource(String source);
+
     long countByActiveTrue();
 
     /** Carte di altre fonti con statistiche esattamente uguali a quelle date (vedi CardStatsBackfill). */

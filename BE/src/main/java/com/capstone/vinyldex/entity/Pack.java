@@ -51,6 +51,10 @@ public class Pack {
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
+    /** Fonte delle carte (es. "fc27"): il pacchetto pesca solo quelle. Null = tutte le carte. */
+    @Column(name = "source", length = 40)
+    private String source;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id", foreignKey = @ForeignKey(name = "fk_packs_event"))
     private Event event;

@@ -42,7 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * Come VinylDexApplicationTests richiede il database: senza credenziali viene saltato.
  * Crea due utenti temporanei e li cancella alla fine.
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "vinyldex.fc27.seed-ea-players=0")
 @EnabledIf("com.capstone.vinyldex.VinylDexApplicationTests#credenzialiDatabasePresenti")
 class HotelSocketIntegrationTest {
 

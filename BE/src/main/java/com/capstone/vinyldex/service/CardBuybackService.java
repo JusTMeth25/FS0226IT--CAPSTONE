@@ -110,8 +110,14 @@ public class CardBuybackService {
     }
 
     private static Map<String, Object> cardView(Card card) {
-        return Map.of("id", card.getCode(), "name", card.getName(), "rarity", card.getRarity(),
-                "img", card.getImgUrl() == null ? "" : card.getImgUrl(), "source", card.getSource() == null ? "" : card.getSource(),
-                "fullImage", card.isFullImage());
+        Map<String, Object> view = new java.util.LinkedHashMap<>();
+        view.put("id", card.getCode());
+        view.put("name", card.getName());
+        view.put("rarity", card.getRarity());
+        view.put("img", card.getImgUrl() == null ? "" : card.getImgUrl());
+        view.put("source", card.getSource() == null ? "" : card.getSource());
+        view.put("fullImage", card.isFullImage());
+        view.put("coinPrice", com.capstone.vinyldex.dto.response.CardDto.coinPrice(card));
+        return view;
     }
 }

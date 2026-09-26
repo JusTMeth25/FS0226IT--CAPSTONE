@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { shopApi } from '../../services/shopApi.js';
-import { formatMarketPrice, getRarityColor, resolveCardImage } from '../../utils/cardUtils.js';
+import { formatCardPrice, getRarityColor, resolveCardImage } from '../../utils/cardUtils.js';
 
 const ERRORS = {
   card_not_sellable: 'Quella copia non si vende: e\' esposta in vetrina o e\' la tua preferita.',
@@ -68,7 +68,7 @@ export default function CardBuyback({ onSold }) {
               <img src={resolveCardImage(offer.card)} alt="" loading="lazy" />
               <span className="hotel-buyback-info">
                 <strong>{offer.card.name}</strong>
-                <small>Ne hai {offer.quantity} · {formatMarketPrice(offer.marketPrice)}</small>
+                <small>Ne hai {offer.quantity} · {formatCardPrice({ ...offer.card, marketPrice: offer.marketPrice })}</small>
                 <small className="hotel-buyback-offer"><i className="ph-fill ph-coin" /> {offer.gold} gold a copia</small>
               </span>
               <span className="hotel-buyback-actions">

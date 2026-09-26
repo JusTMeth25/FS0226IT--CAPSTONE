@@ -14,7 +14,7 @@ import java.nio.file.Path;
  * partono all'avvio. Senza credenziali il test viene saltato invece di fallire, cosi' "mvn test"
  * resta verde anche su una macchina appena clonata.
  */
-@SpringBootTest
+@SpringBootTest(properties = "vinyldex.fc27.seed-ea-players=0")
 @EnabledIf("credenzialiDatabasePresenti")
 class VinylDexApplicationTests {
 
