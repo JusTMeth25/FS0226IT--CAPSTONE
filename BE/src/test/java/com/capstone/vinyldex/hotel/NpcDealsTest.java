@@ -1,10 +1,12 @@
 package com.capstone.vinyldex.hotel;
 
 import com.capstone.vinyldex.entity.Card;
+import com.capstone.vinyldex.entity.NpcFoundCard;
 import com.capstone.vinyldex.entity.NpcTrade;
 import com.capstone.vinyldex.entity.User;
 import com.capstone.vinyldex.entity.UserCard;
 import com.capstone.vinyldex.repository.CardRepository;
+import com.capstone.vinyldex.repository.NpcFoundCardRepository;
 import com.capstone.vinyldex.repository.NpcTradeRepository;
 import com.capstone.vinyldex.repository.UserCardRepository;
 import com.capstone.vinyldex.repository.UserRepository;
@@ -29,7 +31,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -42,6 +46,9 @@ class NpcDealsTest {
     private final UserRepository users = mock(UserRepository.class);
     private final UserCardService userCardService = mock(UserCardService.class);
     private final NpcTradeRepository npcTrades = mock(NpcTradeRepository.class);
+    /** Tabella delle carte trovate, tenuta in una lista: il repository finto la legge e la scrive. */
+    private final NpcFoundCardRepository foundCards = mock(NpcFoundCardRepository.class);
+    private final List<NpcFoundCard> foundRows = new ArrayList<>();
     private NpcDeals deals;
     private final List<Card> pool = new ArrayList<>();
     private final User anna = new User();
@@ -65,8 +72,20 @@ class NpcDealsTest {
         when(cards.findAllActiveWithArtistClass()).thenReturn(pool);
         pool.forEach(c -> when(cards.findByCode(c.getCode())).thenReturn(Optional.of(c)));
         when(users.findById(anna.getId())).thenReturn(Optional.of(anna));
+        when(foundCards.save(any())).thenAnswer(inv -> {
+            NpcFoundCard row = inv.getArgument(0);
+            if (!foundRows.contains(row)) foundRows.add(row);
+            return row;
+        });
+        when(foundCards.findByNpcIdOrderByFoundAtDesc(any())).thenAnswer(inv -> foundRows.stream()
+                .filter(r -> r.getNpcId().equals(inv.getArgument(0)))
+                .sorted((a, b) -> b.getFoundAt().compareTo(a.getFoundAt())).toList());
+        when(foundCards.findByNpcIdAndCardId(any(), any())).thenAnswer(inv -> foundRows.stream()
+                .filter(r -> r.getNpcId().equals(inv.getArgument(0)) && r.getCardId().equals(inv.getArgument(1))).findFirst());
+        doAnswer(inv -> foundRows.remove((NpcFoundCard) inv.getArgument(0))).when(foundCards).delete(any());
+        doAnswer(inv -> foundRows.removeAll(inv.getArgument(0))).when(foundCards).deleteAll(anyList());
         deals = new NpcDeals(cards, userCards, users, userCardService, mock(WalletService.class),
-                mock(LevelService.class), mock(UserWalletTransactionRepository.class), npcTrades);
+                mock(LevelService.class), mock(UserWalletTransactionRepository.class), npcTrades, foundCards);
     }
 
     @Test
@@ -92,16 +111,24 @@ class NpcDealsTest {
         Card found = card("trovata", "legendary", null);
         pool.add(found);
         when(cards.findByCode("trovata")).thenReturn(Optional.of(found));
-        deals.addFound(npc, List.of(card("scarsa", "common", 0.1), found));
+        Card scarsa = card("scarsa", "common", 0.1);
+        pool.add(scarsa);
+        deals.addFound(npc, List.of(scarsa, found));
         assertEquals("trovata", deals.showcase(npc).get(0).getCode(), "la piu' preziosa per prima");
         assertEquals(2, deals.found(npc).size());
-        for (int i = 0; i < 5; i++) deals.addFound(npc, List.of(card("altra" + i, "rare", null)));
+        for (int i = 0; i < 5; i++) {
+            Card other = card("altra" + i, "rare", null);
+            pool.add(other);
+            deals.addFound(npc, List.of(other));
+        }
+        assertEquals(NpcDeals.FOUND_KEPT, foundRows.size(), "nella tabella restano solo le ultime");
         assertEquals(NpcDeals.FOUND_KEPT, deals.found(npc).size(), "se ne tengono solo le ultime");
 
         deals.addFound(npc, List.of(found));
         when(userCardService.owns(any(), any(), eq(1))).thenReturn(true);
         assertEquals(NpcDeals.Verdict.ACCEPTED, deals.propose(npc, "Dario", anna.getId(), "legendary0", "trovata"));
         assertTrue(deals.found(npc).stream().noneMatch(c -> c.getCode().equals("trovata")), "scambiata, non e' piu' sua");
+        assertTrue(foundRows.stream().noneMatch(r -> r.getCardId().equals(found.getId())), "e non e' piu' nella tabella");
     }
 
     @Test
