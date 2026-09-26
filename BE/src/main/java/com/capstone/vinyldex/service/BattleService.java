@@ -41,9 +41,11 @@ public class BattleService {
     private final WalletService walletService;
     private final LevelService levelService;
     private final UserCardRepository userCardRepository;
+    private final CardExtrasService cardExtrasService;
 
     public BattleService(UserRepository userRepository, WalletService walletService, LevelService levelService,
-                         UserCardRepository userCardRepository) {
+                         UserCardRepository userCardRepository, CardExtrasService cardExtrasService) {
+        this.cardExtrasService = cardExtrasService;
         this.userRepository = userRepository;
         this.walletService = walletService;
         this.levelService = levelService;
@@ -71,6 +73,9 @@ public class BattleService {
         // Le carte schierate contano come usate: sopra l'avatar dell'hotel si vedono le preferite.
         List<String> team = request.teamCodes();
         if (!team.isEmpty()) userCardRepository.countBattle(userId, team);
+        // Sfida della carta del giorno: vinta con quella carta in squadra.
+        int dailyGold = cardExtrasService.onBattle(userId, team, outcome.battlesWon() > 0 && !request.isTournament());
+        if (dailyGold > 0) user = userRepository.findById(userId).orElse(user);
 
         return new BattleRewardResult(user.getGold(), user.getXp(), user.getLevel(),
                 new MissionService.Rewards(outcome.gold(), outcome.xp()));

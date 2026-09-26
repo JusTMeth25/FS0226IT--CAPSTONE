@@ -4,6 +4,27 @@
  */
 export const NEWS = [
   {
+    date: '2026-09-28',
+    title: 'Go-kart rifatto, club, tornei e carte olografiche',
+    icon: 'ph-flag-checkered',
+    items: [
+      ['ph-flag-checkered', 'Go-kart tutto nuovo', 'Si guida davvero: sterzo, gas e freno, pista vista dall\'alto, semaforo e gare con gli altri piloti. Nella stanza il kart corre fluido con te sopra.'],
+      ['ph-sparkle', 'Carte olografiche', 'Nei pacchetti ogni tanto una carta esce olografica, con il riflesso arcobaleno.'],
+      ['ph-flask', 'Fusione', 'Tre doppioni della stessa rarità diventano una carta della rarità successiva.'],
+      ['ph-calendar-star', 'Carta del giorno', 'In Home: vinci una battaglia con quella carta in squadra e prendi il premio.'],
+      ['ph-chart-line-up', 'Andamento dei prezzi', 'Nel dettaglio carta il grafico del valore e delle vendite nel Mercato.'],
+      ['ph-book-open', 'Raccoglitore', 'La collezione come un album vero, da sfogliare, con le tasche vuote per le carte che mancano.'],
+      ['ph-flag-banner', 'Club', 'Fonda un club con sigla e stemma: ha una sede tutta sua e una classifica negli eventi.'],
+      ['ph-confetti', 'Feste', 'Lancia una festa nella tua stanza: finisce in cima al navigatore e chi viene prende XP.'],
+      ['ph-storefront', 'Banchetto', 'Metti un banchetto nella tua stanza e vendi le tue carte a chi passa.'],
+      ['ph-camera', 'Foto', 'Scatta una foto della stanza e mettila nel profilo.'],
+      ['ph-envelope-simple', 'Posta', 'Spedisci gold e carte agli amici, anche se non sono collegati.'],
+      ['ph-tree-structure', 'Tornei', 'Tornei a eliminazione a bowling e biliardo, con il tabellone che avanza da solo.'],
+      ['ph-ping-pong', 'Ping pong e freccette', 'Due giochi nuovi in sala giochi.'],
+      ['ph-medal', 'Stagione sportiva', 'Ogni mese punti da tutti gli sport, e premi ai primi tre.']
+    ]
+  },
+  {
     date: '2026-09-27',
     title: 'Hotel: carte, amici, sport e rifiniture',
     icon: 'ph-sparkle',

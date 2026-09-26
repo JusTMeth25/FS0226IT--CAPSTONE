@@ -1,5 +1,7 @@
 import { useRef } from 'react';
+import { Suspense } from 'react';
 import { useLocation, Outlet } from 'react-router-dom';
+import LoadingSpinner from '../common/LoadingSpinner.jsx';
 import Sidebar from './Sidebar.jsx';
 import Topbar from './Topbar.jsx';
 import BottomNav from './BottomNav.jsx';
@@ -42,7 +44,7 @@ export default function AppLayout() {
             key={location.pathname}
           >
             <ErrorBoundary>
-              <Outlet />
+              <Suspense fallback={<LoadingSpinner />}><Outlet /></Suspense>
             </ErrorBoundary>
           </main>
 

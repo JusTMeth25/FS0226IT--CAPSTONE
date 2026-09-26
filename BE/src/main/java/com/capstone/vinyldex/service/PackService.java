@@ -104,8 +104,13 @@ public class PackService {
         packOpeningRepository.save(opening);
 
         Map<String, Integer> rarityCounts = new HashMap<>();
+        List<Boolean> foil = new java.util.ArrayList<>();
         for (Card card : cards) {
-            userCardService.add(user, card, 1);
+            // Ogni tanto la carta esce olografica: piu' spesso le leggendarie.
+            boolean shiny = FOIL_RANDOM.nextDouble() < foilChance(card.getRarity());
+            foil.add(shiny);
+            if (shiny) userCardService.addFoil(user, card);
+            else userCardService.add(user, card, 1);
             packOpeningCardRepository.save(new PackOpeningCard(opening, card, card.getRarity()));
             rarityCounts.merge(card.getRarity(), 1, Integer::sum);
         }
@@ -118,7 +123,7 @@ public class PackService {
 
         // Il saldo si rilegge dall'entita' gestita: WalletService l'ha gia' aggiornata.
         int gold = userRepository.findById(userId).map(User::getGold).orElse(user.getGold());
-        return new OpenPackResult(cards.stream().map(CardDto::from).toList(), gold);
+        return new OpenPackResult(cards.stream().map(CardDto::from).toList(), gold, foil);
     }
 
     /**
@@ -165,7 +170,19 @@ public class PackService {
     public record PackListView(List<PackDto> packs, Instant lastFreePackAt) {
     }
 
-    public record OpenPackResult(List<CardDto> cards, int gold) {
+    /** Carte uscite, saldo, e quali sono olografiche (stesso ordine delle carte). */
+    public record OpenPackResult(List<CardDto> cards, int gold, List<Boolean> foil) {
+    }
+
+    private static final java.util.Random FOIL_RANDOM = new java.util.Random();
+
+    /** Probabilita' che una carta esca olografica. */
+    static double foilChance(String rarity) {
+        return switch (rarity == null ? "" : rarity) {
+            case "legendary" -> 0.10;
+            case "epic" -> 0.05;
+            default -> 0.03;
+        };
     }
 
     /** Esito di un acquisto in edicola: quanti pacchetti di quel tipo ci sono ora nella borsa. */

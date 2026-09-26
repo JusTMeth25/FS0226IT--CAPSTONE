@@ -142,6 +142,12 @@ public class FriendService {
         return view;
     }
 
+    /** Sono amici (richiesta accettata)? */
+    public boolean areFriends(UUID me, UUID other) {
+        Friendship pair = friendships.findPair(me, other).orElse(null);
+        return pair != null && Friendship.ACCEPTED.equals(pair.getStatus());
+    }
+
     private void requireFriends(UUID me, UUID other) {
         Friendship pair = friendships.findPair(me, other).orElse(null);
         if (pair == null || !Friendship.ACCEPTED.equals(pair.getStatus())) throw ApiException.badRequest("not_friends");

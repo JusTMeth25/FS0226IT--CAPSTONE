@@ -12,7 +12,7 @@ const DRAG_THRESHOLD = 5;
  *
  * Il genitore passa i messaggi del server con ref.current.handle(message).
  */
-const HotelCanvas = forwardRef(function HotelCanvas({ zoom, onZoom, catalog, placement, buildMode, onTileClick, onAvatarClick, onItemClick, onPlace, onCardClick }, ref) {
+const HotelCanvas = forwardRef(function HotelCanvas({ walkKeys = true, zoom, onZoom, catalog, placement, buildMode, onTileClick, onAvatarClick, onItemClick, onPlace, onCardClick }, ref) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const engineRef = useRef(null);
@@ -25,7 +25,28 @@ const HotelCanvas = forwardRef(function HotelCanvas({ zoom, onZoom, catalog, pla
 
   useImperativeHandle(ref, () => ({
     handle: (message) => engineRef.current?.handle(message),
-    pulse: () => engineRef.current?.pulse()
+    pulse: () => engineRef.current?.pulse(),
+    snapshot: () => {
+      const source = canvasRef.current;
+      if (!source) return null;
+      const k = Math.min(1, 800 / source.width);
+      const shot = document.createElement('canvas');
+      shot.width = Math.round(source.width * k);
+      shot.height = Math.round(source.height * k);
+      const ctx = shot.getContext('2d');
+      ctx.fillStyle = '#120b26';
+      ctx.fillRect(0, 0, shot.width, shot.height);
+      ctx.drawImage(source, 0, 0, shot.width, shot.height);
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.textAlign = 'right';
+      ctx.fillText('VinylDex Hotel', shot.width - 10, shot.height - 10);
+      try {
+        return shot.toDataURL('image/jpeg', 0.78);
+      } catch {
+        return null;
+      }
+    }
   }), []);
 
   useEffect(() => {
@@ -140,10 +161,28 @@ const HotelCanvas = forwardRef(function HotelCanvas({ zoom, onZoom, catalog, pla
     }
   };
 
+  /** Frecce: un passo nella direzione vista sullo schermo (le caselle sono in diagonale). */
+  const onKeyDown = (event) => {
+    const steps = { ArrowUp: [-1, -1], ArrowDown: [1, 1], ArrowLeft: [-1, 1], ArrowRight: [1, -1] };
+    const step = steps[event.key];
+    const engine = engineRef.current;
+    // Durante un minigioco le frecce servono al gioco: camminare lo interromperebbe.
+    if (!step || !engine || !walkKeys) return;
+    const me = engine.users.get(engine.meId);
+    if (!me) return;
+    event.preventDefault();
+    const from = me.steps?.length ? me.steps[me.steps.length - 1] : me.pos;
+    callbacks.current.onTileClick?.({ x: Math.round(from.x) + step[0], y: Math.round(from.y) + step[1] });
+  };
+
   return (
     <div ref={wrapRef} className="hotel-canvas-wrap">
       <canvas
         ref={canvasRef}
+        tabIndex={0}
+        role="application"
+        aria-label="Stanza dell'hotel: clicca o usa le frecce della tastiera per camminare"
+        onKeyDown={onKeyDown}
         className={`hotel-canvas${placement ? ' placing' : ''}`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}

@@ -51,6 +51,13 @@ export function EventsTab({ me, version }) {
             ))}
           </ol>
           <p className="hotel-panel-hint">Il tuo punteggio: <b>{event.myScore}</b></p>
+          {event.clubs?.length > 0 && (
+            <p className="event-clubs">
+              <i className="ph-fill ph-flag-banner" /> Club: {event.clubs.map((c, i) => (
+                <span key={c.tag} style={{ color: c.color }}>{i + 1}. [{c.tag}] {c.score}{i < event.clubs.length - 1 ? '  ' : ''}</span>
+              ))}
+            </p>
+          )}
         </section>
       ))}
 

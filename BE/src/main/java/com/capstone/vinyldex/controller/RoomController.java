@@ -27,15 +27,21 @@ public class RoomController {
 
     private final RoomService roomService;
     private final HotelSocialService socialService;
+    private final com.capstone.vinyldex.hotel.CommunityService community;
 
-    public RoomController(RoomService roomService, HotelSocialService socialService) {
+    public RoomController(RoomService roomService, HotelSocialService socialService,
+                          com.capstone.vinyldex.hotel.CommunityService community) {
         this.roomService = roomService;
+        this.community = community;
         this.socialService = socialService;
     }
 
     @GetMapping("/navigator")
     public Map<String, Object> navigator() {
-        return roomService.navigator();
+        // In cima le feste in corso.
+        Map<String, Object> result = new java.util.LinkedHashMap<>(roomService.navigator());
+        result.put("parties", community.parties());
+        return result;
     }
 
     /** La propria stanza, creata alla prima visita. */

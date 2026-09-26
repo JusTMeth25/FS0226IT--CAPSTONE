@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { hotelApi } from '../../services/hotelApi.js';
 import AvatarPreview from './AvatarPreview.jsx';
+import MailTab from './MailTab.jsx';
 
 const ERRORS = {
   user_not_found: 'Nessun giocatore con questo nome.',
@@ -16,9 +17,9 @@ const ERRORS = {
  * Amici dell'hotel: chi e' online e in che stanza (per raggiungerlo), le richieste in arrivo,
  * la chat privata. I messaggi nuovi arrivano dal WebSocket (prop `incoming`).
  */
-export default function FriendsPanel({ me, incoming, version, onJoin, onUnreadChange, onClose }) {
+export default function FriendsPanel({ me, incoming, version, onJoin, onUnreadChange, onClose, gold = 0, mailVersion, onMailUnread, onMailChanged, initialTab = 'friends' }) {
   const [data, setData] = useState(null);
-  const [tab, setTab] = useState('friends');
+  const [tab, setTab] = useState(initialTab);
   const [name, setName] = useState('');
   const [notice, setNotice] = useState(null);
   const [chat, setChat] = useState(null);
@@ -101,12 +102,18 @@ export default function FriendsPanel({ me, incoming, version, onJoin, onUnreadCh
             <button type="button" className={tab === 'requests' ? 'active' : ''} onClick={() => setTab('requests')}>
               Richieste {requests.length > 0 && <b className="hotel-tool-badge">{requests.length}</b>}
             </button>
+            <button type="button" className={tab === 'mail' ? 'active' : ''} onClick={() => setTab('mail')}>
+              <i className="ph-fill ph-envelope-simple" /> Posta
+            </button>
           </div>
-          <form className="friends-add" onSubmit={(e) => { e.preventDefault(); if (name.trim()) act(hotelApi.friendRequest(name.trim()), 'Richiesta mandata!'); setName(''); }}>
+          {tab !== 'mail' && <form className="friends-add" onSubmit={(e) => { e.preventDefault(); if (name.trim()) act(hotelApi.friendRequest(name.trim()), 'Richiesta mandata!'); setName(''); }}>
             <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome del giocatore" aria-label="Nome del giocatore da aggiungere" maxLength={50} />
             <button type="submit" className="btn btn-primary btn-small"><i className="ph-fill ph-user-plus" /> Aggiungi</button>
-          </form>
+          </form>}
 
+          {tab === 'mail' && (
+            <MailTab friends={friends} gold={gold} version={mailVersion} onUnread={onMailUnread} onChanged={onMailChanged} />
+          )}
           {tab === 'friends' && (
             <ul className="friends-list">
               {data && friends.length === 0 && <li className="hotel-panel-hint">Ancora nessun amico: aggiungine uno per nome, o dalla sua scheda.</li>}

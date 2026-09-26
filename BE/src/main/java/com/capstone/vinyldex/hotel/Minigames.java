@@ -54,6 +54,10 @@ public final class Minigames {
         // Pesca: lancio, abbocca, recupero tenendo la lenza in tensione. Punti = peso del pesce.
         games.put("fishing_post", new Game("fish", "Pesca dal molo", "punti", 100, 6_000, 120_000, false));
         // Go-kart: tre giri di pista, punti = 300 meno i secondi impiegati (piu' veloce, piu' punti).
+        // Ping pong contro Paddle (il robot della sala giochi): si vince a 11.
+        games.put("ping_pong_table", new Game("pong", "Ping pong", "punti", 11, 15_000, 240_000, false));
+        // Freccette: tre volate da tre freccette, 50 il centro.
+        games.put("dart_board", new Game("darts", "Freccette", "punti", 450, 10_000, 150_000, false));
         games.put("go_kart", new Game("kart", "Go-kart", "punti", 260, 20_000, 240_000, true));
         for (int hole = 1; hole <= GOLF_HOLES; hole++) {
             games.put("golf_hole_" + hole, new Game("golf" + hole, "Minigolf, buca " + hole, "punti", 6, 2_500, 180_000, false));

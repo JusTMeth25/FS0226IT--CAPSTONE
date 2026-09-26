@@ -51,15 +51,17 @@ function RevealCard({ card, size = 'grid' }) {
 
   if (card.fullImage) {
     return (
-      <div className={`pack-reveal-card ${rarityClass} ${sizeClass} pack-reveal-flip`} style={{ overflow: 'hidden', borderRadius: 12, position: 'relative' }}>
+      <div className={`pack-reveal-card ${rarityClass} ${sizeClass} pack-reveal-flip${card.foil ? ' is-foil' : ''}`} style={{ overflow: 'hidden', borderRadius: 12, position: 'relative' }}>
         <img src={resolveCardImage(card)} alt={card.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }} />
+        {card.foil > 0 && <span className="foil-badge">Olografica</span>}
         <RevealSpark color={spark.color || color} count={spark.count} radius={spark.radius} />
       </div>
     );
   }
 
   return (
-    <div className={`pack-reveal-card ${rarityClass} ${sizeClass} pack-reveal-flip`}>
+    <div className={`pack-reveal-card ${rarityClass} ${sizeClass} pack-reveal-flip${card.foil ? ' is-foil' : ''}`}>
+      {card.foil > 0 && <span className="foil-badge">Olografica</span>}
       <div className="pack-reveal-card-inner">
         <div className="pack-reveal-art">
           <img src={resolveCardImage(card)} alt={card.name} />

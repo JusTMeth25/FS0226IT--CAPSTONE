@@ -177,6 +177,11 @@ public final class FurniCatalog {
         add(new FurniDef("fishing_post", "Paletto da pesca", "spiaggia", 0, 1, 1, false, false, -1, false, false));
         add(new FurniDef("go_kart", "Go-kart", "kart", 0, 1, 1, false, false, 2, false, false));
         add(new FurniDef("tire_stack", "Pila di gomme", "kart", 40, 1, 1, false, false, -1, false, true));
+        // Banchetto: si mettono in vendita carte della propria collezione (CommunityService).
+        // Ping pong e freccette in sala giochi: minigiochi (Minigames).
+        add(new FurniDef("ping_pong_table", "Tavolo da ping pong", "giochi", 0, 3, 2, false, false, -1, false, false));
+        add(new FurniDef("dart_board", "Bersaglio delle freccette", "giochi", 0, 1, 1, false, false, -1, false, false));
+        add(new FurniDef("card_stall", "Banchetto delle carte", "carte", 150, 2, 1, false, false, -1, false, true));
         add(new FurniDef("race_lights", "Semaforo di partenza", "kart", 0, 1, 1, false, false, -1, false, false));
     }
 

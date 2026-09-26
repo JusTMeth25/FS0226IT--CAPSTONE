@@ -51,5 +51,58 @@ export const hotelApi = {
   },
   async bid(amount) {
     return apiClient.post('/hotel/auction/bid', { amount });
+  },
+  /** Club: il mio (con i membri) e la lista di tutti. */
+  async clubs() {
+    return apiClient.get('/hotel/clubs');
+  },
+  async createClub(club) {
+    return apiClient.post('/hotel/clubs', club);
+  },
+  async joinClub(clubId) {
+    return apiClient.post(`/hotel/clubs/${clubId}/join`);
+  },
+  async leaveClub() {
+    return apiClient.post('/hotel/clubs/leave');
+  },
+  /** Feste nelle stanze. */
+  async startParty(roomId, title) {
+    return apiClient.post('/hotel/parties', { roomId, title });
+  },
+  async stopParty(roomId) {
+    return apiClient.delete(`/hotel/parties/${roomId}`);
+  },
+  /** Banchetto delle carte. */
+  async stall(itemId) {
+    return apiClient.get(`/hotel/stalls/${itemId}`);
+  },
+  async stallAdd(itemId, card, price) {
+    return apiClient.post(`/hotel/stalls/${itemId}`, { card, price });
+  },
+  async stallRemove(stallItemId) {
+    return apiClient.delete(`/hotel/stalls/items/${stallItemId}`);
+  },
+  async stallBuy(stallItemId) {
+    return apiClient.post(`/hotel/stalls/items/${stallItemId}/buy`);
+  },
+  /** Foto dell'hotel. */
+  async photos(userId) {
+    return apiClient.get(userId ? `/hotel/photos/users/${userId}` : '/hotel/photos');
+  },
+  async savePhoto(image, roomName) {
+    return apiClient.post('/hotel/photos', { image, roomName });
+  },
+  async deletePhoto(photoId) {
+    return apiClient.delete(`/hotel/photos/${photoId}`);
+  },
+  /** Posta fra amici. */
+  async mail() {
+    return apiClient.get('/hotel/mail');
+  },
+  async sendMail(to, gold, card, note) {
+    return apiClient.post('/hotel/mail', { to, gold, card, note });
+  },
+  async claimMail(mailId) {
+    return apiClient.post(`/hotel/mail/${mailId}/claim`);
   }
 };

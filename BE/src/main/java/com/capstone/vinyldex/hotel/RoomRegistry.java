@@ -121,6 +121,56 @@ public class RoomRegistry {
         return userId == null ? null : sessionsByUser.get(userId);
     }
 
+    // ------------------------------------------------------------------ moderazione
+
+    /** Ultimi messaggi della chat di tutte le stanze, per il pannello admin. */
+    private final java.util.Deque<Map<String, Object>> chatLog = new java.util.ArrayDeque<>();
+    private static final int CHAT_LOG_SIZE = 300;
+    /** Giocatori silenziati dall'admin, fino a quando. */
+    private final Map<UUID, Long> mutedUntil = new ConcurrentHashMap<>();
+
+    public void logChat(String room, UUID userId, String username, String text, String style) {
+        Map<String, Object> entry = new java.util.LinkedHashMap<>();
+        entry.put("at", java.time.Instant.now().toString());
+        entry.put("room", room);
+        entry.put("userId", userId);
+        entry.put("username", username);
+        entry.put("text", text);
+        entry.put("style", style);
+        synchronized (chatLog) {
+            chatLog.addFirst(entry);
+            while (chatLog.size() > CHAT_LOG_SIZE) chatLog.removeLast();
+        }
+    }
+
+    public List<Map<String, Object>> recentChat() {
+        synchronized (chatLog) {
+            return List.copyOf(chatLog);
+        }
+    }
+
+    public void mute(UUID userId, int minutes) {
+        mutedUntil.put(userId, System.currentTimeMillis() + minutes * 60_000L);
+    }
+
+    public void unmute(UUID userId) {
+        mutedUntil.remove(userId);
+    }
+
+    public boolean isMuted(UUID userId) {
+        Long until = mutedUntil.get(userId);
+        if (until == null) return false;
+        if (until < System.currentTimeMillis()) {
+            mutedUntil.remove(userId);
+            return false;
+        }
+        return true;
+    }
+
+    public Map<UUID, Long> muted() {
+        return Map.copyOf(mutedUntil);
+    }
+
     /** Manda un messaggio a tutti quelli connessi all'hotel, in qualunque stanza siano. */
     public void broadcastAll(Object message) {
         sessionsByUser.values().forEach(session -> {

@@ -13,6 +13,7 @@ import CardTile from '../components/card/CardTile.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import SplitText from '../components/fx/SplitText.jsx';
 import AlbumProgress from '../components/fx/AlbumProgress.jsx';
+import DailyCard from '../components/card/DailyCard.jsx';
 
 export default function HomePage() {
   const game = useGame();
@@ -69,6 +70,7 @@ export default function HomePage() {
       <h2 className="section-title text-gradient"><i className="ph-fill ph-house" /> <SplitText text="Home" /></h2>
 
       <div className="dashboard-grid">
+        <DailyCard />
         {/* Pannello apertura pacchetto */}
         <div className="glass-panel panel-pack">
           <h3 className="panel-title"><i className="ph-fill ph-gift" /> Apertura Pacchetto</h3>

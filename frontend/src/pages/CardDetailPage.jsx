@@ -10,6 +10,7 @@ import { useApiResource } from '../hooks/useApiResource.js';
 import CardHero from '../components/card/CardHero.jsx';
 import Fc27Credits from '../components/card/Fc27Credits.jsx';
 import GradingBox, { GradeBadge } from '../components/card/GradingBox.jsx';
+import PriceHistory from '../components/card/PriceHistory.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import RarityAmbience from '../components/fx/RarityAmbience.jsx';
@@ -125,6 +126,7 @@ export default function CardDetailPage() {
       <h2 className="card-detail-title">{ownedEntry.name}</h2>
       <span className="card-detail-rarity-chip">{getRarityName(ownedEntry.rarity)}</span>
       <GradeBadge grade={ownedEntry.grade} />
+      {ownedEntry.foil > 0 && <span className="foil-badge foil-badge-inline">Olografica{ownedEntry.foil > 1 ? ` ×${ownedEntry.foil}` : ''}</span>}
 
       <div className="card-detail-meta" style={{ width: '100%' }}>
         <div className="card-detail-meta-item">
@@ -148,6 +150,8 @@ export default function CardDetailPage() {
       </div>
 
       {ownedEntry.source === 'fc27' && <Fc27Credits />}
+
+      <PriceHistory code={ownedEntry.id} />
 
       <GradingBox card={ownedEntry} gold={gold} onGraded={() => { refreshCollection(); refreshUser(); }} />
 

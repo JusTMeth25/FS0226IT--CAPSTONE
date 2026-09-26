@@ -1,6 +1,7 @@
 import { DETAIL, HALF_W, STEP_MS, TILE_H, TILE_W, directionBetween, insideDiamond, parseLayout, tileCenter, tileTop, viewForDirection } from './iso.js';
 import { AVATAR_FOOT_X, AVATAR_FOOT_Y, AVATAR_H, AVATAR_SCALE, AVATAR_W, avatarSprite } from './sprites/avatar.js';
 import { hoverTileSprite, kartPoint, kartTrack, renderRoom } from './sprites/room.js';
+import { lapDelta } from './kartTrack.js';
 import { animationState, cardImage, footprintOf, furniSprite, isFlat } from './sprites/furni.js';
 import { isSolid } from './sprites/pixel.js';
 import { GEM_H, GEM_W, drawSparkle, gemSprite } from './sprites/gem.js';
@@ -111,6 +112,9 @@ export class HotelEngine {
     this.singNotes = [];
     this.fishing = new Map();
     this.karts = new Map();
+    /** Ping pong: ultimo colpo per tavolo. Freccette: le ultime tre per bersaglio. */
+    this.rallies = new Map();
+    this.boardDarts = new Map();
     /** Bilie dei tavoli da biliardo: posizioni di prima e di adesso, per scorrere fra un aggiornamento e l'altro. */
     this.poolBalls = new Map();
 
@@ -276,6 +280,8 @@ export class HotelEngine {
     this.singNotes = [];
     this.fishing = new Map();
     this.karts = new Map();
+    this.rallies = new Map();
+    this.boardDarts = new Map();
     this.track = message.room.floorStyle === 'kart' ? kartTrack(this.layout, message.room.door) : null;
     this.roomImage = renderRoom(this.layout, message.room.floorStyle, message.room.door, message.room.wallStyle, this.weather);
     this.users.clear();
@@ -316,7 +322,7 @@ export class HotelEngine {
   updateUser(user) {
     const existing = this.users.get(user.id);
     if (existing) {
-      Object.assign(existing, { username: user.username, look: user.look, level: user.level, bestCard: user.bestCard, topCards: user.topCards, pet: user.pet });
+      Object.assign(existing, { username: user.username, look: user.look, level: user.level, bestCard: user.bestCard, topCards: user.topCards, pet: user.pet, club: user.club });
     }
   }
 
@@ -358,6 +364,11 @@ export class HotelEngine {
     this.fxSound(message.game, fx, user, this.items.get(message.item));
     if (user) this.leisureFx(message.game, fx, user, now);
     const item = this.items.get(message.item);
+    if (item && message.game === 'pong' && fx.kind === 'rally') this.rallies.set(item.id, { toward: fx.x > 0 ? 0 : 1, born: now });
+    if (item && message.game === 'darts' && fx.kind === 'dart') {
+      const list = [...(this.boardDarts.get(item.id) || []), { u: fx.u || 0, v: fx.v || 0, born: now }].slice(-3);
+      this.boardDarts.set(item.id, list);
+    }
     if (!item) return;
     if (message.game === 'basket' && fx.kind === 'shoot' && user) {
       this.shots.push({ userId: user.id, item, made: fx.made > 0, swish: fx.swish > 0, off: fx.off || 0, born: now });
@@ -411,27 +422,86 @@ export class HotelEngine {
         this.fishing.delete(user.id);
       }
     } else if (game === 'kart' && fx.kind === 'kart') {
+      // Posizione e velocita' (giri al secondo x100): fra un aggiornamento e l'altro il kart
+      // prosegue da solo alla stessa velocita', e quello disegnato insegue dolcemente la stima.
       const prev = this.karts.get(user.id);
-      const from = prev ? this.kartU(prev, now) : fx.u || 0;
-      this.karts.set(user.id, { from, to: fx.u || 0, lap: fx.x || 0, speed: (fx.power || 0) / 100, born: now });
-      if (user.id === this.meId && now - (this.engineSoundAt || 0) > 900 && (fx.power || 0) > 40) {
+      const u = clamp(fx.u ?? 0, 0, 1);
+      this.karts.set(user.id, { u, v: Math.max(0, (fx.v || 0) / 100), at: now, shown: prev ? prev.shown : u, shownAt: prev ? prev.shownAt : now, lap: fx.x || 0 });
+      if (user.id === this.meId && now - (this.engineSoundAt || 0) > 900 && (fx.v || 0) > 4) {
         this.engineSoundAt = now;
         this.soundAt('engine', at.x, at.y);
       }
     }
   }
 
-  /** Frazione di giro del kart adesso: scorre dall'ultima posizione alla nuova (anche oltre il traguardo). */
+  /** In gara sui kart (con la pista e un aggiornamento recente): l'avatar si disegna sul kart. */
+  isRacing(user, now) {
+    const kart = this.track && this.karts.get(user.id);
+    return !!kart && user.game === 'kart' && now - kart.at < 4000;
+  }
+
+  /**
+   * Frazione di giro del kart adesso. Il kart disegnato avanza sempre alla sua velocita' e
+   * corregge a poco a poco la distanza dalla posizione stimata (ultima ricevuta + velocita' per il
+   * tempo passato): cosi' quando arriva un aggiornamento non si ferma e non salta.
+   */
   kartU(kart, now) {
-    let delta = kart.to - kart.from;
-    if (delta < -0.5) delta += 1;
-    const t = clamp((now - kart.born) / 170, 0, 1);
-    return (kart.from + delta * t + 1) % 1;
+    const dt = Math.max(0, now - kart.shownAt);
+    kart.shownAt = now;
+    const predicted = (kart.u + kart.v * Math.min(0.6, (now - kart.at) / 1000)) % 1;
+    const error = lapDelta(kart.shown, predicted);
+    if (Math.abs(error) > 0.06) {
+      // Troppo lontano (partenza, rientro dopo una pausa): si riallinea di colpo.
+      kart.shown = predicted;
+      return kart.shown;
+    }
+    const cruise = (kart.v * dt) / 1000;
+    let step = cruise + error * Math.min(1, dt / 250);
+    if (kart.v > 0) step = Math.max(cruise * 0.5, step);
+    kart.shown = (kart.shown + step + 1) % 1;
+    return kart.shown;
   }
 
   /** Note del karaoke, lenze e galleggianti, kart in pista: sopra la scena. */
   drawLeisure(ctx, now, toScreen, scale) {
     const unit = DETAIL * scale;
+    // Ping pong: la pallina vola da una parte all'altra del tavolo con un piccolo arco.
+    this.rallies.forEach((rally, itemId) => {
+      const item = this.items.get(itemId);
+      const t = (now - rally.born) / 650;
+      if (!item || t > 1.4) {
+        this.rallies.delete(itemId);
+        return;
+      }
+      const k = Math.min(1, t);
+      const u = rally.toward ? 0.3 + 2.4 * k : 2.7 - 2.4 * k;
+      const w = this.itemScreen(item, u, 1, 26 + Math.sin(k * Math.PI) * 18);
+      const p = toScreen(w.x, w.y);
+      ctx.fillStyle = '#fff7ed';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, Math.max(1.5, 2.2 * unit), 0, Math.PI * 2);
+      ctx.fill();
+    });
+    // Freccette piantate nel bersaglio (il cerchio sta in alto sul mobile).
+    this.boardDarts.forEach((list, itemId) => {
+      const item = this.items.get(itemId);
+      if (!item) {
+        this.boardDarts.delete(itemId);
+        return;
+      }
+      list.forEach((dart, i) => {
+        const w = this.itemScreen(item, 0.5 + dart.u * 0.3, 0.9, 58 - dart.v * 14);
+        const p = toScreen(w.x, w.y);
+        ctx.fillStyle = ['#ef4444', '#22c55e', '#3b82f6'][i % 3];
+        ctx.fillRect(p.x - unit, p.y - unit, 2 * unit, 2 * unit);
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.lineWidth = Math.max(1, unit * 0.6);
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x + 3 * unit, p.y + 2 * unit);
+        ctx.stroke();
+      });
+    });
     // Note che salgono dalla testa di chi canta.
     this.singNotes = this.singNotes.filter((n) => now - n.born < 1600);
     const colors = ['#22d3ee', '#ec4899', '#fde047'];
@@ -506,49 +576,49 @@ export class HotelEngine {
       }
     });
 
-    // Kart in gara sulla pista, con il nome del pilota.
+    // Kart in gara sulla pista: il kart corre lungo la pista con il pilota seduto sopra.
     if (!this.track) return;
     this.karts.forEach((kart, id) => {
       const user = this.users.get(id);
-      if (!user || user.game !== 'kart' || now - kart.born > 4000) {
-        this.karts.delete(id);
+      if (!user || !this.isRacing(user, now)) {
+        if (!user || now - kart.at > 4000) this.karts.delete(id);
         return;
       }
       const u = this.kartU(kart, now);
       const p0 = kartPoint(this.track, u);
-      const p1 = kartPoint(this.track, (u + 0.01) % 1);
+      const p1 = kartPoint(this.track, (u + 0.004) % 1);
       const c = tileCenter(p0.x, p0.y, 0);
-      const c1 = tileCenter(p1.x, p1.y, 0);
       const at = toScreen(c.x, c.y);
-      const ahead = toScreen(c1.x, c1.y);
-      const angle = Math.atan2(ahead.y - at.y, ahead.x - at.x);
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-      ctx.beginPath();
-      ctx.ellipse(at.x, at.y + 2 * unit, 11 * unit, 4 * unit, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.save();
-      ctx.translate(at.x, at.y - 4 * unit);
-      ctx.rotate(angle);
-      ctx.fillStyle = '#111827';
-      [[-7, -5], [5, -5], [-7, 3], [5, 3]].forEach(([x, y]) => ctx.fillRect(x * unit, y * unit, 4 * unit, 2.5 * unit));
-      ctx.fillStyle = id === this.meId ? '#dc2626' : '#2563eb';
-      ctx.fillRect(-8 * unit, -3.5 * unit, 16 * unit, 7 * unit);
-      ctx.fillStyle = '#f59e0b';
-      ctx.fillRect(6 * unit, -3 * unit, 3 * unit, 6 * unit);
-      ctx.restore();
-      // Casco del pilota.
-      ctx.fillStyle = '#f8fafc';
-      ctx.beginPath();
-      ctx.arc(at.x - 2 * unit, at.y - 10 * unit, 3.5 * unit, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.font = `bold ${Math.max(9, Math.round(7 * unit))}px sans-serif`;
+      const wobble = this.reducedMotion ? 0 : Math.round(Math.sin(now / 45) * 0.6 * unit);
+      // Verso di marcia sulle caselle: la pista corre lungo gli assi, bastano le quattro rotazioni.
+      const dir = (2 + Math.round(Math.atan2(p1.y - p0.y, p1.x - p0.x) / (Math.PI / 4)) + 8) % 8;
+      const rot = (Math.round(((dir - 2 + 8) % 8) / 2) * 2) % 8;
+      // Il kart e' lo stesso mobile parcheggiato in griglia, che si sposta lungo la pista.
+      const kartItem = { id: `race-${id}`, type: 'go_kart', x: p0.x - 0.5, y: p0.y - 0.5, z: 0, rot };
+      if (this.catalog.has('go_kart')) {
+        const { sprite, left, top } = this.itemSprite(kartItem, now);
+        const kp = toScreen(left, top);
+        ctx.drawImage(sprite, kp.x, kp.y + wobble, sprite.width * scale, sprite.height * scale);
+      }
+      // Il pilota seduto nel kart, girato come il kart.
+      const savedDir = user.dir;
+      user.dir = (2 + rot) % 8;
+      const { sprite, left, top, center } = this.spriteFor(user, now);
+      user.dir = savedDir;
+      const base = toScreen(center.x, center.y);
+      const pos = toScreen(left, top);
+      const width = AVATAR_W * AVATAR_SCALE * scale;
+      const height = AVATAR_H * AVATAR_SCALE * scale;
+      ctx.drawImage(sprite, pos.x + at.x - base.x, pos.y + at.y - base.y - 3 * unit + wobble, width, height);
+      ctx.font = `bold ${Math.max(10, Math.round(6 * unit))}px sans-serif`;
       ctx.textAlign = 'center';
       ctx.fillStyle = '#fff';
       ctx.strokeStyle = 'rgba(0,0,0,0.7)';
       ctx.lineWidth = 3;
       const label = `${user.username} · giro ${Math.min(3, kart.lap + 1)}`;
-      ctx.strokeText(label, at.x, at.y - 17 * unit);
-      ctx.fillText(label, at.x, at.y - 17 * unit);
+      const labelY = pos.y + at.y - base.y - 10 * unit;
+      ctx.strokeText(label, at.x, labelY);
+      ctx.fillText(label, at.x, labelY);
     });
   }
 
@@ -575,6 +645,8 @@ export class HotelEngine {
       case 'cast': this.soundAt('splash', x, y); break;
       case 'catch': this.soundAt('reel', x, y); break;
       case 'reel': this.soundAt('reel', x, y); break;
+      case 'rally': this.soundAt('clack', x, y); break;
+      case 'dart': this.soundAt('punch', x, y); break;
       case 'sing': this.soundAt('note', x, y, 0, fx.x || 0); break;
       case 'lap': this.soundAt('engine', x, y); break;
       default: break;
@@ -1257,6 +1329,13 @@ export class HotelEngine {
     } else if (user.game === 'fish') {
       pose = 'fish';
       frame = this.fishing.get(user.id)?.phase === 'reel' && animate ? Math.floor(now / 150) % 2 : 0;
+    } else if (user.game === 'pong') {
+      // Racchetta: il braccio si muove a ogni colpo.
+      pose = 'punch';
+      frame = fx?.kind === 'rally' && fxAge < 250 ? 1 : 0;
+    } else if (user.game === 'darts') {
+      pose = 'shoot';
+      frame = fx?.kind === 'dart' && fxAge < 300 ? 1 : 0;
     } else if (user.game === 'curl') {
       pose = 'curl';
       frame = fx?.kind === 'curl' && fxAge < 380 ? (fx.arm === 1 ? 2 : 1) : 0;
@@ -1360,7 +1439,7 @@ export class HotelEngine {
     users.forEach((u) => { u.drawn = this.advance(u, now); this.followPet(u, now); });
     const ballAt = this.ball ? this.ballAt(now) : null;
     const scene = [
-      ...users.map((user) => ({ kind: 'user', user, depth: this.userDepth(user) })),
+      ...users.filter((user) => !this.isRacing(user, now)).map((user) => ({ kind: 'user', user, depth: this.userDepth(user) })),
       ...users.filter((user) => user.pet && user.petAt).map((user) => ({ kind: 'pet', user, depth: user.petAt.x + user.petAt.y + 0.004 })),
       ...(ballAt ? [{ kind: 'ball', depth: ballAt.x + ballAt.y + 0.005 }] : []),
       ...decor.filter((entry) => !DECOR_DEFS[entry.type].walkable).map((entry) => ({ kind: 'decor', entry, depth: entry.x + entry.y - 0.01 })),
@@ -1448,7 +1527,7 @@ export class HotelEngine {
         const text = user.away ? `${user.username} (assente)` : user.username;
         labels.push({
           kind: 'name', x: head.x, y: labelY, text, me: user.id === this.meId,
-          gem: user.bestCard?.rarity, card: hovered ? user.bestCard : null
+          gem: user.bestCard?.rarity, card: hovered ? user.bestCard : null, club: user.club
         });
         // Le tre carte di bandiera stanno sopra l'etichetta (e sopra "Carta migliore" se c'e').
         if (user.topCards?.length) {
@@ -1818,9 +1897,23 @@ function drawStaffTag(ctx, { x, y }, scale) {
   ctx.fillRect(left + 2 * s, top + 2 * s, s, s);
 }
 
-function drawName(ctx, { x, y, text, me, gem, card, npc }, scale, now, animate) {
+function drawName(ctx, { x, y, text, me, gem, card, npc, club }, scale, now, animate) {
   ctx.font = 'bold 11px "Segoe UI", system-ui, sans-serif';
   const width = ctx.measureText(text).width + 10;
+  // Sigla del club, nel colore del club, subito a sinistra del nome.
+  let tagWidth = 0;
+  if (club?.tag) {
+    ctx.font = 'bold 9px "Segoe UI", system-ui, sans-serif';
+    tagWidth = ctx.measureText(club.tag).width + 8;
+    ctx.fillStyle = club.color || '#8b5cf6';
+    roundRect(ctx, x - width / 2 - tagWidth - 2, y - 13, tagWidth, 12, 3);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(club.tag, x - width / 2 - tagWidth / 2 - 2, y - 7);
+    ctx.font = 'bold 11px "Segoe UI", system-ui, sans-serif';
+  }
   ctx.fillStyle = npc ? 'rgba(180, 120, 0, 0.95)' : me ? 'rgba(139, 92, 246, 0.9)' : 'rgba(10, 16, 36, 0.85)';
   roundRect(ctx, x - width / 2, y - 14, width, 14, 4);
   ctx.fill();
@@ -1829,7 +1922,7 @@ function drawName(ctx, { x, y, text, me, gem, card, npc }, scale, now, animate) 
   ctx.textBaseline = 'middle';
   ctx.fillText(text, x, y - 7);
   // La gemma sta a sinistra del nome, centrata in altezza sull'etichetta.
-  if (gem) drawGem(ctx, x - width / 2 - GEM_W * scale - 2, y - 7 + (GEM_H * scale) / 2, gem, scale, now, animate);
+  if (gem) drawGem(ctx, x - width / 2 - tagWidth - (tagWidth ? 2 : 0) - GEM_W * scale - 2, y - 7 + (GEM_H * scale) / 2, gem, scale, now, animate);
   if (card) {
     ctx.font = 'bold 10px "Segoe UI", system-ui, sans-serif';
     const label = `Carta migliore: ${card.name}`;

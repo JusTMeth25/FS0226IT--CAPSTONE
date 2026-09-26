@@ -1108,6 +1108,45 @@ const DRAW = {
     c({ u: 0.5, v: 0.5, r: 0.16, z0: 36, z1: 36, color: '#0a0a0a', top: '#0a0a0a' });
   },
   // Semaforo di partenza: cinque luci rosse che si accendono una a una, poi verdi.
+  // Tavolo da ping pong (3x2): piano blu con le righe bianche e la rete in mezzo.
+  ping_pong_table(b, { c }) {
+    [[0.2, 0.2], [0.2, 1.8], [2.8, 0.2], [2.8, 1.8]].forEach(([u, v]) => c({ u, v, r: 0.05, z0: 0, z1: 22, color: '#27272a' }));
+    b({ u0: 0.05, v0: 0.1, u1: 2.95, v1: 1.9, z0: 22, z1: 26, color: '#1d4ed8', right: '#1e3a8a' });
+    b({ u0: 0.05, v0: 0.97, u1: 2.95, v1: 1.03, z0: 26, z1: 26, color: '#f8fafc' });
+    b({ u0: 0.05, v0: 0.1, u1: 0.1, v1: 1.9, z0: 26, z1: 26, color: '#f8fafc' });
+    b({ u0: 2.9, v0: 0.1, u1: 2.95, v1: 1.9, z0: 26, z1: 26, color: '#f8fafc' });
+    b({ u0: 1.47, v0: 0.05, u1: 1.53, v1: 1.95, z0: 26, z1: 34, color: '#e5e7eb', tex: 'fabric' });
+    b({ u0: 0.4, v0: 0.3, u1: 0.62, v1: 0.42, z0: 26, z1: 28, color: '#dc2626' });
+    b({ u0: 2.38, v0: 1.58, u1: 2.6, v1: 1.7, z0: 26, z1: 28, color: '#111827' });
+  },
+  // Bersaglio delle freccette su un cavalletto: anelli rossi e verdi, centro rosso.
+  dart_board(b, { c, d, front }) {
+    c({ u: 0.5, v: 0.5, r: 0.05, z0: 0, z1: 40, color: '#52525b', tex: 'metal' });
+    b({ u0: 0.1, v0: 0.45, u1: 0.9, v1: 0.55, z0: 38, z1: 80, color: '#27272a', tex: 'wood' });
+    front(() => {
+      [[34, '#111827'], [30, '#ef4444'], [26, '#f5f5dc'], [20, '#22c55e'], [16, '#f5f5dc'], [10, '#ef4444'], [4, '#22c55e']].forEach(([size, color]) => {
+        d(0.5 - size / 150, 0.55, 59 + size / 2, color, size, size);
+      });
+    });
+  },
+  // Banchetto delle carte: tavolo con la tovaglia a righe, le carte esposte e la tenda.
+  card_stall(b, { c, d, front }) {
+    b({ u0: 0.08, v0: 0.2, u1: 1.92, v1: 0.8, z1: 26, color: '#8a5a3b', left: '#9a6a48', right: '#5b3a26', tex: 'wood' });
+    b({ u0: 0.04, v0: 0.16, u1: 1.96, v1: 0.84, z0: 26, z1: 29, color: '#f4f4f5' });
+    front(() => {
+      for (let i = 0; i < 12; i += 1) d(0.06 + i * 0.16, 0.84, 24, i % 2 ? '#ef4444' : '#f4f4f5', 5, 10);
+    });
+    ['#a855f7', '#f59e0b', '#22d3ee', '#ec4899'].forEach((color, i) => {
+      b({ u0: 0.22 + i * 0.4, v0: 0.36, u1: 0.5 + i * 0.4, v1: 0.42, z0: 29, z1: 40, color: '#1f1a2e' });
+      b({ u0: 0.25 + i * 0.4, v0: 0.42, u1: 0.47 + i * 0.4, v1: 0.43, z0: 31, z1: 38, color, glow: true });
+    });
+    c({ u: 0.12, v: 0.22, r: 0.03, z0: 0, z1: 70, color: '#71717a', tex: 'metal' });
+    c({ u: 1.88, v: 0.22, r: 0.03, z0: 0, z1: 70, color: '#71717a', tex: 'metal' });
+    b({ u0: 0.04, v0: 0.12, u1: 1.96, v1: 0.3, z0: 66, z1: 74, color: '#ef4444', tex: 'fabric' });
+    front(() => {
+      for (let i = 0; i < 12; i += 1) d(0.06 + i * 0.16, 0.3, 66, i % 2 ? '#ef4444' : '#fef3c7', 5, 6);
+    });
+  },
   race_lights(b, { c, d, now, front }) {
     c({ u: 0.5, v: 0.5, r: 0.05, z0: 0, z1: 60, color: '#52525b', tex: 'metal' });
     b({ u0: 0.1, v0: 0.4, u1: 0.9, v1: 0.6, z0: 60, z1: 76, color: '#18181b' });

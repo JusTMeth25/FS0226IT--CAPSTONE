@@ -79,11 +79,13 @@ public class HotelEventService {
     private final RoomRegistry registry;
     private final ObjectMapper objectMapper;
     private final TransactionTemplate tx;
+    private final ClubService clubService;
     /** Edizioni gia' annunciate da questo processo (dopo un riavvio si riannunciano, pazienza). */
     private final Set<String> announced = ConcurrentHashMap.newKeySet();
 
     public HotelEventService(JdbcTemplate jdbc, WalletService walletService, RoomRegistry registry, ObjectMapper objectMapper,
-                             PlatformTransactionManager transactionManager) {
+                             PlatformTransactionManager transactionManager, ClubService clubService) {
+        this.clubService = clubService;
         this.tx = new TransactionTemplate(transactionManager);
         this.jdbc = jdbc;
         this.walletService = walletService;
@@ -94,9 +96,13 @@ public class HotelEventService {
     // ------------------------------------------------------------------ calendario
 
     static List<Edition> active(Instant now) {
+        return active(now, EVENTS);
+    }
+
+    static List<Edition> active(Instant now, List<EventDef> events) {
         LocalDate today = now.atZone(ZONE).toLocalDate();
         List<Edition> result = new ArrayList<>();
-        for (EventDef def : EVENTS) {
+        for (EventDef def : events) {
             for (LocalDate date : List.of(today.minusDays(1), today)) {
                 if (!def.on(date)) continue;
                 Instant start = def.startOn(date).toInstant();
@@ -109,11 +115,15 @@ public class HotelEventService {
 
     /** Le prossime edizioni, in ordine di inizio. */
     static List<Edition> upcoming(Instant now, int limit) {
+        return upcoming(now, limit, EVENTS);
+    }
+
+    static List<Edition> upcoming(Instant now, int limit, List<EventDef> events) {
         LocalDate today = now.atZone(ZONE).toLocalDate();
         List<Edition> result = new ArrayList<>();
         for (int d = 0; d < 8; d++) {
             LocalDate date = today.plusDays(d);
-            for (EventDef def : EVENTS) {
+            for (EventDef def : events) {
                 if (!def.on(date)) continue;
                 Instant start = def.startOn(date).toInstant();
                 if (start.isAfter(now)) result.add(new Edition(def, date, start, start.plus(def.length())));
@@ -125,9 +135,13 @@ public class HotelEventService {
 
     /** Edizioni finite nelle ultime 24 ore (quelle da premiare). */
     static List<Edition> recentlyEnded(Instant now) {
+        return recentlyEnded(now, EVENTS);
+    }
+
+    static List<Edition> recentlyEnded(Instant now, List<EventDef> events) {
         LocalDate today = now.atZone(ZONE).toLocalDate();
         List<Edition> result = new ArrayList<>();
-        for (EventDef def : EVENTS) {
+        for (EventDef def : events) {
             for (LocalDate date : List.of(today.minusDays(1), today)) {
                 if (!def.on(date)) continue;
                 Instant end = def.startOn(date).toInstant().plus(def.length());
@@ -141,6 +155,47 @@ public class HotelEventService {
 
     static boolean counts(EventDef def, String game) {
         return def.game().equals(game);
+    }
+
+    // ------------------------------------------------------------------ eventi creati dall'admin
+
+    private volatile List<EventDef> cachedDefinitions;
+    private volatile Map<String, int[]> cachedPrizes = Map.of();
+    private volatile long cachedAt;
+
+    /** Eventi fissi piu' quelli attivi creati dall'admin (riletti al massimo ogni 30 secondi). */
+    public List<EventDef> definitions() {
+        long now = System.currentTimeMillis();
+        if (cachedDefinitions != null && now - cachedAt < 30_000) return cachedDefinitions;
+        List<EventDef> all = new ArrayList<>(EVENTS);
+        Map<String, int[]> prizes = new java.util.HashMap<>();
+        try {
+            for (Map<String, Object> row : jdbc.queryForList("SELECT * FROM hotel_custom_events WHERE active")) {
+                String key = "custom-" + row.get("id");
+                Integer day = (Integer) row.get("day_of_week");
+                all.add(new EventDef(key, (String) row.get("title"), "star", (String) row.get("room"), (String) row.get("game"),
+                        (Boolean) row.get("sum_scores"), day == null ? null : DayOfWeek.of(day),
+                        ((java.sql.Time) row.get("start_time")).toLocalTime(), Duration.ofMinutes((Integer) row.get("minutes")),
+                        (String) row.get("rules")));
+                prizes.put(key, new int[]{(Integer) row.get("prize1"), (Integer) row.get("prize2"), (Integer) row.get("prize3")});
+            }
+        } catch (RuntimeException ex) {
+            LOG.warn("Eventi dell'admin non letti: {}", ex.getMessage());
+        }
+        cachedPrizes = prizes;
+        cachedDefinitions = List.copyOf(all);
+        cachedAt = now;
+        return cachedDefinitions;
+    }
+
+    /** L'admin ha cambiato gli eventi: si rileggono subito. */
+    public void reload() {
+        cachedAt = 0;
+    }
+
+    int[] prizesFor(String key) {
+        definitions();
+        return cachedPrizes.getOrDefault(key, PRIZES);
     }
 
     // ------------------------------------------------------------------ punti
@@ -157,7 +212,7 @@ public class HotelEventService {
 
     void record(String game, UUID userId, String username, int score) {
         if (userId == null || score <= 0) return;
-        for (Edition edition : active(Instant.now())) {
+        for (Edition edition : active(Instant.now(), definitions())) {
             if (!counts(edition.def(), game)) continue;
             String update = edition.def().sum()
                     ? "hotel_event_scores.score + EXCLUDED.score"
@@ -179,14 +234,14 @@ public class HotelEventService {
     @Scheduled(fixedDelay = 30_000, initialDelay = 20_000)
     public void tick() {
         Instant now = Instant.now();
-        for (Edition edition : active(now)) {
+        for (Edition edition : active(now, definitions())) {
             String id = edition.def().key() + ":" + edition.date();
             if (announced.add(id)) {
                 registry.broadcastAll(Map.of("type", "hotel_event", "phase", "start", "key", edition.def().key(),
                         "title", edition.def().title(), "room", edition.def().room(), "endsAt", edition.endsAt().toString()));
             }
         }
-        for (Edition edition : recentlyEnded(now)) {
+        for (Edition edition : recentlyEnded(now, definitions())) {
             try {
                 // Da qui la chiamata non passa dal proxy di Spring: la transazione si apre a mano.
                 tx.executeWithoutResult(status -> award(edition));
@@ -203,17 +258,19 @@ public class HotelEventService {
         Date date = Date.valueOf(edition.date());
         int claimed = jdbc.update("INSERT INTO hotel_event_editions (event_key, edition) VALUES (?, ?) ON CONFLICT DO NOTHING", key, date);
         if (claimed == 0) return List.of();
-        List<Map<String, Object>> top = leaderboard(key, edition.date(), PRIZES.length);
+        int[] prizes = prizesFor(key);
+        List<Map<String, Object>> top = leaderboard(key, edition.date(), prizes.length);
         List<Map<String, Object>> winners = new ArrayList<>();
         for (int i = 0; i < top.size(); i++) {
             Map<String, Object> row = top.get(i);
             UUID userId = (UUID) row.get("userId");
-            walletService.adjustGold(userId, PRIZES[i], WalletTransactionType.EVENT_REWARD, "event:" + key + ":" + edition.date(),
+            if (prizes[i] <= 0) continue;
+            walletService.adjustGold(userId, prizes[i], WalletTransactionType.EVENT_REWARD, "event:" + key + ":" + edition.date(),
                     edition.def().title() + ": " + (i + 1) + "° posto");
             Map<String, Object> winner = new LinkedHashMap<>();
             winner.put("username", row.get("username"));
             winner.put("score", row.get("score"));
-            winner.put("prize", PRIZES[i]);
+            winner.put("prize", prizes[i]);
             winners.add(winner);
         }
         jdbc.update("UPDATE hotel_event_editions SET winners = ?::jsonb WHERE event_key = ? AND edition = ?",
@@ -232,21 +289,22 @@ public class HotelEventService {
         Instant now = Instant.now();
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("now", now);
-        result.put("current", active(now).stream().map(edition -> {
+        result.put("current", active(now, definitions()).stream().map(edition -> {
             Map<String, Object> view = view(edition);
             List<Map<String, Object>> board = leaderboard(edition.def().key(), edition.date(), 10);
             view.put("leaderboard", board);
+            view.put("clubs", clubService.eventBoard(edition.def().key(), edition.date()));
             view.put("myScore", jdbc.query("SELECT score FROM hotel_event_scores WHERE event_key = ? AND edition = ? AND user_id = ?",
                     rs -> rs.next() ? rs.getInt(1) : 0, edition.def().key(), Date.valueOf(edition.date()), userId));
             return view;
         }).toList());
-        result.put("upcoming", upcoming(now, 5).stream().map(HotelEventService::view).toList());
+        result.put("upcoming", upcoming(now, 5, definitions()).stream().map(HotelEventService::view).toList());
         result.put("recent", jdbc.queryForList("SELECT event_key AS \"key\", edition, winners::text AS winners FROM hotel_event_editions "
                 + "ORDER BY awarded_at DESC LIMIT 5").stream().map(row -> {
                     Map<String, Object> view = new LinkedHashMap<>();
                     String key = (String) row.get("key");
                     view.put("key", key);
-                    view.put("title", EVENTS.stream().filter(e -> e.key().equals(key)).map(EventDef::title).findFirst().orElse(key));
+                    view.put("title", definitions().stream().filter(e -> e.key().equals(key)).map(EventDef::title).findFirst().orElse(key));
                     view.put("edition", row.get("edition").toString());
                     view.put("winners", objectMapper.readValue((String) row.get("winners"), List.class));
                     return view;

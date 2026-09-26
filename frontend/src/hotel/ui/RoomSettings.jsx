@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { roomApi } from '../../services/roomApi.js';
+import { hotelApi } from '../../services/hotelApi.js';
 
 const FLOORS = [
   ['neon', 'Piastrelle neon'], ['parquet', 'Parquet scuro'], ['carpet', 'Moquette'],
@@ -25,6 +26,18 @@ export default function RoomSettings({ room, onClose }) {
   const [wallStyle, setWallStyle] = useState(room.wallStyle || 'neon');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+
+  const [partyTitle, setPartyTitle] = useState('');
+  const [partyNotice, setPartyNotice] = useState(null);
+
+  async function party() {
+    try {
+      await hotelApi.startParty(room.id, partyTitle.trim());
+      setPartyNotice("Festa lanciata! Per mezz'ora la tua stanza e' in cima al navigatore e chi viene prende XP.");
+    } catch {
+      setPartyNotice('Festa non lanciata, riprova.');
+    }
+  }
 
   async function save(event) {
     event.preventDefault();
@@ -73,6 +86,12 @@ export default function RoomSettings({ room, onClose }) {
           <input type="range" min="1" max="25" value={maxUsers} onChange={(e) => setMaxUsers(e.target.value)} />
         </label>
       </div>
+      <fieldset className="hotel-party-box">
+        <legend><i className="ph-fill ph-confetti" /> Festa</legend>
+        <input value={partyTitle} onChange={(e) => setPartyTitle(e.target.value)} maxLength={60} placeholder="Titolo della festa" aria-label="Titolo della festa" />
+        <button type="button" className="btn btn-gold btn-small" onClick={party}>Lancia (30 min)</button>
+        {partyNotice && <small>{partyNotice}</small>}
+      </fieldset>
       {error && <p className="hotel-panel-error">{error}</p>}
       <footer className="hotel-panel-footer">
         <button type="button" className="btn btn-secondary" onClick={onClose}>Annulla</button>

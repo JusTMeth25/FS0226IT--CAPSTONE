@@ -9,22 +9,26 @@ import ClickSpark from './components/fx/ClickSpark.jsx';
 
 import HomePage from './pages/HomePage.jsx';
 import AuthPage from './pages/AuthPage.jsx';
-import PackOpeningPage from './pages/PackOpeningPage.jsx';
-import CollectionPage from './pages/CollectionPage.jsx';
-import CardDetailPage from './pages/CardDetailPage.jsx';
-import MarketplacePage from './pages/MarketplacePage.jsx';
-import TradesPage from './pages/TradesPage.jsx';
-import MissionsPage from './pages/MissionsPage.jsx';
-import EventsPage from './pages/EventsPage.jsx';
-import LeaderboardPage from './pages/LeaderboardPage.jsx';
-import ProfilePage from './pages/ProfilePage.jsx';
-import AdminPage from './pages/AdminPage.jsx';
-import BattlePage from './pages/BattlePage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
-import NewsPage from './pages/NewsPage.jsx';
-import SetsPage from './pages/SetsPage.jsx';
 import LoadingSpinner from './components/common/LoadingSpinner.jsx';
 
+// Le pagine si scaricano quando si aprono (la Home e l'accesso subito): il primo caricamento e'
+// piu' leggero. L'attesa la mostra il Suspense del layout, attorno alla pagina.
+const PackOpeningPage = lazy(() => import('./pages/PackOpeningPage.jsx'));
+const CollectionPage = lazy(() => import('./pages/CollectionPage.jsx'));
+const CardDetailPage = lazy(() => import('./pages/CardDetailPage.jsx'));
+const MarketplacePage = lazy(() => import('./pages/MarketplacePage.jsx'));
+const TradesPage = lazy(() => import('./pages/TradesPage.jsx'));
+const MissionsPage = lazy(() => import('./pages/MissionsPage.jsx'));
+const EventsPage = lazy(() => import('./pages/EventsPage.jsx'));
+const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage.jsx'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage.jsx'));
+const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
+const BattlePage = lazy(() => import('./pages/BattlePage.jsx'));
+const NewsPage = lazy(() => import('./pages/NewsPage.jsx'));
+const SetsPage = lazy(() => import('./pages/SetsPage.jsx'));
+const FusionPage = lazy(() => import('./pages/FusionPage.jsx'));
+const BinderPage = lazy(() => import('./pages/BinderPage.jsx'));
 // L'hotel ha un motore grafico tutto suo: si scarica solo quando ci si entra.
 const HotelPage = lazy(() => import('./pages/HotelPage.jsx'));
 
@@ -64,6 +68,8 @@ export default function App() {
             <Route path="profile" element={<ProfilePage />} />
             <Route path="news" element={<NewsPage />} />
             <Route path="sets" element={<SetsPage />} />
+            <Route path="fusion" element={<FusionPage />} />
+            <Route path="binder" element={<BinderPage />} />
 
             <Route element={<AdminRoute />}>
               <Route path="admin" element={<AdminPage />} />

@@ -10,6 +10,8 @@ const NAV_ITEMS = [
   { to: '/packs', label: 'Apri pacchetti', icon: 'ph-gift' },
   { to: '/collection', label: 'Collezione', icon: 'ph-cards' },
   { to: '/sets', label: 'Set', icon: 'ph-stack' },
+  { to: '/binder', label: 'Raccoglitore', icon: 'ph-book-open' },
+  { to: '/fusion', label: 'Fusione', icon: 'ph-flask' },
   { to: '/marketplace', label: 'Mercato', icon: 'ph-storefront' },
   { to: '/trades', label: 'Scambi', icon: 'ph-arrows-left-right' },
   { to: '/missions', label: 'Missioni', icon: 'ph-target' },

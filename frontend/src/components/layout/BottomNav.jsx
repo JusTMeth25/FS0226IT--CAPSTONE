@@ -17,6 +17,8 @@ const MORE_ITEMS = [
   { to: '/trades', label: 'Scambi', icon: 'ph-arrows-left-right' },
   { to: '/missions', label: 'Missioni', icon: 'ph-target' },
   { to: '/sets', label: 'Set', icon: 'ph-stack' },
+  { to: '/binder', label: 'Raccoglitore', icon: 'ph-book-open' },
+  { to: '/fusion', label: 'Fusione', icon: 'ph-flask' },
   { to: '/events', label: 'Eventi', icon: 'ph-calendar-star' },
   { to: '/leaderboard', label: 'Classifica', icon: 'ph-trophy' },
   { to: '/news', label: 'Novità', icon: 'ph-megaphone' }

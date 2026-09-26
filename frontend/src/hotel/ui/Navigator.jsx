@@ -40,6 +40,20 @@ export default function Navigator({ currentRoomId, onJoin, onMyRoom, onClose }) 
         </button>
       )}
 
+      {data?.parties?.length > 0 && (
+        <ul className="hotel-party-list" aria-label="Feste in corso">
+          {data.parties.map((party) => (
+            <li key={party.roomId}>
+              <button type="button" className="hotel-party" onClick={() => onJoin(party.roomId)}>
+                <i className="ph-fill ph-confetti" />
+                <span><strong>{party.title}</strong><small>{party.roomName} · di {party.host}</small></span>
+                <span className="hotel-party-users"><i className="ph-fill ph-user" /> {party.users}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
       <div className="hotel-tabs" role="tablist">
         {TABS.map((t) => (
           <button

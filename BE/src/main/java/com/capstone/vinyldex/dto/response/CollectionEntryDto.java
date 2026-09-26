@@ -33,7 +33,9 @@ public record CollectionEntryDto(
         @JsonProperty("isFavorite") boolean favorite,
         Instant obtainedAt,
         // Voto del perito dell'hotel (1-10), null se non gradata.
-        Integer grade
+        Integer grade,
+        // Copie olografiche fra quelle possedute.
+        int foil
 ) {
 
     public static CollectionEntryDto from(Card card, UserCard userCard) {
@@ -46,7 +48,8 @@ public record CollectionEntryDto(
                 userCard != null ? userCard.getQuantity() : 0,
                 userCard != null && userCard.isFavorite(),
                 userCard != null ? userCard.getObtainedAt() : null,
-                userCard != null ? userCard.getGrade() : null
+                userCard != null ? userCard.getGrade() : null,
+                userCard != null ? userCard.getFoilCount() : 0
         );
     }
 }

@@ -20,6 +20,10 @@ public final class HotelGameEvents {
     public record MatchPlayed(UUID roomId, java.util.List<UUID> winners, java.util.List<UUID> losers, boolean draw) {
     }
 
+    /** Gara dei go-kart finita: piloti arrivati, dal primo all'ultimo. */
+    public record KartRaceFinished(UUID roomId, java.util.List<UUID> order) {
+    }
+
     /** Gol segnato allo stadio (anche nelle partite fra giocatori). */
     public record GoalScored(UUID roomId, UUID userId, String username, String team) {
     }

@@ -142,7 +142,8 @@ export function GameProvider({ children }) {
         stats: { ...prev.stats, totalPacksOpened: (prev.stats.totalPacksOpened || 0) + 1 }
       }));
 
-      return { cards: res.cards };
+      // Le carte uscite olografiche hanno il riflesso arcobaleno (res.foil, stesso ordine).
+      return { cards: res.cards.map((card, i) => ({ ...card, foil: res.foil?.[i] ? 1 : 0 })) };
     } catch (err) {
       return { error: err.payload?.error || 'open_pack_failed' };
     }

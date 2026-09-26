@@ -4,6 +4,7 @@ import { adminApi } from '../services/adminApi.js';
 import { SOURCE_LABELS, formatMarketPrice } from '../utils/cardUtils.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
+import AdminHotelTab from '../components/admin/AdminHotelTab.jsx';
 
 const TABS = [
   { key: 'users', label: 'Utenti', icon: 'ph-users' },
@@ -12,6 +13,7 @@ const TABS = [
   { key: 'import', label: 'Import esterno', icon: 'ph-download-simple' },
   { key: 'missions', label: 'Missioni', icon: 'ph-target' },
   { key: 'events', label: 'Eventi', icon: 'ph-calendar-star' },
+  { key: 'hotel', label: 'Hotel', icon: 'ph-buildings' },
   { key: 'logs', label: 'Log', icon: 'ph-list-checks' }
 ];
 
@@ -339,7 +341,7 @@ function LogsTab() {
 }
 
 const TAB_COMPONENTS = {
-  users: UsersTab, cards: CardsTab, packs: PacksTab, import: ImportTab, missions: MissionsTab, events: EventsTab, logs: LogsTab
+  users: UsersTab, cards: CardsTab, packs: PacksTab, import: ImportTab, missions: MissionsTab, events: EventsTab, hotel: AdminHotelTab, logs: LogsTab
 };
 
 export default function AdminPage() {

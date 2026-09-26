@@ -46,6 +46,10 @@ public class UserCard {
     @Column(name = "battles_used", nullable = false)
     private int battlesUsed = 0;
 
+    /** Copie olografiche fra quelle possedute. */
+    @Column(name = "foil_count", nullable = false)
+    private int foilCount = 0;
+
     /** Voto del perito (1-10), null se la carta non e' stata gradata. */
     @Column(name = "grade")
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.SMALLINT)

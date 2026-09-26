@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../services/apiClient.js';
 import { getRarityColor } from '../../utils/cardUtils.js';
 import AvatarPreview from './AvatarPreview.jsx';
+import PhotoGallery from '../../components/common/PhotoGallery.jsx';
 
 const BADGE_ICONS = {
   collector1: 'ph-cards', collector2: 'ph-cards-three', collector3: 'ph-crown-simple',
@@ -61,6 +62,8 @@ export default function UserCard({ user, look, isMe, isOwner, respectVersion, on
           <i className="ph-fill ph-star" /> Carta migliore: <strong>{profile.bestCard.name}</strong>
         </button>
       )}
+
+      {profile?.id && <PhotoGallery userId={profile.id} compact />}
 
       {!isMe && (
         <div className="hotel-user-actions">

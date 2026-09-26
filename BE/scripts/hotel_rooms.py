@@ -24,11 +24,12 @@ V18 = os.path.join(MIGRATIONS_DIR, 'V18__hotel_bowling_minigolf.sql')
 V19 = os.path.join(MIGRATIONS_DIR, 'V19__hotel_basket_court_bowling.sql')
 V20 = os.path.join(MIGRATIONS_DIR, 'V20__hotel_comic_shop_billiards.sql')
 V30 = os.path.join(MIGRATIONS_DIR, 'V30__hotel_karaoke_fishing_kart.sql')
+V35 = os.path.join(MIGRATIONS_DIR, 'V35__hotel_ping_pong_darts.sql')
 LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18, 18: V19, 19: V30}
 # Migrazione in lavorazione: le altre, gia' pubblicate, non si riscrivono piu' (Flyway ne controlla
 # il contenuto). Le stanze cambiate dopo la pubblicazione si rifanno qui (REBUILT) e gli arredi da
 # togliere si elencano in REMOVED.
-CURRENT = V30
+CURRENT = V35
 REBUILT = {16: V19, 8: V20, 12: V20}
 REMOVED = {V19: [('00000000-0000-0000-0000-00000000a00f', 'basket_hoop')]}
 # Arredi aggiunti a stanze gia' pubblicate: finiscono nella migrazione indicata (vedi Room.migration).
@@ -38,6 +39,7 @@ MIGRATION_TITLES = {
     V19: 'Palazzetto con il campo da basket, bowling rifatto con piu\' piste, canestri tolti dallo stadio.',
     V20: 'Edicola come un negozio di fumetti e carte con il museo VinylDex, biliardi grandi in sala giochi.',
     V30: 'Palco del karaoke al Neon Bar, paletti da pesca sulla spiaggia e la pista dei go-kart.',
+    V35: 'Ping pong e freccette in sala giochi.',
 }
 
 # ------------------------------------------------------------------ catalogo (come FurniCatalog.java)
@@ -93,6 +95,8 @@ FURNI = {
     # Karaoke, pesca e go-kart
     'karaoke_stage': (2, 2, False, False, -1), 'fishing_post': (1, 1, False, False, -1),
     'go_kart': (1, 1, False, False, 2), 'tire_stack': (1, 1, False, False, -1), 'race_lights': (1, 1, False, False, -1),
+    # Ping pong e freccette
+    'ping_pong_table': (3, 2, False, False, -1), 'dart_board': (1, 1, False, False, -1), 'card_stall': (2, 1, False, False, -1),
     'shoe_counter': (2, 1, False, False, -1),
     # Minigolf
     **{f'golf_hole_{n}': (3, 2, False, False, -1) for n in range(1, 7)},
@@ -521,6 +525,9 @@ r.add('plant_palm', 24, 22).add('plant_palm', 1, 22).add('trophy', 24, 5)
 r.walker('tito', 'Tito', 'WAITER', 's4.h9.hc7.sh2.p1.t0.f1.a3', 11, 10, 6, 'cola', 'bubble')
 r.walker('pixel', 'Pixel', 'GUEST', 's0.h4.hc5.sh8.p1.t1.f5.a3', 10, 3, 4)
 r.walker('max', 'Max', 'GUEST', 's2.h1.hc0.sh6.p0.t0.f2.a2', 16, 15, 4)
+# Ping pong e freccette: il tavolo in alto a destra, i bersagli sulla destra (si tira da due caselle).
+r.migration(V35)
+r.add('ping_pong_table', 18, 4).add('dart_board', 24, 12).add('dart_board', 24, 14)
 
 # ------------------------------------------------------------------ Biblioteca
 

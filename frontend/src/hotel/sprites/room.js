@@ -1,4 +1,5 @@
 import { HALF_H, HALF_W, LEVEL_H, TILE_H, TILE_W, WALL_H, tileTop } from '../iso.js';
+import { unitPoint } from '../kartTrack.js';
 import { createCanvas, px } from './pixel.js';
 import { garlandPaint } from '../weather.js';
 
@@ -871,15 +872,9 @@ export function kartTrack(layout, door) {
 }
 
 /** Punto della pista a una frazione t del giro (0 = linea di partenza, in basso), in caselle. */
-export function kartPoint(track, t) {
-  const theta = Math.PI / 2 - t * Math.PI * 2;
-  const cos = Math.cos(theta);
-  const sin = Math.sin(theta);
-  // Superellisse: rettilinei lunghi e curve strette, come una pista vera.
-  return {
-    x: track.cx + track.a * Math.sign(cos) * Math.abs(cos) ** 0.45,
-    y: track.cy + track.b * Math.sign(sin) * Math.abs(sin) ** 0.45
-  };
+export function kartPoint(track, u) {
+  const p = unitPoint(u);
+  return { x: track.cx + track.a * p.x, y: track.cy + track.b * p.y };
 }
 
 // Pista dei go-kart: asfalto, prato in mezzo con i cordoli bianchi e rossi, linea di partenza a scacchi.

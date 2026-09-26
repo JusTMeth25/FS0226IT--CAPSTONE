@@ -75,8 +75,12 @@ public class RoomInstance {
     private final FootballMatch football;
     /** Partita a squadre fra giocatori veri (solo nelle stanze con il pallone). */
     private final TeamMatch match = new TeamMatch();
+    /** Gara dei go-kart fra i giocatori della stanza. */
+    private final KartRace kartRace = new KartRace();
     /** Dopo un gol il pallone resta in rete un attimo, poi torna a centrocampo. */
     private static final long GOAL_PAUSE_MILLIS = 2_500;
+    /** Il tick gira ogni mezzo secondo: i controlli "ogni 5 secondi" cadono in questa finestra. */
+    private static final long TICK_CHECK_MILLIS = 500;
     /** Fatti di gioco da far sapere al resto dell'applicazione (missioni, eventi, classifiche). */
     private java.util.function.Consumer<Object> events = event -> { };
     /** Fascia di tre ore del meteo gia' mandato ai client: quando cambia, si manda quello nuovo. */
@@ -327,6 +331,7 @@ public class RoomInstance {
             message.put("type", "weather");
             broadcast(message);
         }
+        if (now % 5_000 < TICK_CHECK_MILLIS) closeKartRace();
         if (football != null && match.playing()) {
             TeamMatch.Outcome outcome = match.onTick(now, football.score(FootballMatch.Team.BLUE), football.score(FootballMatch.Team.RED));
             if (outcome == TeamMatch.Outcome.EXTRA_TIME) {
@@ -1333,6 +1338,8 @@ public class RoomInstance {
         if (item.type().startsWith("golf_hole_")) return new int[]{item.x() - 1, item.y()};
         // Paletto da pesca: si sta sulla sabbia a ovest, rivolti verso il mare.
         if ("fishing_post".equals(item.type())) return new int[]{item.x() - 1, item.y()};
+        // Freccette: si tira da due caselle di distanza, davanti al bersaglio.
+        if ("dart_board".equals(item.type())) return new int[]{item.x() - 2, item.y()};
         return null;
     }
 
@@ -1410,6 +1417,13 @@ public class RoomInstance {
         start.put("maxScore", game.maxScore());
         start.put("itemId", item.id());
         start.put("best", records.get(game.key()));
+        if ("kart".equals(game.key())) {
+            // Go-kart: stessa partenza per chi sale sui kart nei prossimi secondi.
+            long now = System.currentTimeMillis();
+            start.put("raceStart", kartRace.join(occupant.user.id(), occupant.user.username(), now));
+            start.put("serverTime", now);
+            broadcast(kartRace.view());
+        }
         occupant.send(start);
         trainerSays(occupant, NpcDialog.workoutStart(game.key(), occupant.user.username(), random));
     }
@@ -1418,6 +1432,10 @@ public class RoomInstance {
     private void stopGame(Occupant occupant) {
         RoomItemView item = occupant.gameItem == null ? null : items.get(occupant.gameItem);
         boolean treadmill = occupant.game != null && occupant.game.onItem() && item != null && !item.def().sittable();
+        if (occupant.game != null && "kart".equals(occupant.game.key())) {
+            kartRace.leave(occupant.user.id());
+            later(0, this::closeKartRace);
+        }
         occupant.game = null;
         occupant.gameItem = null;
         if (treadmill) {
@@ -1446,6 +1464,7 @@ public class RoomInstance {
         if (occupant == null || occupant.game == null) return Minigames.Outcome.failed("minigame_not_running");
         Minigames.Game game = occupant.game;
         int valid = Minigames.validScore(game, score, System.currentTimeMillis() - occupant.gameStartedAt);
+        if ("kart".equals(game.key())) kartRace.finish(userId, valid);
         stopGame(occupant);
         if (valid < 0) return Minigames.Outcome.failed("minigame_too_fast");
 
@@ -1467,6 +1486,16 @@ public class RoomInstance {
         events.accept(new HotelGameEvents.MinigamePlayed(data.id(), userId, occupant.user.username(), game.key(), valid));
         trainerSays(occupant, NpcDialog.workoutDone(game.unit(), occupant.user.username(), valid, record));
         return new Minigames.Outcome(null, game, valid, record);
+    }
+
+    /** Fine della gara dei go-kart: classifica a tutti e premi al podio (via evento). */
+    private synchronized void closeKartRace() {
+        List<KartRace.Placing> ranking = kartRace.ended(System.currentTimeMillis());
+        if (ranking == null || ranking.isEmpty()) return;
+        broadcast(Map.of("type", "kart_race_end", "ranking",
+                ranking.stream().map(p -> Map.of("id", p.id(), "name", p.name(), "score", p.score())).toList()));
+        events.accept(new HotelGameEvents.KartRaceFinished(data.id(),
+                ranking.stream().filter(p -> p.score() > 0).map(KartRace.Placing::id).toList()));
     }
 
     /** Il giocatore chiude il minigioco prima della fine. */
@@ -1536,6 +1565,11 @@ public class RoomInstance {
         if (occupant == null || occupant.away == away) return;
         occupant.away = away;
         broadcast(Map.of("type", "user_away", "id", userId, "away", away));
+    }
+
+    /** Giocatori veri presenti (per i premi delle feste). */
+    public synchronized List<UUID> humanIds() {
+        return occupants.values().stream().filter(o -> !o.isNpc()).map(o -> o.user.id()).toList();
     }
 
     /** Messaggio a tutti i presenti, per esempio il risultato di una sfida. */
@@ -1733,6 +1767,7 @@ public class RoomInstance {
         view.put("bestCard", o.user.bestCard());
         view.put("topCards", o.user.topCards());
         view.put("pet", o.user.pet());
+        view.put("club", o.user.club());
         view.put("x", o.x);
         view.put("y", o.y);
         view.put("z", o.z);

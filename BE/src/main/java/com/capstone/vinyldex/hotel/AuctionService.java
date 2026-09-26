@@ -167,6 +167,38 @@ public class AuctionService {
         return updated;
     }
 
+    // ------------------------------------------------------------------ admin
+
+    /** L'admin mette all'asta subito una carta a scelta. */
+    @Transactional
+    public Map<String, Object> startNow(String cardCode, Integer startBid, Integer minutes) {
+        Integer open = jdbc.queryForObject("SELECT count(*) FROM hotel_auctions WHERE status = 'OPEN'", Integer.class);
+        if (open != null && open > 0) throw ApiException.badRequest("auction_open");
+        Card card = cardRepository.findByCode(cardCode).orElseThrow(() -> ApiException.notFound("card_not_found"));
+        int base = startBid == null || startBid < 1 ? startBid(card) : startBid;
+        int length = minutes == null || minutes < 1 || minutes > 120 ? (int) LENGTH.toMinutes() : minutes;
+        jdbc.update("INSERT INTO hotel_auctions (card_id, start_bid, ends_at) VALUES (?, ?, ?)",
+                card.getId(), base, Timestamp.from(Instant.now().plus(Duration.ofMinutes(length))));
+        Map<String, Object> lot = jdbc.queryForMap("SELECT * FROM hotel_auctions WHERE status = 'OPEN' ORDER BY starts_at DESC LIMIT 1");
+        registry.broadcastAll(Map.of("type", "auction", "phase", "lot", "lot", view(lot)));
+        return overview();
+    }
+
+    /** L'admin annulla l'asta in corso: i gold bloccati tornano a chi aveva offerto. */
+    @Transactional
+    public Map<String, Object> cancel() {
+        Map<String, Object> lot = jdbc.queryForList("SELECT * FROM hotel_auctions WHERE status = 'OPEN' FOR UPDATE").stream().findFirst().orElse(null);
+        if (lot == null) throw ApiException.badRequest("auction_closed");
+        UUID bidder = (UUID) lot.get("bidder_id");
+        Integer current = (Integer) lot.get("current_bid");
+        if (bidder != null && current != null) {
+            walletService.adjustGold(bidder, current, WalletTransactionType.AUCTION, "auction:" + lot.get("id"), "Asta annullata: gold restituiti");
+        }
+        jdbc.update("UPDATE hotel_auctions SET status = 'UNSOLD', ends_at = now() WHERE id = ?", lot.get("id"));
+        registry.broadcastAll(Map.of("type", "auction", "phase", "unsold", "lot", view(jdbc.queryForMap("SELECT * FROM hotel_auctions WHERE id = ?", lot.get("id")))));
+        return overview();
+    }
+
     // ------------------------------------------------------------------ vista
 
     @Transactional(readOnly = true)

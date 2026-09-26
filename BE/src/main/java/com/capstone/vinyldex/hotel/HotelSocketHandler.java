@@ -68,6 +68,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     private final HotelSocialService socialService;
     private final PetService petService;
     private final FishingService fishingService;
+    private final ClubService clubService;
     private final PvpService pvpService;
     private final NpcTradeService npcTradeService;
     private final PackService packService;
@@ -81,8 +82,9 @@ public class HotelSocketHandler extends TextWebSocketHandler {
                               HotelSocialService socialService, PvpService pvpService, NpcTradeService npcTradeService,
                               PackService packService, PackRecapService packRecapService,
                               MinigameRewardService minigameRewardService, PetService petService,
-                              FishingService fishingService) {
+                              FishingService fishingService, ClubService clubService) {
         this.fishingService = fishingService;
+        this.clubService = clubService;
         this.objectMapper = objectMapper;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
@@ -168,7 +170,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        HotelUser hotelUser = HotelUser.from(user.get(), socialService.showcase(userId)).withPet(petService.petOf(userId));
+        HotelUser hotelUser = HotelUser.from(user.get(), socialService.showcase(userId)).withPet(petService.petOf(userId)).withClub(clubService.badgeOf(userId));
         session.authenticate(hotelUser);
         registry.register(session);
         session.send(Map.of("type", "hello", "user", hotelUser));
@@ -285,7 +287,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     /** Rilegge aspetto e livello dal database, dopo un salvataggio dal guardaroba. */
     private void refreshProfile(HotelSession session, RoomInstance room) {
         userRepository.findById(session.user().id()).ifPresent(user -> {
-            HotelUser updated = HotelUser.from(user, socialService.showcase(user.getId())).withPet(petService.petOf(user.getId()));
+            HotelUser updated = HotelUser.from(user, socialService.showcase(user.getId())).withPet(petService.petOf(user.getId())).withClub(clubService.badgeOf(user.getId()));
             session.authenticate(updated);
             session.send(Map.of("type", "hello", "user", updated));
             if (room != null) room.updateUser(updated);
@@ -439,15 +441,26 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     }
 
     private void chat(HotelSession session, RoomInstance room, String style, String text) {
+        if (registry.isMuted(session.user().id())) {
+            session.send(error("chat_muted_admin"));
+            return;
+        }
         ChatFilter.Result result = session.chatFilter().check(text);
         switch (result.verdict()) {
-            case OK -> room.chat(session.user().id(), result.text(), style);
+            case OK -> {
+                room.chat(session.user().id(), result.text(), style);
+                registry.logChat(room.data().name(), session.user().id(), session.user().username(), result.text(), style);
+            }
             case FLOOD, MUTED -> session.send(error("chat_muted"));
             case EMPTY -> { }
         }
     }
 
     private void whisper(HotelSession session, RoomInstance room, String to, String text) {
+        if (registry.isMuted(session.user().id())) {
+            session.send(error("chat_muted_admin"));
+            return;
+        }
         ChatFilter.Result result = session.chatFilter().check(text);
         if (result.verdict() == ChatFilter.Verdict.FLOOD || result.verdict() == ChatFilter.Verdict.MUTED) {
             session.send(error("chat_muted"));
@@ -470,7 +483,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
 
     /** Tipi di evento dei minigiochi che si inoltrano alla stanza, e i campi ammessi. */
     private static final java.util.Set<String> FX_KINDS = java.util.Set.of("dribble", "shoot", "aim", "roll", "reset", "ball",
-            "hole", "curl", "hit", "balls", "cue", "cast", "bite", "catch", "reel", "sing", "lap", "kart");
+            "hole", "curl", "hit", "balls", "cue", "cast", "bite", "catch", "reel", "sing", "lap", "kart", "rally", "point", "dart");
     private static final List<String> FX_NUMBERS = List.of("made", "swish", "off", "x", "power", "u", "v", "arm", "dx", "dy");
     /** Bilie del biliardo: coppie (x, y) da 0 a 1 sul tavolo, -1 per quelle in buca. Al massimo 16 bilie. */
     private static final int MAX_BALL_NUMBERS = 32;

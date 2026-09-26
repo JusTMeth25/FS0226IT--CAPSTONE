@@ -34,5 +34,19 @@ public enum WalletTransactionType {
     /** Premio di un evento a orario dell'hotel. */
     EVENT_REWARD,
     /** Premio della mostra delle collezioni. */
-    GALLERY_REWARD
+    GALLERY_REWARD,
+    /** Sfida della carta del giorno vinta. */
+    DAILY_CARD,
+    /** Fondazione di un club. */
+    CLUB,
+    /** Premio per una festa nell'hotel. */
+    PARTY,
+    /** Compravendita al banchetto di una stanza. */
+    STALL,
+    /** Gold regalati per posta. */
+    MAIL,
+    /** Premio di un torneo a eliminazione. */
+    TOURNAMENT,
+    /** Premio di fine stagione sportiva. */
+    SEASON_REWARD
 }

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { basket, bowling, golf } from './sportGames.jsx';
 import { pool } from './billiards.jsx';
-import { fish, kart, sing } from './leisureGames.jsx';
+import { fish, sing } from './leisureGames.jsx';
+import { kart } from './kartGame.jsx';
+import { darts, pong } from './arcadeGames.jsx';
 
 /**
  * Minigiochi sui mobili dell'hotel. Si gioca qui, nel browser; il server ha fatto partire la
@@ -270,12 +272,18 @@ const GAMES = {
   sing,
   fish,
   kart,
+  // Ping pong e freccette (arcadeGames.jsx).
+  pong,
+  darts,
   ...Object.fromEntries([1, 2, 3, 4, 5, 6].map((hole) => [`golf${hole}`, golf(hole)]))
 };
 
+/** Nomi dei comandi per i lettori di schermo (i pulsanti mostrano spesso solo una freccia). */
+const ACTION_NAMES = { left: 'Sinistra', right: 'Destra', gas: 'Accelera', brake: 'Frena', 0: 'Nota sinistra', 1: 'Nota gi\u00f9', 2: 'Nota su', 3: 'Nota destra' };
+
 /** Scena del gioco; `act` serve ai giochi che si comandano anche con il mouse (il biliardo). */
-function GameView({ game, snap, act }) {
-  return game.view(snap, act);
+function GameView({ game, snap, act, extra }) {
+  return game.view(snap, act, extra);
 }
 
 /**
@@ -283,7 +291,7 @@ function GameView({ game, snap, act }) {
  * @param onFinish chiamato una volta con il punteggio finale
  * @param onPulse ogni azione riuscita: l'avatar si muove (ripetizione, pugno, passo...)
  */
-export default function Minigame({ start, result, onFinish, onReplay, onClose, onPulse, onFx }) {
+export default function Minigame({ start, result, onFinish, onReplay, onClose, onPulse, onFx, extra, clockOffset = 0 }) {
   const game = GAMES[start.game];
   const state = useRef(null);
   const [phase, setPhase] = useState('ready');
@@ -311,11 +319,21 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
     callbacks.current.onFinish(score);
   }, [game]);
 
-  // Conto alla rovescia, poi si gioca.
+  // Dati della partita per init (ora del server, partenza della gara): in un ref, come le callback.
+  const setup = useRef({ start, clockOffset });
+  useEffect(() => {
+    setup.current = { start, clockOffset };
+  }, [start, clockOffset]);
+
+  // Conto alla rovescia, poi si gioca. I giochi con un via loro (il semaforo del go-kart) partono subito.
   useEffect(() => {
     if (phase !== 'ready') return undefined;
-    state.current = game.init();
+    state.current = game.init(setup.current.start, setup.current.clockOffset);
     setSnap({ ...state.current, time: timeLeft.current });
+    if (game.ownStart) {
+      const go = setTimeout(() => setPhase('play'), 0);
+      return () => clearTimeout(go);
+    }
     const timer = setInterval(() => {
       setCountdown((c) => {
         if (c <= 1) {
@@ -359,6 +377,11 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
     return () => cancelAnimationFrame(raf);
   }, [phase, game, finish, start.maxScore, emit]);
 
+  const release = useCallback((action) => {
+    if (phase !== 'play' || finished.current || !game.release) return;
+    game.release(state.current, action);
+  }, [phase, game]);
+
   const act = useCallback((action) => {
     if (phase !== 'play' || finished.current) return;
     game.press(state.current, action, () => callbacks.current.onPulse(), emit);
@@ -375,9 +398,18 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
       event.preventDefault();
       act(action);
     };
+    // Giochi con i tasti tenuti premuti (lo sterzo del go-kart): si avvisa anche quando si lasciano.
+    const onKeyUp = (event) => {
+      const action = game.keys[event.key];
+      if (action !== undefined) release(action);
+    };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [phase, game, act]);
+    window.addEventListener('keyup', onKeyUp);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('keyup', onKeyUp);
+    };
+  }, [phase, game, act, release]);
 
   if (!game) return null;
   const best = start.best;
@@ -399,14 +431,15 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
       {phase === 'ready' && <div className="mg-countdown">{countdown}</div>}
 
       {phase === 'play' && snap && (
-        <div className="mg-stage"><GameView game={game} snap={snap} act={act} /></div>
+        <div className="mg-stage"><GameView game={game} snap={snap} act={act} extra={extra} /></div>
       )}
 
       {phase === 'play' && (
         <div className="mg-buttons">
           {game.buttons.map(([action, label, icon]) => (
-            <button key={String(action)} type="button" className="btn btn-primary mg-button"
-              onPointerDown={(event) => { event.preventDefault(); act(action); }}>
+            <button key={String(action)} type="button" className="btn btn-primary mg-button" aria-label={ACTION_NAMES[action] ? `${ACTION_NAMES[action]} (${label})` : undefined}
+              onPointerDown={(event) => { event.preventDefault(); act(action); }}
+              onPointerUp={() => release(action)} onPointerLeave={() => release(action)} onPointerCancel={() => release(action)}>
               {icon && <i className={`ph-fill ${icon}`} />} {label}
             </button>
           ))}

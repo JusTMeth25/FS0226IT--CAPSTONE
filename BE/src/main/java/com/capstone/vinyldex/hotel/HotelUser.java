@@ -13,20 +13,29 @@ import java.util.UUID;
  * a differenza di PublicUserDto che serve al pannello admin.
  */
 public record HotelUser(UUID id, String username, String look, int level, RoomItemView.CardView bestCard,
-                        List<RoomItemView.CardView> topCards, PetService.HotelPet pet) {
+                        List<RoomItemView.CardView> topCards, PetService.HotelPet pet, ClubBadge club) {
+
+    /** Distintivo del club accanto al nome: sigla e colore. */
+    public record ClubBadge(String tag, String color, String name) {
+    }
 
     public HotelUser(UUID id, String username, String look, int level) {
-        this(id, username, look, level, null, List.of(), null);
+        this(id, username, look, level, null, List.of(), null, null);
     }
 
     public static HotelUser from(User user, HotelSocialService.Showcase showcase) {
         return new HotelUser(user.getId(), user.getUsername(), HotelLook.orDefault(user.getHotelLook()), user.getLevel(),
-                null, List.of(), null).withShowcase(showcase);
+                null, List.of(), null, null).withShowcase(showcase);
     }
 
     /** Stesso utente con l'animale da compagnia (null se non ne ha). */
     public HotelUser withPet(PetService.HotelPet pet) {
-        return new HotelUser(id, username, look, level, bestCard, topCards, pet);
+        return new HotelUser(id, username, look, level, bestCard, topCards, pet, club);
+    }
+
+    /** Stesso utente con il distintivo del club (null se non e' in un club). */
+    public HotelUser withClub(ClubBadge club) {
+        return new HotelUser(id, username, look, level, bestCard, topCards, pet, club);
     }
 
     /**
@@ -35,6 +44,6 @@ public record HotelUser(UUID id, String username, String look, int level, RoomIt
      */
     public HotelUser withShowcase(HotelSocialService.Showcase showcase) {
         return new HotelUser(id, username, look, level, RoomItemView.CardView.from(showcase.best()),
-                showcase.top().stream().map(RoomItemView.CardView::from).toList(), pet);
+                showcase.top().stream().map(RoomItemView.CardView::from).toList(), pet, club);
     }
 }
