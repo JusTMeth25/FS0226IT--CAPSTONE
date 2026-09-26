@@ -1,15 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { collectionApi } from '../services/collectionApi.js';
 import { apiClient } from '../services/apiClient.js';
 import { SOURCE_LABELS, getRarityColor, resolveCardImage } from '../utils/cardUtils.js';
+import { coverImage, themeFor } from '../components/binder/binderThemes.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
+import ThreeGate from '../components/three/ThreeGate.jsx';
+
+// Il libro 3D porta con se' three.js: si scarica solo quando si apre il raccoglitore.
+const BinderBook3D = lazy(() => import('../components/binder/BinderBook3D.jsx'));
 
 const PER_PAGE = 9;
 const TURN_MS = 320;
 
-/** Una pagina del raccoglitore: nove tasche, le carte che mancano sono sagome grigie. */
-function BinderPage({ cards, number }) {
+/** Una pagina del raccoglitore 2D: nove tasche, le carte che mancano sono sagome scure. */
+function BinderSheet({ cards, number }) {
   return (
     <div className="binder-sheet">
       <div className="binder-pockets">
@@ -17,16 +22,16 @@ function BinderPage({ cards, number }) {
           const card = cards[i];
           if (!card) return <div key={i} className="binder-pocket empty-slot" />;
           return (
-            <div key={card.id} className={`binder-pocket${card.owned ? ' owned' : ' missing'}`} style={{ '--rarity-color': getRarityColor(card.rarity) }}>
+            <div key={card.id} className={`binder-pocket${card.owned ? ' owned' : ' missing'}${card.foil > 0 ? ' is-foil' : ''}`} style={{ '--rarity-color': getRarityColor(card.rarity) }}>
               {card.owned ? (
                 <Link to={`/card/${encodeURIComponent(card.id)}`} title={card.name}>
                   <img src={resolveCardImage(card)} alt={card.name} loading="lazy" />
                 </Link>
               ) : (
-                <span title={`${card.name} (manca)`}>
+                <Link to={`/card/${encodeURIComponent(card.id)}`} title={`${card.name} (manca)`}>
                   <img src={resolveCardImage(card)} alt={`${card.name} (manca)`} loading="lazy" />
                   <small>{card.number || '?'}</small>
-                </span>
+                </Link>
               )}
             </div>
           );
@@ -37,11 +42,23 @@ function BinderPage({ cards, number }) {
   );
 }
 
+/** Raccoglitore 2D (senza WebGL o su richiesta), con i colori e la copertina del gioco. */
+function FlatBinder({ pages, spread, single, turning }) {
+  const first = spread * (single ? 1 : 2);
+  return (
+    <div className={`binder${turning ? ` turning-${turning}` : ''}${single ? ' single' : ''}`} aria-live="polite">
+      <BinderSheet cards={pages[first] || []} number={first + 1} />
+      {!single && <BinderSheet cards={pages[first + 1] || []} number={first + 2} />}
+    </div>
+  );
+}
+
 /**
- * Raccoglitore: la collezione come un album vero, gioco per gioco o set per set, nove tasche per
- * pagina e due pagine aperte. Le pagine si sfogliano con le frecce (anche da tastiera).
+ * Raccoglitore: la collezione come un album vero, gioco per gioco (ognuno con la sua grafica) o
+ * set per set. In 3D il libro si apre e le pagine si sfogliano; senza WebGL resta la vista 2D.
  */
-export default function BinderViewPage() {
+export default function BinderPage() {
+  const navigate = useNavigate();
   const [source, setSource] = useState('original');
   const [setKey, setSetKey] = useState('');
   const [sets, setSets] = useState([]);
@@ -49,6 +66,8 @@ export default function BinderViewPage() {
   const [spread, setSpread] = useState(0);
   const [turning, setTurning] = useState(null);
   const [single, setSingle] = useState(() => window.innerWidth < 900);
+  const [flat, setFlat] = useState(false);
+  const swipe = useRef(null);
 
   useEffect(() => {
     apiClient.get('/sets').then((res) => setSets(res.sets)).catch(() => setSets([]));
@@ -77,21 +96,33 @@ export default function BinderViewPage() {
     return () => { cancelled = true; };
   }, [source, setKey, sets]);
 
-  const perSpread = single ? PER_PAGE : PER_PAGE * 2;
+  // Il tema segue il gioco scelto (per un set: il gioco delle sue carte).
+  const theme = useMemo(() => themeFor(setKey ? (cards?.[0]?.source || 'original') : source), [setKey, cards, source]);
+
   const pages = useMemo(() => {
     const list = cards || [];
-    return Array.from({ length: Math.max(1, Math.ceil(list.length / PER_PAGE)) }, (_, i) => list.slice(i * PER_PAGE, (i + 1) * PER_PAGE));
+    const out = Array.from({ length: Math.max(1, Math.ceil(list.length / PER_PAGE)) }, (_, i) => list.slice(i * PER_PAGE, (i + 1) * PER_PAGE));
+    // Nel libro le pagine vanno a coppie (davanti e dietro di ogni foglio).
+    if (out.length % 2) out.push([]);
+    return out;
   }, [cards]);
-  const spreads = Math.max(1, Math.ceil((cards?.length || 0) / perSpread));
+  const pagesKey = `${setKey || source}:${cards?.length || 0}`;
+  const perSpread = flat && single ? 1 : 2;
+  const spreads = Math.max(1, Math.ceil(pages.length / perSpread));
 
   const turn = useCallback((dir) => {
     if (turning) return;
     const next = spread + dir;
     if (next < 0 || next >= spreads) return;
-    setTurning(dir > 0 ? 'next' : 'prev');
-    setTimeout(() => setSpread(next), TURN_MS);
-    setTimeout(() => setTurning(null), TURN_MS * 2);
-  }, [spread, spreads, turning]);
+    if (flat) {
+      setTurning(dir > 0 ? 'next' : 'prev');
+      setTimeout(() => setSpread(next), TURN_MS);
+      setTimeout(() => setTurning(null), TURN_MS * 2);
+    } else {
+      setTurning(dir > 0 ? 'next' : 'prev');
+      setSpread(next);
+    }
+  }, [spread, spreads, turning, flat]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -103,10 +134,13 @@ export default function BinderViewPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, [turn]);
 
+  // Anche le carte che mancano si aprono: il dettaglio dice dove trovarle.
+  const openCard = (card) => navigate(`/card/${encodeURIComponent(card.id)}`);
+
   const owned = (cards || []).filter((c) => c.owned).length;
-  const first = spread * (single ? 1 : 2);
+  const flatView = <FlatBinder pages={pages} spread={spread} single={single} turning={turning} />;
   return (
-    <section className="binder-page">
+    <section className="binder-page" style={{ '--binder-accent': theme.accent, '--binder-page': theme.page, '--binder-pocket': theme.pocket, '--binder-cover': `url(${coverImage(theme)})` }}>
       <h2 className="section-title text-gradient"><i className="ph-fill ph-book-open" /> Raccoglitore</h2>
       <div className="binder-controls">
         <label>
@@ -122,26 +156,38 @@ export default function BinderViewPage() {
             {sets.map((s) => <option key={s.key} value={s.key}>{s.title}</option>)}
           </select>
         </label>
+        <button type="button" className="btn btn-secondary btn-small" onClick={() => { setFlat((f) => !f); setSpread(0); }}>
+          <i className={`ph-fill ${flat ? 'ph-cube' : 'ph-squares-four'}`} /> {flat ? 'Vista 3D' : 'Vista piatta'}
+        </button>
         <span className="binder-count">{owned} / {cards?.length || 0} carte</span>
       </div>
+      <p className="binder-title"><img src={coverImage(theme)} alt="" /> {theme.title}</p>
 
-      {!cards ? <LoadingSpinner /> : (
-        <>
-          <div className={`binder${turning ? ` turning-${turning}` : ''}${single ? ' single' : ''}`} aria-live="polite">
-            <BinderPage cards={pages[first] || []} number={first + 1} />
-            {!single && <BinderPage cards={pages[first + 1] || []} number={first + 2} />}
-          </div>
-          <div className="binder-nav">
-            <button type="button" className="btn btn-secondary" onClick={() => turn(-1)} disabled={spread === 0} aria-label="Pagina precedente">
-              <i className="ph-bold ph-caret-left" />
-            </button>
-            <span>{spread + 1} / {spreads}</span>
-            <button type="button" className="btn btn-secondary" onClick={() => turn(1)} disabled={spread >= spreads - 1} aria-label="Pagina successiva">
-              <i className="ph-bold ph-caret-right" />
-            </button>
-          </div>
-        </>
+      {!cards ? <LoadingSpinner /> : flat ? flatView : (
+        <div
+          className="binder-3d-wrap"
+          onPointerDown={(e) => { swipe.current = e.clientX; }}
+          onPointerUp={(e) => {
+            if (swipe.current === null) return;
+            const dx = e.clientX - swipe.current;
+            swipe.current = null;
+            if (Math.abs(dx) > 60) turn(dx < 0 ? 1 : -1);
+          }}
+        >
+          <ThreeGate fallback={flatView}>
+            <BinderBook3D pages={pages} theme={theme} spread={spread} pagesKey={pagesKey} onCard={openCard} onSettled={() => setTurning(null)} />
+          </ThreeGate>
+        </div>
       )}
+      <div className="binder-nav">
+        <button type="button" className="btn btn-secondary" onClick={() => turn(-1)} disabled={spread === 0} aria-label="Pagina precedente">
+          <i className="ph-bold ph-caret-left" />
+        </button>
+        <span>{spread + 1} / {spreads}</span>
+        <button type="button" className="btn btn-secondary" onClick={() => turn(1)} disabled={spread >= spreads - 1} aria-label="Pagina successiva">
+          <i className="ph-bold ph-caret-right" />
+        </button>
+      </div>
     </section>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { apiClient } from '../../services/apiClient.js';
+import GradedSlab from './GradedSlab.jsx';
 
 const GRADING_FEE = 50;
 
@@ -57,6 +58,12 @@ export default function GradingBox({ card, gold, onGraded }) {
           <span>{grade ? 'Ha esaminato la tua copia.' : 'Esamina la carta e le da\' un voto da 1 a 10.'}</span>
         </div>
       </div>
+      {revealed && (
+        <div className="grading-sealed just-sealed">
+          <GradedSlab card={{ ...card, grade: revealed.grade }} size="large" />
+          <p>La carta e&apos; stata sigillata nel cofanetto del perito.</p>
+        </div>
+      )}
       {grade ? (
         <div className={`grading-result${revealed ? ' just-graded' : ''}`}>
           <GradeBadge grade={grade} />

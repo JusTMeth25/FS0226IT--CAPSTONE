@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
 import { useSound } from '../hooks/useSound.js';
@@ -6,6 +6,7 @@ import { useCountUp } from '../hooks/useCountUp.js';
 import { RARITIES, SOURCE_LABELS, getRarityCSSClass, getRarityColor, getSourceLabel, getTotalScore, resolveCardImage } from '../utils/cardUtils.js';
 import { CARDS } from '../data/cards.js';
 import EmptyState from '../components/common/EmptyState.jsx';
+import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import CardTile from '../components/card/CardTile.jsx';
 import RevealSpark from '../components/common/RevealSpark.jsx';
 import StarBorder from '../components/common/StarBorder.jsx';
@@ -209,6 +210,15 @@ export default function BattlePage() {
   const [battleSearch, setBattleSearch] = useState('');
   const [battleRarityFilter, setBattleRarityFilter] = useState('');
   const [battleSourceFilter, setBattleSourceFilter] = useState('');
+  const [synced, setSynced] = useState(false);
+  const { refreshCollection } = game;
+
+  // Le carte prese altrove (hotel, scambi, mercato) arrivano qui solo ricaricando la collezione.
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve(refreshCollection?.()).finally(() => { if (!cancelled) setSynced(true); });
+    return () => { cancelled = true; };
+  }, [refreshCollection]);
 
   const collectionCards = useMemo(() => uniqueCollectionCards(game.collection), [game.collection]);
   const availableBattleSources = useMemo(() => {
@@ -225,6 +235,15 @@ export default function BattlePage() {
     }
     return cards;
   }, [collectionCards, battleRarityFilter, battleSourceFilter, battleSearch]);
+
+  if (collectionCards.length < 3 && (!synced || game.loading)) {
+    return (
+      <section className="battle-page">
+        <h2 className="section-title text-gradient"><i className="ph-fill ph-sword" /> Battaglia PvP</h2>
+        <LoadingSpinner />
+      </section>
+    );
+  }
 
   if (collectionCards.length < 3) {
     return (

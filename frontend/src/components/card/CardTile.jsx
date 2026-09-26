@@ -1,5 +1,6 @@
 import { getRarityCSSClass, getRarityColor, getRarityIcon, getRarityName, getStars, resolveCardImage } from '../../utils/cardUtils.js';
 import CardHoloFrame from './CardHoloFrame.jsx';
+import GradedSlab from './GradedSlab.jsx';
 
 /** Gemma SVG piccola (no testo): la rarità estesa resta disponibile via title/tooltip. */
 export function RarityBadge({ rarity, style }) {
@@ -41,6 +42,16 @@ function HoloLayers() {
 export default function CardTile({ card, quantity, onClick }) {
   const rarityClass = getRarityCSSClass(card.rarity);
   const color = getRarityColor(card.rarity);
+
+  // Copia gradata dal perito: sta nel cofanetto, con l'etichetta e il voto.
+  if (card.grade > 0) {
+    return (
+      <div className="card-tile-slab" title={`${card.name} - voto ${card.grade}`}>
+        <GradedSlab card={card} size="small" onClick={onClick} />
+        {quantity > 1 && <span className="card-quantity-badge">×{quantity}</span>}
+      </div>
+    );
+  }
 
   if (card.fullImage) {
     return (

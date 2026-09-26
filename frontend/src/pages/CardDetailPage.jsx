@@ -11,6 +11,7 @@ import CardHero from '../components/card/CardHero.jsx';
 import Fc27Credits from '../components/card/Fc27Credits.jsx';
 import GradingBox, { GradeBadge } from '../components/card/GradingBox.jsx';
 import PriceHistory from '../components/card/PriceHistory.jsx';
+import GradedSlab from '../components/card/GradedSlab.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import RarityAmbience from '../components/fx/RarityAmbience.jsx';
@@ -59,8 +60,10 @@ export default function CardDetailPage() {
     );
   }
 
+  // Carta che non hai (vista su un NPC, in una vetrina, nel raccoglitore): si vede lo stesso per
+  // intero, con in piu' il pacchetto dove e' piu' facile trovarla.
+  let packHint = null;
   if (!ownedEntry) {
-    const color = getRarityColor(referenceCard.rarity);
     // Il pacchetto del suo gioco, se c'e', pesca da un catalogo piu' piccolo: e' il consiglio migliore.
     const gamePack = PACKS.find((p) => p.source && p.source === referenceCard.source);
     const candidates = gamePack ? [gamePack] : PACKS.filter((p) => !p.source);
@@ -76,88 +79,80 @@ export default function CardDetailPage() {
     else if (referenceCard.rarity === 'legendary') guaranteeText = 'Garantita nei Pacchetti Premium!';
     else if (referenceCard.rarity === 'epic') guaranteeText = 'Garantita nei Pacchetti Deluxe!';
     else if (referenceCard.rarity === 'rare') guaranteeText = 'Garantita in tutti i pacchetti!';
-
-    return (
-      <section className="card-detail-page card-detail-locked" style={{ '--rarity-color': color }}>
-        <RarityAmbience rarity={referenceCard.rarity} muted />
-        <div style={{ fontSize: '4rem', opacity: 0.3, margin: 'var(--space-lg) 0' }}><i className="ph ph-question" /></div>
-        <h2 style={{ color }}>???</h2>
-        <span className="card-detail-class">{referenceCard.artistClass || referenceCard.source} — {getRarityName(referenceCard.rarity)}</span>
-
-        <div className="glass-panel" style={{ marginTop: 'var(--space-md)', background: 'rgba(0,0,0,0.3)', width: '100%' }}>
-          <p style={{ fontStyle: 'italic', color: 'var(--text-secondary)', marginBottom: 'var(--space-md)' }}>
-            Questa carta non è ancora stata scoperta!
-          </p>
-          {guaranteeText && (
-            <div className="card-detail-meta-item">
-              <span className="meta-label">Garanzia</span>
-              <span className="meta-value" style={{ color: 'var(--neon-gold)' }}>{guaranteeText}</span>
-            </div>
-          )}
-        </div>
-
-        <div className="glass-panel" style={{ marginTop: 'var(--space-md)', background: 'rgba(0,0,0,0.3)', width: '100%' }}>
-          <p style={{ marginBottom: 'var(--space-sm)' }}><i className="ph-fill ph-lightbulb" /> <strong>Suggerimento:</strong> Prova ad aprire</p>
-          <p style={{ color: 'var(--neon-cyan)', fontWeight: 700 }}>{bestPack.name}</p>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Drop rate: <span style={{ color }}>{(bestRate * 100).toFixed(0)}%</span></p>
-          <button className="btn btn-primary" style={{ marginTop: 'var(--space-md)' }} onClick={() => navigate('/packs')}>
-            <i className="ph-fill ph-gift" /> Apri Pacchetti
-          </button>
-        </div>
-      </section>
-    );
+    packHint = { bestPack, bestRate, guaranteeText };
   }
 
   const isFavorite = favorites.includes(id);
 
-  const dateStr = ownedEntry.obtainedAt
+  const card = ownedEntry || referenceCard;
+  const dateStr = ownedEntry?.obtainedAt
     ? new Date(ownedEntry.obtainedAt).toLocaleDateString('it-IT', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
     : 'Sconosciuta';
 
   return (
-    <section className="card-detail-page" style={{ '--rarity-color': getRarityColor(ownedEntry.rarity) }}>
-      <RarityAmbience rarity={ownedEntry.rarity} />
+    <section className="card-detail-page" style={{ '--rarity-color': getRarityColor(card.rarity) }}>
+      <RarityAmbience rarity={card.rarity} />
 
-      <ThreeGate fallback={<CardHero card={ownedEntry} quantity={ownedEntry.quantity} />}>
-        <Card3D card={ownedEntry} />
-        <CardHero card={ownedEntry} quantity={ownedEntry.quantity} hideArt />
+      <ThreeGate fallback={card.grade > 0
+        ? <><GradedSlab card={card} /><CardHero card={card} quantity={card.quantity} hideArt /></>
+        : <CardHero card={card} quantity={card.quantity} />}>
+        <Card3D card={card} />
+        <CardHero card={card} quantity={card.quantity} hideArt />
       </ThreeGate>
 
-      <h2 className="card-detail-title">{ownedEntry.name}</h2>
-      <span className="card-detail-rarity-chip">{getRarityName(ownedEntry.rarity)}</span>
-      <GradeBadge grade={ownedEntry.grade} />
-      {ownedEntry.foil > 0 && <span className="foil-badge foil-badge-inline">Olografica{ownedEntry.foil > 1 ? ` ×${ownedEntry.foil}` : ''}</span>}
+      <h2 className="card-detail-title">{card.name}</h2>
+      {!ownedEntry && <span className="card-detail-rarity-chip card-detail-missing"><i className="ph ph-lock-simple" /> Non ce l&apos;hai ancora</span>}
+      <span className="card-detail-rarity-chip">{getRarityName(card.rarity)}</span>
+      <GradeBadge grade={card.grade} />
+      {card.foil > 0 && <span className="foil-badge foil-badge-inline">Olografica{card.foil > 1 ? ` ×${card.foil}` : ''}</span>}
 
       <div className="card-detail-meta" style={{ width: '100%' }}>
-        <div className="card-detail-meta-item">
-          <span className="meta-label">Ottenuta il</span>
-          <span className="meta-value">{dateStr}</span>
-        </div>
-        <div className="card-detail-meta-item">
-          <span className="meta-label">Quantità</span>
-          <span className="meta-value">×{ownedEntry.quantity}</span>
-        </div>
+        {ownedEntry && (
+          <>
+            <div className="card-detail-meta-item">
+              <span className="meta-label">Ottenuta il</span>
+              <span className="meta-value">{dateStr}</span>
+            </div>
+            <div className="card-detail-meta-item">
+              <span className="meta-label">Quantità</span>
+              <span className="meta-value">×{card.quantity}</span>
+            </div>
+          </>
+        )}
         <div className="card-detail-meta-item">
           <span className="meta-label">Fonte</span>
-          <span className="meta-value">{getSourceLabel(ownedEntry.source)}</span>
+          <span className="meta-value">{getSourceLabel(card.source)}</span>
         </div>
         {formatCardPrice(ownedEntry) && (
           <div className="card-detail-meta-item">
-            <span className="meta-label">{ownedEntry.coinPrice ? 'Prezzo Ultimate Team' : 'Valore di mercato'}</span>
+            <span className="meta-label">{card.coinPrice ? 'Prezzo Ultimate Team' : 'Valore di mercato'}</span>
             <span className="meta-value" style={{ color: 'var(--neon-gold)' }}>{formatCardPrice(ownedEntry)}</span>
           </div>
         )}
       </div>
 
-      {ownedEntry.source === 'fc27' && <Fc27Credits />}
+      {card.source === 'fc27' && <Fc27Credits />}
 
-      <PriceHistory code={ownedEntry.id} />
+      <PriceHistory code={card.id} />
 
-      <GradingBox card={ownedEntry} gold={gold} onGraded={() => { refreshCollection(); refreshUser(); }} />
-
-      <button className={`btn ${isFavorite ? 'btn-gold' : 'btn-secondary'}`} onClick={() => toggleFavorite(id)}>
-        <i className={isFavorite ? 'ph-fill ph-star' : 'ph ph-star'} /> {isFavorite ? 'Preferita' : 'Aggiungi ai preferiti'}
-      </button>
+      {ownedEntry ? (
+        <>
+          <GradingBox card={card} gold={gold} onGraded={() => { refreshCollection(); refreshUser(); }} />
+          <button className={`btn ${isFavorite ? 'btn-gold' : 'btn-secondary'}`} onClick={() => toggleFavorite(id)}>
+            <i className={isFavorite ? 'ph-fill ph-star' : 'ph ph-star'} /> {isFavorite ? 'Preferita' : 'Aggiungi ai preferiti'}
+          </button>
+        </>
+      ) : (
+        <div className="glass-panel" style={{ background: 'rgba(0,0,0,0.3)', width: '100%' }}>
+          <p style={{ marginBottom: 'var(--space-sm)' }}><i className="ph-fill ph-lightbulb" /> <strong>La vuoi?</strong> Prova ad aprire</p>
+          <p style={{ color: 'var(--neon-cyan)', fontWeight: 700 }}>{packHint.bestPack.name}</p>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Drop rate: <span style={{ color: getRarityColor(card.rarity) }}>{(packHint.bestRate * 100).toFixed(0)}%</span></p>
+          {packHint.guaranteeText && <p style={{ fontSize: '0.8rem', color: 'var(--neon-gold)' }}>{packHint.guaranteeText}</p>}
+          <button className="btn btn-primary" style={{ marginTop: 'var(--space-md)' }} onClick={() => navigate('/packs')}>
+            <i className="ph-fill ph-gift" /> Apri Pacchetti
+          </button>
+        </div>
+      )}
 
       <button className="btn btn-secondary" onClick={() => navigate(-1)}>Indietro</button>
     </section>

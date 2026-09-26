@@ -35,7 +35,10 @@ public record CollectionEntryDto(
         // Voto del perito dell'hotel (1-10), null se non gradata.
         Integer grade,
         // Copie olografiche fra quelle possedute.
-        int foil
+        int foil,
+        // Cofanetto del perito: numero di certificato e quando e' stata gradata.
+        String gradeCert,
+        Instant gradedAt
 ) {
 
     public static CollectionEntryDto from(Card card, UserCard userCard) {
@@ -49,7 +52,15 @@ public record CollectionEntryDto(
                 userCard != null && userCard.isFavorite(),
                 userCard != null ? userCard.getObtainedAt() : null,
                 userCard != null ? userCard.getGrade() : null,
-                userCard != null ? userCard.getFoilCount() : 0
+                userCard != null ? userCard.getFoilCount() : 0,
+                userCard != null && userCard.getGrade() != null ? certificate(userCard) : null,
+                userCard != null ? userCard.getGradedAt() : null
         );
+    }
+
+    /** Numero di certificato del cofanetto: stabile, ricavato dalla copia gradata. */
+    static String certificate(UserCard userCard) {
+        String hex = userCard.getId() == null ? "00000000" : userCard.getId().toString().replace("-", "");
+        return "VDX-" + hex.substring(0, 4).toUpperCase() + "-" + hex.substring(hex.length() - 4).toUpperCase();
     }
 }

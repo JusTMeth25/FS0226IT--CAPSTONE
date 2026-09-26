@@ -46,8 +46,13 @@ function MiniCard({ card, highlight, value, boost, dim, selected, onClick }) {
  * qui si mostra e si inviano solo le scelte. Chi decide chi vince e' sempre il server.
  */
 export default function PvpPanel({ pvp, clockOffset, send, onClose }) {
-  const { collection } = useGame();
+  const { collection, refreshCollection } = useGame();
   const [team, setTeam] = useState([]);
+  // Si sceglie fra le carte di adesso, comprese quelle prese nell'hotel dopo l'accesso.
+  const choosing = pvp?.stage === 'team';
+  useEffect(() => {
+    if (choosing) refreshCollection?.();
+  }, [choosing, refreshCollection]);
   // Il bonus scelto vale solo per il round in cui lo si attiva: al round dopo torna spento.
   const [boostChoice, setBoostChoice] = useState({ round: 0, on: false });
   const boost = boostChoice.on && boostChoice.round === pvp?.round;

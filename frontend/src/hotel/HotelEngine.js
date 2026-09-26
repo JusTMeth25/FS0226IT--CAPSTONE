@@ -133,6 +133,7 @@ export class HotelEngine {
     this.lastBubbleDrift = 0;
     this.hoverTile = null;
     this.hoverUserId = null;
+    this.hoverPetId = null;
 
     this.frame = 0;
     this.running = false;
@@ -314,6 +315,7 @@ export class HotelEngine {
 
   /** Squadre della partita allo stadio: chi gioca ha un anello blu o rosso ai piedi. */
   setTeams(message) {
+    this.matchPhase = message.phase || null;
     this.teams = new Map();
     (message.blue || []).forEach((p) => this.teams.set(p.id, '#3b82f6'));
     (message.red || []).forEach((p) => this.teams.set(p.id, '#ef4444'));
@@ -1003,14 +1005,33 @@ export class HotelEngine {
       this.hoverTile = this.tileAt(cssX, cssY);
       return;
     }
-    this.hoverUserId = this.avatarAt(cssX, cssY)?.id || null;
-    this.hoverTile = this.hoverUserId ? null : this.tileAt(cssX, cssY);
+    this.hoverUserId = this.inMatch() ? null : this.avatarAt(cssX, cssY)?.id || null;
+    this.hoverPetId = this.hoverUserId ? null : this.petAt(cssX, cssY)?.id || null;
+    this.hoverTile = this.hoverUserId || this.hoverPetId ? null : this.tileAt(cssX, cssY);
+  }
+
+  /** Sto giocando una partita di calcio (in squadra, fischio d'inizio gia' dato). */
+  inMatch() {
+    return !!this.matchPhase && this.matchPhase !== 'lobby' && this.teams?.has(this.meId);
+  }
+
+  /** Padrone dell'animale sotto il puntatore (riquadro dello sprite disegnato). */
+  petAt(cssX, cssY) {
+    return [...this.users.values()].reverse().find((u) => u.pet && u.petBox
+      && cssX >= u.petBox.x && cssX <= u.petBox.x + u.petBox.w && cssY >= u.petBox.y && cssY <= u.petBox.y + u.petBox.h) || null;
   }
 
   click(cssX, cssY) {
     if (this.placement) {
       const tile = this.tileAt(cssX, cssY);
       if (tile) this.onPlace?.(tile, this.placement);
+      return;
+    }
+    // In campo durante una partita ogni click e' un passo: niente schede dei giocatori o carte
+    // sopra la testa che aprono finestre a meta' azione.
+    if (this.inMatch()) {
+      const tile = this.tileAt(cssX, cssY);
+      if (tile) this.onTileClick?.(tile);
       return;
     }
     // Una carta sopra la testa (riepilogo di un pacchetto o carte di bandiera): si ispeziona.
@@ -1266,6 +1287,7 @@ export class HotelEngine {
     const y = base.y - PET_H * unit - hop + unit;
     ctx.drawImage(sprite, x, y, PET_W * unit, PET_H * unit);
     ctx.globalAlpha = 1;
+    user.petBox = { x, y, w: PET_W * unit, h: PET_H * unit };
     // Sazio: ogni tanto un cuoricino. Affamato: una ciotola vuota che lampeggia.
     const phase = (now / 1000 + phaseOf(user.id)) % 6;
     const px = Math.max(1, Math.round(unit));
@@ -1555,6 +1577,13 @@ export class HotelEngine {
     // La gemma resta leggibile anche con lo zoom indietro.
     const gemScale = Math.max(1, Math.round(scale * 2));
     const cardScale = Math.max(1, Math.round(scale * 2)) / 2;
+    // Animale sotto il mouse: il suo nome (e di chi e') su una targhetta.
+    const petOwner = this.hoverPetId && this.users.get(this.hoverPetId);
+    if (petOwner?.pet && petOwner.petBox) {
+      const { x, y, w } = petOwner.petBox;
+      const whose = petOwner.id === this.meId ? '' : ` · di ${petOwner.username}`;
+      labels.push({ kind: 'name', x: x + w / 2, y: y - 4, text: `${petOwner.pet.name || 'Animale'}${whose}` });
+    }
     labels.forEach((label) => {
       if (label.kind === 'typing') drawTyping(ctx, label);
       else if (label.kind === 'staff') drawStaffTag(ctx, label, gemScale);

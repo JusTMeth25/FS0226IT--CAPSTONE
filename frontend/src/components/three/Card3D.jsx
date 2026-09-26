@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Float, Lightformer, PresentationControls, RoundedBox, Sparkles } from '@react-three/drei';
-import { MathUtils, Quaternion } from 'three';
+import { CanvasTexture, DoubleSide, MathUtils, Quaternion, SRGBColorSpace } from 'three';
 import { getRarityColor, resolveCardImage } from '../../utils/cardUtils.js';
 import { getTier } from './rarityTiers.js';
 import { coverScale } from './holoMaterial.js';
@@ -9,6 +9,8 @@ import { getCardBackTexture, useSafeTexture } from './textures.js';
 import { useDocumentVisible } from './useThreeEnabled.js';
 import { BASE_URL } from '../../services/apiClient.js';
 import { CARD_BACKS } from '../../utils/cardBacks.js';
+import { gradeInfo, gradeTone, gradedValue } from '../../utils/gradeUtils.js';
+import { getSourceLabel } from '../../utils/cardUtils.js';
 
 const CARD_W = 2.5;
 const CARD_H = 3.5;
@@ -24,6 +26,94 @@ function textureUrl(card) {
   const url = resolveCardImage(card);
   if (!/^https?:\/\//.test(url)) return url;
   return `${BASE_URL}/cards/${encodeURIComponent(card.id)}/image`;
+}
+
+/** Cofanetto: misure della custodia e dell'etichetta, attorno alla carta. */
+const SLAB_W = CARD_W + 0.46;
+const SLAB_LABEL_H = 0.95;
+const SLAB_H = CARD_H + SLAB_LABEL_H + 0.5;
+const SLAB_DEPTH = 0.26;
+const TONES = { gold: ['#fff7d1', '#f3d36b', '#b8860b'], silver: ['#f8fafc', '#cbd5e1', '#64748b'], bronze: ['#fde8d7', '#e0a57a', '#92400e'] };
+
+/** Etichetta del cofanetto disegnata su canvas: marca, nome, set, voto, certificato, valore. */
+function slabLabelTexture(card) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 340;
+  const ctx = canvas.getContext('2d');
+  const info = gradeInfo(card.grade);
+  const tone = gradeTone(card.grade);
+  ctx.fillStyle = '#fdfdf8';
+  ctx.fillRect(0, 0, 1024, 340);
+  ctx.fillStyle = tone === 'gold' ? '#b91c1c' : tone === 'silver' ? '#334155' : '#7c2d12';
+  ctx.fillRect(0, 0, 1024, 56);
+  ctx.font = 'bold 34px Arial, sans-serif';
+  ctx.fillStyle = '#fde047';
+  ctx.fillText('VINYLDEX', 28, 40);
+  ctx.fillStyle = '#fff';
+  ctx.fillText('GRADING', 222, 40);
+  ctx.fillStyle = '#111';
+  ctx.font = 'bold 50px Arial, sans-serif';
+  let name = (card.name || '').toUpperCase();
+  while (ctx.measureText(name).width > 700 && name.length > 4) name = `${name.slice(0, -2)}…`;
+  ctx.fillText(name, 28, 128);
+  ctx.font = '32px Arial, sans-serif';
+  ctx.fillStyle = '#444';
+  const set = [card.setName || getSourceLabel(card.source), card.number ? `#${card.number}` : null].filter(Boolean).join(' ');
+  ctx.fillText(set.slice(0, 44), 28, 178);
+  ctx.fillText(`${card.gradedAt ? new Date(card.gradedAt).getFullYear() : new Date().getFullYear()} · ${info.label}`, 28, 222);
+  ctx.font = '26px "Courier New", monospace';
+  ctx.fillText(`CERT ${card.gradeCert || 'VDX'}`, 28, 300);
+  const value = gradedValue(card);
+  if (value) ctx.fillText(`VALORE ${value}`, 420, 300);
+  // Riquadro del voto.
+  const [light, mid, edge] = TONES[tone];
+  const grad = ctx.createLinearGradient(0, 80, 0, 260);
+  grad.addColorStop(0, light);
+  grad.addColorStop(1, mid);
+  ctx.fillStyle = grad;
+  ctx.fillRect(790, 76, 206, 190);
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = edge;
+  ctx.strokeRect(790, 76, 206, 190);
+  ctx.fillStyle = '#111';
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 130px "Arial Black", Arial, sans-serif';
+  ctx.fillText(String(card.grade), 893, 208);
+  ctx.font = 'bold 28px Arial, sans-serif';
+  ctx.fillText(info.label, 893, 250);
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  texture.anisotropy = 4;
+  return texture;
+}
+
+/** Custodia trasparente con l'etichetta in alto: la carta gradata ci sta sigillata dentro. */
+function SlabCase({ card }) {
+  const label = useMemo(() => slabLabelTexture(card), [card]);
+  const labelY = SLAB_H / 2 - SLAB_LABEL_H / 2 - 0.16;
+  return (
+    <group>
+      <RoundedBox args={[SLAB_W, SLAB_H, SLAB_DEPTH]} radius={0.12} smoothness={4} position={[0, SLAB_LABEL_H / 2, 0]}>
+        <meshPhysicalMaterial color="#e8f0ff" transparent opacity={0.16} roughness={0.04} metalness={0} clearcoat={1}
+          clearcoatRoughness={0.03} reflectivity={0.9} side={DoubleSide} depthWrite={false} />
+      </RoundedBox>
+      {/* Etichetta davanti e retro bianco con la marca. */}
+      <mesh position={[0, labelY + SLAB_LABEL_H / 2, SLAB_DEPTH / 2 - 0.05]}>
+        <planeGeometry args={[SLAB_W - 0.24, SLAB_LABEL_H]} />
+        <meshStandardMaterial map={label} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, labelY + SLAB_LABEL_H / 2, -SLAB_DEPTH / 2 + 0.05]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[SLAB_W - 0.24, SLAB_LABEL_H]} />
+        <meshStandardMaterial color="#f5f5f0" roughness={0.6} />
+      </mesh>
+      {/* Culla scura attorno alla carta. */}
+      <mesh position={[0, 0, -0.03]}>
+        <planeGeometry args={[CARD_W + 0.16, CARD_H + 0.16]} />
+        <meshStandardMaterial color="#0f1222" roughness={0.8} side={DoubleSide} />
+      </mesh>
+    </group>
+  );
 }
 
 function CardModel({ card, flipped, onFlip }) {
@@ -81,6 +171,7 @@ function CardModel({ card, flipped, onFlip }) {
       </group>
 
       <group ref={flipRef} onDoubleClick={onFlip}>
+        {card.grade > 0 && <SlabCase card={card} />}
         {/* Bordo: una lastra smussata leggermente piu' grande, metallica e del colore della rarita'. */}
         <RoundedBox args={[CARD_W + 0.05, CARD_H + 0.05, CARD_DEPTH]} radius={CARD_RADIUS} smoothness={4}>
           <meshStandardMaterial color={color} metalness={0.9} roughness={0.25} emissive={color} emissiveIntensity={0.15} />
@@ -135,7 +226,7 @@ export default function Card3D({ card }) {
           flat
           dpr={[1, 2]}
           frameloop={visible ? 'always' : 'never'}
-          camera={{ position: [0, 0, 6.4], fov: 38 }}
+          camera={{ position: [0, card.grade > 0 ? 0.4 : 0, card.grade > 0 ? 8.2 : 6.4], fov: 38 }}
           gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
         >
           <ambientLight intensity={0.8} />
@@ -163,7 +254,7 @@ export default function Card3D({ card }) {
       </div>
 
       <button type="button" className="btn btn-secondary card-3d-flip" onClick={toggle}>
-        <i className="ph-fill ph-arrows-clockwise" /> {flipped ? 'Mostra il fronte' : 'Gira la carta'}
+        <i className="ph-fill ph-arrows-clockwise" /> {flipped ? 'Mostra il fronte' : card.grade > 0 ? 'Gira il cofanetto' : 'Gira la carta'}
       </button>
     </div>
   );

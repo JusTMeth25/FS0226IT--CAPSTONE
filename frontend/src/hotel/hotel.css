@@ -187,23 +187,30 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     0 0 28px rgba(139, 92, 246, 0.35),
     5px 5px 0 rgba(0, 0, 0, 0.5);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
   max-height: calc(100% - 16px);
   display: flex;
   flex-direction: column;
   animation: hotelPanelIn 0.18s steps(4, end);
 }
+/* Testata, schede, suggerimenti e bottoni non si schiacciano mai: se il pannello e' piu' alto
+   dello spazio, scorre tutto il pannello (le liste con uno scorrimento proprio lo tengono). */
+.hotel-panel > * { flex-shrink: 0; }
 @keyframes hotelPanelIn {
   from { opacity: 0; clip-path: inset(0 0 100% 0); }
   to { opacity: 1; clip-path: inset(0 0 0 0); }
 }
 .hotel-panel-header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   padding: 7px 10px 7px 44px;
-  position: relative;
   color: #fff;
   background:
     repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.1) 0 6px, transparent 6px 12px),
@@ -809,6 +816,9 @@ button.hotel-trade-card:hover { background: var(--hp-surface-hover); }
   grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
   gap: 8px;
   overflow-y: auto;
+  /* La griglia scorre da sola: testata, schede e "Apri la borsa" restano sempre visibili. */
+  flex: 0 1 auto;
+  min-height: 150px;
 }
 .hotel-pack-card {
   display: flex;
