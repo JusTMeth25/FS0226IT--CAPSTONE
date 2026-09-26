@@ -43,6 +43,117 @@ export const PACKS = [
     guarantees: { rare: 1, epic: 0, legendary: 0 },
     isFree: false,
     source: 'fc27'
+  },
+  // Pacchetti di un solo gioco (V16): pescano solo le carte di quella fonte.
+  {
+    id: 'pack-pokemon',
+    name: 'Pacchetto Pokémon',
+    description: '5 carte solo Pokémon con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'pokemon'
+  },
+  {
+    id: 'pack-yugioh',
+    name: 'Pacchetto Yu-Gi-Oh!',
+    description: '5 carte solo Yu-Gi-Oh! con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'yugioh'
+  },
+  {
+    id: 'pack-scryfall',
+    name: 'Pacchetto Magic',
+    description: '5 carte solo Magic con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'scryfall'
+  },
+  {
+    id: 'pack-onepiece',
+    name: 'Pacchetto One Piece',
+    description: '5 carte solo One Piece con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'onepiece'
+  },
+  {
+    id: 'pack-dragonball',
+    name: 'Pacchetto Dragon Ball',
+    description: '5 carte solo Dragon Ball con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'dragonball'
+  },
+  {
+    id: 'pack-digimon',
+    name: 'Pacchetto Digimon',
+    description: '5 carte solo Digimon con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'digimon'
+  },
+  {
+    id: 'pack-lorcana',
+    name: 'Pacchetto Lorcana',
+    description: '5 carte solo Lorcana con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'lorcana'
+  },
+  {
+    id: 'pack-riftbound',
+    name: 'Pacchetto Riftbound',
+    description: '5 carte solo Riftbound con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'riftbound'
+  },
+  {
+    id: 'pack-gundam',
+    name: 'Pacchetto Gundam',
+    description: '5 carte solo Gundam con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'gundam'
+  },
+  {
+    id: 'pack-original',
+    name: 'Pacchetto VinylDex Originali',
+    description: '5 carte solo VinylDex Originali con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'original'
   }
 ];
 

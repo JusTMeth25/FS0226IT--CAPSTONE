@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 1050" width="750" height="1050">
+  <!-- Dorso delle carte EA FC 27 in stile Ultimate Team, disegnato da VinylDex (nessun logo ufficiale). -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b2a1c"/>
+      <stop offset="0.5" stop-color="#06140d"/>
+      <stop offset="1" stop-color="#020805"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff3b0"/>
+      <stop offset="0.45" stop-color="#e3b341"/>
+      <stop offset="1" stop-color="#8f6c12"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.47" r="0.55">
+      <stop offset="0" stop-color="#22c55e" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#22c55e" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="hex" width="60" height="104" patternUnits="userSpaceOnUse">
+      <path d="M30 0 L60 17 L60 52 L30 69 L0 52 L0 17 Z M30 69 L30 104" fill="none" stroke="#e3b341" stroke-opacity="0.09" stroke-width="2"/>
+    </pattern>
+    <clipPath id="card"><rect x="0" y="0" width="750" height="1050" rx="40"/></clipPath>
+  </defs>
+  <g clip-path="url(#card)">
+    <rect width="750" height="1050" fill="url(#bg)"/>
+    <rect width="750" height="1050" fill="url(#hex)"/>
+    <rect width="750" height="1050" fill="url(#glow)"/>
+    <!-- Linee diagonali da carta UT -->
+    <g stroke="url(#gold)" stroke-opacity="0.35" stroke-width="3">
+      <line x1="-50" y1="300" x2="400" y2="-50"/>
+      <line x1="350" y1="1100" x2="800" y2="750"/>
+      <line x1="-50" y1="1000" x2="200" y2="800"/>
+      <line x1="560" y1="-40" x2="800" y2="160"/>
+    </g>
+  </g>
+  <!-- Scudo centrale -->
+  <g transform="translate(375 470)">
+    <path d="M0 -230 L190 -160 L190 40 C190 150 100 220 0 260 C-100 220 -190 150 -190 40 L-190 -160 Z"
+          fill="#06140d" stroke="url(#gold)" stroke-width="12"/>
+    <path d="M0 -196 L160 -136 L160 36 C160 128 84 188 0 222 C-84 188 -160 128 -160 36 L-160 -136 Z"
+          fill="none" stroke="#e3b341" stroke-opacity="0.45" stroke-width="3"/>
+    <!-- Pallone stilizzato -->
+    <circle cx="0" cy="-40" r="70" fill="none" stroke="url(#gold)" stroke-width="8"/>
+    <polygon points="0,-72 30,-50 19,-15 -19,-15 -30,-50" fill="url(#gold)"/>
+    <g stroke="url(#gold)" stroke-width="6">
+      <line x1="0" y1="-72" x2="0" y2="-110"/>
+      <line x1="30" y1="-50" x2="66" y2="-62"/>
+      <line x1="19" y1="-15" x2="42" y2="16"/>
+      <line x1="-19" y1="-15" x2="-42" y2="16"/>
+      <line x1="-30" y1="-50" x2="-66" y2="-62"/>
+    </g>
+    <text x="0" y="90" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="64" fill="url(#gold)" letter-spacing="4">FC 27</text>
+    <text x="0" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="30" fill="#f5e6b8" letter-spacing="8">ULTIMATE TEAM</text>
+  </g>
+  <text x="375" y="905" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="22" fill="#f5e6b8" fill-opacity="0.75" letter-spacing="6">VINYLDEX · FAN EDITION</text>
+  <text x="375" y="945" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#f5e6b8" fill-opacity="0.5">Dati EA SPORTS FC™ 27 · © Electronic Arts Inc. · non ufficiale</text>
+  <rect x="14" y="14" width="722" height="1022" rx="30" fill="none" stroke="url(#gold)" stroke-width="10"/>
+</svg>

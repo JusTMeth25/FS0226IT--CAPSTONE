@@ -11,6 +11,12 @@ import PackOpeningFlow from '../components/pack/PackOpeningFlow.jsx';
 import { PACK_GRADIENT, PACK_ICON, PACK_IMAGE, PACK_TILT_RARITY } from '../components/pack/packArt.js';
 
 /** Riflesso olografico + sparkle sopra la card pacchetto, stesso pattern usato per le carte. */
+// I pacchetti misti pescano da tutti i giochi; gli altri da uno solo (Ultimate Team compreso).
+const PACK_GROUPS = [
+  { title: 'Pacchetti misti', filter: (pack) => !pack.source },
+  { title: 'Pacchetti per gioco', filter: (pack) => Boolean(pack.source) }
+];
+
 function PackHoloLayers() {
   return (
     <>
@@ -156,20 +162,25 @@ export default function PackOpeningPage() {
           <span className="gold-label">Gold disponibili</span>
         </div>
 
-        <div className="packs-grid">
-          {PACKS.map((pack) => (
-            <PackSelectCard
-              key={pack.id}
-              pack={pack}
-              gold={game.gold}
-              isFreeAvailable={pack.isFree && isFreeAvailable}
-              cooldownRemaining={cooldownRemaining}
-              giftedCount={game.freePacks[pack.id] || 0}
-              onOpen={handleOpen}
-              submitting={submitting}
-            />
-          ))}
-        </div>
+        {PACK_GROUPS.map((group) => (
+          <div key={group.title} className="packs-group">
+            <h3 className="packs-group-title">{group.title}</h3>
+            <div className="packs-grid">
+              {PACKS.filter(group.filter).map((pack) => (
+                <PackSelectCard
+                  key={pack.id}
+                  pack={pack}
+                  gold={game.gold}
+                  isFreeAvailable={pack.isFree && isFreeAvailable}
+                  cooldownRemaining={cooldownRemaining}
+                  giftedCount={game.freePacks[pack.id] || 0}
+                  onOpen={handleOpen}
+                  submitting={submitting}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
 
         {notice && (
           <div className="pack-overlay">

@@ -38,7 +38,9 @@ const CARD_BACKS = {
   lorcana: '/assets/img/backs/lorcana.png',
   riftbound: '/assets/img/backs/riftbound.png',
   dragonball: '/assets/img/backs/dragonball.png',
-  gundam: '/assets/img/backs/gundam.jpg'
+  gundam: '/assets/img/backs/gundam.jpg',
+  // Dorso in stile Ultimate Team disegnato da noi: le carte UT non hanno un retro ufficiale.
+  fc27: '/assets/img/backs/fc27.svg'
 };
 
 function CardModel({ card, flipped, onFlip }) {

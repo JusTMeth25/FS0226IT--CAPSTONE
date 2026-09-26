@@ -1814,7 +1814,8 @@
   "phy": 79,
   "version": "icon",
   "women": false,
-  "coinPrice": 9000000
+  "coinPrice": 9000000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p237067.png?padding=0.7"
  },
  {
   "id": "icon-diego-maradona",
@@ -1848,7 +1849,8 @@
   "phy": 84,
   "version": "icon",
   "women": false,
-  "coinPrice": 6000000
+  "coinPrice": 6000000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p37576.png?padding=0.7"
  },
  {
   "id": "icon-zinedine-zidane",
@@ -1865,7 +1867,8 @@
   "phy": 76,
   "version": "icon",
   "women": false,
-  "coinPrice": 6000000
+  "coinPrice": 6000000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p1397.png?padding=0.7"
  },
  {
   "id": "icon-franz-beckenbauer",
@@ -1916,7 +1919,8 @@
   "phy": 84,
   "version": "icon",
   "women": false,
-  "coinPrice": 4000000
+  "coinPrice": 4000000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p190045.png?padding=0.7"
  },
  {
   "id": "icon-mia-hamm",
@@ -1950,7 +1954,8 @@
   "phy": 91,
   "version": "icon",
   "women": false,
-  "coinPrice": 4000000
+  "coinPrice": 4000000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p238439.png?padding=0.7"
  },
  {
   "id": "icon-ronaldinho",
@@ -1967,7 +1972,8 @@
   "phy": 75,
   "version": "icon",
   "women": false,
-  "coinPrice": 4000000
+  "coinPrice": 4000000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p28130.png?padding=0.7"
  },
  {
   "id": "icon-andres-iniesta",
@@ -2018,7 +2024,8 @@
   "phy": 86,
   "version": "icon",
   "women": false,
-  "coinPrice": 2500000
+  "coinPrice": 2500000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p254642.png?padding=0.7"
  },
  {
   "id": "icon-gianluigi-buffon",
@@ -2035,7 +2042,8 @@
   "phy": 91,
   "version": "icon",
   "women": false,
-  "coinPrice": 2500000
+  "coinPrice": 2500000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p1179.png?padding=0.7"
  },
  {
   "id": "icon-gerd-muller",
@@ -2052,7 +2060,8 @@
   "phy": 85,
   "version": "icon",
   "women": false,
-  "coinPrice": 2500000
+  "coinPrice": 2500000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p190048.png?padding=0.7"
  },
  {
   "id": "icon-birgit-prinz",
@@ -2120,7 +2129,8 @@
   "phy": 82,
   "version": "icon",
   "women": false,
-  "coinPrice": 1500000
+  "coinPrice": 1500000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p242519.png?padding=0.7"
  },
  {
   "id": "icon-franco-baresi",
@@ -2188,7 +2198,8 @@
   "phy": 76,
   "version": "icon",
   "women": false,
-  "coinPrice": 1500000
+  "coinPrice": 1500000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p214100.png?padding=0.7"
  },
  {
   "id": "icon-thierry-henry",
@@ -2205,7 +2216,8 @@
   "phy": 85,
   "version": "icon",
   "women": false,
-  "coinPrice": 1500000
+  "coinPrice": 1500000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p1625.png?padding=0.7"
  },
  {
   "id": "icon-marco-van-basten",
@@ -2239,7 +2251,8 @@
   "phy": 79,
   "version": "icon",
   "women": false,
-  "coinPrice": 1500000
+  "coinPrice": 1500000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p10535.png?padding=0.7"
  },
  {
   "id": "icon-zlatan-ibrahimovic",
@@ -2274,6 +2287,42 @@
   "version": "icon",
   "women": false,
   "coinPrice": 1500000
+ },
+ {
+  "id": "icon-socrates",
+  "name": "Sócrates",
+  "club": "ICON",
+  "nation": "Brazil",
+  "position": "CAM",
+  "ovr": 91,
+  "pac": 87,
+  "sho": 87,
+  "pas": 90,
+  "dri": 93,
+  "def": 51,
+  "phy": 77,
+  "version": "icon",
+  "women": false,
+  "coinPrice": 1500000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p190046.png?padding=0.7"
+ },
+ {
+  "id": "icon-lothar-matthaus",
+  "name": "Lothar Matthäus",
+  "club": "ICON",
+  "nation": "Germany",
+  "position": "CM",
+  "ovr": 91,
+  "pac": 77,
+  "sho": 80,
+  "pas": 90,
+  "dri": 88,
+  "def": 73,
+  "phy": 77,
+  "version": "icon",
+  "women": false,
+  "coinPrice": 1500000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p238435.png?padding=0.7"
  },
  {
   "id": "icon-andrea-pirlo",
@@ -2341,6 +2390,241 @@
   "phy": 86,
   "version": "icon",
   "women": false,
-  "coinPrice": 900000
+  "coinPrice": 900000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p201535.png?padding=0.7"
+ },
+ {
+  "id": "icon-roberto-carlos",
+  "name": "Roberto Carlos",
+  "club": "ICON",
+  "nation": "Brazil",
+  "position": "LB",
+  "ovr": 90,
+  "pac": 90,
+  "sho": 69,
+  "pas": 80,
+  "dri": 88,
+  "def": 85,
+  "phy": 80,
+  "version": "icon",
+  "women": false,
+  "coinPrice": 900000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p238430.png?padding=0.7"
+ },
+ {
+  "id": "icon-peter-schmeichel",
+  "name": "Peter Schmeichel",
+  "club": "ICON",
+  "nation": "Denmark",
+  "position": "GK",
+  "ovr": 90,
+  "pac": 88,
+  "sho": 91,
+  "pas": 76,
+  "dri": 89,
+  "def": 50,
+  "phy": 89,
+  "version": "icon",
+  "women": false,
+  "coinPrice": 900000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p238428.png?padding=0.7"
+ },
+ {
+  "id": "icon-alessandro-nesta",
+  "name": "Alessandro Nesta",
+  "club": "ICON",
+  "nation": "Italy",
+  "position": "CB",
+  "ovr": 90,
+  "pac": 79,
+  "sho": 52,
+  "pas": 68,
+  "dri": 71,
+  "def": 91,
+  "phy": 87,
+  "version": "icon",
+  "women": false,
+  "coinPrice": 900000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p1088.png?padding=0.7"
+ },
+ {
+  "id": "icon-fabio-cannavaro",
+  "name": "Fabio Cannavaro",
+  "club": "ICON",
+  "nation": "Italy",
+  "position": "CB",
+  "ovr": 90,
+  "pac": 76,
+  "sho": 48,
+  "pas": 68,
+  "dri": 70,
+  "def": 89,
+  "phy": 84,
+  "version": "icon",
+  "women": false,
+  "coinPrice": 900000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p1183.png?padding=0.7"
+ },
+ {
+  "id": "icon-alan-shearer",
+  "name": "Alan Shearer",
+  "club": "ICON",
+  "nation": "England",
+  "position": "ST",
+  "ovr": 90,
+  "pac": 88,
+  "sho": 92,
+  "pas": 79,
+  "dri": 88,
+  "def": 44,
+  "phy": 81,
+  "version": "icon",
+  "women": false,
+  "coinPrice": 900000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p51.png?padding=0.7"
+ },
+ {
+  "id": "icon-frank-lampard",
+  "name": "Frank Lampard",
+  "club": "ICON",
+  "nation": "England",
+  "position": "CM",
+  "ovr": 90,
+  "pac": 80,
+  "sho": 81,
+  "pas": 89,
+  "dri": 90,
+  "def": 73,
+  "phy": 80,
+  "version": "icon",
+  "women": false,
+  "coinPrice": 900000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p5471.png?padding=0.7"
+ },
+ {
+  "id": "icon-luis-figo",
+  "name": "Luís Figo",
+  "club": "ICON",
+  "nation": "Portugal",
+  "position": "RM",
+  "ovr": 90,
+  "pac": 88,
+  "sho": 83,
+  "pas": 86,
+  "dri": 92,
+  "def": 49,
+  "phy": 68,
+  "version": "icon",
+  "women": false,
+  "coinPrice": 900000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p5589.png?padding=0.7"
+ },
+ {
+  "id": "icon-marcel-desailly",
+  "name": "Marcel Desailly",
+  "club": "ICON",
+  "nation": "France",
+  "position": "CB",
+  "ovr": 90,
+  "pac": 76,
+  "sho": 48,
+  "pas": 68,
+  "dri": 70,
+  "def": 89,
+  "phy": 84,
+  "version": "icon",
+  "women": false,
+  "coinPrice": 900000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p1116.png?padding=0.7"
+ },
+ {
+  "id": "icon-javier-zanetti",
+  "name": "Javier Zanetti",
+  "club": "ICON",
+  "nation": "Argentina",
+  "position": "RB",
+  "ovr": 90,
+  "pac": 88,
+  "sho": 65,
+  "pas": 82,
+  "dri": 86,
+  "def": 88,
+  "phy": 82,
+  "version": "icon",
+  "women": false,
+  "coinPrice": 900000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p1041.png?padding=0.7"
+ },
+ {
+  "id": "icon-claude-makelele",
+  "name": "Claude Makélélé",
+  "club": "ICON",
+  "nation": "France",
+  "position": "CDM",
+  "ovr": 90,
+  "pac": 68,
+  "sho": 60,
+  "pas": 80,
+  "dri": 78,
+  "def": 88,
+  "phy": 84,
+  "version": "icon",
+  "women": false,
+  "coinPrice": 900000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p1668.png?padding=0.7"
+ },
+ {
+  "id": "icon-miroslav-klose",
+  "name": "Miroslav Klose",
+  "club": "ICON",
+  "nation": "Germany",
+  "position": "ST",
+  "ovr": 90,
+  "pac": 89,
+  "sho": 90,
+  "pas": 79,
+  "dri": 90,
+  "def": 43,
+  "phy": 82,
+  "version": "icon",
+  "women": false,
+  "coinPrice": 900000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p242510.png?padding=0.7"
+ },
+ {
+  "id": "icon-hernan-crespo",
+  "name": "Hernán Crespo",
+  "club": "ICON",
+  "nation": "Argentina",
+  "position": "ST",
+  "ovr": 90,
+  "pac": 91,
+  "sho": 91,
+  "pas": 79,
+  "dri": 89,
+  "def": 41,
+  "phy": 84,
+  "version": "icon",
+  "women": false,
+  "coinPrice": 900000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p7512.png?padding=0.7"
+ },
+ {
+  "id": "icon-michael-owen",
+  "name": "Michael Owen",
+  "club": "ICON",
+  "nation": "England",
+  "position": "ST",
+  "ovr": 90,
+  "pac": 88,
+  "sho": 92,
+  "pas": 79,
+  "dri": 88,
+  "def": 44,
+  "phy": 81,
+  "version": "icon",
+  "women": false,
+  "coinPrice": 900000,
+  "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p5419.png?padding=0.7"
  }
 ]

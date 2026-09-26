@@ -223,6 +223,9 @@ public class FcCardArtController {
         String badge = "icon".equals(version) ? "ICON" : "hero".equals(version) ? "HERO" : "FC 27";
         s.append("<text x='125' y='330' text-anchor='middle' font-family='Arial,sans-serif' font-weight='700' font-size='10' letter-spacing='2' fill='")
                 .append(p.accent()).append("'>").append(badge).append("</text>");
+        // Fonte e diritti: dati e foto dalla classifica ufficiale EA SPORTS FC.
+        s.append("<text x='125' y='341' text-anchor='middle' font-family='Arial,sans-serif' font-size='6' fill-opacity='0.7' fill='")
+                .append(p.text()).append("'>Dati EA SPORTS FC™ 27 · © Electronic Arts Inc.</text>");
         s.append("</svg>");
         return s.toString();
     }

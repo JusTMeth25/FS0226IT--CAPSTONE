@@ -7,7 +7,11 @@ Da dove vengono i dati:
   le sei statistiche e la foto. Sono gli stessi dati che l'import dal pannello admin legge
   dal sito EA, con lo stesso id ("ea-<id EA>"), quindi un import successivo aggiorna queste carte.
 - le icone: EA non le pubblica nella classifica. Valutazione dai tracker delle icone FC 27,
-  ruolo noto, le sei statistiche stimate dal ruolo e dalla valutazione.
+  ruolo noto, le sei statistiche stimate dal ruolo e dalla valutazione; foto ufficiale EA
+  quando l'id del giocatore e' noto.
+
+Dati e foto: EA SPORTS FC(TM) 27 Player Ratings, (c) Electronic Arts Inc. Uso didattico, non
+ufficiale, non affiliato ne' approvato da Electronic Arts.
 - i prezzi in crediti delle icone sono STIME (FUTBIN e FUT.GG non si possono leggere in
   automatico). Quelli dei giocatori li stima il backend (Fc27Importer.estimateCoins) dalla
   valutazione, dal ritmo e dal ruolo; con la chiave FutDB l'import usa i prezzi veri.
@@ -24,41 +28,61 @@ RATINGS_URL = 'https://www.ea.com/games/ea-sports-fc/ratings'
 PLAYERS = 100
 OUT = os.path.join(os.path.dirname(__file__), '..', 'src', 'main', 'resources', 'fc27', 'cards.json')
 
-# Icone: nome | nazione | ruolo | OVR della versione migliore (tracker delle icone FC 27)
+# Icone: nome | nazione | ruolo | OVR della versione migliore (tracker delle icone FC 27) | id EA.
+# L'id EA serve per la foto ufficiale (ratings-images-prod.pulse.ea.com/.../p<id>.png): EA non
+# pubblica le icone nella classifica, gli id sono stati controllati uno a uno confrontando la foto.
+# Senza id la carta usa la sagoma disegnata dal server.
 ICONS = """
-Pelé | Brazil | CAM | 95
-Diego Maradona | Argentina | CAM | 95
-Ronaldo Nazário | Brazil | ST | 94
-Zinedine Zidane | France | CAM | 94
-Franz Beckenbauer | Germany | CB | 93
-Garrincha | Brazil | RW | 93
-Johan Cruyff | Netherlands | ST | 93
-Mia Hamm | United States | ST | 93
-Paolo Maldini | Italy | CB | 93
-Ronaldinho | Brazil | CAM | 93
-Andrés Iniesta | Spain | CM | 92
-Bobby Charlton | England | CAM | 92
-Ferenc Puskás | Hungary | ST | 92
-Gianluigi Buffon | Italy | GK | 92
-Gerd Müller | Germany | ST | 92
-Birgit Prinz | Germany | ST | 92
-Carlos Alberto | Brazil | RB | 91
-Cafú | Brazil | RB | 91
-Eusébio | Portugal | ST | 91
-Franco Baresi | Italy | CB | 91
-Oliver Kahn | Germany | GK | 91
-Roberto Baggio | Italy | CAM | 91
-Ruud Gullit | Netherlands | CAM | 91
-Thierry Henry | France | ST | 91
-Marco van Basten | Netherlands | ST | 91
-Xavi | Spain | CM | 91
-Zlatan Ibrahimović | Sweden | ST | 91
-Zico | Brazil | CAM | 91
-Andrea Pirlo | Italy | CM | 90
-Sergio Agüero | Argentina | ST | 90
-Karl-Heinz Rummenigge | Germany | ST | 90
-Raphaël Varane | France | CB | 90
+Pelé | Brazil | CAM | 95 | 237067
+Diego Maradona | Argentina | CAM | 95 |
+Ronaldo Nazário | Brazil | ST | 94 | 37576
+Zinedine Zidane | France | CAM | 94 | 1397
+Franz Beckenbauer | Germany | CB | 93 |
+Garrincha | Brazil | RW | 93 |
+Johan Cruyff | Netherlands | ST | 93 | 190045
+Mia Hamm | United States | ST | 93 |
+Paolo Maldini | Italy | CB | 93 | 238439
+Ronaldinho | Brazil | CAM | 93 | 28130
+Andrés Iniesta | Spain | CM | 92 |
+Bobby Charlton | England | CAM | 92 |
+Ferenc Puskás | Hungary | ST | 92 | 254642
+Gianluigi Buffon | Italy | GK | 92 | 1179
+Gerd Müller | Germany | ST | 92 | 190048
+Birgit Prinz | Germany | ST | 92 |
+Carlos Alberto | Brazil | RB | 91 |
+Cafú | Brazil | RB | 91 |
+Eusébio | Portugal | ST | 91 | 242519
+Franco Baresi | Italy | CB | 91 |
+Oliver Kahn | Germany | GK | 91 |
+Roberto Baggio | Italy | CAM | 91 |
+Ruud Gullit | Netherlands | CAM | 91 | 214100
+Thierry Henry | France | ST | 91 | 1625
+Marco van Basten | Netherlands | ST | 91 |
+Xavi | Spain | CM | 91 | 10535
+Zlatan Ibrahimović | Sweden | ST | 91 |
+Zico | Brazil | CAM | 91 |
+Sócrates | Brazil | CAM | 91 | 190046
+Lothar Matthäus | Germany | CM | 91 | 238435
+Andrea Pirlo | Italy | CM | 90 |
+Sergio Agüero | Argentina | ST | 90 |
+Karl-Heinz Rummenigge | Germany | ST | 90 |
+Raphaël Varane | France | CB | 90 | 201535
+Roberto Carlos | Brazil | LB | 90 | 238430
+Peter Schmeichel | Denmark | GK | 90 | 238428
+Alessandro Nesta | Italy | CB | 90 | 1088
+Fabio Cannavaro | Italy | CB | 90 | 1183
+Alan Shearer | England | ST | 90 | 51
+Frank Lampard | England | CM | 90 | 5471
+Luís Figo | Portugal | RM | 90 | 5589
+Marcel Desailly | France | CB | 90 | 1116
+Javier Zanetti | Argentina | RB | 90 | 1041
+Claude Makélélé | France | CDM | 90 | 1668
+Miroslav Klose | Germany | ST | 90 | 242510
+Hernán Crespo | Argentina | ST | 90 | 7512
+Michael Owen | England | ST | 90 | 5419
 """
+
+PORTRAIT_URL = 'https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p{}.png?padding=0.7'
 
 # Statistiche tipiche per ruolo, come scarto dalla valutazione (o valore fisso se preceduto da "=").
 TEMPLATES = {
@@ -69,6 +93,9 @@ TEMPLATES = {
     'RW': ['+1', '-5', '-6', '+1', '=45', '-20'],
     'CB': ['-12', '=50', '-20', '-18', '+1', '-4'],
     'RB': ['-2', '=66', '-6', '-6', '-3', '-8'],
+    'LB': ['+0', '=70', '-8', '-4', '-6', '-10'],
+    'RM': ['-2', '-6', '-2', '+0', '=48', '-22'],
+    'CDM': ['-20', '=62', '-8', '-10', '+0', '-4'],
     'GK': ['-3', '-1', '-12', '+0', '=50', '-2'],
 }
 
@@ -142,7 +169,7 @@ def main():
         cards += [player(item) for item in ea_page(page)]
         page += 1
     cards = cards[:PLAYERS]
-    for name, nation, pos, ovr in rows(ICONS):
+    for name, nation, pos, ovr, ea_id in rows(ICONS):
         ovr = int(ovr)
         stats = estimated_stats(pos, ovr, len(name))
         women = name in ('Mia Hamm', 'Birgit Prinz')
@@ -158,6 +185,8 @@ def main():
             'women': women,
             'coinPrice': round_price(ICON_PRICE[ovr] * (0.4 if women else 1)),
         })
+        if ea_id:
+            cards[-1]['photoUrl'] = PORTRAIT_URL.format(ea_id)
 
     ids = [c['id'] for c in cards]
     assert len(ids) == len(set(ids)), 'id duplicati'

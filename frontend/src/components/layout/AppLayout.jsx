@@ -49,6 +49,12 @@ export default function AppLayout() {
           <footer id="app-footer">
             <div className="footer-inner">
               <small>VinylDex — Contenuti originali</small>
+              <small className="app-footer-credits">
+                Progetto didattico non ufficiale. Le carte importate e i relativi marchi appartengono ai
+                rispettivi proprietari (Pokémon, Wizards of the Coast, Konami, Bandai, Disney, Riot Games).
+                Dati e foto EA SPORTS FC™ 27: EA SPORTS FC Player Ratings, © Electronic Arts Inc. Non affiliato
+                né approvato da Electronic Arts.
+              </small>
             </div>
           </footer>
         </div>

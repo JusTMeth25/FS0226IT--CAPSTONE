@@ -7,6 +7,7 @@ import { getRarityColor, getRarityName, getSourceLabel, formatCardPrice } from '
 import { cardApi } from '../services/cardApi.js';
 import { useApiResource } from '../hooks/useApiResource.js';
 import CardHero from '../components/card/CardHero.jsx';
+import Fc27Credits from '../components/card/Fc27Credits.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import RarityAmbience from '../components/fx/RarityAmbience.jsx';
@@ -56,15 +57,19 @@ export default function CardDetailPage() {
 
   if (!ownedEntry) {
     const color = getRarityColor(referenceCard.rarity);
-    let bestPack = PACKS[0];
-    let bestRate = PACKS[0].dropRates[referenceCard.rarity] || 0;
-    PACKS.forEach((p) => {
+    // Il pacchetto del suo gioco, se c'e', pesca da un catalogo piu' piccolo: e' il consiglio migliore.
+    const gamePack = PACKS.find((p) => p.source && p.source === referenceCard.source);
+    const candidates = gamePack ? [gamePack] : PACKS.filter((p) => !p.source);
+    let bestPack = candidates[0];
+    let bestRate = candidates[0].dropRates[referenceCard.rarity] || 0;
+    candidates.forEach((p) => {
       const rate = p.dropRates[referenceCard.rarity] || 0;
       if (rate > bestRate) { bestRate = rate; bestPack = p; }
     });
 
     let guaranteeText = '';
-    if (referenceCard.rarity === 'legendary') guaranteeText = 'Garantita nei Pacchetti Premium!';
+    if (gamePack) guaranteeText = referenceCard.rarity === 'rare' ? `Garantita nel ${gamePack.name}!` : '';
+    else if (referenceCard.rarity === 'legendary') guaranteeText = 'Garantita nei Pacchetti Premium!';
     else if (referenceCard.rarity === 'epic') guaranteeText = 'Garantita nei Pacchetti Deluxe!';
     else if (referenceCard.rarity === 'rare') guaranteeText = 'Garantita in tutti i pacchetti!';
 
@@ -137,6 +142,8 @@ export default function CardDetailPage() {
           </div>
         )}
       </div>
+
+      {ownedEntry.source === 'fc27' && <Fc27Credits />}
 
       <button className={`btn ${isFavorite ? 'btn-gold' : 'btn-secondary'}`} onClick={() => toggleFavorite(id)}>
         <i className={isFavorite ? 'ph-fill ph-star' : 'ph ph-star'} /> {isFavorite ? 'Preferita' : 'Aggiungi ai preferiti'}

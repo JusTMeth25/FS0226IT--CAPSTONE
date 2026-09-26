@@ -51,6 +51,7 @@ Variabili principali (`BE/.env`, elenco completo in `.env.example`):
 | `PORT` | Porta HTTP del backend (default 4000) |
 | `CORS_ORIGINS` | Origini ammesse dal browser |
 | `POKEMONTCG_API_KEY` · `APITCG_API_KEY` | Opzionali, per l'import carte esterne |
+| `FUTDB_API_KEY` | Opzionale, prezzi veri delle carte EA FC 27 da FutDB |
 
 Dettagli su architettura, endpoint e importer: [`BE/README.md`](BE/README.md).
 
@@ -100,4 +101,22 @@ Registrazione/Login → Home → Apertura pacchetto (server-authoritative: gold,
 | Backend | Spring Boot 4 (Java 25), Spring Security + JWT, BCrypt |
 | Database | PostgreSQL + JPA/Hibernate, migrazioni Flyway |
 | Mobile | Capacitor (iOS/Android) |
-| Import carte esterne | 9 fonti (Pokémon TCG, Scryfall, YGOPRODeck, One Piece, Digimon, Lorcana, Riftbound, Gundam, Dragon Ball) — con fallback demo |
+| Import carte esterne | 10 fonti (Pokémon TCG, Scryfall, YGOPRODeck, One Piece, Digimon, Lorcana, Riftbound, Gundam, Dragon Ball, EA SPORTS FC 27) — con fallback demo |
+
+## Fonti e diritti
+
+VinylDex è un progetto didattico (capstone Epicode), non commerciale e non ufficiale.
+
+- **EA SPORTS FC™ 27**: valutazioni, statistiche e foto dei giocatori vengono dalla classifica
+  ufficiale [EA SPORTS FC Player Ratings](https://www.ea.com/games/ea-sports-fc/ratings).
+  © Electronic Arts Inc. EA, EA SPORTS, EA SPORTS FC e Ultimate Team sono marchi di
+  Electronic Arts Inc. I prezzi in crediti sono stime di VinylDex (o di [FutDB](https://futdb.app)
+  se c'è la chiave), non prezzi ufficiali. Il dorso e la carta disegnata sono grafiche
+  originali in stile Ultimate Team, senza loghi ufficiali. Il progetto non è affiliato né
+  approvato da Electronic Arts.
+- **Altri giochi di carte**: immagini e dati dalle API pubbliche dei rispettivi servizi
+  (Pokémon TCG API, Scryfall, YGOPRODeck, apitcg e le altre fonti elencate in
+  [`BE/README.md`](BE/README.md)). Carte, immagini e marchi appartengono ai rispettivi
+  proprietari (The Pokémon Company/Nintendo, Wizards of the Coast, Konami, Bandai, Disney,
+  Riot Games).
+- Le grafiche dei pacchetti e le carte originali VinylDex sono realizzate per il progetto.

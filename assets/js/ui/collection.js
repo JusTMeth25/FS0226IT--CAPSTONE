@@ -389,7 +389,7 @@ const VinylDexCollection = {
     const quantity = options.quantity || 1;
 
     // Carte con artwork "già completa" (badge/nome/statistiche disegnati dentro l'immagine
-    // stessa, come per Carlos Santana/Michael Jackson): mostriamo solo l'immagine, senza
+    // stessa): mostriamo solo l'immagine, senza
     // sovrapporre di nuovo testo/box che sarebbero duplicati.
     if (card.fullImage) {
       return `

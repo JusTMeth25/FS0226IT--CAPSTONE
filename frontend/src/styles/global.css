@@ -455,6 +455,11 @@ ul, ol { list-style: none; }
    in cima mentre gli altri due (1 pulsante) verrebbero centrati nella riga più alta, spostando
    la LORO immagine più in basso e disallineandola da quella del Base. */
 .packs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-sm); justify-items: center; align-items: start; }
+.packs-group { width: 100%; display: flex; flex-direction: column; gap: var(--space-sm); }
+.packs-group-title { font-size: 1rem; color: var(--text-secondary); letter-spacing: 0.08em; text-transform: uppercase; margin: var(--space-md) 0 0; }
+.app-footer-credits { display: block; margin-top: 4px; font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; }
+.card-detail-credits { width: 100%; font-size: 0.72rem; color: var(--text-muted); line-height: 1.45; text-align: center; }
+.card-detail-credits a { color: var(--text-secondary); }
 
 /* Niente più cornice "glass-panel" attorno all'immagine: solo l'artwork del pacchetto (con angoli
    arrotondati propri) e i pulsanti liberi sotto, senza sfondo/bordo a scatola attorno a tutto. */

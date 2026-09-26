@@ -61,6 +61,8 @@ class Fc27ImporterTest {
         ImportedCard pele = find(cards, "Pelé");
         assertEquals("icon", pele.metadata().get("version"));
         assertEquals("legendary", pele.rarity());
+        assertTrue(((String) pele.metadata().get("photoUrl")).endsWith("/p237067.png?padding=0.7"), "foto ufficiale EA dell'icona");
+        assertFalse(find(cards, "Diego Maradona").metadata().containsKey("photoUrl"), "senza foto EA resta la sagoma");
         assertEquals("common", cheapest(cards).rarity(), "l'oro raro meno caro costa poco");
         assertTrue(cards.stream().anyMatch(c -> "Aitana Bonmatí".equals(c.name())), "ci sono anche le giocatrici");
         assertTrue(cards.stream().allMatch(c -> c.imgUrl().isEmpty()), "le carte le disegna il server");
