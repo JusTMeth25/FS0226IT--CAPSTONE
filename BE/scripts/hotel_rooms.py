@@ -1,7 +1,7 @@
 """
 Stanze pubbliche dell'hotel: pianta, arredi e posti degli NPC.
 
-Genera la migrazione Flyway con le stanze (layout e mobili) e stampa le righe di NpcRoster.java
+Genera le migrazioni Flyway con le stanze (layout e mobili) e stampa le righe di NpcRoster.java
 con le posizioni degli NPC. Prima di scrivere controlla che tutto torni:
 - ogni mobile sta dentro la stanza, su caselle della stessa altezza, senza bloccare la porta;
 - due mobili solidi (o due tappeti) non si sovrappongono;
@@ -16,8 +16,10 @@ import os
 import sys
 from collections import deque
 
-MIGRATION = os.path.join(os.path.dirname(__file__), '..', 'src', 'main', 'resources', 'db', 'migration',
-                         'V12__hotel_big_rooms.sql')
+MIGRATIONS_DIR = os.path.join(os.path.dirname(__file__), '..', 'src', 'main', 'resources', 'db', 'migration')
+MIGRATION = os.path.join(MIGRATIONS_DIR, 'V12__hotel_big_rooms.sql')
+# Le stanze aggiunte dopo la V12 (gia' applicata, non si puo' cambiare) finiscono in migrazioni loro.
+LATER_MIGRATIONS = {15: os.path.join(MIGRATIONS_DIR, 'V17__hotel_stadium.sql')}
 
 # ------------------------------------------------------------------ catalogo (come FurniCatalog.java)
 
@@ -62,6 +64,9 @@ FURNI = {
     'treadmill': (1, 2, False, False, -1), 'weight_bench': (2, 1, False, False, 4),
     'punching_bag': (1, 1, False, False, -1), 'yoga_mat': (1, 2, False, True, -1),
     'dumbbell_rack': (2, 1, False, False, -1), 'water_cooler': (1, 1, False, False, -1),
+    # Stadio
+    'football_goal': (1, 3, False, False, -1), 'corner_flag': (1, 1, False, False, -1),
+    'floodlight': (1, 1, False, False, -1), 'scoreboard': (1, 1, True, False, -1),
 }
 
 # Mobili che si usano cliccandoli: serve una casella libera accanto.
@@ -587,6 +592,29 @@ r.walker('gino', 'Gino', 'GUEST', 's4.h9.hc7.sh6.p5.t0.f0.a0', 9, 18, 4)
 r.walker('vale', 'Vale', 'GUEST', 's0.h7.hc1.sh6.p1.t0.f5.a3.b1', 17, 14, 4)
 
 
+# ------------------------------------------------------------------ Stadio
+
+r = room(15, 'STADIUM', 'Stadio',
+         'Campo da calcio con le porte vere: passa sul pallone per calciarlo e segna! Blu contro Rossi, si arriva a 5.',
+         35, 23, 2, 'pitch', 'stadium', 15)
+# Campo dalla colonna 3 alla 33 e dalla riga 3 alla 21 (le righe del prato le disegna il
+# pavimento "pitch"); intorno la pista. Porte fuori dalla linea di fondo, al centro.
+r.add('football_goal', 2, 11).add('football_goal', 34, 11)
+for x, y in [(2, 2), (34, 2), (2, 22), (34, 22)]:
+    r.add('corner_flag', x, y)
+for x, y in [(1, 1), (35, 1), (1, 23), (35, 23)]:
+    r.add('floodlight', x, y)
+# Panchine delle squadre e tribunetta lungo il lato alto, rivolte verso il campo.
+for x in (5, 8, 11, 14, 21, 24, 27, 30):
+    r.add('bench', x, 1, 0)
+r.add('water_cooler', 18, 1).add('scoreboard', 17, 1, 0).add('scoreboard', 19, 1, 0)
+r.walker('bomber', 'Bomber', 'FOOTBALLER', 's2.h9.hc0.sh3.p0.t0.f1.a0', 12, 8, 10)
+r.walker('mago', 'Mago', 'FOOTBALLER', 's4.h1.hc4.sh3.p0.t0.f1.a0', 12, 16, 10)
+r.walker('razzo', 'Razzo', 'FOOTBALLER', 's1.h0.hc2.sh6.p0.t0.f1.a0', 24, 8, 10)
+r.walker('muro', 'Muro', 'FOOTBALLER', 's3.h9.hc7.sh6.p0.t0.f1.a0', 24, 16, 10)
+r.walker('ultra', 'Ultra', 'GUEST', 's0.h3.hc6.sh1.p3.t1.f3.a5.b1', 16, 3, 4)
+
+
 # ------------------------------------------------------------------ output
 
 def sql_string(s):
@@ -595,6 +623,31 @@ def sql_string(s):
 
 def java_string(s):
     return '"' + s + '"'
+
+
+def layout_sql(rm):
+    rows = rm.layout()
+    return " ||\n     ".join("E'" + row + ("\\n'" if i < len(rows) - 1 else "'") for i, row in enumerate(rows))
+
+
+def insert_room(rm):
+    return [
+        'INSERT INTO rooms (id, owner_id, name, description, layout, door_x, door_y, door_dir,',
+        '                   floor_style, wall_style, max_users, is_public, sort_order)',
+        f'VALUES ({sql_string(rm.id)}, NULL, {sql_string(rm.name)},',
+        f'     {sql_string(rm.desc)},',
+        f'     {layout_sql(rm)},',
+        f'     {rm.door[0]}, {rm.door[1]}, 2, {sql_string(rm.floor)}, {sql_string(rm.wall)}, 50, true, {rm.sort});',
+    ]
+
+
+def insert_items(rm):
+    rows = []
+    for i, (kind, x, y, rot) in enumerate(rm.items, start=1):
+        item_id = f'00000000-0000-0000-0000-c0{rm.num:02x}{i:08x}'
+        rows.append(f"    ('{item_id}', NULL, '{rm.id}', {sql_string(kind)}, {x}, {y}, {rm.z(x, y)}, {rot})")
+    return [f'-- Arredi: {rm.name}.', 'INSERT INTO room_items (id, owner_id, room_id, furni_type, x, y, z, rot) VALUES',
+            ',\n'.join(rows) + ';', '']
 
 
 def main():
@@ -612,6 +665,7 @@ def main():
     if failed:
         sys.exit(1)
 
+    base_rooms = [rm for rm in ROOMS if rm.num not in LATER_MIGRATIONS]
     out = []
     out.append('-- Stanze pubbliche piu\' grandi, come i locali di Habbo, e quattro locali nuovi:')
     out.append('-- spiaggia, edicola, cinema e palestra. Pianta e arredi sono generati da')
@@ -625,10 +679,10 @@ def main():
     out.append("    'FURNI_PURCHASE', 'PVP_REWARD', 'PACK_PURCHASE'));")
     out.append('')
     out.append('-- Gli arredi fissi delle stanze pubbliche si rifanno da capo.')
-    ids = ', '.join(sql_string(rm.id) for rm in ROOMS if rm.num <= 10)
+    ids = ', '.join(sql_string(rm.id) for rm in base_rooms if rm.num <= 10)
     out.append(f'DELETE FROM room_items WHERE owner_id IS NULL AND room_id IN ({ids});')
     out.append('')
-    for rm in ROOMS:
+    for rm in base_rooms:
         layout = " ||\n     ".join("E'" + row + ("\\n'" if i < len(rm.layout()) - 1 else "'")
                                     for i, row in enumerate(rm.layout()))
         if rm.num <= 10:
@@ -637,25 +691,25 @@ def main():
             out.append(f'    floor_style = {sql_string(rm.floor)}, wall_style = {sql_string(rm.wall)}')
             out.append(f'WHERE id = {sql_string(rm.id)};')
         else:
-            out.append('INSERT INTO rooms (id, owner_id, name, description, layout, door_x, door_y, door_dir,')
-            out.append('                   floor_style, wall_style, max_users, is_public, sort_order)')
-            out.append(f'VALUES ({sql_string(rm.id)}, NULL, {sql_string(rm.name)},')
-            out.append(f'     {sql_string(rm.desc)},')
-            out.append(f'     {layout},')
-            out.append(f'     {rm.door[0]}, {rm.door[1]}, 2, {sql_string(rm.floor)}, {sql_string(rm.wall)}, 50, true, {rm.sort});')
+            out.extend(insert_room(rm))
         out.append('')
-    for rm in ROOMS:
-        out.append(f'-- Arredi: {rm.name}.')
-        out.append('INSERT INTO room_items (id, owner_id, room_id, furni_type, x, y, z, rot) VALUES')
-        rows = []
-        for i, (kind, x, y, rot) in enumerate(rm.items, start=1):
-            item_id = f'00000000-0000-0000-0000-c0{rm.num:02x}{i:08x}'
-            rows.append(f"    ('{item_id}', NULL, '{rm.id}', {sql_string(kind)}, {x}, {y}, {rm.z(x, y)}, {rot})")
-        out.append(',\n'.join(rows) + ';')
-        out.append('')
+    for rm in base_rooms:
+        out.extend(insert_items(rm))
     with open(MIGRATION, 'w', encoding='utf-8', newline='\n') as f:
         f.write('\n'.join(out))
-    print(f'Scritta {os.path.normpath(MIGRATION)}: {len(ROOMS)} stanze, {sum(len(rm.items) for rm in ROOMS)} mobili.')
+    print(f'Scritta {os.path.normpath(MIGRATION)}: {len(base_rooms)} stanze, {sum(len(rm.items) for rm in base_rooms)} mobili.')
+
+    for rm in ROOMS:
+        if rm.num not in LATER_MIGRATIONS:
+            continue
+        later = [f'-- Nuova stanza pubblica: {rm.name}. Generata da BE/scripts/hotel_rooms.py.', '']
+        later.extend(insert_room(rm))
+        later.append('')
+        later.extend(insert_items(rm))
+        path = LATER_MIGRATIONS[rm.num]
+        with open(path, 'w', encoding='utf-8', newline='\n') as f:
+            f.write('\n'.join(later))
+        print(f'Scritta {os.path.normpath(path)}: {rm.name}, {len(rm.items)} mobili.')
 
     print('\n// ---- NpcRoster.java')
     for rm in ROOMS:

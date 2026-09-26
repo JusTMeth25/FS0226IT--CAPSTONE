@@ -160,6 +160,8 @@ export default function HotelPage() {
   const [fullscreen, setFullscreen] = useState(false);
   const [minigame, setMinigame] = useState(null);
   const [minigameResult, setMinigameResult] = useState(null);
+  /** Punteggio della partita nello stadio: { blue, red }, null nelle stanze senza pallone. */
+  const [football, setFootball] = useState(null);
   const pageRef = useRef(null);
   const noticeTimer = useRef(0);
   const meRef = useRef(null);
@@ -196,6 +198,7 @@ export default function HotelPage() {
         setPeople(Object.fromEntries(message.users.map((u) => [u.id, u])));
         setItems(Object.fromEntries((message.items || []).map((i) => [i.id, i])));
         setJukebox({ track: message.jukebox?.track ?? -1 });
+        setFootball(message.ball ? { blue: message.ball.blue, red: message.ball.red } : null);
         getJukebox().set(message.jukebox?.track ?? -1, message.jukebox?.startedAt ?? 0, message.serverTime);
         setPanel((current) => (current === 'trades' ? current : null));
         setSelected(null);
@@ -385,6 +388,16 @@ export default function HotelPage() {
         }
         break;
       }
+      case 'ball':
+        setFootball({ blue: message.blue, red: message.red });
+        break;
+      case 'goal':
+        setFootball({ blue: message.blue, red: message.red });
+        sound.success();
+        showNotice(message.winner
+          ? `${message.by} segna il gol della vittoria: vincono i ${message.label} ${message.blue}-${message.red}!`
+          : `Gol di ${message.by}! Blu ${message.blue} - ${message.red} Rossi`);
+        break;
       case 'pack_bought':
         setBuyingPack(null);
         sound.coin();
@@ -636,6 +649,16 @@ export default function HotelPage() {
         />
 
         {!room && <HotelView />}
+
+        {room && football && (
+          <div className="hotel-scoreboard" title="Passa sul pallone per calciarlo: di corsa va lontano. Si vince a 5 gol.">
+            <span className="hotel-scoreboard-team is-blue">Blu</span>
+            <strong>{football.blue}</strong>
+            <span className="hotel-scoreboard-sep">-</span>
+            <strong>{football.red}</strong>
+            <span className="hotel-scoreboard-team is-red">Rossi</span>
+          </div>
+        )}
 
         {room && (
           <div className="hotel-room-info">

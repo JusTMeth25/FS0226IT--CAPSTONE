@@ -1856,6 +1856,7 @@
   "version": "icon",
   "women": false,
   "coinPrice": 6000000,
+  "cardName": "Ronaldo",
   "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p37576.png?padding=0.7"
  },
  {
@@ -2138,6 +2139,7 @@
   "version": "icon",
   "women": false,
   "coinPrice": 1500000,
+  "cardName": "Carlos Alberto",
   "look": {
    "skin": "medium",
    "hair": "short",
@@ -2517,6 +2519,7 @@
   "version": "icon",
   "women": false,
   "coinPrice": 900000,
+  "cardName": "Roberto Carlos",
   "photoUrl": "https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p238430.png?padding=0.7"
  },
  {

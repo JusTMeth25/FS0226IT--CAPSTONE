@@ -142,6 +142,8 @@ public final class NpcDialog {
                     "Benvenuto in edicola, " + user + "! Cliccami per comprare i pacchetti."));
             case USHER -> "Buona visione, " + user + "! Popcorn e cola li porto io.";
             case TRAINER -> pick(random, List.of("Forza " + user + ", dieci giri di tapis roulant!", "Ciao " + user + "! Ti serve acqua?"));
+            case FOOTBALLER -> pick(random, List.of("Ciao " + user + "! Passami la palla!",
+                    "Ehi " + user + ", giochi con noi? Blu contro Rossi, si arriva a 5!"));
             case FIGHTER -> pick(random, List.of("Ehi " + user + ", hai il coraggio di sfidarmi?",
                     "Ciao " + user + "! Le mie carte sono pronte, e le tue?"));
             case GUEST -> pick(random, List.of("Ciao " + user + "!", "Ehi " + user + ", come va?", "Ciao! Bella stanza, vero?"));
@@ -310,6 +312,7 @@ public final class NpcDialog {
                     "Giornali, fumetti, carte VinylDex!");
             case USHER -> List.of("Il film sta per iniziare!", "Popcorn caldi, chi li vuole?", "Spegnete i telefoni, per favore.");
             case TRAINER -> List.of("Uno, due, tre, respira!", "Chi fa una serie di addominali con me?", "Bevete acqua, e' importante!");
+            case FOOTBALLER -> List.of("Palla al centro!", "Passala, sono smarcato!", "Che tiro!", "Chi segna vince!");
             case FIGHTER -> List.of("Chi ha il coraggio di sfidarmi?", "La mia squadra oggi e' imbattibile.",
                     "Scambio carte doppie, chi ci sta?");
             case GUEST -> List.of("Che bella giornata!", "Qualcuno vuole scambiare carte?", "Adoro questo posto.",

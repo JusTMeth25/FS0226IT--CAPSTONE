@@ -904,6 +904,37 @@ const DRAW = {
     });
   },
 
+  // ---------------------------------------------------------------- stadio
+
+  football_goal(b, { d }) {
+    // Porta: pali e traversa bianchi a meta' casella, rete a maglie che chiude la gabbia.
+    const net = 'rgba(241, 245, 249, 0.22)';
+    b({ u0: 0.1, v0: 0.06, u1: 0.9, v1: 2.94, z1: 58, color: net, left: net, right: 'rgba(203, 213, 225, 0.28)', top: 'rgba(241, 245, 249, 0.16)' });
+    for (let v = 0.12; v < 2.92; v += 0.16) {
+      for (let z = 4; z < 58; z += 6) d(0.9, v, z, 'rgba(255, 255, 255, 0.7)', 1, 1);
+    }
+    for (let u = 0.14; u < 0.9; u += 0.12) {
+      for (let v = 0.12; v < 2.92; v += 0.16) d(u, v, 58, 'rgba(255, 255, 255, 0.6)', 1, 1);
+    }
+    [[0.44, 0.04], [0.44, 2.86]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.12, v1: v + 0.1, z1: 64, color: '#f8fafc', tex: 'metal' }));
+    b({ u0: 0.44, v0: 0.04, u1: 0.56, v1: 2.96, z0: 58, z1: 64, color: '#f8fafc', tex: 'metal' });
+  },
+  corner_flag(b, { c, d }) {
+    c({ u: 0.5, v: 0.5, r: 0.03, z0: 0, z1: 74, color: '#f8fafc' });
+    for (let i = 0; i < 12; i += 1) d(0.52, 0.5, 72 - i, i % 4 < 2 ? '#facc15' : '#ef4444', 12 - i, 1);
+  },
+  floodlight(b, { c, d, front }) {
+    // Torre faro: traliccio grigio e un pannello di fari accesi in cima.
+    c({ u: 0.5, v: 0.5, r: 0.22, z0: 0, z1: 6, color: '#374151' });
+    c({ u: 0.5, v: 0.5, r: 0.07, z0: 6, z1: 124, color: '#9ca3af', tex: 'metal' });
+    b({ u0: 0.12, v0: 0.4, u1: 0.88, v1: 0.6, z0: 118, z1: 146, color: '#4b5563', tex: 'metal' });
+    front(() => {
+      for (let row = 0; row < 3; row += 1) {
+        for (let i = 0; i < 4; i += 1) d(0.16 + i * 0.18, 0.6, 142 - row * 8, '#fef9c3', 7, 5);
+      }
+    });
+  },
+
   dj_booth(b, { c, d, now, front }) {
     b({ u0: 0.05, v0: 0.1, u1: 1.95, v1: 0.9, z1: 34, color: '#1f1f2e', left: '#18182a', right: '#101019', tex: 'metal' });
     b({ u0: 0.05, v0: 0.1, u1: 1.95, v1: 0.9, z0: 34, z1: 38, color: '#8b5cf6', glow: true });
@@ -998,6 +1029,15 @@ function drawWallItem(ctx, ox, oy, item, img, rarityColor, now) {
     R(15, 18, 60, 64, '#ec4899');
     R(10, 23, 42, 44, '#fde68a');
     R(10, 17, 46, 47, '#f5f5f5');
+  } else if (type === 'scoreboard') {
+    // Tabellone: pannello nero con le due squadre e i numeri a led (il punteggio vero sta in alto nella pagina).
+    R(1, 32, 44, 100, '#111827');
+    R(3, 30, 46, 98, '#030712');
+    R(5, 14, 82, 94, '#2563eb');
+    R(19, 28, 82, 94, '#dc2626');
+    R(6, 13, 54, 76, (a, h) => ((a + h) % 3 === 0 ? '#facc15' : '#1f2937'));
+    R(20, 27, 54, 76, (a, h) => ((a + h) % 3 === 0 ? '#facc15' : '#1f2937'));
+    R(15, 18, 62, 68, '#facc15');
   } else if (type === 'chalkboard') {
     R(4, 29, 40, 90, WOOD);
     R(6, 27, 42, 88, (a, h) => ((a * 7 + h * 3) % 29 === 0 ? '#3d5c4a' : '#23392d'));

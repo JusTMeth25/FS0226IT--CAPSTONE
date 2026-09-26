@@ -149,6 +149,9 @@ public class Fc27Importer extends AbstractCardImporter {
                 }
                 ImportedCard card = toCard(text(node, "id"), text(node, "name"), text(node, "club"), text(node, "nation"),
                         position, ovr, stats, text(node, "version"), coins, text(node, "photoUrl"), "stima");
+                // Nome da scrivere sulla carta quando non e' il cognome (Carlos Alberto, Ronaldo).
+                String cardName = text(node, "cardName");
+                if (cardName != null) card.metadata().put("cardName", cardName);
                 // Aspetto per il ritratto a pixel delle icone senza foto (PixelAvatar).
                 JsonNode look = child(node, "look");
                 if (look != null && look.isObject()) {

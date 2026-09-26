@@ -62,6 +62,8 @@ class Fc27ImporterTest {
         assertEquals("icon", pele.metadata().get("version"));
         assertEquals("legendary", pele.rarity());
         assertTrue(((String) pele.metadata().get("photoUrl")).endsWith("/p237067.png?padding=0.7"), "foto ufficiale EA dell'icona");
+        assertEquals("Carlos Alberto", find(cards, "Carlos Alberto").metadata().get("cardName"));
+        assertEquals("Ronaldo", find(cards, "Ronaldo Nazário").metadata().get("cardName"));
         ImportedCard maradona = find(cards, "Diego Maradona");
         assertFalse(maradona.metadata().containsKey("photoUrl"), "EA non ha la foto di Maradona");
         assertEquals(Map.of("skin", "tan", "hair", "curly", "hairColor", "black", "beard", "none"), maradona.metadata().get("look"),
@@ -220,6 +222,8 @@ class Fc27ImporterTest {
         assertTrue(gk.contains("DIV") && gk.contains("REF"));
         assertFalse(FcCardArtControllerProbe.render("A <b>", Map.of()).contains("<b>"), "il nome e' sempre escapato");
         assertTrue(FcCardArtControllerProbe.render("Virgil van Dijk", Map.of()).contains("VAN DIJK"), "la particella resta col cognome");
+        assertTrue(FcCardArtControllerProbe.render("Carlos Alberto", Map.of("cardName", "Carlos Alberto")).contains(">CARLOS ALBERTO<"),
+                "il nome sulla carta puo' essere scritto a mano");
 
         String pixel = FcCardArtControllerProbe.render("Diego Maradona", Map.of("nation", "Argentina",
                 "look", Map.of("skin", "tan", "hair", "curly", "hairColor", "black")));

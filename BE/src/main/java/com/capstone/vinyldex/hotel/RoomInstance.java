@@ -71,6 +71,10 @@ public class RoomInstance {
     private final Map<String, Deque<NpcMind.Line>> conversations = new HashMap<>();
     /** Record della stanza per ogni minigioco (si azzerano quando la stanza si svuota e si scarica). */
     private final Map<String, Minigames.Best> records = new HashMap<>();
+    /** Partita di calcio, solo nelle stanze con due porte (lo stadio); altrimenti null. */
+    private final FootballMatch football;
+    /** Dopo un gol il pallone resta in rete un attimo, poi torna a centrocampo. */
+    private static final long GOAL_PAUSE_MILLIS = 2_500;
 
     private record Pending(long dueAt, Runnable action) {
     }
@@ -167,6 +171,7 @@ public class RoomInstance {
         this.random = random;
         this.mind = mind;
         initialItems.forEach(item -> items.put(item.id(), item));
+        this.football = FootballMatch.create(items.values());
         spawnNpcs();
     }
 
@@ -324,6 +329,8 @@ public class RoomInstance {
             occupant.x = next.x();
             occupant.y = next.y();
             occupant.z = next.z();
+            // Passando sul pallone lo si calcia nella direzione del passo.
+            if (football != null) kickBall(occupant);
 
             if (occupant.path.isEmpty() && occupant.pendingUse != null) {
                 RoomItemView target = items.get(occupant.pendingUse);
@@ -749,6 +756,10 @@ public class RoomInstance {
             npc.nextChatAt = now + 60_000 + random.nextInt(60_000);
             say(npc, NpcDialog.idle(spec.role(), random), null, false, 0);
         }
+        if (spec.role() == NpcRoster.Role.FOOTBALLER && football != null) {
+            playFootball(npc, now);
+            return;
+        }
         if (now < npc.nextThinkAt || !npc.path.isEmpty()) return;
         npc.nextThinkAt = now + 4_000 + random.nextInt(6_000);
 
@@ -797,6 +808,111 @@ public class RoomInstance {
             move(npc.user.id(), x, y);
             return;
         }
+    }
+
+    // ------------------------------------------------------------------ calcio
+
+    /** Chi arriva sulla casella del pallone lo calcia: di corsa lontano, fermandosi un passaggio corto. */
+    private void kickBall(Occupant occupant) {
+        if (football.inNet() || occupant.x != football.ballX() || occupant.y != football.ballY()) return;
+        int power = occupant.path.isEmpty() ? FootballMatch.TAP_POWER : FootballMatch.RUN_POWER;
+        FootballMatch.Kick kick = football.kick(occupant.dir, power, ballField(occupant.user.id()));
+        broadcast(ballMessage(kick.path(), occupant.user.username()));
+        if (kick.scored() == null) return;
+
+        FootballMatch.Team winner = football.winner();
+        Map<String, Object> goal = new LinkedHashMap<>();
+        goal.put("type", "goal");
+        goal.put("team", kick.scored().key());
+        goal.put("label", kick.scored().label());
+        goal.put("by", occupant.user.username());
+        goal.put("blue", football.score(FootballMatch.Team.BLUE));
+        goal.put("red", football.score(FootballMatch.Team.RED));
+        goal.put("winner", winner == null ? null : winner.key());
+        broadcast(goal);
+        later(GOAL_PAUSE_MILLIS, () -> {
+            football.kickOff();
+            broadcast(ballMessage(List.of(), null));
+        });
+    }
+
+    /** Il campo visto dal pallone: rotola sulle caselle libere e si ferma davanti agli avatar. */
+    private FootballMatch.Field ballField(UUID kickerId) {
+        return new FootballMatch.Field() {
+            @Override
+            public boolean ballCanEnter(int x, int y) {
+                if (!layout.isTile(x, y) || (x == data.doorX() && y == data.doorY())) return false;
+                RoomItemView item = floorItemAt(x, y);
+                return item == null || item.def().passable();
+            }
+
+            @Override
+            public boolean hasAvatar(int x, int y) {
+                for (Occupant o : occupants.values()) {
+                    if (!o.user.id().equals(kickerId) && o.x == x && o.y == y) return true;
+                }
+                return false;
+            }
+        };
+    }
+
+    /**
+     * I calciatori NPC vanno dietro al pallone, dal lato opposto alla porta da attaccare, e poi ci
+     * passano sopra di corsa: cosi' il tiro parte verso la porta. La squadra dipende dalla meta'
+     * campo da cui partono. Insegue il pallone solo il piu' vicino di ogni squadra: gli altri
+     * tengono la posizione, altrimenti si ammasserebbero tutti sul pallone.
+     */
+    private void playFootball(Occupant npc, long now) {
+        if (now < npc.nextThinkAt) return;
+        npc.nextThinkAt = now + 1_200 + random.nextInt(1_300);
+        if (football.inNet()) return;
+        UUID id = npc.user.id();
+        FootballMatch.Field field = ballField(id);
+        int bx = football.ballX();
+        int by = football.ballY();
+        FootballMatch.Team team = football.teamStartingAt(npc.npc.x());
+        if (!chasesBall(npc, team, bx, by)) {
+            if (npc.path.isEmpty() && Math.max(Math.abs(npc.x - npc.npc.x()), Math.abs(npc.y - npc.npc.y())) > 2) {
+                move(id, npc.npc.x(), npc.npc.y());
+            }
+            return;
+        }
+        int[] spot = football.kickSpot(team);
+        if (npc.x == spot[0] && npc.y == spot[1]) {
+            // Di corsa attraverso il pallone, fino alla casella dopo.
+            int tx = 2 * bx - spot[0];
+            int ty = 2 * by - spot[1];
+            if (field.ballCanEnter(tx, ty) && !isOccupiedByOther(id, tx, ty)) move(id, tx, ty);
+            else move(id, bx, by);
+            return;
+        }
+        if (!npc.path.isEmpty() && npc.targetX == spot[0] && npc.targetY == spot[1]) return;
+        if (field.ballCanEnter(spot[0], spot[1]) && !isOccupiedByOther(id, spot[0], spot[1])) move(id, spot[0], spot[1]);
+        else move(id, bx, by);
+    }
+
+    /** Il calciatore e' il piu' vicino al pallone della sua squadra (a parita', decide l'id). */
+    private boolean chasesBall(Occupant npc, FootballMatch.Team team, int bx, int by) {
+        int mine = Math.max(Math.abs(npc.x - bx), Math.abs(npc.y - by));
+        for (Occupant other : occupants.values()) {
+            if (other == npc || !other.isNpc() || other.npc.role() != NpcRoster.Role.FOOTBALLER) continue;
+            if (football.teamStartingAt(other.npc.x()) != team) continue;
+            int theirs = Math.max(Math.abs(other.x - bx), Math.abs(other.y - by));
+            if (theirs < mine || (theirs == mine && other.user.id().compareTo(npc.user.id()) < 0)) return false;
+        }
+        return true;
+    }
+
+    private Map<String, Object> ballMessage(List<int[]> path, String by) {
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put("type", "ball");
+        message.put("x", football.ballX());
+        message.put("y", football.ballY());
+        message.put("path", path);
+        message.put("by", by);
+        message.put("blue", football.score(FootballMatch.Team.BLUE));
+        message.put("red", football.score(FootballMatch.Team.RED));
+        return message;
     }
 
     /** Vicino alla porta non si ferma nessun NPC: bloccherebbe chi entra. */
@@ -1424,6 +1540,10 @@ public class RoomInstance {
         state.put("you", you);
         state.put("items", List.copyOf(items.values()));
         state.put("jukebox", Map.of("track", jukeboxTrack, "startedAt", jukeboxStartedAt));
+        if (football != null) {
+            state.put("ball", Map.of("x", football.ballX(), "y", football.ballY(),
+                    "blue", football.score(FootballMatch.Team.BLUE), "red", football.score(FootballMatch.Team.RED)));
+        }
         state.put("serverTime", System.currentTimeMillis());
         return state;
     }

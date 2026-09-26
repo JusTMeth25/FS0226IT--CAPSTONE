@@ -30,6 +30,7 @@ public final class NpcRoster {
     public static final UUID NEWSSTAND = UUID.fromString("00000000-0000-0000-0000-00000000a00c");
     public static final UUID CINEMA = UUID.fromString("00000000-0000-0000-0000-00000000a00d");
     public static final UUID GYM = UUID.fromString("00000000-0000-0000-0000-00000000a00e");
+    public static final UUID STADIUM = UUID.fromString("00000000-0000-0000-0000-00000000a00f");
 
     /** Cosa fa il personaggio: da qui dipendono movimento, azioni possibili e battute. */
     public enum Role {
@@ -47,6 +48,7 @@ public final class NpcRoster {
         USHER("Maschera", true),
         TRAINER("Istruttore", true),
         FIGHTER("Sfidante", true),
+        FOOTBALLER("Calciatore", true),
         GUEST("Ospite", true);
 
         private final String title;
@@ -157,7 +159,14 @@ public final class NpcRoster {
             Map.entry(GYM, List.of(
                     walker("sara", "Sara", Role.TRAINER, "s1.h4.hc4.sh9.p1.t0.f5.a2.b1", 13, 11, 6, "water"),
                     walker("gino", "Gino", Role.GUEST, "s4.h9.hc7.sh6.p5.t0.f0.a0", 9, 18, 4),
-                    walker("vale", "Vale", Role.GUEST, "s0.h7.hc1.sh6.p1.t0.f5.a3.b1", 17, 14, 4)))
+                    walker("vale", "Vale", Role.GUEST, "s0.h7.hc1.sh6.p1.t0.f5.a3.b1", 17, 14, 4))),
+            // Calciatori: chi parte dalla meta' ovest gioca con i Blu, gli altri con i Rossi (FootballMatch).
+            Map.entry(STADIUM, List.of(
+                    walker("bomber", "Bomber", Role.FOOTBALLER, "s2.h9.hc0.sh3.p0.t0.f1.a0", 12, 8, 10),
+                    walker("mago", "Mago", Role.FOOTBALLER, "s4.h1.hc4.sh3.p0.t0.f1.a0", 12, 16, 10),
+                    walker("razzo", "Razzo", Role.FOOTBALLER, "s1.h0.hc2.sh6.p0.t0.f1.a0", 24, 8, 10),
+                    walker("muro", "Muro", Role.FOOTBALLER, "s3.h9.hc7.sh6.p0.t0.f1.a0", 24, 16, 10),
+                    walker("ultra", "Ultra", Role.GUEST, "s0.h3.hc6.sh1.p3.t1.f3.a5.b1", 16, 3, 4)))
     );
 
     private NpcRoster() {

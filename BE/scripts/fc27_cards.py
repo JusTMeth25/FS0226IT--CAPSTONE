@@ -105,6 +105,14 @@ LOOKS = {
     'Karl-Heinz Rummenigge': ('light', 'curly', 'lightbrown', 'none'),
 }
 
+# Nome sulla carta quando non e' il cognome (come in Ultimate Team): nomi composti che il
+# server spezzerebbe male o soprannomi.
+CARD_NAMES = {
+    'Carlos Alberto': 'Carlos Alberto',
+    'Roberto Carlos': 'Roberto Carlos',
+    'Ronaldo Nazário': 'Ronaldo',
+}
+
 PORTRAIT_URL = 'https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p{}.png?padding=0.7'
 
 # Statistiche tipiche per ruolo, come scarto dalla valutazione (o valore fisso se preceduto da "=").
@@ -208,6 +216,8 @@ def main():
             'women': women,
             'coinPrice': round_price(ICON_PRICE[ovr] * (0.4 if women else 1)),
         })
+        if name in CARD_NAMES:
+            cards[-1]['cardName'] = CARD_NAMES[name]
         if ea_id:
             cards[-1]['photoUrl'] = PORTRAIT_URL.format(ea_id)
         elif name in LOOKS:

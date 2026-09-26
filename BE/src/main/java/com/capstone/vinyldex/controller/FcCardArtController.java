@@ -204,7 +204,9 @@ public class FcCardArtController {
         s.append("<text x='54' y='148' text-anchor='middle' font-family='Arial,sans-serif' font-size='10' fill='")
                 .append(p.accent()).append("'>").append(escape(shortText(str(m, "club", ""), 14))).append("</text>");
 
-        String displayName = shortText(lastName(name), 16).toUpperCase(Locale.ROOT);
+        // metadata.cardName vince sul cognome: nomi composti (Carlos Alberto) e soprannomi (Ronaldo).
+        String cardName = str(m, "cardName", "").isBlank() ? lastName(name) : str(m, "cardName", "");
+        String displayName = shortText(cardName, 16).toUpperCase(Locale.ROOT);
         int nameSize = displayName.length() > 12 ? 19 : 23;
         s.append("<text x='125' y='214' text-anchor='middle' font-family='Arial Black,Arial,sans-serif' font-weight='900' font-size='")
                 .append(nameSize).append("' fill='").append(p.text()).append("'>").append(escape(displayName)).append("</text>");

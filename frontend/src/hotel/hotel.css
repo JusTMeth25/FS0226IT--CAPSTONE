@@ -121,6 +121,40 @@
   text-overflow: ellipsis;
 }
 .hotel-status { top: var(--space-sm); background: #ffd700; color: #1a1300; }
+
+/* Tabellone della partita nello stadio, in alto al centro. */
+.hotel-scoreboard {
+  position: absolute;
+  top: var(--space-sm);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  background: rgba(3, 7, 18, 0.9);
+  border: 2px solid #facc15;
+  color: #facc15;
+  font-family: "Courier New", monospace;
+  font-size: 1.1rem;
+  font-weight: 900;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+  cursor: help;
+}
+.hotel-scoreboard-team {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border-radius: 6px;
+  color: #fff;
+}
+.hotel-scoreboard-team.is-blue { background: #2563eb; }
+.hotel-scoreboard-team.is-red { background: #dc2626; }
+.hotel-scoreboard-sep { color: #9ca3af; }
 .hotel-notice { bottom: var(--space-sm); background: rgba(10, 7, 22, 0.92); color: #fff; border: 1px solid var(--neon-magenta); }
 
 /* ---------- Pannelli: cabinato arcade al neon ----------

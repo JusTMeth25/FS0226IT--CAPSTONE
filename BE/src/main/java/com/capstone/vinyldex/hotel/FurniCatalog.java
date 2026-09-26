@@ -157,6 +157,11 @@ public final class FurniCatalog {
         add(new FurniDef("newsstand", "Chiosco dell'edicola", "edicola", 0, 3, 1, false, false, -1, false, false));
         add(new FurniDef("pack_display", "Espositore pacchetti", "edicola", 0, 1, 1, false, false, -1, false, false));
         add(new FurniDef("cinema_screen", "Schermo del cinema", "cinema", 0, 6, 1, false, false, -1, false, false));
+        // Stadio: con due porte la stanza ha il pallone (FootballMatch).
+        add(new FurniDef("football_goal", "Porta da calcio", "stadio", 0, 1, 3, false, false, -1, false, false));
+        add(new FurniDef("corner_flag", "Bandierina", "stadio", 0, 1, 1, false, false, -1, false, false));
+        add(new FurniDef("floodlight", "Torre faro", "stadio", 0, 1, 1, false, false, -1, false, false));
+        add(new FurniDef("scoreboard", "Tabellone", "stadio", 0, 1, 1, true, false, -1, false, false));
     }
 
     private FurniCatalog() {

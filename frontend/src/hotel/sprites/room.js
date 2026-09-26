@@ -293,6 +293,72 @@ const FLOORS = {
   })()
 };
 
+/**
+ * Pavimenti che dipendono dalla forma della stanza: ricevono la pianta e la porta e restituiscono
+ * la solita funzione (X, Y, sx, sy) -> colore.
+ */
+const FLOOR_FACTORIES = {
+  // Campo da calcio: prato a strisce tagliate, linee bianche, e intorno una fascia d'erba piu'
+  // scura. Il campo sta due caselle dentro i bordi della stanza (li' fuori ci sono le porte).
+  pitch: (layout, door) => {
+    let x0 = Infinity; let x1 = -Infinity; let y0 = Infinity; let y1 = -Infinity;
+    for (let y = 0; y < layout.height; y += 1) {
+      for (let x = 0; x < layout.width; x += 1) {
+        if (!layout.isTile(x, y) || (door && door.x === x && door.y === y)) continue;
+        x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+      }
+    }
+    const fx0 = x0 + 2;
+    const fx1 = x1 - 1;
+    const fy0 = y0 + 2;
+    const fy1 = y1 - 1;
+    const mx = (fx0 + fx1) / 2;
+    const my = (fy0 + fy1) / 2;
+    const height = fy1 - fy0;
+    const circle = Math.min(3, height / 6);
+    const boxDepth = Math.min(5, (fx1 - fx0) / 6);
+    const boxHalf = Math.min(6, height / 3);
+    const smallDepth = boxDepth * 0.4;
+    const smallHalf = boxHalf * 0.5;
+    const W = 0.07;
+    const stripes = ['#3f9a3f', '#48a846'].map(rgb);
+    const outside = rgb('#2f7d31');
+    const white = rgb('#f4f7f2');
+    const near = (a, b) => Math.abs(a - b) < W;
+    const between = (v, a, b) => v >= a - W && v <= b + W;
+    const isLine = (X, Y) => {
+      if (!between(X, fx0, fx1) || !between(Y, fy0, fy1)) return false;
+      if (near(X, fx0) || near(X, fx1) || near(Y, fy0) || near(Y, fy1) || near(X, mx)) return true;
+      const d = Math.hypot(X - mx, Y - my);
+      if (Math.abs(d - circle) < W || d < 0.14) return true;
+      for (const [goalX, dir] of [[fx0, 1], [fx1, -1]]) {
+        const depthIn = (X - goalX) * dir;
+        // Area di rigore, area piccola e dischetto.
+        if (between(depthIn, 0, boxDepth) && near(Math.abs(Y - my), boxHalf)) return true;
+        if (near(depthIn, boxDepth) && Math.abs(Y - my) <= boxHalf) return true;
+        if (between(depthIn, 0, smallDepth) && near(Math.abs(Y - my), smallHalf)) return true;
+        if (near(depthIn, smallDepth) && Math.abs(Y - my) <= smallHalf) return true;
+        if (Math.hypot(depthIn - boxDepth * 0.72, Y - my) < 0.12) return true;
+        // Lunetta fuori dall'area.
+        if (depthIn > boxDepth && Math.abs(Math.hypot(depthIn - boxDepth * 0.72, Y - my) - circle * 0.8) < W) return true;
+      }
+      // Quarti di cerchio agli angoli.
+      for (const [cx, cy] of [[fx0, fy0], [fx1, fy0], [fx0, fy1], [fx1, fy1]]) {
+        if (Math.abs(Math.hypot(X - cx, Y - cy) - 0.6) < W) return true;
+      }
+      return false;
+    };
+    return (X, Y, sx, sy) => {
+      const n = noise(sx, sy);
+      const inField = X >= fx0 && X <= fx1 && Y >= fy0 && Y <= fy1;
+      if (isLine(X, Y)) return tint(white, (n - 0.5) * 0.05);
+      const base = inField ? stripes[Math.floor((X - fx0) / 2) % 2] : outside;
+      const blade = (sx + Math.floor(sy / 2)) % 4 === 0 && n > 0.55 ? 0.07 : 0;
+      return tint(base, blade + (n - 0.5) * 0.06);
+    };
+  }
+};
+
 // ------------------------------------------------------------------ pareti
 
 /**
@@ -585,6 +651,51 @@ const WALLS = {
     };
   })(),
 
+  // Stadio: cartelloni pubblicitari a bordo campo, gradinate piene di tifosi e il cielo con i fari.
+  stadium: (() => {
+    const boards = ['#1d4ed8', '#dc2626', '#16a34a', '#7c3aed', '#f59e0b'].map(rgb);
+    const concrete = rgb('#6b7280');
+    const step = rgb('#4b5563');
+    const crowd = ['#ef4444', '#3b82f6', '#fbbf24', '#f5f5f5', '#22c55e', '#1d4ed8', '#dc2626', '#a855f7'].map(rgb);
+    const skins = ['#f3d2b3', '#c68a5a', '#8d5a3b', '#e0b088'].map(rgb);
+    const skyTop = rgb('#0b1a3a');
+    const skyLow = rgb('#27406e');
+    return (col, h, height, side, sy) => {
+      if (h < 2) return rgb('#14532d');
+      // Cartelloni: pannelli colorati con una scritta chiara a blocchi.
+      if (h < 20) {
+        const panel = Math.floor(col / 48);
+        const base = boards[panel % boards.length];
+        if (h < 4 || h > 17 || col % 48 < 2) return tint(base, -0.45);
+        const letter = h > 7 && h < 14 && col % 48 > 8 && col % 48 < 40 && (col % 6 < 4) && noise(Math.floor(col / 6), panel) > 0.3;
+        return letter ? rgb('#f8fafc') : tint(base, (noise(col, sy) - 0.5) * 0.05);
+      }
+      if (h < 24) return concrete;
+      // Gradinate: file di tifosi (testa e maglia) su gradini di cemento.
+      if (h < height - 26) {
+        const row = Math.floor((h - 24) / 9);
+        const inRow = (h - 24) % 9;
+        if (inRow === 0) return tint(step, -0.2);
+        if (inRow < 3) return step;
+        const seat = Math.floor((col + row * 3) / 4);
+        if (noise(seat, row, 5) < 0.12) return tint(concrete, -0.1);
+        const inSeat = (col + row * 3) % 4;
+        if (inSeat === 3) return tint(step, -0.1);
+        const shirt = crowd[Math.floor(noise(seat, row, 9) * crowd.length)];
+        if (inRow < 6) return tint(shirt, (noise(col, sy) - 0.5) * 0.1);
+        if (inSeat === 0) return tint(step, -0.1);
+        return skins[Math.floor(noise(seat, row, 11) * skins.length)];
+      }
+      if (h < height - 23) return tint(concrete, 0.15);
+      const t = (h - (height - 23)) / 23;
+      let color = mix(skyLow, skyTop, t);
+      // Alone dei fari in cima alle tribune.
+      const glow = Math.max(0, 1 - Math.abs((col % 160) - 80) / 60) * (1 - t) * 0.5;
+      if (glow > 0) color = mix(color, rgb('#fef9c3'), glow);
+      return noise(col, h) > 0.997 ? rgb('#ffffff') : color;
+    };
+  })(),
+
   // Arena: pannelli rosso scuro con una fascia dorata.
   arena: (() => {
     const panel = rgb('#3b1d2c');
@@ -601,7 +712,7 @@ const WALLS = {
   })()
 };
 
-export const FLOOR_STYLES = Object.keys(FLOORS);
+export const FLOOR_STYLES = [...Object.keys(FLOORS), ...Object.keys(FLOOR_FACTORIES)];
 export const WALL_STYLES = Object.keys(WALLS);
 
 // ------------------------------------------------------------------ immagine della stanza
@@ -611,7 +722,7 @@ export const WALL_STYLES = Object.keys(WALLS);
  * del vertice alto della casella (0, 0).
  */
 export function renderRoom(layout, floorName, door, wallName = floorName) {
-  const floor = FLOORS[floorName] || FLOORS.neon;
+  const floor = FLOOR_FACTORIES[floorName] ? FLOOR_FACTORIES[floorName](layout, door) : (FLOORS[floorName] || FLOORS.neon);
   const wallPaint = WALLS[wallName] || WALLS.neon;
   const isDoor = (x, y) => door && door.x === x && door.y === y;
 

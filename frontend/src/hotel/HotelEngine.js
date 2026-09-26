@@ -25,6 +25,10 @@ const WATER = { pool_water: { size: 1, outfit: 'pool' }, sea_water: { size: 2, o
 const SWIM_SINK = 30;
 const HEART_MS = 2_200;
 
+/** Il pallone rotola piu' veloce di chi cammina: ms per casella. */
+const BALL_STEP_MS = 110;
+const GOAL_MS = 2_600;
+
 const BUBBLE_H = 20;
 const BUBBLE_GAP = 3;
 const BUBBLE_DRIFT_MS = 4_000;
@@ -67,6 +71,10 @@ export class HotelEngine {
     /** Riepiloghi dei pacchetti aperti: valore e carta migliore sopra la testa per qualche secondo. */
     this.recaps = [];
     this.reducedMotion = reducedMotion;
+    /** Pallone dello stadio: posizione, caselle ancora da rotolare e quando e' partito. null altrove. */
+    this.ball = null;
+    /** Scritta del gol al centro dello schermo. */
+    this.goalFlash = null;
 
     this.zoom = 2;
     this.camera = { x: 0, y: 0 };
@@ -188,6 +196,8 @@ export class HotelEngine {
       case 'jukebox': this.jukeboxOn = message.track >= 0; break;
       case 'room_updated': this.updateRoom(message.room); break;
       case 'respect': this.hearts.push({ userId: message.to, born: now }); break;
+      case 'ball': this.rollBall(message, now); break;
+      case 'goal': this.goalFlash = { team: message.team, label: message.label, by: message.by, winner: message.winner, born: now }; break;
       default: break;
     }
   }
@@ -214,6 +224,8 @@ export class HotelEngine {
     this.hearts = [];
     this.sips = [];
     this.recaps = [];
+    this.ball = message.ball ? { pos: { x: message.ball.x, y: message.ball.y }, steps: [], stepStart: now, spin: 0 } : null;
+    this.goalFlash = null;
     message.users.forEach((user) => this.addUser(user, now));
     this.centerCamera();
   }
@@ -245,6 +257,37 @@ export class HotelEngine {
     user.steps = path.map(([x, y, z]) => ({ x, y, z }));
     user.stepStart = now;
     user.status = 'idle';
+  }
+
+  /** Tiro: il pallone parte da dove si trova ora (anche a meta' di un rotolamento) e segue il percorso. */
+  rollBall(message, now) {
+    if (!this.ball) this.ball = { pos: { x: message.x, y: message.y }, steps: [], stepStart: now, spin: 0 };
+    const current = this.ballAt(now);
+    const path = message.path || [];
+    if (!path.length) {
+      this.ball.pos = { x: message.x, y: message.y };
+      this.ball.steps = [];
+      return;
+    }
+    this.ball.pos = { x: current.x, y: current.y };
+    this.ball.steps = path.map(([x, y]) => ({ x, y }));
+    this.ball.stepStart = now;
+  }
+
+  /** Posizione del pallone in questo istante, con il saltello di ogni casella. */
+  ballAt(now) {
+    const ball = this.ball;
+    while (ball.steps.length && now - ball.stepStart >= BALL_STEP_MS) {
+      ball.pos = ball.steps.shift();
+      ball.stepStart += BALL_STEP_MS;
+      ball.spin += 1;
+    }
+    if (!ball.steps.length) return { x: ball.pos.x, y: ball.pos.y, lift: 0, rolling: false };
+    const next = ball.steps[0];
+    const t = Math.min(1, (now - ball.stepStart) / BALL_STEP_MS);
+    // Rimbalzi sempre piu' bassi man mano che il pallone rallenta.
+    const lift = Math.sin(t * Math.PI) * Math.min(8, 2 + ball.steps.length * 1.2);
+    return { x: ball.pos.x + (next.x - ball.pos.x) * t, y: ball.pos.y + (next.y - ball.pos.y) * t, lift, rolling: true };
   }
 
   setStatus(id, status, dir) {
@@ -634,8 +677,10 @@ export class HotelEngine {
     // Avatar e mobili in ordine di profondita': chi e' piu' in basso sullo schermo copre chi sta dietro.
     const users = [...this.users.values()];
     users.forEach((u) => { u.drawn = this.advance(u, now); });
+    const ballAt = this.ball ? this.ballAt(now) : null;
     const scene = [
       ...users.map((user) => ({ kind: 'user', user, depth: this.userDepth(user) })),
+      ...(ballAt ? [{ kind: 'ball', depth: ballAt.x + ballAt.y + 0.005 }] : []),
       ...items.filter((item) => this.itemDepth(item) >= -100).map((item) => ({ kind: 'item', item, depth: this.itemDepth(item) }))
     ].sort((a, b) => a.depth - b.depth);
 
@@ -643,6 +688,12 @@ export class HotelEngine {
     scene.forEach((entry) => {
       if (entry.kind === 'item') {
         drawItem(entry.item);
+        return;
+      }
+      if (entry.kind === 'ball') {
+        const z = Math.max(0, this.layout?.heightAt(Math.round(ballAt.x), Math.round(ballAt.y)) ?? 0);
+        const c = tileCenter(ballAt.x, ballAt.y, z);
+        drawBall(ctx, toScreen(c.x, c.y), ballAt.lift * scale, 5.5 * DETAIL * scale / 2, this.ball.spin + (ballAt.rolling ? 0.5 : 0));
         return;
       }
       const { user } = entry;
@@ -732,7 +783,40 @@ export class HotelEngine {
       } else drawName(ctx, label, gemScale, now, animate);
     });
     this.drawRecaps(ctx, now);
+    this.drawGoal(ctx, now);
     this.drawBubbles(ctx, now);
+  }
+
+  /** "GOL!" grande al centro, nel colore della squadra che ha segnato. */
+  drawGoal(ctx, now) {
+    const flash = this.goalFlash;
+    if (!flash) return;
+    const age = now - flash.born;
+    if (age > GOAL_MS) {
+      this.goalFlash = null;
+      return;
+    }
+    const color = flash.team === 'blue' ? '#3b82f6' : '#ef4444';
+    const pop = this.reducedMotion ? 1 : Math.min(1, age / 180) * (1 + Math.sin(age / 90) * 0.04);
+    const x = this.cssWidth / 2;
+    const y = this.cssHeight * 0.34;
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, (GOAL_MS - age) / 400);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `900 ${Math.round(64 * pop)}px "Segoe UI", system-ui, sans-serif`;
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = '#0a0716';
+    ctx.strokeText('GOL!', x, y);
+    ctx.fillStyle = color;
+    ctx.fillText('GOL!', x, y);
+    ctx.font = 'bold 16px "Segoe UI", system-ui, sans-serif';
+    ctx.lineWidth = 4;
+    const line = flash.winner ? `${flash.by} · vincono i ${flash.label}!` : `${flash.by} · punto ai ${flash.label}`;
+    ctx.strokeText(line, x, y + 46);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(line, x, y + 46);
+    ctx.restore();
   }
 
   /**
@@ -862,6 +946,44 @@ export class HotelEngine {
       drawBubble(ctx, bubble, baseY - bubble.row * (BUBBLE_H + BUBBLE_GAP), this.cssWidth);
     });
   }
+}
+
+/**
+ * Pallone a pixel: bianco con le macchie nere che girano mentre rotola, ombra sotto che resta a
+ * terra quando rimbalza.
+ */
+function drawBall(ctx, at, lift, r, spin) {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+  ctx.beginPath();
+  ctx.ellipse(at.x, at.y, r * 1.1, r * 0.45, 0, 0, Math.PI * 2);
+  ctx.fill();
+  const cx = at.x;
+  const cy = at.y - r - lift;
+  ctx.fillStyle = '#1a1030';
+  ctx.beginPath();
+  ctx.arc(cx, cy, r + Math.max(1, r * 0.18), 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#f8fafc';
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.fillStyle = '#111827';
+  const turn = (spin % 4) * (Math.PI / 2) * 0.5;
+  [[0, 0], [1, 0.9], [2.1, 0.9], [3.2, 0.9], [4.3, 0.9], [5.4, 0.9]].forEach(([a, d]) => {
+    const angle = a + turn;
+    ctx.beginPath();
+    ctx.arc(cx + Math.cos(angle) * r * d, cy + Math.sin(angle) * r * d, r * (d ? 0.3 : 0.34), 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.beginPath();
+  ctx.arc(cx - r * 0.35, cy - r * 0.4, r * 0.22, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 function clamp(value, min, max) {
