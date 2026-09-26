@@ -764,6 +764,7 @@ export default function HotelPage() {
 
         {minigame && (
           <Minigame
+            onFx={(fx) => send({ type: 'minigame_fx', fx })}
             key={minigame.key}
             start={minigame}
             result={minigameResult}

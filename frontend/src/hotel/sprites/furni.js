@@ -999,21 +999,18 @@ const DRAW = {
 
   // ---------------------------------------------------------------- bowling
 
-  bowling_lane(b, { c, d }) {
-    // Pista lunga otto caselle (lungo v): legno chiaro a listelli, canaline ai lati, frecce e birilli in fondo.
-    b({ u0: 0, v0: 0, u1: 1, v1: 8, z1: 2, color: '#27272a' });
-    b({ u0: 0.14, v0: 0, u1: 0.86, v1: 8, z0: 2, z1: 4, color: '#e7c38a', tex: 'wood' });
-    for (let u = 0.2; u < 0.86; u += 0.09) d(u, 0.2, 4, 'rgba(120, 80, 40, 0.25)', 1, 1);
-    for (let v = 0.5; v < 7; v += 0.5) d(0.14, v, 4, '#c79d62', 1, 1);
-    d(0.14, 0.12, 4, '#dc2626', 30, 1);
-    [0.3, 0.5, 0.7].forEach((u) => d(u, 2.2 - Math.abs(u - 0.5), 4, '#1e3a8a', 3, 2));
-    // Birilli a triangolo.
-    [[0.5, 6.9], [0.4, 7.15], [0.6, 7.15], [0.3, 7.4], [0.5, 7.4], [0.7, 7.4], [0.2, 7.65], [0.4, 7.65], [0.6, 7.65], [0.8, 7.65]]
-      .forEach(([u, v]) => {
-        c({ u, v, r: 0.035, z0: 4, z1: 20, color: '#f8fafc', top: '#ffffff' });
-        c({ u, v, r: 0.037, z0: 14, z1: 16, color: '#dc2626' });
-      });
-    b({ u0: 0, v0: 7.9, u1: 1, v1: 8, z0: 0, z1: 34, color: '#111827' });
+  bowling_lane(b, { d }) {
+    // Pista lunga otto caselle (lungo v): legno chiaro lucido, canaline scure ai lati, linea di
+    // lancio, frecce e il fondo piu' chiaro dove stanno i birilli (li disegna il motore, cosi' cadono).
+    b({ u0: 0, v0: 0, u1: 1, v1: 8, z1: 2, color: '#1f2937' });
+    b({ u0: 0.02, v0: 0, u1: 0.12, v1: 8, z0: 2, z1: 2, color: '#4b5563' });
+    b({ u0: 0.88, v0: 0, u1: 0.98, v1: 8, z0: 2, z1: 2, color: '#4b5563' });
+    b({ u0: 0.14, v0: 0, u1: 0.86, v1: 8, z0: 2, z1: 4, color: '#f1d3a1', tex: 'wood' });
+    for (let v = 0.3; v < 6.5; v += 0.4) d(0.5, v, 4, 'rgba(255, 255, 255, 0.35)', 1, 1);
+    d(0.14, 0.35, 4, '#dc2626', 30, 1);
+    [0.3, 0.4, 0.5, 0.6, 0.7].forEach((u) => d(u, 2.4 + Math.abs(u - 0.5) * 2, 4, '#1e3a8a', 3, 2));
+    b({ u0: 0.14, v0: 6.6, u1: 0.86, v1: 7.95, z0: 4, z1: 4, color: '#fde7c3' });
+    b({ u0: 0, v0: 7.95, u1: 1, v1: 8, z0: 0, z1: 6, color: '#111827' });
   },
   bowling_rack(b, { c }) {
     b({ u0: 0.15, v0: 0.2, u1: 0.85, v1: 0.8, z1: 36, color: '#3f3f46', tex: 'metal' });

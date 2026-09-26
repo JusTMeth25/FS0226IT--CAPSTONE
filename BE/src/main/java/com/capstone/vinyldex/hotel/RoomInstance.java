@@ -123,6 +123,8 @@ public class RoomInstance {
         long gameStartedAt;
         int gameFromX;
         int gameFromY;
+        /** Ultimo evento del minigioco (tiro, lancio...) inoltrato agli altri: si limita la frequenza. */
+        long lastFxAt;
 
         /** Solo per gli NPC: chi sono, quando pensano alla prossima mossa, cosa stanno facendo. */
         NpcRoster.NpcSpec npc;
@@ -173,7 +175,7 @@ public class RoomInstance {
         this.random = random;
         this.mind = mind;
         initialItems.forEach(item -> items.put(item.id(), item));
-        this.football = FootballMatch.create(items.values());
+        this.football = FootballMatch.create(items.values(), layout, data.doorX(), data.doorY());
         spawnNpcs();
     }
 
@@ -345,7 +347,7 @@ public class RoomInstance {
                 RoomItemView target = items.get(occupant.pendingUse);
                 occupant.pendingUse = null;
                 Minigames.Game game = target == null ? null : Minigames.forFurni(target.type()).orElse(null);
-                if (game != null && (isNextTo(occupant, target) || target.covers(occupant.x, occupant.y))) {
+                if (game != null && (atGameSpot(occupant, target) || isNextTo(occupant, target) || target.covers(occupant.x, occupant.y))) {
                     startGame(occupant, target, game);
                 } else if (target != null && isNextTo(occupant, target)) {
                     serveDrink(occupant, target.type());
@@ -828,7 +830,7 @@ public class RoomInstance {
         if (football.inNet() || occupant.x != football.ballX() || occupant.y != football.ballY()) return;
         int power = occupant.path.isEmpty() ? FootballMatch.TAP_POWER : FootballMatch.RUN_POWER;
         FootballMatch.Kick kick = football.kick(occupant.dir, power, ballField(occupant.user.id()));
-        broadcast(ballMessage(kick.path(), occupant.user.username()));
+        broadcast(ballMessage(kick.path(), occupant.user.username(), occupant.user.id()));
         if (kick.scored() == null) return;
 
         FootballMatch.Team winner = football.winner();
@@ -915,12 +917,17 @@ public class RoomInstance {
     }
 
     private Map<String, Object> ballMessage(List<int[]> path, String by) {
+        return ballMessage(path, by, null);
+    }
+
+    private Map<String, Object> ballMessage(List<int[]> path, String by, UUID kickerId) {
         Map<String, Object> message = new LinkedHashMap<>();
         message.put("type", "ball");
         message.put("x", football.ballX());
         message.put("y", football.ballY());
         message.put("path", path);
         message.put("by", by);
+        message.put("byId", kickerId);
         message.put("blue", football.score(FootballMatch.Team.BLUE));
         message.put("red", football.score(FootballMatch.Team.RED));
         return message;
@@ -1188,6 +1195,19 @@ public class RoomInstance {
             occupant.pendingUse = item.id();
             return null;
         }
+        // Canestro, pista e buca hanno un posto preciso da cui si gioca (la lunetta, la linea di lancio,
+        // la partenza): ci si va li'. Se e' occupato si gioca da accanto al mobile.
+        int[] place = gameSpot(item);
+        if (place != null && layout.isTile(place[0], place[1]) && !isBlocked(userId, place[0], place[1], place[0], place[1])) {
+            if (atGameSpot(occupant, item)) {
+                startGame(occupant, item, game);
+                return null;
+            }
+            move(userId, place[0], place[1]);
+            if (occupant.path.isEmpty()) return "too_far";
+            occupant.pendingUse = item.id();
+            return null;
+        }
         if (isNextTo(occupant, item)) {
             startGame(occupant, item, game);
             return null;
@@ -1197,6 +1217,57 @@ public class RoomInstance {
         move(userId, spot[0], spot[1]);
         occupant.pendingUse = item.id();
         return null;
+    }
+
+    /** Verso in cui guarda il davanti di un mobile per ogni rotazione (0 sud, 2 est, 4 nord, 6 ovest). */
+    private static final int[][] FACING = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+
+    /**
+     * Posto da cui si gioca: tiro libero quattro caselle davanti al canestro, la casella prima della
+     * linea di lancio della pista, la partenza della buca del minigolf. null = da accanto al mobile.
+     */
+    static int[] gameSpot(RoomItemView item) {
+        int rot = Math.floorMod(item.rot(), 8) / 2;
+        if ("basket_hoop".equals(item.type())) {
+            int[] d = FACING[rot];
+            return new int[]{item.x() + d[0] * 4, item.y() + d[1] * 4};
+        }
+        if ("bowling_lane".equals(item.type())) {
+            int length = item.def().length();
+            return switch (rot) {
+                case 1 -> new int[]{item.x() - 1, item.y()};
+                case 2 -> new int[]{item.x(), item.y() + length};
+                case 3 -> new int[]{item.x() + length, item.y()};
+                default -> new int[]{item.x(), item.y() - 1};
+            };
+        }
+        if (item.type().startsWith("golf_hole_")) return new int[]{item.x() - 1, item.y()};
+        return null;
+    }
+
+    private static boolean atGameSpot(Occupant occupant, RoomItemView item) {
+        int[] spot = gameSpot(item);
+        return spot != null && occupant.x == spot[0] && occupant.y == spot[1];
+    }
+
+    /**
+     * Evento di un minigioco (il tiro a canestro, il lancio della boccia, la pallina del golf):
+     * il gioco si svolge nel browser di chi gioca, gli altri lo vedono animato nella stanza.
+     * Il punteggio non dipende da questi messaggi: servono solo alle animazioni.
+     */
+    public synchronized void minigameFx(UUID userId, Map<String, Object> fx) {
+        Occupant occupant = occupants.get(userId);
+        if (occupant == null || occupant.game == null || fx == null) return;
+        long now = System.currentTimeMillis();
+        if (now - occupant.lastFxAt < 80) return;
+        occupant.lastFxAt = now;
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put("type", "game_fx");
+        message.put("id", userId);
+        message.put("game", occupant.game.key());
+        message.put("item", occupant.gameItem);
+        message.put("fx", fx);
+        broadcast(message);
     }
 
     /** Casella del tapis roulant su cui si corre e direzione in cui si guarda la console. */

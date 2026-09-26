@@ -13,6 +13,7 @@ const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
  * non tocca il ferro (3 punti). Trenta secondi, e ogni canestro fa correre un po' di piu' la barra.
  */
 export const basket = {
+  compact: true,
   help: 'La barra della forza va su e giu\': premi SPAZIO nella zona verde per fare canestro (2 punti). Al centro esatto e\' un tiro pulito da 3!',
   duration: 30_000,
   keys: { ' ': 'shoot', Enter: 'shoot' },
@@ -27,7 +28,7 @@ export const basket = {
     if (s.power >= 100) { s.power = 100; s.dir = -1; }
     if (s.power <= 0) { s.power = 0; s.dir = 1; }
   },
-  press(s, action, pulse) {
+  press(s, action, pulse, emit) {
     if (action !== 'shoot' || s.flight > 0) return;
     const off = s.power - (s.zone + 6);
     let made = 0;
@@ -38,31 +39,15 @@ export const basket = {
     s.result = made === 3 ? 'Ciuff! Tiro pulito +3' : made ? 'Canestro! +2' : off < 0 ? 'Corto…' : 'Lungo…';
     s.shot = { made, off: clamp(off, -30, 30) };
     s.flight = 650;
+    emit?.({ kind: 'shoot', made: made ? 1 : 0, swish: made === 3 ? 1 : 0, off: s.shot.off });
     s.zone = rand(40, 82);
     if (made) pulse();
   },
   score: (s) => s.points,
   done: () => false,
   view: (s) => {
-    // Traiettoria: dalla mano (20,120) al ferro (160,42); se sbagli, finisce corta o lunga.
-    const t = s.flight > 0 ? 1 - s.flight / 650 : 0;
-    const endX = 160 + (s.shot && !s.shot.made ? s.shot.off * 1.2 : 0);
-    const bx = 20 + (endX - 20) * t;
-    const by = 120 - Math.sin(t * Math.PI) * 90 - t * 78 + (t > 0.9 && s.shot?.made ? (t - 0.9) * 200 : 0);
     return (
       <div className="mg-sport">
-        <svg className="mg-svg" viewBox="0 0 200 140" role="img" aria-label="Campo da basket">
-          <rect x="0" y="0" width="200" height="140" fill="#7c2d12" />
-          <rect x="0" y="118" width="200" height="22" fill="#c2410c" />
-          {[20, 60, 100, 140, 180].map((x) => <rect key={x} x={x} y="118" width="1" height="22" fill="#9a3412" />)}
-          <rect x="182" y="14" width="4" height="104" fill="#6b7280" />
-          <rect x="170" y="14" width="14" height="36" fill="#f8fafc" stroke="#111827" strokeWidth="1" />
-          <rect x="171" y="27" width="8" height="10" fill="none" stroke="#dc2626" strokeWidth="1.2" />
-          <rect x="150" y="42" width="22" height="2.5" fill="#f97316" />
-          <path d="M151 44 L155 56 L167 56 L171 44" fill="none" stroke="#f1f5f9" strokeWidth="1" />
-          {s.flight > 0 && <circle cx={bx} cy={by} r="6" fill="#ea580c" stroke="#431407" strokeWidth="1" />}
-          {s.flight === 0 && <circle cx="20" cy="112" r="6" fill="#ea580c" stroke="#431407" strokeWidth="1" />}
-        </svg>
         <div className="mg-meter mg-power">
           <span className="mg-zone" style={{ left: `${s.zone}%`, width: '12%' }} />
           <span className="mg-zone mg-zone-perfect" style={{ left: `${s.zone + 4.5}%`, width: '3%' }} />
@@ -112,6 +97,7 @@ export function knockPins(standing, x, power) {
  * all'altra), poi la forza. Strike +10 punti di bonus, spare +5.
  */
 export const bowling = {
+  compact: true,
   help: 'Premi SPAZIO per fermare la mira, poi di nuovo per la forza. Cinque frame da due tiri: strike +10, spare +5.',
   duration: 0,
   keys: { ' ': 'go', Enter: 'go' },
@@ -120,10 +106,10 @@ export const bowling = {
     phase: 'aim', aim: 0, aimDir: 1, power: 0, powerDir: 1, frame: 1, roll: 1, standing: [...Array(10).keys()],
     points: 0, frames: [], rolling: 0, ballX: 0, result: null, fallen: []
   }),
-  tick(s, dt) {
+  tick(s, dt, emit) {
     if (s.rolling > 0) {
       s.rolling = Math.max(0, s.rolling - dt);
-      if (s.rolling === 0) bowling.afterRoll(s);
+      if (s.rolling === 0) bowling.afterRoll(s, emit);
       return;
     }
     if (s.phase === 'aim') {
@@ -136,7 +122,7 @@ export const bowling = {
       if (s.power <= 0) { s.power = 0; s.powerDir = 1; }
     }
   },
-  press(s, action) {
+  press(s, action, pulse, emit) {
     if (action !== 'go' || s.rolling > 0 || s.phase === 'over') return;
     if (s.phase === 'aim') {
       s.phase = 'power';
@@ -145,10 +131,12 @@ export const bowling = {
     // Un filo d'effetto: la boccia devia un poco verso il centro, di piu' se lanciata piano.
     s.ballX = clamp(s.aim - s.aim * 0.12 * (1 - s.power / 100) + rand(-0.15, 0.15), -2.4, 2.4);
     s.fallen = Math.abs(s.ballX) > 2.1 ? [] : [...knockPins(s.standing, s.ballX, s.power)];
-    s.rolling = 900;
+    s.rolling = 1_100;
     s.phase = 'roll';
+    emit?.({ kind: 'roll', x: s.ballX, fallen: s.fallen, standing: s.standing.filter((i) => !s.fallen.includes(i)) });
+    pulse();
   },
-  afterRoll(s) {
+  afterRoll(s, emit) {
     const knocked = s.fallen.length;
     s.standing = s.standing.filter((i) => !s.fallen.includes(i));
     s.points += knocked;
@@ -175,6 +163,8 @@ export const bowling = {
       s.frame += 1;
       s.roll = 1;
       s.standing = [...Array(10).keys()];
+      // Nuovo frame: nella stanza i birilli si rialzano.
+      emit?.({ kind: 'reset' });
     }
     s.phase = s.frame > FRAMES ? 'over' : 'aim';
     s.power = 0;
@@ -182,33 +172,12 @@ export const bowling = {
   score: (s) => s.points,
   done: (s) => s.phase === 'over' && s.rolling === 0,
   view: (s) => {
-    const t = s.rolling > 0 ? 1 - s.rolling / 900 : 0;
-    const laneX = (x) => 60 + x * 14;
-    const standingSet = new Set(s.standing);
     return (
       <div className="mg-sport">
-        <svg className="mg-svg" viewBox="0 0 120 150" role="img" aria-label="Pista da bowling">
-          <rect x="0" y="0" width="120" height="150" fill="#111827" />
-          <rect x="22" y="0" width="76" height="150" fill="#e7c38a" />
-          <rect x="16" y="0" width="6" height="150" fill="#3f3f46" />
-          <rect x="98" y="0" width="6" height="150" fill="#3f3f46" />
-          {[30, 45, 60, 75, 90].map((x) => <path key={x} d={`M${x} 102 l-3 6 h6 z`} fill="#1e3a8a" />)}
-          {PINS.map(([px, row], i) => {
-            const up = standingSet.has(i) && !(s.rolling > 0 && t > 0.75 && s.fallen.includes(i));
-            const fallenNow = s.fallen.includes(i) && (s.rolling === 0 || t > 0.75);
-            if (!up && !fallenNow && !standingSet.has(i)) return null;
-            return up
-              ? <g key={i}><ellipse cx={laneX(px)} cy={14 + row * 9} rx="3.2" ry="4" fill="#f8fafc" /><rect x={laneX(px) - 3} y={12 + row * 9} width="6" height="1.4" fill="#dc2626" /></g>
-              : <ellipse key={i} cx={laneX(px) + 3} cy={16 + row * 9} rx="4.5" ry="2" fill="#9ca3af" opacity={s.rolling > 0 ? 1 : 0} />;
-          })}
-          {s.rolling > 0 && <circle cx={laneX(s.ballX)} cy={140 - t * 125} r="5" fill="#7c3aed" stroke="#2e1065" />}
-          {s.rolling === 0 && s.phase !== 'over' && (
-            <>
-              <circle cx={laneX(s.aim)} cy="140" r="5" fill="#7c3aed" stroke="#2e1065" />
-              <path d={`M${laneX(s.aim)} 128 l-4 6 h8 z`} fill={s.phase === 'aim' ? '#facc15' : '#22c55e'} />
-            </>
-          )}
-        </svg>
+        <div className="mg-lane-aim" title="Mira: da una canalina all'altra">
+          <span className="mg-lane-pins">{[...Array(10).keys()].map((i) => <i key={i} className={s.standing.includes(i) ? 'up' : ''} />)}</span>
+          <span className="mg-lane-ball" style={{ left: `${((s.aim + 2.4) / 4.8) * 100}%` }} />
+        </div>
         <div className="mg-meter mg-power"><span className="mg-cue" style={{ left: `${s.phase === 'power' ? s.power : 0}%` }} /></div>
         <div className="mg-frames">
           {Array.from({ length: FRAMES }, (_, i) => (
@@ -312,18 +281,25 @@ function golfStep(s, course, dt, now) {
 export function golf(hole) {
   const course = COURSES[hole] || COURSES[1];
   return {
+    compact: true,
     help: 'Premi SPAZIO per fermare la mira, poi la forza, e manda la pallina in buca. Meno colpi fai, piu\' punti prendi (buca in uno = 6).',
     duration: 0,
     keys: { ' ': 'go', Enter: 'go' },
     buttons: [['go', 'Ferma', 'ph-golf']],
     init: () => ({
       x: course.start[0], y: course.start[1], vx: 0, vy: 0, strokes: 0, phase: 'aim', aim: 0, aimDir: 1,
-      power: 0, powerDir: 1, moving: false, holed: false, clock: 0, blade: null
+      power: 0, powerDir: 1, moving: false, holed: false, clock: 0, blade: null, sent: -1
     }),
-    tick(s, dt) {
+    tick(s, dt, emit) {
       s.clock += dt;
+      // La pallina nella stanza segue quella del gioco: posizione ogni ~120 ms mentre rotola.
+      if (s.sent < 0 || (s.moving && s.clock - s.sent > 120)) {
+        s.sent = s.clock;
+        emit?.({ kind: 'ball', u: s.x / 200, v: s.y / 120 });
+      }
       if (s.moving) {
         golfStep(s, course, dt, s.clock);
+        if (!s.moving) emit?.(s.holed ? { kind: 'hole' } : { kind: 'ball', u: s.x / 200, v: s.y / 120 });
         if (!s.moving && !s.holed) s.phase = s.strokes >= MAX_STROKES ? 'over' : 'aim';
         if (s.holed) s.phase = 'over';
         return;
@@ -339,7 +315,7 @@ export function golf(hole) {
         if (s.power <= 0) { s.power = 0; s.powerDir = 1; }
       }
     },
-    press(s, action, pulse) {
+    press(s, action, pulse, emit) {
       if (action !== 'go' || s.moving || s.phase === 'over') return;
       if (s.phase === 'aim') {
         s.phase = 'power';
@@ -353,6 +329,7 @@ export function golf(hole) {
       s.strokes += 1;
       s.moving = true;
       s.phase = 'roll';
+      emit?.({ kind: 'roll' });
       pulse();
     },
     score: (s) => (s.holed ? Math.max(1, MAX_STROKES + 1 - s.strokes) : 0),

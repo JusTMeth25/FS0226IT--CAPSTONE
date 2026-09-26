@@ -234,6 +234,9 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             case "minigame_result" -> {
                 if (room != null) minigameResult(session, room, integer(node, "score"));
             }
+            case "minigame_fx" -> {
+                if (room != null) room.minigameFx(userId, minigameFx(node.get("fx")));
+            }
             case "minigame_quit" -> {
                 if (room != null) room.minigameQuit(userId);
             }
@@ -438,6 +441,36 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     private static String text(JsonNode node, String field) {
         JsonNode value = node.get(field);
         return value == null || value.isNull() ? null : value.asString();
+    }
+
+    /** Tipi di evento dei minigiochi che si inoltrano alla stanza, e i campi ammessi. */
+    private static final java.util.Set<String> FX_KINDS = java.util.Set.of("dribble", "shoot", "aim", "roll", "reset", "ball", "hole");
+    private static final List<String> FX_NUMBERS = List.of("made", "swish", "off", "x", "power", "u", "v");
+
+    /**
+     * Evento di un minigioco ripulito: solo il tipo, qualche numero entro limiti ragionevoli e le
+     * liste di birilli (indici da 0 a 9). Qualunque altra cosa si scarta.
+     */
+    static Map<String, Object> minigameFx(JsonNode node) {
+        if (node == null || !node.isObject()) return null;
+        String kind = text(node, "kind");
+        if (kind == null || !FX_KINDS.contains(kind)) return null;
+        Map<String, Object> fx = new java.util.LinkedHashMap<>();
+        fx.put("kind", kind);
+        for (String field : FX_NUMBERS) {
+            JsonNode value = node.get(field);
+            if (value != null && value.isNumber()) fx.put(field, Math.max(-100.0, Math.min(100.0, value.asDouble())));
+        }
+        for (String field : List.of("fallen", "standing")) {
+            JsonNode list = node.get(field);
+            if (list == null || !list.isArray()) continue;
+            List<Integer> pins = new java.util.ArrayList<>();
+            for (JsonNode pin : list) {
+                if (pin.isInt() && pin.asInt() >= 0 && pin.asInt() <= 9 && !pins.contains(pin.asInt())) pins.add(pin.asInt());
+            }
+            fx.put(field, pins);
+        }
+        return fx;
     }
 
     private static int integer(JsonNode node, String field) {

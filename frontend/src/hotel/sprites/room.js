@@ -360,6 +360,68 @@ const FLOOR_FACTORIES = {
   }
 };
 
+// Il campo da basket (come il campo da calcio, dipende dalla stanza): aggiunto qui sotto.
+FLOOR_FACTORIES.court = (layout, door) => {
+  let x0 = Infinity; let x1 = -Infinity; let y0 = Infinity; let y1 = -Infinity;
+  for (let y = 0; y < layout.height; y += 1) {
+    for (let x = 0; x < layout.width; x += 1) {
+      if (!layout.isTile(x, y) || (door && door.x === x && door.y === y)) continue;
+      x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+    }
+  }
+  // Campo una casella dentro i bordi; i canestri stanno sulla linea di fondo.
+  const cx0 = x0 + 1.4;
+  const cx1 = x1 - 0.4;
+  const cy0 = y0 + 1.4;
+  const cy1 = y1 - 0.4;
+  const mx = (cx0 + cx1) / 2;
+  const my = (cy0 + cy1) / 2;
+  const W = 0.07;
+  const keyDepth = 5.2;
+  const keyHalf = 2.2;
+  const three = Math.min(6.4, (cy1 - cy0) / 2 - 0.6);
+  const woods = ['#d9a066', '#cf9458', '#e0a96f', '#c98c50'].map(rgb);
+  const paint = rgb('#b45309');
+  const outside = rgb('#7c3a1d');
+  const white = rgb('#fafaf9');
+  const near = (a, b) => Math.abs(a - b) < W;
+  const isLine = (X, Y) => {
+    if (X < cx0 - W || X > cx1 + W || Y < cy0 - W || Y > cy1 + W) return false;
+    if (near(X, cx0) || near(X, cx1) || near(Y, cy0) || near(Y, cy1) || near(X, mx)) return true;
+    const dc = Math.hypot(X - mx, Y - my);
+    if (Math.abs(dc - 1.8) < W) return true;
+    for (const [base, dir] of [[cx0, 1], [cx1, -1]]) {
+      const d = (X - base) * dir;
+      const hoop = { x: base + dir * 1.6, y: my };
+      if (d >= 0 && d <= keyDepth && near(Math.abs(Y - my), keyHalf)) return true;
+      if (near(d, keyDepth) && Math.abs(Y - my) <= keyHalf) return true;
+      if (d > keyDepth && Math.abs(Math.hypot(X - (base + dir * keyDepth), Y - my) - 1.8) < W) return true;
+      // Linea da tre punti: arco attorno al canestro, dritta vicino alla linea di fondo.
+      const dh = Math.hypot(X - hoop.x, Y - hoop.y);
+      if ((X - hoop.x) * dir >= 0 && Math.abs(dh - three) < W) return true;
+      if ((X - hoop.x) * dir < 0 && d >= 0 && near(Math.abs(Y - my), three)) return true;
+    }
+    return false;
+  };
+  const inKey = (X, Y) => [[cx0, 1], [cx1, -1]].some(([base, dir]) => {
+    const d = (X - base) * dir;
+    return d >= 0 && d <= keyDepth && Math.abs(Y - my) <= keyHalf;
+  });
+  return (X, Y, sx, sy) => {
+    const n = noise(sx, sy);
+    if (isLine(X, Y)) return tint(white, (n - 0.5) * 0.04);
+    const inCourt = X >= cx0 && X <= cx1 && Y >= cy0 && Y <= cy1;
+    if (!inCourt) return tint(outside, (n - 0.5) * 0.06);
+    if (inKey(X, Y) || Math.hypot(X - mx, Y - my) < 1.8) return tint(paint, (n - 0.5) * 0.05);
+    // Parquet a listoni lungo il campo, con le giunture.
+    const row = Math.floor(Y * 5);
+    if (frac(Y * 5) < 0.06) return tint(woods[0], -0.2);
+    const plank = Math.floor((X + noise(row, 3) * 3) / 2.5);
+    const base = woods[Math.floor(noise(row, plank) * woods.length)];
+    return tint(base, (n - 0.5) * 0.05 + (frac(Y * 5) < 0.2 ? 0.05 : 0));
+  };
+};
+
 // ------------------------------------------------------------------ pareti
 
 /**

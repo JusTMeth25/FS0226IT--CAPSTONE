@@ -263,7 +263,7 @@ const GAMES = {
  * @param onFinish chiamato una volta con il punteggio finale
  * @param onPulse ogni azione riuscita: l'avatar si muove (ripetizione, pugno, passo...)
  */
-export default function Minigame({ start, result, onFinish, onReplay, onClose, onPulse }) {
+export default function Minigame({ start, result, onFinish, onReplay, onClose, onPulse, onFx }) {
   const game = GAMES[start.game];
   const state = useRef(null);
   const [phase, setPhase] = useState('ready');
@@ -275,10 +275,12 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
   const finished = useRef(false);
   // La pagina si ridisegna spesso (chat, NPC...) e ricrea le callback: si tengono in un ref,
   // cosi' il ciclo del gioco non riparte da capo e il tempo non si azzera.
-  const callbacks = useRef({ onFinish, onPulse });
+  const callbacks = useRef({ onFinish, onPulse, onFx });
   useEffect(() => {
-    callbacks.current = { onFinish, onPulse };
-  }, [onFinish, onPulse]);
+    callbacks.current = { onFinish, onPulse, onFx };
+  }, [onFinish, onPulse, onFx]);
+  // Eventi del gioco (tiro, lancio, pallina) mandati alla stanza: gli altri li vedono animati.
+  const emit = useCallback((fx) => callbacks.current.onFx?.(fx), []);
 
   const finish = useCallback(() => {
     if (finished.current) return;
@@ -318,7 +320,7 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
       // rallenta, la partita non dura di piu'.
       const dt = Math.min(100, now - last);
       last = now;
-      game.tick(state.current, dt);
+      game.tick(state.current, dt, emit);
       if (game.duration) {
         timeLeft.current = game.duration - (now - playStart.current);
         if (timeLeft.current <= 0) {
@@ -335,12 +337,12 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [phase, game, finish, start.maxScore]);
+  }, [phase, game, finish, start.maxScore, emit]);
 
   const act = useCallback((action) => {
     if (phase !== 'play' || finished.current) return;
-    game.press(state.current, action, () => callbacks.current.onPulse());
-  }, [phase, game]);
+    game.press(state.current, action, () => callbacks.current.onPulse(), emit);
+  }, [phase, game, emit]);
 
   // Tastiera: si ignora mentre si scrive in chat.
   useEffect(() => {
@@ -362,7 +364,7 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
   const seconds = Math.max(0, Math.ceil((snap?.time || 0) / 1000));
 
   return (
-    <div className="hotel-panel hotel-minigame" role="dialog" aria-label={start.title}>
+    <div className={`hotel-panel hotel-minigame${game.compact ? ' is-compact' : ''}`} role="dialog" aria-label={start.title}>
       <header className="hotel-panel-header">
         <h3><i className="ph-fill ph-trophy" /> {start.title}</h3>
         {phase === 'play' && game.duration > 0 && <span className={`pvp-timer${seconds <= 5 ? ' urgent' : ''}`}>{seconds}s</span>}

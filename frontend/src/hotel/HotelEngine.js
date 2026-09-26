@@ -29,6 +29,13 @@ const HEART_MS = 2_200;
 /** Il pallone rotola piu' veloce di chi cammina: ms per casella. */
 const BALL_STEP_MS = 110;
 const GOAL_MS = 2_600;
+/** Animazioni dei minigiochi nella stanza: tiro a canestro, boccia sulla pista, caduta dei birilli. */
+const SHOT_MS = 750;
+const SHOT_HOLD_MS = 180;
+const ROLL_MS = 1_100;
+const PIN_FALLEN_MS = 1_400;
+/** Birilli: posizione laterale (in larghezze di birillo) e fila, come in sportGames.jsx. */
+const BOWLING_PINS = [[0, 0], [-0.5, 1], [0.5, 1], [-1, 2], [0, 2], [1, 2], [-1.5, 3], [-0.5, 3], [0.5, 3], [1.5, 3]];
 
 const BUBBLE_H = 20;
 const BUBBLE_GAP = 3;
@@ -80,6 +87,11 @@ export class HotelEngine {
     this.weather = null;
     this.weatherState = createWeatherState();
     this.decor = null;
+    /** Minigiochi animati: tiri a canestro in volo, bocce in corsa, birilli di ogni pista, palline da golf. */
+    this.shots = [];
+    this.rolls = [];
+    this.lanes = new Map();
+    this.golfBalls = new Map();
 
     this.zoom = 2;
     this.camera = { x: 0, y: 0 };
@@ -185,6 +197,7 @@ export class HotelEngine {
       case 'item_updated': this.items.set(message.item.id, message.item); this.waterTiles = null; this.decor = null; break;
       case 'item_removed': this.items.delete(message.id); this.waterTiles = null; this.decor = null; break;
       case 'weather': this.setWeather(message); break;
+      case 'game_fx': this.applyFx(message, now); break;
       case 'hand_item': this.setHandItem(message.id, message.item, message.left); break;
       case 'consume': this.setConsume(message.id, message.item, message.left, now); break;
       case 'minigame': {
@@ -227,6 +240,10 @@ export class HotelEngine {
     this.weather = message.weather || null;
     this.weatherState = createWeatherState();
     this.decor = null;
+    this.shots = [];
+    this.rolls = [];
+    this.lanes = new Map();
+    this.golfBalls = new Map();
     this.roomImage = renderRoom(this.layout, message.room.floorStyle, message.room.door, message.room.wallStyle, this.weather);
     this.users.clear();
     this.bubbles = [];
@@ -271,6 +288,183 @@ export class HotelEngine {
     user.status = 'idle';
   }
 
+  // ------------------------------------------------------------------ minigiochi animati
+
+  /**
+   * Evento di un minigioco (dal browser di chi gioca, via server): posa dell'avatar e animazione
+   * nella stanza, uguale per tutti.
+   */
+  applyFx(message, now) {
+    const user = this.users.get(message.id);
+    const fx = message.fx || {};
+    if (user) user.fx = { kind: fx.kind, born: now };
+    const item = this.items.get(message.item);
+    if (!item) return;
+    if (message.game === 'basket' && fx.kind === 'shoot' && user) {
+      this.shots.push({ userId: user.id, item, made: fx.made > 0, swish: fx.swish > 0, off: fx.off || 0, born: now });
+    } else if (message.game === 'bowling') {
+      const lane = this.laneState(item.id);
+      if (fx.kind === 'roll') {
+        this.rolls.push({ item, x: fx.x || 0, born: now });
+        lane.pending = { fallen: fx.fallen || [], at: now + ROLL_MS };
+      } else if (fx.kind === 'reset') {
+        lane.resetAt = now + PIN_FALLEN_MS + 300;
+      }
+    } else if (message.game.startsWith('golf')) {
+      if (fx.kind === 'ball') {
+        const prev = this.golfBalls.get(item.id);
+        const to = { u: 0.1 + clamp(fx.u ?? 0, 0, 1) * 2.8, v: 0.1 + clamp(fx.v ?? 0, 0, 1) * 1.8 };
+        const from = prev && !prev.sunkAt ? golfPosition(prev, now) : to;
+        this.golfBalls.set(item.id, { from, to, born: now, sunkAt: 0 });
+      } else if (fx.kind === 'hole') {
+        const ball = this.golfBalls.get(item.id);
+        if (ball) ball.sunkAt = now;
+      }
+    }
+  }
+
+  laneState(itemId) {
+    let lane = this.lanes.get(itemId);
+    if (!lane) {
+      lane = { fallen: new Set(), fallAt: 0, resetAt: 0, pending: null };
+      this.lanes.set(itemId, lane);
+    }
+    return lane;
+  }
+
+  /** Punto (u, v) del mobile, in caselle, girato come il mobile. */
+  itemPoint(item, u, v) {
+    const def = this.catalog.get(item.type) || { width: 1, length: 1 };
+    const W = def.width;
+    const L = def.length;
+    switch (item.rot) {
+      case 2: return { x: item.x + v, y: item.y + u };
+      case 4: return { x: item.x + W - u, y: item.y + L - v };
+      case 6: return { x: item.x + L - v, y: item.y + W - u };
+      default: return { x: item.x + u, y: item.y + v };
+    }
+  }
+
+  /** Punto del mobile sullo schermo (pixel base), a `z` pixel da terra. */
+  itemScreen(item, u, v, z) {
+    const p = this.itemPoint(item, u, v);
+    const t = tileTop(p.x, p.y, item.z);
+    return { x: t.x, y: t.y - z };
+  }
+
+  /** Birilli sulla pista (in piedi, o per terra appena caduti) e la boccia che corre. */
+  drawLaneExtras(ctx, item, now, toScreen, scale) {
+    const lane = this.laneState(item.id);
+    if (lane.pending && now >= lane.pending.at) {
+      lane.pending.fallen.forEach((pin) => lane.fallen.add(pin));
+      lane.fallAt = now;
+      lane.pending = null;
+    }
+    if (lane.resetAt && now >= lane.resetAt) {
+      lane.fallen.clear();
+      lane.resetAt = 0;
+    }
+    BOWLING_PINS.forEach(([px, row], i) => {
+      const p = toScreen(...Object.values(this.itemScreen(item, 0.5 + px * 0.15, 6.85 + row * 0.27, 4)));
+      const fallen = lane.fallen.has(i);
+      if (fallen && now - lane.fallAt > PIN_FALLEN_MS) return;
+      if (fallen) {
+        // Birillo a terra, girato di lato.
+        ctx.fillStyle = '#1a1030';
+        ctx.fillRect(p.x - 5 * scale, p.y - 3 * scale, 11 * scale, 5 * scale);
+        ctx.fillStyle = '#e5e7eb';
+        ctx.fillRect(p.x - 4 * scale, p.y - 2 * scale, 9 * scale, 3 * scale);
+        ctx.fillStyle = '#dc2626';
+        ctx.fillRect(p.x, p.y - 2 * scale, scale, 3 * scale);
+        return;
+      }
+      ctx.fillStyle = '#1a1030';
+      ctx.fillRect(p.x - 3 * scale, p.y - 14 * scale, 6 * scale, 15 * scale);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(p.x - 2 * scale, p.y - 13 * scale, 4 * scale, 13 * scale);
+      ctx.fillRect(p.x - 1 * scale, p.y - 15 * scale, 2 * scale, 2 * scale);
+      ctx.fillStyle = '#dc2626';
+      ctx.fillRect(p.x - 2 * scale, p.y - 10 * scale, 4 * scale, 2 * scale);
+    });
+    this.rolls = this.rolls.filter((roll) => now - roll.born < ROLL_MS);
+    this.rolls.filter((roll) => roll.item.id === item.id).forEach((roll) => {
+      const t = (now - roll.born) / ROLL_MS;
+      const p = toScreen(...Object.values(this.itemScreen(item, 0.5 + roll.x * 0.15 * t, 0.4 + t * 6.3, 7)));
+      ctx.fillStyle = '#1a1030';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 6 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#7c3aed';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 5 * scale, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  /** Pallina del golf sulla buca vera, che segue i colpi di chi gioca. */
+  drawGolfBall(ctx, item, now, toScreen, scale) {
+    const ball = this.golfBalls.get(item.id);
+    if (!ball) return;
+    if (ball.sunkAt && now - ball.sunkAt > 400) {
+      if (now - ball.sunkAt > 3_000) this.golfBalls.delete(item.id);
+      return;
+    }
+    const at = golfPosition(ball, now);
+    const p = toScreen(...Object.values(this.itemScreen(item, at.u, at.v, 7)));
+    ctx.fillStyle = '#1a1030';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 3.2 * scale, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 2.4 * scale, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  /** Tiri a canestro in volo: parabola dalle mani al ferro, poi dentro la retina o fuori. */
+  drawShots(ctx, now, toScreen, scale) {
+    this.shots = this.shots.filter((shot) => now - shot.born < SHOT_HOLD_MS + SHOT_MS + 500);
+    this.shots.forEach((shot) => {
+      const user = this.users.get(shot.userId);
+      if (!user?.drawn) return;
+      const c = tileCenter(user.drawn.x, user.drawn.y, user.drawn.z);
+      const from = { x: c.x, y: c.y - 84 };
+      const rim = this.itemScreen(shot.item, 0.5, 0.62, 101);
+      const to = { x: rim.x + (shot.made ? 0 : shot.off * 0.6), y: rim.y };
+      // Per un attimo il pallone e' ancora fra le mani (lo disegna l'avatar), poi parte.
+      const age = now - shot.born - SHOT_HOLD_MS;
+      if (age < 0) return;
+      let x;
+      let y;
+      if (age <= SHOT_MS) {
+        const t = age / SHOT_MS;
+        const lift = 50 + Math.hypot(to.x - from.x, to.y - from.y) * 0.25;
+        x = from.x + (to.x - from.x) * t;
+        y = from.y + (to.y - from.y) * t - Math.sin(t * Math.PI) * lift;
+      } else {
+        const t = (age - SHOT_MS) / 500;
+        // Dentro: scende nella retina. Fuori: rimbalza sul ferro e cade di lato.
+        x = to.x + (shot.made ? 0 : Math.sign(shot.off || 1) * t * 22);
+        y = to.y + (shot.made ? t * 26 : -Math.sin(t * Math.PI) * 10 + t * 30);
+      }
+      const p = toScreen(x, y);
+      ctx.fillStyle = '#1a1030';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 6 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ea580c';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 5 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#7c2d12';
+      ctx.lineWidth = Math.max(1, scale);
+      ctx.beginPath();
+      ctx.moveTo(p.x - 5 * scale, p.y);
+      ctx.lineTo(p.x + 5 * scale, p.y);
+      ctx.stroke();
+    });
+  }
+
   /** Nuovo meteo: cambiando stagione o festa si ridisegnano festoni e decorazioni. */
   setWeather(weather) {
     const restyle = !this.weather || this.weather.season !== weather.season || this.weather.holiday !== weather.holiday
@@ -304,6 +498,8 @@ export class HotelEngine {
 
   /** Tiro: il pallone parte da dove si trova ora (anche a meta' di un rotolamento) e segue il percorso. */
   rollBall(message, now) {
+    const kicker = message.byId ? this.users.get(message.byId) : null;
+    if (kicker) kicker.kickAt = now;
     if (!this.ball) this.ball = { pos: { x: message.x, y: message.y }, steps: [], stepStart: now, spin: 0 };
     const current = this.ballAt(now);
     const path = message.path || [];
@@ -647,7 +843,12 @@ export class HotelEngine {
     let pose = 'stand';
     let frame = 0;
     const animate = !this.reducedMotion;
-    if (at.walking) {
+    const fx = user.fx;
+    const fxAge = fx ? now - fx.born : Infinity;
+    if (now - (user.kickAt || 0) < 320) {
+      // Calcio al pallone: la gamba parte in avanti, anche di corsa.
+      pose = 'kick';
+    } else if (at.walking) {
       pose = 'walk';
       frame = Math.floor(now / 125) % 4;
     } else if (user.game === 'bench') {
@@ -660,6 +861,28 @@ export class HotelEngine {
     } else if (user.game === 'box') {
       pose = 'punch';
       frame = user.id === this.meId ? (now - (user.pulseAt || 0) < 180 ? 1 : 0) : (animate ? Math.floor(now / 320) % 2 : 0);
+    } else if (user.game === 'basket') {
+      // Palleggio, poi il tiro: pallone sopra la testa e braccia che si distendono.
+      if (fx?.kind === 'shoot' && fxAge < 650) {
+        pose = 'shoot';
+        frame = fxAge < 180 ? 0 : 1;
+      } else {
+        pose = 'dribble';
+        frame = animate ? Math.floor(now / 140) % 4 : 0;
+      }
+    } else if (user.game === 'bowling') {
+      // Boccia in mano; al lancio caricamento all'indietro e rilascio con il passo in avanti.
+      pose = 'bowl';
+      frame = fx?.kind === 'roll' && fxAge < 900 ? (fxAge < 300 ? 1 : 2) : 0;
+    } else if (user.game?.startsWith('golf')) {
+      pose = 'putt';
+      frame = fx?.kind === 'roll' && fxAge < 400 ? 1 : 0;
+    } else if (user.game === 'rhythm' || user.game === 'claw') {
+      pose = 'play';
+      frame = animate ? Math.floor(now / 260) % 2 : 0;
+    } else if (user.game === 'pool') {
+      pose = 'cue';
+      frame = animate ? Math.floor(now / 500) % 2 : 0;
     } else if (user.status === 'sit') {
       pose = 'sit';
     } else if (user.status === 'dance' || (this.jukeboxOn && user.status !== 'sit' && this.onDanceFloor(at))) {
@@ -706,6 +929,8 @@ export class HotelEngine {
       const { sprite, left, top } = this.itemSprite(item, now);
       const p = toScreen(left, top);
       ctx.drawImage(sprite, p.x, p.y, sprite.width * scale, sprite.height * scale);
+      if (item.type === 'bowling_lane') this.drawLaneExtras(ctx, item, now, toScreen, scale);
+      else if (item.type.startsWith('golf_hole_')) this.drawGolfBall(ctx, item, now, toScreen, scale);
     };
     const items = [...this.items.values()].filter((item) => this.catalog.has(item.type));
     const backItems = items.filter((item) => this.itemDepth(item) < -100).sort((a, b) => this.itemDepth(a) - this.itemDepth(b));
@@ -820,6 +1045,7 @@ export class HotelEngine {
       }
     });
 
+    this.drawShots(ctx, now, toScreen, scale);
     this.drawPlacement(ctx, now, toScreen, scale);
     // Pioggia, neve, vento e luce del sole sopra le stanze all'aperto.
     if (this.weather && isOutdoor(this.room)) {
@@ -1044,6 +1270,12 @@ function drawBall(ctx, at, lift, r, spin) {
   ctx.arc(cx - r * 0.35, cy - r * 0.4, r * 0.22, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+}
+
+/** Pallina del golf fra un punto e il successivo (la posizione arriva ogni ~120 ms). */
+function golfPosition(ball, now) {
+  const t = Math.min(1, (now - ball.born) / 130);
+  return { u: ball.from.u + (ball.to.u - ball.from.u) * t, v: ball.from.v + (ball.to.v - ball.from.v) * t };
 }
 
 function clamp(value, min, max) {

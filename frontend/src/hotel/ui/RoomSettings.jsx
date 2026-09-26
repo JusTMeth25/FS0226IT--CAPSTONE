@@ -5,7 +5,7 @@ const FLOORS = [
   ['neon', 'Piastrelle neon'], ['parquet', 'Parquet scuro'], ['carpet', 'Moquette'],
   ['checker', 'Scacchiera'], ['marble', 'Marmo'], ['arena', 'Ring'], ['grass', 'Prato'], ['pooldeck', 'Bordo piscina'],
   ['terracotta', 'Cotto'], ['wooddeck', 'Pedana in legno'], ['sand', 'Sabbia'], ['cobble', 'Sampietrini'],
-  ['cinema', 'Moquette del cinema'], ['rubber', 'Gomma da palestra'], ['pitch', 'Campo da calcio']
+  ['cinema', 'Moquette del cinema'], ['rubber', 'Gomma da palestra'], ['pitch', 'Campo da calcio'], ['court', 'Parquet da basket']
 ];
 const WALLS = [
   ['neon', 'Carta da parati neon'], ['brick', 'Mattoni'], ['teal', 'Verde caffetteria'],

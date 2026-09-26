@@ -74,6 +74,11 @@ final class FootballMatch {
 
     private final Goal west;
     private final Goal east;
+    /** Campo disegnato (caselle comprese): il pallone ne resta dentro e rimbalza sulle linee. */
+    private final int minX;
+    private final int minY;
+    private final int maxX;
+    private final int maxY;
     private final int homeX;
     private final int homeY;
     private int ballX;
@@ -82,17 +87,43 @@ final class FootballMatch {
     private int red;
     private boolean inNet;
 
-    private FootballMatch(Goal west, Goal east) {
+    private FootballMatch(Goal west, Goal east, int[] pitch) {
         this.west = west;
         this.east = east;
+        this.minX = pitch[0];
+        this.minY = pitch[1];
+        this.maxX = pitch[2];
+        this.maxY = pitch[3];
         this.homeX = (west.x() + east.x()) / 2;
         this.homeY = (west.centerY() + east.centerY()) / 2;
         this.ballX = homeX;
         this.ballY = homeY;
     }
 
-    /** La partita della stanza, se ci sono due porte una di fronte all'altra; altrimenti null. */
-    static FootballMatch create(Collection<RoomItemView> items) {
+    /**
+     * La partita della stanza, con il campo come lo disegna il pavimento "pitch": due caselle dentro
+     * i bordi della stanza (fuori ci sono la pista e le porte). La porta d'ingresso non conta.
+     */
+    static FootballMatch create(Collection<RoomItemView> items, RoomLayout layout, int doorX, int doorY) {
+        int x0 = Integer.MAX_VALUE;
+        int y0 = Integer.MAX_VALUE;
+        int x1 = Integer.MIN_VALUE;
+        int y1 = Integer.MIN_VALUE;
+        for (int y = 0; y < layout.height(); y++) {
+            for (int x = 0; x < layout.width(); x++) {
+                if (!layout.isTile(x, y) || (x == doorX && y == doorY)) continue;
+                x0 = Math.min(x0, x);
+                y0 = Math.min(y0, y);
+                x1 = Math.max(x1, x);
+                y1 = Math.max(y1, y);
+            }
+        }
+        if (x0 == Integer.MAX_VALUE) return null;
+        return create(items, new int[]{x0 + 2, y0 + 2, x1 - 2, y1 - 2});
+    }
+
+    /** La partita con il campo dato (minX, minY, maxX, maxY), se ci sono due porte una di fronte all'altra. */
+    static FootballMatch create(Collection<RoomItemView> items, int[] pitch) {
         List<Goal> goals = new ArrayList<>();
         for (RoomItemView item : items) {
             if (!GOAL_TYPE.equals(item.type())) continue;
@@ -102,7 +133,7 @@ final class FootballMatch {
         if (goals.size() != 2) return null;
         goals.sort(Comparator.comparingInt(Goal::x));
         if (goals.get(0).x() == goals.get(1).x()) return null;
-        return new FootballMatch(goals.get(0), goals.get(1));
+        return new FootballMatch(goals.get(0), goals.get(1), pitch);
     }
 
     int ballX() {
@@ -161,8 +192,8 @@ final class FootballMatch {
             if (scored != null) return score(path, x + dx, y + dy, scored);
             if (!canRoll(field, x, y, dx, dy)) {
                 // Rimbalzo: in diagonale si inverte solo la componente che ha colpito, dritti si torna indietro.
-                boolean xOpen = dx != 0 && field.ballCanEnter(x + dx, y);
-                boolean yOpen = dy != 0 && field.ballCanEnter(x, y + dy);
+                boolean xOpen = dx != 0 && open(field, x + dx, y);
+                boolean yOpen = dy != 0 && open(field, x, y + dy);
                 if (dx != 0 && dy != 0 && xOpen && !yOpen) {
                     dy = -dy;
                 } else if (dx != 0 && dy != 0 && yOpen && !xOpen) {
@@ -211,9 +242,14 @@ final class FootballMatch {
     }
 
     private boolean canRoll(Field field, int x, int y, int dx, int dy) {
-        if (!field.ballCanEnter(x + dx, y + dy)) return false;
+        if (!open(field, x + dx, y + dy)) return false;
         // In diagonale non si passa fra due ostacoli che si toccano per lo spigolo.
-        return dx == 0 || dy == 0 || field.ballCanEnter(x + dx, y) || field.ballCanEnter(x, y + dy);
+        return dx == 0 || dy == 0 || open(field, x + dx, y) || open(field, x, y + dy);
+    }
+
+    /** Casella dentro le linee del campo e libera: fuori dalle linee il pallone rimbalza. */
+    private boolean open(Field field, int x, int y) {
+        return x >= minX && x <= maxX && y >= minY && y <= maxY && field.ballCanEnter(x, y);
     }
 
     /** Gol solo entrando nella porta dal lato del campo: da dietro o di lato la porta e' un palo. */

@@ -961,3 +961,20 @@ button.hotel-trade-card:hover { background: var(--hp-surface-hover); }
 }
 .hotel-weather.is-outdoor { color: #fde68a; }
 
+/* Minigiochi sportivi compatti: il gioco si vede nella stanza, qui restano i comandi. */
+.hotel-minigame.is-compact { width: min(400px, calc(100% - 16px)); max-height: 45%; }
+.hotel-minigame.is-compact .hotel-panel-hint { font-size: 0.72rem; margin: 0; }
+.hotel-minigame.is-compact .mg-record { font-size: 0.72rem; margin: 2px 0 6px; }
+.hotel-minigame.is-compact .mg-svg { max-height: 120px; }
+.mg-lane-aim {
+  position: relative; height: 34px; border-radius: 8px;
+  background: linear-gradient(90deg, #4b5563 0 8%, #f1d3a1 8% 92%, #4b5563 92% 100%);
+}
+.mg-lane-pins { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); display: flex; gap: 3px; }
+.mg-lane-pins i { width: 6px; height: 10px; border-radius: 3px 3px 2px 2px; background: rgba(0, 0, 0, 0.18); }
+.mg-lane-pins i.up { background: #f8fafc; box-shadow: inset 0 -3px 0 #dc2626; }
+.mg-lane-ball {
+  position: absolute; bottom: 3px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%;
+  background: #7c3aed; border: 2px solid #2e1065;
+}
+

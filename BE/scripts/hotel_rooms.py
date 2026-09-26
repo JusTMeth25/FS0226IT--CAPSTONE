@@ -21,11 +21,19 @@ MIGRATION = os.path.join(MIGRATIONS_DIR, 'V12__hotel_big_rooms.sql')
 # Le stanze aggiunte dopo la V12 (gia' applicata, non si puo' cambiare) finiscono in migrazioni loro.
 V17 = os.path.join(MIGRATIONS_DIR, 'V17__hotel_stadium.sql')
 V18 = os.path.join(MIGRATIONS_DIR, 'V18__hotel_bowling_minigolf.sql')
-LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18}
+V19 = os.path.join(MIGRATIONS_DIR, 'V19__hotel_basket_court_bowling.sql')
+LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18, 18: V19}
+# Migrazione in lavorazione: le altre, gia' pubblicate, non si riscrivono piu' (Flyway ne controlla
+# il contenuto). Le stanze cambiate dopo la pubblicazione si rifanno qui (REBUILT) e gli arredi da
+# togliere si elencano in REMOVED.
+CURRENT = V19
+REBUILT = {16: V19}
+REMOVED = {V19: [('00000000-0000-0000-0000-00000000a00f', 'basket_hoop')]}
 # Arredi aggiunti a stanze gia' pubblicate: finiscono nella migrazione indicata (vedi Room.migration).
 MIGRATION_TITLES = {
     V17: 'Nuova stanza pubblica: Stadio.',
     V18: 'Canestri nello stadio e due stanze nuove: Bowling e Minigolf.',
+    V19: 'Palazzetto con il campo da basket, bowling rifatto con piu\' piste, canestri tolti dallo stadio.',
 }
 
 # ------------------------------------------------------------------ catalogo (come FurniCatalog.java)
@@ -639,33 +647,33 @@ r.walker('mago', 'Mago', 'FOOTBALLER', 's4.h1.hc4.sh3.p0.t0.f1.a0', 12, 16, 10)
 r.walker('razzo', 'Razzo', 'FOOTBALLER', 's1.h0.hc2.sh6.p0.t0.f1.a0', 24, 8, 10)
 r.walker('muro', 'Muro', 'FOOTBALLER', 's3.h9.hc7.sh6.p0.t0.f1.a0', 24, 16, 10)
 r.walker('ultra', 'Ultra', 'GUEST', 's0.h3.hc6.sh1.p3.t1.f3.a5.b1', 16, 3, 4)
-# Canestri a bordo campo, sulla pista in basso: tiri liberi (minigioco).
-r.migration(V18)
-r.add('basket_hoop', 12, 23).add('basket_hoop', 24, 23)
+# I canestri a bordo campo (V18) sono passati al Palazzetto: la V19 li toglie dallo stadio.
 
 # ------------------------------------------------------------------ Bowling
 
 r = room(16, 'BOWLING', 'Bowling',
-         'Sei piste, luci al neon e il rumore dei birilli: prendi una palla e punta allo strike!',
-         24, 18, 9, 'carpet', 'neon', 16)
-# Piste lungo x: dalla linea di lancio (x=17) ai birilli (x=24). Si gioca dalla casella davanti.
-for y in range(2, 8):
-    r.add('bowling_lane', 17, y, 2)
-for y in (3, 6):
-    r.add('bowling_rack', 15, y)
-for y in (2, 5, 8, 11):
-    r.add('sofa_vinyl', 12, y, 2)
-r.add('coffee_table', 10, 3).add('coffee_table', 10, 9)
-r.add('bar_counter', 3, 3).row('bar_stool', 3, 4, 3, rot=6).add('jukebox', 8, 1).add('coffee_machine', 6, 1)
-r.add('shoe_counter', 3, 15).add('arcade', 1, 18).add('arcade', 2, 18).add('claw_machine', 3, 18)
-r.add('plant_big', 24, 16).add('plant_big', 13, 18).add('lamp_neon', 9, 18).add('trophy', 1, 1)
-for x in (18, 20, 22):
+         'Dodici piste, luci al neon e il rumore dei birilli: prendi una palla e punta allo strike!',
+         26, 20, 10, 'carpet', 'neon', 16)
+# Piste verso chi guarda: si lancia dalla riga 3 e i birilli stanno in fondo alla pista, in primo
+# piano. Dodici piste affiancate, dalla colonna 6 alla 17.
+for x in range(6, 18):
+    r.add('bowling_lane', x, 4, 0)
+for x in (7, 10, 13, 16):
+    r.add('bowling_rack', x, 2)
+for x in (7, 11, 15):
     r.add('scoreboard', x, 1, 0)
-r.add('neon_sign', 1, 5, 2).add('neon_sign', 1, 13, 2).add('poster_neon', 12, 1, 0)
-r.worker('rita', 'Rita', 'BARISTA', 's0.h2.hc5.sh1.p3.t1.f3.a2.b1', 4, 2, 4, 'cola', 'juice', 'bubble')
-r.worker('beppe', 'Beppe', 'RECEPTIONIST', 's3.h1.hc2.sh7.p1.t2.f0.a1', 4, 16, 0)
-r.walker('strike', 'Strike', 'GUEST', 's2.h9.hc0.sh6.p0.t0.f1.a0', 13, 14, 4)
-r.walker('lulu', 'Lulu', 'GUEST', 's1.h7.hc4.sh2.p4.t4.f2.a2.b1', 8, 12, 4)
+# Divanetti davanti ai birilli per chi guarda, tavolini in mezzo.
+for x in (7, 11, 15):
+    r.add('sofa_vinyl', x, 15, 4).add('coffee_table', x, 17)
+# Bar a destra, noleggio scarpe e giochi a sinistra.
+r.add('bar_counter', 21, 3).row('bar_stool', 21, 4, 3, rot=6).add('coffee_machine', 25, 1).add('jukebox', 20, 1)
+r.add('shoe_counter', 2, 16).add('arcade', 24, 20).add('arcade', 25, 20).add('claw_machine', 26, 20)
+r.add('plant_big', 1, 1).add('plant_big', 26, 9).add('plant_big', 1, 20).add('lamp_neon', 19, 19).add('trophy', 4, 1)
+r.add('neon_sign', 1, 6, 2).add('neon_sign', 1, 14, 2).add('poster_neon', 23, 1, 0)
+r.worker('rita', 'Rita', 'BARISTA', 's0.h2.hc5.sh1.p3.t1.f3.a2.b1', 22, 2, 4, 'cola', 'juice', 'bubble')
+r.worker('beppe', 'Beppe', 'RECEPTIONIST', 's3.h1.hc2.sh7.p1.t2.f0.a1', 2, 17, 0)
+r.walker('strike', 'Strike', 'GUEST', 's2.h9.hc0.sh6.p0.t0.f1.a0', 20, 12, 4)
+r.walker('lulu', 'Lulu', 'GUEST', 's1.h7.hc4.sh2.p4.t4.f2.a2.b1', 11, 13, 4)
 
 # ------------------------------------------------------------------ Minigolf
 
@@ -681,6 +689,22 @@ r.add('plant_palm', 11, 11).add('plant_palm', 18, 11).add('umbrella', 26, 11).ad
 r.worker('gigi', 'Gigi', 'ICE_CREAM', 's1.h0.hc3.sh7.p1.t2.f0.a0', 3, 22, 2, 'gelato')
 r.walker('birdie', 'Birdie', 'GUEST', 's1.h6.hc1.sh5.p3.t1.f1.a2.b1', 16, 16, 5)
 r.walker('par', 'Par', 'GUEST', 's4.h9.hc7.sh3.p0.t2.f0.a0', 12, 9, 5)
+
+
+# ------------------------------------------------------------------ Palazzetto (basket)
+
+r = room(18, 'BASKET', 'Palazzetto',
+         'Campo da basket con il parquet e due canestri: prendi la palla e tira dalla lunetta!',
+         30, 18, 2, 'court', 'arena', 18)
+# Canestri alle due testate, rivolti verso il campo; si tira dalla lunetta, quattro caselle davanti.
+r.add('basket_hoop', 2, 9, 2).add('basket_hoop', 29, 9, 6)
+for x in (5, 8, 11, 18, 21, 24):
+    r.add('bench', x, 1, 0)
+r.add('water_cooler', 15, 1).add('scoreboard', 14, 1, 0).add('scoreboard', 16, 1, 0)
+r.add('plant_big', 1, 18).add('plant_big', 30, 18).add('plant_big', 30, 1).add('trophy', 1, 1)
+r.walker('tripla', 'Tripla', 'GUEST', 's3.h9.hc0.sh7.p0.t4.f1.a0', 10, 12, 5)
+r.walker('schiacciata', 'Schiacciata', 'GUEST', 's5.h0.hc2.sh6.p0.t4.f1.a0', 20, 12, 5)
+r.walker('tifosa', 'Tifosa', 'GUEST', 's0.h3.hc6.sh1.p3.t1.f3.a5.b1', 15, 3, 3)
 
 
 # ------------------------------------------------------------------ output
@@ -768,8 +792,24 @@ def main():
     print(f'Scritta {os.path.normpath(MIGRATION)}: {len(base_rooms)} stanze, {sum(len(rm.items) for rm in base_rooms)} mobili.')
 
     files = {}
+    for path, removals in REMOVED.items():
+        part = files.setdefault(path, [])
+        for room_id, kind in removals:
+            part.append(f'DELETE FROM room_items WHERE owner_id IS NULL AND room_id = {sql_string(room_id)} AND furni_type = {sql_string(kind)};')
+        part.append('')
     for rm in ROOMS:
-        if rm.num in LATER_MIGRATIONS:
+        if rm.num in REBUILT:
+            part = files.setdefault(REBUILT[rm.num], [])
+            part.append(f'-- {rm.name} rifatto: nuova pianta e nuovi arredi.')
+            part.append(f'UPDATE rooms SET name = {sql_string(rm.name)}, description = {sql_string(rm.desc)},')
+            part.append(f'    layout =\n     {layout_sql(rm)},')
+            part.append(f'    door_x = {rm.door[0]}, door_y = {rm.door[1]}, door_dir = 2,')
+            part.append(f'    floor_style = {sql_string(rm.floor)}, wall_style = {sql_string(rm.wall)}')
+            part.append(f'WHERE id = {sql_string(rm.id)};')
+            part.append(f'DELETE FROM room_items WHERE owner_id IS NULL AND room_id = {sql_string(rm.id)};')
+            part.append('')
+            part.extend(insert_items(rm, rm.items))
+        elif rm.num in LATER_MIGRATIONS:
             part = files.setdefault(LATER_MIGRATIONS[rm.num], [])
             part.extend(insert_room(rm))
             part.append('')
@@ -778,6 +818,9 @@ def main():
             extra = files.setdefault(rm.split_migration, [])
             extra.extend(insert_items(rm, rm.items[rm.split:], start=rm.split))
     for path, lines in files.items():
+        if path != CURRENT and os.path.exists(path):
+            print(f'Pubblicata, non si tocca: {os.path.normpath(path)}.')
+            continue
         with open(path, 'w', encoding='utf-8', newline='\n') as f:
             f.write('\n'.join([f'-- {MIGRATION_TITLES[path]} Generata da BE/scripts/hotel_rooms.py.', ''] + lines))
         print(f'Scritta {os.path.normpath(path)}.')

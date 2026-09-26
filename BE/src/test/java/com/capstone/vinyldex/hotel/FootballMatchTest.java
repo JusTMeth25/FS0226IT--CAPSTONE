@@ -37,9 +37,12 @@ class FootballMatchTest {
         return new RoomItemView(UUID.randomUUID(), null, FootballMatch.GOAL_TYPE, x, 11, 0, 0, null);
     }
 
+    /** Linee del campo come nello stadio: colonne da 3 a 33, righe da 3 a 21. */
+    private static final int[] PITCH = {3, 3, 33, 21};
+
     private static FootballMatch match() {
         return FootballMatch.create(List.of(goal(2), goal(34),
-                new RoomItemView(UUID.randomUUID(), null, "bench", 5, 1, 0, 0, null)));
+                new RoomItemView(UUID.randomUUID(), null, "bench", 5, 1, 0, 0, null)), PITCH);
     }
 
     /** Porta il pallone in (x, y) con tiri corti, partendo dal centrocampo (18, 12). */
@@ -52,7 +55,7 @@ class FootballMatchTest {
     @Test
     @DisplayName("Senza due porte non c'e' partita; con due porte il pallone parte a centrocampo")
     void create() {
-        assertNull(FootballMatch.create(List.of(goal(2))));
+        assertNull(FootballMatch.create(List.of(goal(2)), PITCH));
         FootballMatch match = match();
         assertEquals(18, match.ballX());
         assertEquals(12, match.ballY());
@@ -70,20 +73,35 @@ class FootballMatchTest {
     }
 
     @Test
-    @DisplayName("Contro la parete il pallone torna indietro, in diagonale rimbalza")
+    @DisplayName("Sulla linea del campo il pallone torna indietro, in diagonale rimbalza")
     void bounces() {
         Pitch pitch = new Pitch();
         FootballMatch straight = match();
-        placeBall(straight, pitch, 18, 2);
+        placeBall(straight, pitch, 18, 4);
         straight.kick(0, 4, pitch);
         assertEquals(18, straight.ballX());
-        assertEquals(3, straight.ballY(), "su di uno, rimbalzo sul muro, giu' di due");
+        assertEquals(5, straight.ballY(), "su di uno fino alla linea, rimbalzo, giu' di due");
 
         FootballMatch diagonal = match();
-        placeBall(diagonal, pitch, 18, 2);
+        placeBall(diagonal, pitch, 18, 4);
         diagonal.kick(1, 4, pitch);
         assertEquals(21, diagonal.ballX(), "verso est continua");
-        assertEquals(3, diagonal.ballY(), "verso nord rimbalza e torna giu'");
+        assertEquals(5, diagonal.ballY(), "verso nord rimbalza e torna giu'");
+    }
+
+    @Test
+    @DisplayName("Il pallone non esce mai dalle linee del campo, anche con la pista libera intorno")
+    void staysInside() {
+        Pitch pitch = new Pitch();
+        FootballMatch match = match();
+        for (int dir = 0; dir < 8; dir++) {
+            for (int i = 0; i < 12; i++) {
+                match.kick(dir, FootballMatch.RUN_POWER, pitch);
+                if (match.inNet()) match.kickOff();
+                assertTrue(match.ballX() >= 3 && match.ballX() <= 33 && match.ballY() >= 3 && match.ballY() <= 21,
+                        match.ballX() + "," + match.ballY());
+            }
+        }
     }
 
     @Test
@@ -125,8 +143,8 @@ class FootballMatchTest {
     void noGoalFromBehind() {
         Pitch pitch = new Pitch();
         FootballMatch match = match();
-        placeBall(match, pitch, 34, 10);
-        FootballMatch.Kick kick = match.kick(4, 3, pitch);
+        placeBall(match, pitch, 33, 10);
+        FootballMatch.Kick kick = match.kick(2, 3, pitch);
         assertNull(kick.scored());
         assertEquals(0, match.score(FootballMatch.Team.BLUE));
     }

@@ -81,7 +81,7 @@ public class RoomService {
 
     /** Pavimenti e pareti disponibili: i nomi coincidono con gli stili di src/hotel/sprites/room.js. */
     public static final Set<String> FLOOR_STYLES = Set.of("neon", "parquet", "carpet", "checker", "marble", "arena",
-            "grass", "pooldeck", "terracotta", "wooddeck", "sand", "cobble", "cinema", "rubber", "pitch");
+            "grass", "pooldeck", "terracotta", "wooddeck", "sand", "cobble", "cinema", "rubber", "pitch", "court");
     public static final Set<String> WALL_STYLES = Set.of("neon", "brick", "teal", "wood", "windows", "arena",
             "hedge", "pooltile", "skyline", "seaside", "shops", "curtain", "mirror", "stadium");
 

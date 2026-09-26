@@ -123,7 +123,8 @@ function outline(ctx, w, h) {
 // ------------------------------------------------------------------ pose
 
 /**
- * Pose disponibili: stand, walk (4 fotogrammi), sit, dance (4), wave (2).
+ * Pose disponibili: stand, walk (4 fotogrammi), sit, dance (4), wave (2), e quelle degli sport e
+ * dei giochi: run, punch, lift, kick, dribble (4), shoot (2), bowl (3), putt (2), play (2), cue (2).
  * Restituisce di quanto spostare gambe e braccia per il fotogramma richiesto.
  */
 function poseOffsets(pose, frame) {
@@ -144,6 +145,20 @@ function poseOffsets(pose, frame) {
   }
   if (pose === 'punch') return { ...pose0, frontUp: frame % 2 === 1, backUp: frame % 2 === 0, frontArm: 3, bodyY: frame % 2 };
   if (pose === 'lift') return { ...pose0, sit: true, frontUp: true, backUp: true, liftUp: frame % 2 === 1 };
+  // Sport: calcio al pallone, palleggio e tiro a canestro, lancio della boccia, colpo di golf.
+  if (pose === 'kick') return { ...pose0, frontLeg: 10, backLeg: -3, frontArm: -4, backArm: 4, bodyY: -1 };
+  if (pose === 'dribble') return { ...pose0, frontArm: 3, backArm: -1, bodyY: frame % 2, backLeg: 1, frontLeg: -1 };
+  if (pose === 'shoot') return frame === 0
+    ? { ...pose0, frontUp: true, backUp: true, bodyY: 3, backLeg: -1, frontLeg: 1 }
+    : { ...pose0, frontUp: true, backUp: true, bodyY: -3, shootReach: 8 };
+  if (pose === 'bowl') {
+    if (frame === 1) return { ...pose0, frontArm: -9, backArm: 5, bodyY: 2, frontLeg: 5, backLeg: -4 };
+    if (frame === 2) return { ...pose0, frontArm: 9, backArm: -6, bodyY: 5, frontLeg: 7, backLeg: -7 };
+    return { ...pose0, frontArm: 2 };
+  }
+  if (pose === 'putt') return { ...pose0, bodyY: 2, frontArm: frame === 1 ? 7 : 3, backArm: frame === 1 ? 7 : 3 };
+  if (pose === 'play') return { ...pose0, frontArm: frame % 2 ? 6 : 4, backArm: frame % 2 ? 4 : 6 };
+  if (pose === 'cue') return { ...pose0, bodyY: 4, frontArm: frame % 2 ? 8 : 5, backArm: 3, frontLeg: 3, backLeg: -3 };
   if (pose === 'sit') return { ...pose0, sit: true };
   return pose0;
 }
@@ -594,6 +609,48 @@ function drawAccessory(ctx, y0, a, back) {
 /**
  * @param outfit null, 'sea' (costume in mare) o 'pool' (costume e cuffia in piscina)
  */
+/** Mano del braccio davanti (x = 35) con l'oscillazione data: dove si tiene la boccia o la mazza. */
+function frontHand(y0, swing) {
+  return { x: 35 + swing + 3, y: y0 + 62 };
+}
+
+/**
+ * Attrezzi degli sport, disegnati sopra al corpo: pallone da basket (palleggiato o sopra la
+ * testa), boccia da bowling in mano, mazza da golf, stecca da biliardo.
+ */
+function drawSportProp(ctx, pose, frame, y0, o) {
+  if (pose === 'dribble') {
+    // Il pallone rimbalza fra la mano e il pavimento.
+    const hand = frontHand(y0, o.frontArm);
+    const bounce = [0, 9, 16, 9][frame % 4];
+    blob(ctx, hand.x + 1, hand.y + 6 + bounce, 5.5, 5.5, '#ea580c');
+    px(ctx, hand.x - 4, hand.y + 6 + bounce, 11, 1, '#7c2d12');
+    px(ctx, hand.x + 1, hand.y + 1 + bounce, 1, 11, '#7c2d12');
+  } else if (pose === 'shoot' && frame === 0) {
+    // Pallone sopra la testa, fra le mani, pronto al tiro.
+    blob(ctx, 26, y0 + 12, 6, 6, '#ea580c');
+    px(ctx, 20, y0 + 12, 12, 1, '#7c2d12');
+    px(ctx, 26, y0 + 6, 1, 12, '#7c2d12');
+  } else if (pose === 'bowl' && frame < 2) {
+    const hand = frontHand(y0, o.frontArm);
+    blob(ctx, hand.x, hand.y + 3, 6, 6, '#7c3aed');
+    px(ctx, hand.x - 2, hand.y + 1, 1, 1, '#1e1b4b');
+    px(ctx, hand.x + 1, hand.y + 1, 1, 1, '#1e1b4b');
+    px(ctx, hand.x, hand.y + 4, 1, 1, '#1e1b4b');
+  } else if (pose === 'putt') {
+    // Mazza da golf: dalle mani giu' fino a terra, con la testa della mazza.
+    const hand = frontHand(y0, o.frontArm);
+    const footX = hand.x + (frame === 1 ? 8 : 3);
+    for (let y = hand.y; y < 90; y += 1) px(ctx, Math.round(hand.x + ((footX - hand.x) * (y - hand.y)) / (90 - hand.y)), y, 1, 1, '#9ca3af');
+    px(ctx, footX - 1, 89, 6, 3, '#4b5563');
+    px(ctx, footX + 7, 90, 3, 2, '#f8fafc');
+  } else if (pose === 'cue') {
+    const hand = frontHand(y0, o.frontArm);
+    const push = frame % 2 ? 4 : 0;
+    for (let x = 4 + push; x < 47; x += 1) px(ctx, x, hand.y - 2 + Math.round((x - 4) * 0.08), 1, 1, x > 40 ? '#f5f5f4' : '#92400e');
+  }
+}
+
 function drawAvatar(look, { back, pose, frame, outfit }) {
   const { canvas, ctx } = createCanvas(AVATAR_W, AVATAR_H, { readable: true });
   const parts = parseLook(look);
@@ -625,8 +682,8 @@ function drawAvatar(look, { back, pose, frame, outfit }) {
   }
 
   const sleeve = shirt;
-  // Sulla panca le mani stanno sopra la testa (piu' in alto a braccia tese).
-  const reach = pose === 'lift' ? (o.liftUp ? 14 : 6) : 0;
+  // Sulla panca le mani stanno sopra la testa (piu' in alto a braccia tese); nel tiro a canestro si allungano.
+  const reach = pose === 'lift' ? (o.liftUp ? 14 : 6) : (o.shootReach || 0);
   arm(ctx, 8, y0, { up: o.backUp, swing: o.backArm, sleeve: shade(sleeve, -0.12), skin: shade(skin, -0.08), sleeveLength, reach });
   // Collo in ombra sotto la testa.
   px(ctx, 20, y0 + 35, 9, 7, shade(skin, -0.18));
@@ -653,6 +710,7 @@ function drawAvatar(look, { back, pose, frame, outfit }) {
   // In acqua si tolgono solo le cuffie della musica e la bandana; occhiali, occhiali da sole,
   // collana e orecchino restano addosso.
   if (!swim || ![3, 6].includes(parts.a)) drawAccessory(ctx, y0, parts.a, back);
+  drawSportProp(ctx, pose, frame, y0, o);
   if (pose === 'lift') {
     // Bilanciere tenuto sopra la testa (per ultimo, davanti alla testa): sbarra e due dischi per parte.
     const barY = y0 + 11 - reach;
