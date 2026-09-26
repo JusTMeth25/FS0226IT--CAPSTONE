@@ -87,7 +87,8 @@ export function resolveCardImage(card) {
 
 /** URL della carta EA FC 27 disegnata dal backend (FcCardArtController). */
 export function fcCardImage(card) {
-  return `${BASE_URL}/cards/${encodeURIComponent(card.id)}/fc-card.svg`;
+  // ?v= cambia quando cambia il disegno: il browser tiene le carte in cache per un giorno.
+  return `${BASE_URL}/cards/${encodeURIComponent(card.id)}/fc-card.svg?v=2`;
 }
 
 const coinFormatter = new Intl.NumberFormat('it-IT', { maximumFractionDigits: 0 });

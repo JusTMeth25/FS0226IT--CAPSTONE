@@ -34,6 +34,7 @@ public final class NpcRoster {
     public static final UUID BOWLING = UUID.fromString("00000000-0000-0000-0000-00000000a010");
     public static final UUID MINIGOLF = UUID.fromString("00000000-0000-0000-0000-00000000a011");
     public static final UUID BASKET = UUID.fromString("00000000-0000-0000-0000-00000000a012");
+    public static final UUID KART = UUID.fromString("00000000-0000-0000-0000-00000000a013");
 
     /** Cosa fa il personaggio: da qui dipendono movimento, azioni possibili e battute. */
     public enum Role {
@@ -182,7 +183,10 @@ public final class NpcRoster {
             Map.entry(BASKET, List.of(
                     walker("tripla", "Tripla", Role.GUEST, "s3.h9.hc0.sh7.p0.t4.f1.a0", 10, 12, 5),
                     walker("schiacciata", "Schiacciata", Role.GUEST, "s5.h0.hc2.sh6.p0.t4.f1.a0", 20, 12, 5),
-                    walker("tifosa", "Tifosa", Role.GUEST, "s0.h3.hc6.sh1.p3.t1.f3.a5.b1", 15, 3, 3)))
+                    walker("tifosa", "Tifosa", Role.GUEST, "s0.h3.hc6.sh1.p3.t1.f3.a5.b1", 15, 3, 3))),
+            Map.entry(KART, List.of(
+                    walker("pistone", "Pistone", Role.GUEST, "s2.h1.hc0.sh7.p0.t4.f1.a0", 26, 17, 3),
+                    walker("curva", "Curva", Role.GUEST, "s0.h6.hc3.sh1.p3.t1.f3.a2.b1", 6, 4, 3)))
     );
 
     private NpcRoster() {

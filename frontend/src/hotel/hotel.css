@@ -983,3 +983,186 @@ button.hotel-trade-card:hover { background: var(--hp-surface-hover); }
 .hotel-panel.is-dragging { opacity: 0.92; transition: none; }
 .hotel-panel.is-dragging .hotel-panel-header { cursor: grabbing; }
 
+
+/* Hotel da telefono: i pannelli salgono dal basso a tutta larghezza, i comandi sono piu' grandi
+   e la stanza si ingrandisce con due dita. */
+@media (max-width: 600px) {
+  .hotel-canvas { touch-action: none; }
+  .hotel-panel {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: 72vh;
+    transform: none !important;
+    border-radius: 16px 16px 0 0;
+    overflow-y: auto;
+  }
+  .hotel-panel-header { min-height: 44px; }
+  .hotel-panel-close { min-width: 40px; min-height: 40px; }
+  .mg-buttons .mg-button { min-height: 54px; font-size: 1rem; }
+  .hotel-tool { min-width: 44px; min-height: 44px; }
+  .hotel-scoreboard { top: 64px; font-size: 0.95rem; }
+}
+
+/* Tutorial della prima visita: la guida in basso a sinistra, il fumetto accanto. */
+.hotel-tutorial {
+  position: absolute; left: 12px; bottom: 12px; z-index: 20; display: flex; align-items: flex-end; gap: 8px;
+  max-width: min(520px, calc(100% - 24px)); pointer-events: auto;
+}
+.hotel-tutorial-guide { flex-shrink: 0; filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5)); }
+.hotel-tutorial-bubble {
+  position: relative; padding: 12px 14px; border-radius: 14px; background: #fffdf5; color: #1a1030;
+  border: 3px solid #1a1030; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+.hotel-tutorial-bubble h3 { margin: 0 0 4px; font-size: 1rem; }
+.hotel-tutorial-bubble p { margin: 0; font-size: 0.85rem; line-height: 1.4; }
+.hotel-tutorial-count { position: absolute; top: 8px; right: 12px; font-size: 0.7rem; font-weight: 800; color: #7c3aed; }
+.hotel-tutorial-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 10px; }
+.tutorial-highlight { position: relative; z-index: 21; box-shadow: 0 0 0 3px #facc15, 0 0 18px #facc15 !important; animation: tutorial-pulse 1s ease-in-out infinite; }
+@keyframes tutorial-pulse { 50% { box-shadow: 0 0 0 5px #facc15, 0 0 26px #facc15; } }
+@media (prefers-reduced-motion: reduce) { .tutorial-highlight { animation: none; } }
+
+/* Amici e chat privata */
+.hotel-friends { right: 12px; top: 12px; width: min(380px, calc(100% - 24px)); max-height: calc(100% - 100px); display: flex; flex-direction: column; }
+.friends-tabs { display: flex; gap: 6px; padding: 0 12px; }
+.friends-tabs button { flex: 1; padding: 6px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: transparent; color: #cbd5e1; font-weight: 700; cursor: pointer; }
+.friends-tabs button.active { background: rgba(139, 92, 246, 0.3); color: #fff; }
+.friends-add { display: flex; gap: 6px; padding: 8px 12px; }
+.friends-add input, .friends-chat-form input { flex: 1; min-width: 0; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: #fff; }
+.friends-list { list-style: none; margin: 0; padding: 0 12px 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.friends-list li { display: flex; align-items: center; gap: 8px; padding: 6px; border-radius: 10px; background: rgba(255,255,255,0.04); }
+.friends-list li.online { box-shadow: inset 3px 0 0 #22c55e; }
+.friends-list canvas { width: 24px; height: 48px; image-rendering: pixelated; }
+.friends-who { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.friends-who span { font-size: 0.72rem; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.friends-chat { display: flex; flex-direction: column; min-height: 260px; }
+.friends-chat-list { flex: 1; overflow-y: auto; max-height: 320px; padding: 8px 12px; display: flex; flex-direction: column; gap: 6px; }
+.friends-msg { align-self: flex-start; max-width: 80%; padding: 6px 10px; border-radius: 12px 12px 12px 2px; background: rgba(255,255,255,0.1); color: #fff; font-size: 0.85rem; }
+.friends-msg.mine { align-self: flex-end; border-radius: 12px 12px 2px 12px; background: #7c3aed; }
+.friends-msg time { display: block; font-size: 0.62rem; opacity: 0.6; text-align: right; }
+.friends-chat-form { display: flex; gap: 6px; padding: 8px 12px 12px; }
+
+/* Animali da compagnia (negozio) */
+.pet-preview { image-rendering: pixelated; display: block; margin: 0 auto; }
+.pet-mine { display: flex; gap: 16px; align-items: center; padding: 12px; }
+.pet-mine > div { display: flex; flex-direction: column; gap: 4px; }
+.pet-mine strong { font-size: 1.2rem; }
+.pet-hungry { color: #ff8a8a; font-weight: 600; }
+.pet-happy { color: #7de0a0; }
+.pet-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.pet-name { width: 100%; padding: 4px 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,.2); background: rgba(0,0,0,.25); color: inherit; }
+
+/* Piazza: eventi a orario */
+.hotel-events { width: min(460px, calc(100vw - 32px)); }
+.hotel-events-body { max-height: 60vh; overflow-y: auto; padding: 8px 12px 12px; }
+.event-live { background: rgba(255, 200, 60, .08); border: 1px solid rgba(255, 200, 60, .35); border-radius: 10px; padding: 10px; margin-bottom: 10px; }
+.event-live header, .event-list li { display: flex; align-items: center; gap: 10px; }
+.event-live header > i, .event-list li > i { font-size: 1.6rem; color: #ffc83c; }
+.event-live header div, .event-list li div { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.event-live header span, .event-list li span { font-size: .8rem; opacity: .8; }
+.event-clock { font-variant-numeric: tabular-nums; font-size: 1.2rem; color: #ffc83c; }
+.event-board { list-style: none; margin: 8px 0 4px; padding: 0; }
+.event-board li { display: flex; gap: 8px; align-items: center; padding: 4px 6px; border-radius: 6px; }
+.event-board li:nth-child(1) .event-rank { background: #ffc83c; color: #3a2800; }
+.event-board li:nth-child(2) .event-rank { background: #cfd6e0; color: #222; }
+.event-board li:nth-child(3) .event-rank { background: #d08a4a; color: #2a1400; }
+.event-board li.mine { background: rgba(120, 180, 255, .15); }
+.event-rank { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; background: rgba(255,255,255,.1); font-size: .8rem; }
+.event-name { flex: 1; }
+.event-board small { opacity: .8; }
+.events-sub { margin: 12px 0 6px; font-size: .9rem; opacity: .85; }
+.event-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.event-list li { padding: 6px 8px; border-radius: 8px; background: rgba(255,255,255,.04); }
+.event-list time { font-size: .75rem; opacity: .75; white-space: nowrap; text-transform: capitalize; }
+.hotel-event-banner { position: absolute; top: 12px; right: 12px; z-index: 4; display: flex; align-items: center; gap: 10px;
+  padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(255, 200, 60, .6); background: rgba(40, 28, 0, .85); color: #ffe6a0; cursor: pointer; font: inherit; font-size: .85rem; max-width: calc(100% - 24px); }
+.hotel-event-banner i { color: #ffc83c; font-size: 1.1rem; }
+.hotel-event-banner time { font-variant-numeric: tabular-nums; font-weight: 700; }
+.hotel-event-banner-go { opacity: .8; }
+@media (max-width: 600px) { .hotel-event-banner-go { display: none; } .hotel-event-banner { top: auto; bottom: 12px; right: 12px; font-size: .75rem; } }
+
+/* Piazza: asta */
+.auction-lot { display: flex; gap: 14px; padding: 10px; border-radius: 10px; border: 1px solid var(--rarity, #888); background: rgba(255,255,255,.04); }
+.auction-card { padding: 0; border: 0; background: none; cursor: zoom-in; flex: 0 0 120px; }
+.auction-card img { width: 120px; border-radius: 8px; box-shadow: 0 0 18px var(--rarity, transparent); display: block; }
+.auction-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
+.auction-info > span { font-size: .8rem; opacity: .8; }
+.auction-price { display: flex; flex-direction: column; }
+.auction-price b { font-size: 1.4rem; color: #ffc83c; }
+.auction-price small { opacity: .75; font-size: .75rem; }
+.auction-clock b { font-variant-numeric: tabular-nums; }
+.auction-mine { color: #7de0a0; font-size: .85rem; margin: 0; }
+.auction-quick, .auction-form { display: flex; gap: 6px; flex-wrap: wrap; }
+.auction-form input { width: 110px; padding: 4px 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,.2); background: rgba(0,0,0,.25); color: inherit; }
+.auction-thumb { width: 34px; border-radius: 4px; }
+@media (max-width: 600px) { .auction-card { flex-basis: 90px; } .auction-card img { width: 90px; } }
+
+/* Piazza: mostra delle collezioni */
+.gallery-tab { display: flex; flex-direction: column; gap: 8px; }
+.gallery-last { font-size: .85rem; color: #ffe6a0; margin: 0; }
+.gallery-last i { color: #ffc83c; }
+.gallery-entries { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.gallery-entries li { padding: 8px; border-radius: 10px; background: rgba(255,255,255,.04); }
+.gallery-entries li.mine { background: rgba(120, 180, 255, .12); }
+.gallery-entries header { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+.gallery-entries header strong { flex: 1; }
+.gallery-votes { color: #ff7a9a; font-weight: 700; }
+.gallery-strip, .gallery-picker { display: flex; gap: 6px; flex-wrap: wrap; }
+.gallery-picker { max-height: 220px; overflow-y: auto; padding: 4px; }
+.gallery-card { padding: 0; border: 2px solid var(--rarity-color, #666); border-radius: 6px; background: none; cursor: pointer; overflow: hidden; }
+.gallery-card img { width: 58px; display: block; }
+.gallery-card.picked { outline: 3px solid #ffc83c; outline-offset: 1px; }
+.gallery-search { width: 100%; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,.2); background: rgba(0,0,0,.25); color: inherit; }
+.gallery-actions { display: flex; gap: 6px; margin-top: 6px; }
+
+/* Partita a squadre allo stadio */
+.hotel-match-bar { position: absolute; top: 58px; left: 50%; transform: translateX(-50%); z-index: 4; display: flex; gap: 10px; align-items: stretch;
+  padding: 8px 10px; border-radius: 12px; background: rgba(10, 16, 30, .85); border: 1px solid rgba(255,255,255,.15); font-size: .8rem; max-width: calc(100vw - 32px); }
+.hotel-match-bar.is-playing { border-color: #ffc83c; }
+.match-team { display: flex; flex-direction: column; gap: 4px; min-width: 90px; }
+.match-team b { padding: 1px 8px; border-radius: 6px; text-align: center; }
+.match-team.is-blue b { background: #2563eb; }
+.match-team.is-red b { background: #dc2626; }
+.match-team ul { list-style: none; margin: 0; padding: 0; }
+.match-team li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px; }
+.match-team li.me { font-weight: 700; color: #ffe6a0; }
+.match-team li.free { opacity: .45; font-style: italic; }
+.match-center { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 110px; text-align: center; }
+.match-phase { opacity: .8; }
+.match-clock { font-size: 1.4rem; font-variant-numeric: tabular-nums; color: #ffc83c; }
+@media (max-width: 600px) { .hotel-match-bar { top: 96px; font-size: .72rem; } .match-team { min-width: 70px; } }
+
+/* Karaoke */
+.mg-karaoke { display: flex; flex-direction: column; gap: 10px; }
+.mg-lyrics { text-align: center; min-height: 3.2em; }
+.mg-lyrics p { margin: 0; font-size: 1.05rem; font-weight: 700; color: rgba(255,255,255,.55); }
+.mg-lyrics .sung { color: #fde047; text-shadow: 0 0 8px rgba(253, 224, 71, .6); }
+.mg-lyrics p.next { font-size: .8rem; font-weight: 400; opacity: .6; }
+.mg-karaoke-lanes { display: flex; flex-direction: column; gap: 4px; }
+.mg-karaoke-lane { position: relative; height: 30px; border-radius: 8px; background: rgba(139, 92, 246, .15); overflow: hidden; }
+.mg-karaoke-lane::after { content: ''; position: absolute; right: 2%; top: 0; bottom: 0; width: 18%; background: rgba(34, 211, 238, .15); border-left: 2px dashed rgba(34, 211, 238, .6); }
+.mg-karaoke-lane.hit { background: rgba(236, 72, 153, .35); }
+.mg-karaoke-note { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 1.3rem; color: #fde047; }
+.mg-karaoke-mic { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); color: #22d3ee; font-size: 1.2rem; z-index: 1; }
+
+/* Pesca */
+.mg-fish { display: flex; flex-direction: column; gap: 10px; align-items: stretch; text-align: center; }
+.mg-fish-note { margin: 0; font-weight: 600; }
+.mg-fish-tries { margin: 0; font-size: .8rem; opacity: .7; }
+.mg-fish-power, .mg-fish-tension { position: relative; height: 18px; }
+.mg-fish-power .sweet { position: absolute; left: 70%; width: 27%; top: 0; bottom: 0; background: rgba(34, 197, 94, .5); }
+.mg-fish-tension .safe { position: absolute; left: 30%; width: 50%; top: 0; bottom: 0; background: rgba(34, 197, 94, .45); }
+.mg-fish-power .needle, .mg-fish-tension .needle { position: absolute; top: -3px; bottom: -3px; width: 4px; margin-left: -2px; background: #fde047; box-shadow: 0 0 6px #fde047; }
+.mg-fish-bobber { font-size: 2rem; color: #ef4444; animation: bob 1.2s ease-in-out infinite; }
+.mg-fish-bobber.bite { animation: bite .18s linear infinite; }
+@keyframes bob { 50% { transform: translateY(4px); } }
+@keyframes bite { 50% { transform: translateY(10px); } }
+
+/* Go-kart */
+.mg-kart { display: flex; flex-direction: column; gap: 8px; }
+.mg-kart-track { width: 100%; max-width: 320px; margin: 0 auto; display: block; }
+.mg-kart-warn { color: #ef4444; font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .mg-fish-bobber, .mg-fish-bobber.bite { animation: none; } }

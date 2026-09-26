@@ -13,15 +13,20 @@ import java.util.UUID;
  * a differenza di PublicUserDto che serve al pannello admin.
  */
 public record HotelUser(UUID id, String username, String look, int level, RoomItemView.CardView bestCard,
-                        List<RoomItemView.CardView> topCards) {
+                        List<RoomItemView.CardView> topCards, PetService.HotelPet pet) {
 
     public HotelUser(UUID id, String username, String look, int level) {
-        this(id, username, look, level, null, List.of());
+        this(id, username, look, level, null, List.of(), null);
     }
 
     public static HotelUser from(User user, HotelSocialService.Showcase showcase) {
         return new HotelUser(user.getId(), user.getUsername(), HotelLook.orDefault(user.getHotelLook()), user.getLevel(),
-                null, List.of()).withShowcase(showcase);
+                null, List.of(), null).withShowcase(showcase);
+    }
+
+    /** Stesso utente con l'animale da compagnia (null se non ne ha). */
+    public HotelUser withPet(PetService.HotelPet pet) {
+        return new HotelUser(id, username, look, level, bestCard, topCards, pet);
     }
 
     /**
@@ -30,6 +35,6 @@ public record HotelUser(UUID id, String username, String look, int level, RoomIt
      */
     public HotelUser withShowcase(HotelSocialService.Showcase showcase) {
         return new HotelUser(id, username, look, level, RoomItemView.CardView.from(showcase.best()),
-                showcase.top().stream().map(RoomItemView.CardView::from).toList());
+                showcase.top().stream().map(RoomItemView.CardView::from).toList(), pet);
     }
 }

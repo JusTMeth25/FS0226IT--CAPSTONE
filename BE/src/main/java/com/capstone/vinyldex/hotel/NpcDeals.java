@@ -234,7 +234,10 @@ public class NpcDeals {
         if (want == null) return Verdict.NOT_OFFERED;
         Card give = cardRepository.findByCode(giveCode).orElse(null);
         if (give == null) return Verdict.NOT_OWNED;
-        if (value(give) < value(want) * FAIRNESS) return Verdict.UNFAIR;
+        // Una copia gradata dal perito vale di piu' anche per gli NPC.
+        double giveValue = value(give) * userCardRepository.findByUserIdAndCardId(userId, give.getId())
+                .map(uc -> com.capstone.vinyldex.service.GradingService.multiplier(uc.getGrade())).orElse(1.0);
+        if (giveValue < value(want) * FAIRNESS) return Verdict.UNFAIR;
         Verdict verdict = trade(userId, npcName, giveCode, wantCode);
         // Una carta trovata e poi scambiata non e' piu' dell'NPC.
         if (verdict == Verdict.ACCEPTED) foundRepository.findByNpcIdAndCardId(npcId, want.getId()).ifPresent(foundRepository::delete);

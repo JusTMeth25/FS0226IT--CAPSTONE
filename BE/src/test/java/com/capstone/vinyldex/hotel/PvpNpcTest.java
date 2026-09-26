@@ -61,7 +61,7 @@ class PvpNpcTest {
     @Test
     @DisplayName("In Arena si sfida uno sfidante NPC: accetta, gioca da solo e a fine partita arriva il premio")
     void fullMatchAgainstNpc() throws Exception {
-        RoomRegistry registry = new RoomRegistry(NpcMind.NONE);
+        RoomRegistry registry = new RoomRegistry(NpcMind.NONE, event -> { });
         UserCardRepository userCards = mock(UserCardRepository.class);
         NpcDeals deals = mock(NpcDeals.class);
         PvpService pvp = new PvpService(registry, userCards, mock(PvpRewardService.class), deals);
@@ -130,7 +130,7 @@ class PvpNpcTest {
     @Test
     @DisplayName("Se un NPC ti sfida e cambi stanza, la sfida scade anche per te e il popup si chiude")
     void npcChallengeCancelledWhenLeaving() throws Exception {
-        RoomRegistry registry = new RoomRegistry(NpcMind.NONE);
+        RoomRegistry registry = new RoomRegistry(NpcMind.NONE, event -> { });
         PvpService pvp = new PvpService(registry, mock(UserCardRepository.class), mock(PvpRewardService.class), mock(NpcDeals.class));
         WebSocketSession raw = mock(WebSocketSession.class);
         when(raw.isOpen()).thenReturn(true);

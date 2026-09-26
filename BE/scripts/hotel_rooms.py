@@ -23,11 +23,12 @@ V17 = os.path.join(MIGRATIONS_DIR, 'V17__hotel_stadium.sql')
 V18 = os.path.join(MIGRATIONS_DIR, 'V18__hotel_bowling_minigolf.sql')
 V19 = os.path.join(MIGRATIONS_DIR, 'V19__hotel_basket_court_bowling.sql')
 V20 = os.path.join(MIGRATIONS_DIR, 'V20__hotel_comic_shop_billiards.sql')
-LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18, 18: V19}
+V30 = os.path.join(MIGRATIONS_DIR, 'V30__hotel_karaoke_fishing_kart.sql')
+LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18, 18: V19, 19: V30}
 # Migrazione in lavorazione: le altre, gia' pubblicate, non si riscrivono piu' (Flyway ne controlla
 # il contenuto). Le stanze cambiate dopo la pubblicazione si rifanno qui (REBUILT) e gli arredi da
 # togliere si elencano in REMOVED.
-CURRENT = V20
+CURRENT = V30
 REBUILT = {16: V19, 8: V20, 12: V20}
 REMOVED = {V19: [('00000000-0000-0000-0000-00000000a00f', 'basket_hoop')]}
 # Arredi aggiunti a stanze gia' pubblicate: finiscono nella migrazione indicata (vedi Room.migration).
@@ -36,6 +37,7 @@ MIGRATION_TITLES = {
     V18: 'Canestri nello stadio e due stanze nuove: Bowling e Minigolf.',
     V19: 'Palazzetto con il campo da basket, bowling rifatto con piu\' piste, canestri tolti dallo stadio.',
     V20: 'Edicola come un negozio di fumetti e carte con il museo VinylDex, biliardi grandi in sala giochi.',
+    V30: 'Palco del karaoke al Neon Bar, paletti da pesca sulla spiaggia e la pista dei go-kart.',
 }
 
 # ------------------------------------------------------------------ catalogo (come FurniCatalog.java)
@@ -88,6 +90,9 @@ FURNI = {
     'comic_shelf': (1, 1, False, False, -1),
     # Bowling
     'bowling_lane': (1, 8, False, False, -1), 'bowling_rack': (1, 1, False, False, -1),
+    # Karaoke, pesca e go-kart
+    'karaoke_stage': (2, 2, False, False, -1), 'fishing_post': (1, 1, False, False, -1),
+    'go_kart': (1, 1, False, False, 2), 'tire_stack': (1, 1, False, False, -1), 'race_lights': (1, 1, False, False, -1),
     'shoe_counter': (2, 1, False, False, -1),
     # Minigolf
     **{f'golf_hole_{n}': (3, 2, False, False, -1) for n in range(1, 7)},
@@ -457,6 +462,9 @@ r.worker('byte', 'DJ Byte', 'DJ', 's5.h1.hc5.sh8.p1.t1.f5.a3', 12, 2, 4)
 r.walker('gio', 'Gio', 'WAITER', 's1.h0.hc1.sh7.p1.t2.f0.a0', 17, 12, 5, 'cocktail', 'cola', 'bubble')
 r.walker('stella', 'Stella', 'GUEST', 's0.h2.hc6.sh1.p4.t4.f3.a4.b1', 12, 11, 3)
 r.walker('remo', 'Remo', 'GUEST', 's3.h4.hc0.sh9.p0.t1.f2.a3', 20, 11, 4)
+# Palco del karaoke: si canta sopra, rivolti verso la sala.
+r.migration(V30)
+r.add('karaoke_stage', 13, 19, 4).add('speaker', 12, 19).add('speaker', 15, 19)
 
 # ------------------------------------------------------------------ Giardino
 
@@ -581,6 +589,10 @@ r.worker('marina', 'Marina', 'LIFEGUARD', 's1.h7.hc2.sh6.p5.t4.f2.a2.b1', 17, 15
 r.walker('kai', 'Kai', 'GUEST', 's3.h5.hc4.sh2.p7.t4.f1.a0', 24, 12, 4)
 r.walker('sole', 'Sole', 'GUEST', 's0.h8.hc5.sh10.p3.t4.f3.a2.b1', 10, 18, 5)
 r.walker('tommy', 'Tommy', 'GUEST', 's2.h9.hc3.sh5.p0.t0.f5.a3', 7, 23, 4)
+# Paletti da pesca sul bagnasciuga: si pesca dalla casella a ovest, guardando il mare.
+r.migration(V30)
+for y in (6, 20, 26):
+    r.add('fishing_post', SHORE - 2, y)
 
 # ------------------------------------------------------------------ Edicola
 
@@ -720,6 +732,25 @@ r.add('plant_big', 1, 18).add('plant_big', 30, 18).add('plant_big', 30, 1).add('
 r.walker('tripla', 'Tripla', 'GUEST', 's3.h9.hc0.sh7.p0.t4.f1.a0', 10, 12, 5)
 r.walker('schiacciata', 'Schiacciata', 'GUEST', 's5.h0.hc2.sh6.p0.t4.f1.a0', 20, 12, 5)
 r.walker('tifosa', 'Tifosa', 'GUEST', 's0.h3.hc6.sh1.p3.t1.f3.a5.b1', 15, 3, 3)
+
+
+# ------------------------------------------------------------------ Pista go-kart
+
+r = room(19, 'KART', 'Pista go-kart',
+         'Asfalto, cordoli bianchi e rossi e i kart pronti in griglia: siediti e fai tre giri a tutto gas!',
+         30, 20, 10, 'kart', 'stadium', 19)
+# Il prato in mezzo alla pista (disegnato dal pavimento "kart") ha le pile di gomme ai bordi.
+for x in range(9, 23, 3):
+    r.add('tire_stack', x, 8).add('tire_stack', x, 13)
+r.add('tire_stack', 8, 10).add('tire_stack', 8, 11).add('tire_stack', 23, 10).add('tire_stack', 23, 11)
+# Griglia di partenza: i kart parcheggiati sul rettilineo in basso, rivolti a est.
+for i, y in enumerate((16, 17, 18)):
+    r.add('go_kart', 11 + (i % 2), y, 2).add('go_kart', 14 + (i % 2), y, 2)
+r.add('race_lights', 17, 15).add('bench', 5, 1, 0).add('bench', 9, 1, 0).add('bench', 20, 1, 0).add('bench', 24, 1, 0)
+r.add('scoreboard', 14, 1, 0).add('scoreboard', 16, 1, 0).add('water_cooler', 29, 1).add('trophy', 1, 1)
+r.add('plant_big', 1, 20).add('plant_big', 30, 20).add('plant_big', 30, 1)
+r.walker('pistone', 'Pistone', 'GUEST', 's2.h1.hc0.sh7.p0.t4.f1.a0', 26, 17, 3)
+r.walker('curva', 'Curva', 'GUEST', 's0.h6.hc3.sh1.p3.t1.f3.a2.b1', 6, 4, 3)
 
 
 # ------------------------------------------------------------------ output

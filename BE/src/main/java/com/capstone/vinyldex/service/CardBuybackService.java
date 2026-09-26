@@ -82,8 +82,8 @@ public class CardBuybackService {
     public Quotes quotes(UUID userId) {
         List<Offer> offers = userCardRepository.findByUserIdWithCard(userId).stream()
                 .filter(uc -> uc.getQuantity() > 0 && quote(uc.getCard()) > 0)
-                .map(uc -> new Offer(cardView(uc.getCard()), uc.getQuantity(), sellable(userId, uc),
-                        uc.getCard().getMarketPrice(), quote(uc.getCard())))
+                .map(uc -> new Offer(cardView(uc.getCard(), uc.getGrade()), uc.getQuantity(), sellable(userId, uc),
+                        uc.getCard().getMarketPrice(), graded(quote(uc.getCard()), uc.getGrade())))
                 .sorted(Comparator.comparingInt(Offer::gold).reversed()
                         .thenComparing(Comparator.comparingDouble(Offer::marketPrice).reversed()))
                 .toList();
@@ -100,7 +100,9 @@ public class CardBuybackService {
         UserCard owned = userCardRepository.findByUserIdAndCardId(userId, card.getId())
                 .orElseThrow(() -> ApiException.badRequest("card_not_owned"));
         if (sellable(userId, owned) < quantity) throw ApiException.badRequest("card_not_sellable");
+        // La copia gradata vale di piu', ma solo una: le altre al prezzo normale.
         int total = each * quantity;
+        if (owned.getGrade() != null) total += graded(each, owned.getGrade()) - each;
 
         User user = owned.getUser();
         userCardService.remove(user, card, quantity);
@@ -109,7 +111,12 @@ public class CardBuybackService {
         return new Sale(user.getGold(), total, owned.getQuantity());
     }
 
-    private static Map<String, Object> cardView(Card card) {
+    /** Prezzo di una copia gradata dal perito. */
+    static int graded(int gold, Integer grade) {
+        return (int) Math.round(gold * GradingService.multiplier(grade));
+    }
+
+    private static Map<String, Object> cardView(Card card, Integer grade) {
         Map<String, Object> view = new java.util.LinkedHashMap<>();
         view.put("id", card.getCode());
         view.put("name", card.getName());
@@ -118,6 +125,7 @@ public class CardBuybackService {
         view.put("source", card.getSource() == null ? "" : card.getSource());
         view.put("fullImage", card.isFullImage());
         view.put("coinPrice", com.capstone.vinyldex.dto.response.CardDto.coinPrice(card));
+        view.put("grade", grade);
         return view;
     }
 }

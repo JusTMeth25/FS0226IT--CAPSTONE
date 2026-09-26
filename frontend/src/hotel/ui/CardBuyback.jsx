@@ -67,7 +67,7 @@ export default function CardBuyback({ onSold }) {
             <li key={offer.card.id} className="hotel-buyback-row" style={{ '--rarity-color': getRarityColor(offer.card.rarity) }}>
               <img src={resolveCardImage(offer.card)} alt="" loading="lazy" />
               <span className="hotel-buyback-info">
-                <strong>{offer.card.name}</strong>
+                <strong>{offer.card.name}{offer.card.grade ? ` · VDX ${offer.card.grade}` : ''}</strong>
                 <small>Ne hai {offer.quantity} · {formatCardPrice({ ...offer.card, marketPrice: offer.marketPrice })}</small>
                 <small className="hotel-buyback-offer"><i className="ph-fill ph-coin" /> {offer.gold} gold a copia</small>
               </span>

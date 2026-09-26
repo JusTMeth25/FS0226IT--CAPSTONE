@@ -12,7 +12,7 @@ const DRAG_THRESHOLD = 5;
  *
  * Il genitore passa i messaggi del server con ref.current.handle(message).
  */
-const HotelCanvas = forwardRef(function HotelCanvas({ zoom, catalog, placement, buildMode, onTileClick, onAvatarClick, onItemClick, onPlace, onCardClick }, ref) {
+const HotelCanvas = forwardRef(function HotelCanvas({ zoom, onZoom, catalog, placement, buildMode, onTileClick, onAvatarClick, onItemClick, onPlace, onCardClick }, ref) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const engineRef = useRef(null);
@@ -79,6 +79,9 @@ const HotelCanvas = forwardRef(function HotelCanvas({ zoom, catalog, placement, 
   }, [buildMode]);
 
   const gesture = useRef(null);
+  /** Dita appoggiate sullo schermo: con due si fa lo zoom (pizzico). */
+  const touches = useRef(new Map());
+  const pinch = useRef(null);
 
   const local = (event) => {
     const rect = canvasRef.current.getBoundingClientRect();
@@ -87,13 +90,28 @@ const HotelCanvas = forwardRef(function HotelCanvas({ zoom, catalog, placement, 
 
   const onPointerDown = (event) => {
     const p = local(event);
-    gesture.current = { startX: p.x, startY: p.y, lastX: p.x, lastY: p.y, dragging: false };
+    touches.current.set(event.pointerId, p);
     event.currentTarget.setPointerCapture(event.pointerId);
+    if (touches.current.size === 2) {
+      // Seconda dita: si smette di trascinare e si comincia a pizzicare.
+      const [a, b] = [...touches.current.values()];
+      pinch.current = { distance: Math.hypot(a.x - b.x, a.y - b.y) || 1, zoom };
+      gesture.current = null;
+      return;
+    }
+    gesture.current = { startX: p.x, startY: p.y, lastX: p.x, lastY: p.y, dragging: false };
   };
 
   const onPointerMove = (event) => {
     const engine = engineRef.current;
     const p = local(event);
+    if (touches.current.has(event.pointerId)) touches.current.set(event.pointerId, p);
+    if (pinch.current && touches.current.size >= 2) {
+      const [a, b] = [...touches.current.values()];
+      const ratio = Math.hypot(a.x - b.x, a.y - b.y) / pinch.current.distance;
+      onZoom?.(Math.round(Math.max(0.5, Math.min(2, pinch.current.zoom * ratio)) * 20) / 20);
+      return;
+    }
     const g = gesture.current;
     if (g) {
       if (!g.dragging && Math.hypot(p.x - g.startX, p.y - g.startY) > DRAG_THRESHOLD) g.dragging = true;
@@ -108,6 +126,12 @@ const HotelCanvas = forwardRef(function HotelCanvas({ zoom, catalog, placement, 
   };
 
   const onPointerUp = (event) => {
+    touches.current.delete(event.pointerId);
+    if (pinch.current) {
+      if (touches.current.size < 2) pinch.current = null;
+      gesture.current = null;
+      return;
+    }
     const g = gesture.current;
     gesture.current = null;
     if (g && !g.dragging) {
@@ -124,7 +148,8 @@ const HotelCanvas = forwardRef(function HotelCanvas({ zoom, catalog, placement, 
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onPointerCancel={() => { gesture.current = null; }}
+        onPointerCancel={(event) => { touches.current.delete(event.pointerId); pinch.current = null; gesture.current = null; }}
+        onWheel={(event) => onZoom?.(Math.max(0.5, Math.min(2, Math.round((zoom - Math.sign(event.deltaY) * 0.1) * 10) / 10)))}
         aria-label="Stanza dell'hotel: tocca una casella per camminare, un avatar per vedere chi e'"
         role="img"
       />

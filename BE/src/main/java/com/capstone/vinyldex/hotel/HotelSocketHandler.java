@@ -66,6 +66,8 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     private final RoomService roomService;
     private final FurniService furniService;
     private final HotelSocialService socialService;
+    private final PetService petService;
+    private final FishingService fishingService;
     private final PvpService pvpService;
     private final NpcTradeService npcTradeService;
     private final PackService packService;
@@ -78,7 +80,9 @@ public class HotelSocketHandler extends TextWebSocketHandler {
                               RoomRegistry registry, RoomService roomService, FurniService furniService,
                               HotelSocialService socialService, PvpService pvpService, NpcTradeService npcTradeService,
                               PackService packService, PackRecapService packRecapService,
-                              MinigameRewardService minigameRewardService) {
+                              MinigameRewardService minigameRewardService, PetService petService,
+                              FishingService fishingService) {
+        this.fishingService = fishingService;
         this.objectMapper = objectMapper;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
@@ -91,6 +95,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         this.packService = packService;
         this.packRecapService = packRecapService;
         this.minigameRewardService = minigameRewardService;
+        this.petService = petService;
     }
 
     @Override
@@ -163,7 +168,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        HotelUser hotelUser = HotelUser.from(user.get(), socialService.showcase(userId));
+        HotelUser hotelUser = HotelUser.from(user.get(), socialService.showcase(userId)).withPet(petService.petOf(userId));
         session.authenticate(hotelUser);
         registry.register(session);
         session.send(Map.of("type", "hello", "user", hotelUser));
@@ -264,6 +269,12 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             case "away" -> {
                 if (room != null) room.setAway(userId, node.path("on").asBoolean(false));
             }
+            case "match_join" -> {
+                if (room != null) reply(session, room.matchJoin(userId, text(node, "team")));
+            }
+            case "match_start" -> {
+                if (room != null) reply(session, room.matchStart(userId));
+            }
             case "kick" -> {
                 if (room != null && room.data().isOwner(userId)) room.kick(uuid(node, "userId"));
             }
@@ -274,7 +285,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     /** Rilegge aspetto e livello dal database, dopo un salvataggio dal guardaroba. */
     private void refreshProfile(HotelSession session, RoomInstance room) {
         userRepository.findById(session.user().id()).ifPresent(user -> {
-            HotelUser updated = HotelUser.from(user, socialService.showcase(user.getId()));
+            HotelUser updated = HotelUser.from(user, socialService.showcase(user.getId())).withPet(petService.petOf(user.getId()));
             session.authenticate(updated);
             session.send(Map.of("type", "hello", "user", updated));
             if (room != null) room.updateUser(updated);
@@ -380,6 +391,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             session.send(error(outcome.error()));
             return;
         }
+        if ("fish".equals(outcome.game().key())) fishCard(session, room, outcome.score());
         if (!outcome.record()) return;
         MinigameRewardService.Reward reward = minigameRewardService.reward(session.user().id(), outcome.game(), outcome.score());
         Map<String, Object> message = new LinkedHashMap<>();
@@ -389,6 +401,19 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         message.put("left", reward.left());
         message.put("reason", reward.reason());
         session.send(message);
+    }
+
+    /** Pesce raro dal molo: una carta nella collezione (fino a tre al giorno), e tutti lo vedono. */
+    private void fishCard(HotelSession session, RoomInstance room, int score) {
+        com.capstone.vinyldex.entity.Card card = fishingService.catchCard(session.user().id(), score);
+        if (card == null) return;
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put("type", "fish_card");
+        message.put("card", RoomItemView.CardView.from(card));
+        message.put("left", fishingService.leftToday(session.user().id()));
+        session.send(message);
+        room.announce(Map.of("type", "fish_catch", "by", session.user().username(), "byId", session.user().id(),
+                "card", RoomItemView.CardView.from(card)));
     }
 
     /** In edicola si compra un pacchetto: i gold vanno via subito, il pacchetto finisce nella borsa. */
@@ -445,7 +470,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
 
     /** Tipi di evento dei minigiochi che si inoltrano alla stanza, e i campi ammessi. */
     private static final java.util.Set<String> FX_KINDS = java.util.Set.of("dribble", "shoot", "aim", "roll", "reset", "ball",
-            "hole", "curl", "hit", "balls", "cue");
+            "hole", "curl", "hit", "balls", "cue", "cast", "bite", "catch", "reel", "sing", "lap", "kart");
     private static final List<String> FX_NUMBERS = List.of("made", "swish", "off", "x", "power", "u", "v", "arm", "dx", "dy");
     /** Bilie del biliardo: coppie (x, y) da 0 a 1 sul tavolo, -1 per quelle in buca. Al massimo 16 bilie. */
     private static final int MAX_BALL_NUMBERS = 32;

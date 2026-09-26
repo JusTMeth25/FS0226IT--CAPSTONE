@@ -3,11 +3,13 @@ import { useAuth } from '../../hooks/useAuth.js';
 import { useGame } from '../../hooks/useGame.js';
 import { useCountUp } from '../../hooks/useCountUp.js';
 import UserAvatar from '../common/UserAvatar.jsx';
+import { useUnseenNews } from '../../hooks/useUnseenNews.js';
 
 const NAV_ITEMS = [
   { to: '/home', label: 'Home', icon: 'ph-house' },
   { to: '/packs', label: 'Apri pacchetti', icon: 'ph-gift' },
   { to: '/collection', label: 'Collezione', icon: 'ph-cards' },
+  { to: '/sets', label: 'Set', icon: 'ph-stack' },
   { to: '/marketplace', label: 'Mercato', icon: 'ph-storefront' },
   { to: '/trades', label: 'Scambi', icon: 'ph-arrows-left-right' },
   { to: '/missions', label: 'Missioni', icon: 'ph-target' },
@@ -15,7 +17,8 @@ const NAV_ITEMS = [
   { to: '/leaderboard', label: 'Classifica', icon: 'ph-trophy' },
   { to: '/battle', label: 'Battaglie', icon: 'ph-sword' },
   { to: '/hotel', label: 'Hotel', icon: 'ph-buildings' },
-  { to: '/profile', label: 'Profilo', icon: 'ph-user-circle' }
+  { to: '/profile', label: 'Profilo', icon: 'ph-user-circle' },
+  { to: '/news', label: 'Novità', icon: 'ph-megaphone' }
 ];
 
 /** Navigazione desktop (≥992px): a mobile/tablet la sostituisce interamente BottomNav. */
@@ -23,6 +26,7 @@ export default function Sidebar() {
   const { user } = useAuth();
   const { gold, levelInfo } = useGame();
   const displayGold = useCountUp(gold);
+  const unseenNews = useUnseenNews();
   const xpPercent = levelInfo.xpForNext > 0 ? Math.round((levelInfo.xpRemaining / levelInfo.xpForNext) * 100) : 100;
 
   return (
@@ -55,6 +59,7 @@ export default function Sidebar() {
                 className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
               >
                 <i className={`ph-fill ${item.icon}`} /> {item.label}
+                {item.to === '/news' && unseenNews && <span className="nav-new-dot" aria-label="Novità da vedere" />}
               </NavLink>
             </li>
           ))}

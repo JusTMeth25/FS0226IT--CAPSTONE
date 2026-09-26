@@ -73,8 +73,12 @@ public class RoomInstance {
     private final Map<String, Minigames.Best> records = new HashMap<>();
     /** Partita di calcio, solo nelle stanze con due porte (lo stadio); altrimenti null. */
     private final FootballMatch football;
+    /** Partita a squadre fra giocatori veri (solo nelle stanze con il pallone). */
+    private final TeamMatch match = new TeamMatch();
     /** Dopo un gol il pallone resta in rete un attimo, poi torna a centrocampo. */
     private static final long GOAL_PAUSE_MILLIS = 2_500;
+    /** Fatti di gioco da far sapere al resto dell'applicazione (missioni, eventi, classifiche). */
+    private java.util.function.Consumer<Object> events = event -> { };
     /** Fascia di tre ore del meteo gia' mandato ai client: quando cambia, si manda quello nuovo. */
     private long weatherSlot = HotelWeather.now().slot();
 
@@ -198,6 +202,11 @@ public class RoomInstance {
         return data;
     }
 
+    /** Chi ascolta i fatti di gioco della stanza (il RoomRegistry lo collega agli eventi Spring). */
+    public void setEvents(java.util.function.Consumer<Object> events) {
+        this.events = events == null ? event -> { } : events;
+    }
+
     /** Giocatori veri presenti: gli NPC non contano ne' per la capienza ne' per il navigatore. */
     public synchronized int userCount() {
         return (int) occupants.values().stream().filter(o -> !o.isNpc()).count();
@@ -274,6 +283,10 @@ public class RoomInstance {
         if (userCount() == 0) emptySince = System.currentTimeMillis();
         conversations.keySet().removeIf(key -> key.endsWith("/" + userId));
         broadcast(Map.of("type", "user_left", "id", userId));
+        if (football != null && match.isPlayer(userId)) {
+            if (match.onLeave(userId) == TeamMatch.Outcome.END) endMatch();
+            else broadcast(match.view());
+        }
     }
 
     // ------------------------------------------------------------------ movimento
@@ -313,6 +326,16 @@ public class RoomInstance {
             Map<String, Object> message = new LinkedHashMap<>(weather.toMap());
             message.put("type", "weather");
             broadcast(message);
+        }
+        if (football != null && match.playing()) {
+            TeamMatch.Outcome outcome = match.onTick(now, football.score(FootballMatch.Team.BLUE), football.score(FootballMatch.Team.RED));
+            if (outcome == TeamMatch.Outcome.EXTRA_TIME) {
+                Map<String, Object> view = match.view();
+                view.put("notice", "Pareggio! Supplementari: il primo gol vince.");
+                broadcast(view);
+            } else if (outcome == TeamMatch.Outcome.END) {
+                endMatch();
+            }
         }
         for (Occupant occupant : occupants.values()) {
             if (occupant.handItem != null && now > occupant.handItemUntil) {
@@ -828,10 +851,15 @@ public class RoomInstance {
     /** Chi arriva sulla casella del pallone lo calcia: di corsa lontano, fermandosi un passaggio corto. */
     private void kickBall(Occupant occupant) {
         if (football.inNet() || occupant.x != football.ballX() || occupant.y != football.ballY()) return;
+        // Durante una partita a squadre calciano solo i giocatori in campo.
+        if (match.playing() && !match.isPlayer(occupant.user.id())) return;
         int power = occupant.path.isEmpty() ? FootballMatch.TAP_POWER : FootballMatch.RUN_POWER;
         FootballMatch.Kick kick = football.kick(occupant.dir, power, ballField(occupant.user.id()));
         broadcast(ballMessage(kick.path(), occupant.user.username(), occupant.user.id()));
         if (kick.scored() == null) return;
+        if (!occupant.isNpc()) {
+            events.accept(new HotelGameEvents.GoalScored(data.id(), occupant.user.id(), occupant.user.username(), kick.scored().key()));
+        }
 
         FootballMatch.Team winner = football.winner();
         Map<String, Object> goal = new LinkedHashMap<>();
@@ -842,11 +870,67 @@ public class RoomInstance {
         goal.put("blue", football.score(FootballMatch.Team.BLUE));
         goal.put("red", football.score(FootballMatch.Team.RED));
         goal.put("winner", winner == null ? null : winner.key());
+        goal.put("match", match.playing());
         broadcast(goal);
+        if (match.afterGoal(football.score(FootballMatch.Team.BLUE), football.score(FootballMatch.Team.RED)) == TeamMatch.Outcome.END) {
+            later(GOAL_PAUSE_MILLIS, this::endMatch);
+            return;
+        }
         later(GOAL_PAUSE_MILLIS, () -> {
             football.kickOff();
             broadcast(ballMessage(List.of(), null));
         });
+    }
+
+    /** Entra in una squadra ("blue", "red") o ne esce (altro valore). Restituisce l'errore o null. */
+    public synchronized String matchJoin(UUID userId, String team) {
+        Occupant occupant = occupants.get(userId);
+        if (football == null || occupant == null || occupant.isNpc()) return "no_match_here";
+        FootballMatch.Team chosen = "blue".equals(team) ? FootballMatch.Team.BLUE : "red".equals(team) ? FootballMatch.Team.RED : null;
+        String error = match.join(userId, occupant.user.username(), chosen);
+        if (error == null) broadcast(match.view());
+        return error;
+    }
+
+    /** Fischio d'inizio: serve almeno un giocatore per squadra, e deve fischiare uno di loro. */
+    public synchronized String matchStart(UUID userId) {
+        if (football == null) return "no_match_here";
+        if (!match.isPlayer(userId)) return "match_not_player";
+        if (!match.canStart()) return "match_not_ready";
+        football.resetScore();
+        football.kickOff();
+        match.start(System.currentTimeMillis());
+        broadcast(ballMessage(List.of(), null));
+        broadcast(match.view());
+        return null;
+    }
+
+    /** Fischio finale: premi (via evento), risultato a tutti, pallone a centrocampo e punteggio a zero. */
+    private synchronized void endMatch() {
+        if (!match.playing()) return;
+        int blueScore = football.score(FootballMatch.Team.BLUE);
+        int redScore = football.score(FootballMatch.Team.RED);
+        FootballMatch.Team winner = match.winner(blueScore, redScore);
+        List<UUID> bluePlayers = match.players(FootballMatch.Team.BLUE);
+        List<UUID> redPlayers = match.players(FootballMatch.Team.RED);
+        List<UUID> winners = winner == null ? List.of() : winner == FootballMatch.Team.BLUE ? bluePlayers : redPlayers;
+        List<UUID> losers = winner == null ? List.of() : winner == FootballMatch.Team.BLUE ? redPlayers : bluePlayers;
+        List<UUID> all = new ArrayList<>(bluePlayers);
+        all.addAll(redPlayers);
+        events.accept(new HotelGameEvents.MatchPlayed(data.id(), winner == null ? all : winners, winner == null ? List.of() : losers, winner == null));
+
+        Map<String, Object> end = new LinkedHashMap<>();
+        end.put("type", "match_end");
+        end.put("winner", winner == null ? null : winner.key());
+        end.put("label", winner == null ? null : winner.label());
+        end.put("blue", blueScore);
+        end.put("red", redScore);
+        broadcast(end);
+        match.finish();
+        football.resetScore();
+        football.kickOff();
+        broadcast(ballMessage(List.of(), null));
+        broadcast(match.view());
     }
 
     /** Il campo visto dal pallone: rotola sulle caselle libere e si ferma davanti agli avatar. */
@@ -878,6 +962,11 @@ public class RoomInstance {
     private void playFootball(Occupant npc, long now) {
         if (now < npc.nextThinkAt) return;
         npc.nextThinkAt = now + 1_200 + random.nextInt(1_300);
+        if (match.playing()) {
+            // Partita fra giocatori: gli NPC tornano al loro posto e guardano.
+            if (npc.path.isEmpty() && (npc.x != npc.npc.x() || npc.y != npc.npc.y())) move(npc.user.id(), npc.npc.x(), npc.npc.y());
+            return;
+        }
         if (football.inNet()) return;
         UUID id = npc.user.id();
         FootballMatch.Field field = ballField(id);
@@ -1242,6 +1331,8 @@ public class RoomInstance {
             };
         }
         if (item.type().startsWith("golf_hole_")) return new int[]{item.x() - 1, item.y()};
+        // Paletto da pesca: si sta sulla sabbia a ovest, rivolti verso il mare.
+        if ("fishing_post".equals(item.type())) return new int[]{item.x() - 1, item.y()};
         return null;
     }
 
@@ -1373,6 +1464,7 @@ public class RoomInstance {
         message.put("record", record);
         message.put("best", best);
         broadcast(message);
+        events.accept(new HotelGameEvents.MinigamePlayed(data.id(), userId, occupant.user.username(), game.key(), valid));
         trainerSays(occupant, NpcDialog.workoutDone(game.unit(), occupant.user.username(), valid, record));
         return new Minigames.Outcome(null, game, valid, record);
     }
@@ -1625,6 +1717,7 @@ public class RoomInstance {
         if (football != null) {
             state.put("ball", Map.of("x", football.ballX(), "y", football.ballY(),
                     "blue", football.score(FootballMatch.Team.BLUE), "red", football.score(FootballMatch.Team.RED)));
+            state.put("match", match.view());
         }
         state.put("serverTime", System.currentTimeMillis());
         state.put("weather", HotelWeather.now().toMap());
@@ -1639,6 +1732,7 @@ public class RoomInstance {
         view.put("level", o.user.level());
         view.put("bestCard", o.user.bestCard());
         view.put("topCards", o.user.topCards());
+        view.put("pet", o.user.pet());
         view.put("x", o.x);
         view.put("y", o.y);
         view.put("z", o.z);

@@ -1068,6 +1068,56 @@ const DRAW = {
       const pulse = Math.floor((now || 0) / 250) % 2 === 0;
       for (let i = 0; i < 10; i += 1) d(0.14 + i * 0.18, 0.9, 20, pulse === (i % 2 === 0) ? '#22d3ee' : '#ec4899', 4, 4);
     });
+  },
+  // Palco del karaoke (2x2): pedana nera con il bordo di luci e l'asta del microfono.
+  karaoke_stage(b, { c, d, now, front }) {
+    b({ u0: 0.02, v0: 0.02, u1: 1.98, v1: 1.98, z1: 10, color: '#1c1830', left: '#231d3d', right: '#120f20', tex: 'metal' });
+    b({ u0: 0.02, v0: 0.02, u1: 1.98, v1: 1.98, z0: 10, z1: 12, color: '#3b2f6b', glow: true });
+    const step = Math.floor((now || 0) / 300) % 4;
+    front(() => {
+      for (let i = 0; i < 12; i += 1) d(0.08 + i * 0.16, 1.98, 7, (i + step) % 4 === 0 ? '#fde047' : (i % 2 ? '#ec4899' : '#22d3ee'), 4, 4);
+    });
+    // Asta e microfono.
+    c({ u: 1.0, v: 1.2, r: 0.14, z0: 12, z1: 13, color: '#27272a' });
+    c({ u: 1.0, v: 1.2, r: 0.025, z0: 13, z1: 50, color: '#a1a1aa', tex: 'metal' });
+    c({ u: 1.0, v: 1.2, r: 0.06, z0: 50, z1: 58, color: '#3f3f46', top: '#71717a' });
+  },
+  // Paletto da pesca: un palo di legno con la canna appoggiata e un secchio.
+  fishing_post(b, { c }) {
+    c({ u: 0.5, v: 0.5, r: 0.12, z0: 0, z1: 44, color: '#8a5a3b', top: '#a8754f', tex: 'wood' });
+    c({ u: 0.5, v: 0.5, r: 0.14, z0: 30, z1: 34, color: '#d6c3a1' });
+    b({ u0: 0.56, v0: 0.46, u1: 0.98, v1: 0.52, z0: 38, z1: 40, color: '#1f2937' });
+    b({ u0: 0.2, v0: 0.36, u1: 0.3, v1: 0.46, z0: 20, z1: 24, color: '#9ca3af', tex: 'metal' });
+    c({ u: 0.22, v: 0.78, r: 0.12, z0: 0, z1: 12, color: '#3b82f6', top: '#1e3a8a' });
+  },
+  // Go-kart: telaio basso rosso, quattro ruote grosse, sedile e volante; ci si siede sopra.
+  go_kart(b, { c }) {
+    [[0.18, 0.2], [0.18, 0.8], [0.82, 0.2], [0.82, 0.8]].forEach(([u, v]) => c({ u, v, r: 0.12, z0: 0, z1: 9, color: '#111827', top: '#374151' }));
+    b({ u0: 0.12, v0: 0.3, u1: 0.9, v1: 0.7, z0: 3, z1: 8, color: '#dc2626', tex: 'metal' });
+    b({ u0: 0.78, v0: 0.32, u1: 0.98, v1: 0.68, z0: 3, z1: 7, color: '#f59e0b' });
+    b({ u0: 0.2, v0: 0.36, u1: 0.4, v1: 0.64, z0: 8, z1: 20, color: '#1f2937', tex: 'fabric' });
+    b({ u0: 0.62, v0: 0.46, u1: 0.66, v1: 0.54, z0: 8, z1: 16, color: '#6b7280' });
+    b({ u0: 0.6, v0: 0.4, u1: 0.68, v1: 0.6, z0: 16, z1: 18, color: '#111827' });
+  },
+  // Pila di gomme a righe bianche e rosse, a bordo pista.
+  tire_stack(b, { c }) {
+    for (let i = 0; i < 4; i += 1) {
+      c({ u: 0.5, v: 0.5, r: 0.36, z0: i * 9, z1: i * 9 + 9, color: '#18181b', top: '#27272a' });
+      c({ u: 0.5, v: 0.5, r: 0.37, z0: i * 9 + 3, z1: i * 9 + 6, color: i % 2 ? '#ef4444' : '#f4f4f5' });
+    }
+    c({ u: 0.5, v: 0.5, r: 0.16, z0: 36, z1: 36, color: '#0a0a0a', top: '#0a0a0a' });
+  },
+  // Semaforo di partenza: cinque luci rosse che si accendono una a una, poi verdi.
+  race_lights(b, { c, d, now, front }) {
+    c({ u: 0.5, v: 0.5, r: 0.05, z0: 0, z1: 60, color: '#52525b', tex: 'metal' });
+    b({ u0: 0.1, v0: 0.4, u1: 0.9, v1: 0.6, z0: 60, z1: 76, color: '#18181b' });
+    const step = Math.floor((now || 0) / 700) % 7;
+    front(() => {
+      for (let i = 0; i < 5; i += 1) {
+        const on = step >= 5 ? '#22c55e' : i < step + 1 ? '#ef4444' : '#3f3f46';
+        d(0.16 + i * 0.15, 0.6, 72, on, 5, 5);
+      }
+    });
   }
 };
 
@@ -1355,7 +1405,9 @@ const ANIMATIONS = {
   pizza_oven: { period: 150, steps: 4 },
   claw_machine: { period: 300, steps: 4 },
   fire_pit: { period: 150, steps: 4 },
-  golf_hole_3: { period: 250, steps: 8 }
+  golf_hole_3: { period: 250, steps: 8 },
+  karaoke_stage: { period: 300, steps: 4 },
+  race_lights: { period: 700, steps: 7 }
 };
 const DANCE_COLORS = 6;
 

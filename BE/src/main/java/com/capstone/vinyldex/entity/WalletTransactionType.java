@@ -22,5 +22,17 @@ public enum WalletTransactionType {
     /** Carta rivenduta al negozio dell'hotel in cambio di gold. */
     CARD_BUYBACK,
     /** Premio per un record della stanza in un minigioco dell'hotel. */
-    MINIGAME_REWARD
+    MINIGAME_REWARD,
+    /** Carta vinta all'asta dell'hotel. */
+    AUCTION,
+    /** Carta mandata al perito per il voto. */
+    GRADING,
+    /** Premio per un set di carte completato. */
+    SET_REWARD,
+    /** Animale da compagnia: acquisto e cibo. */
+    PET,
+    /** Premio di un evento a orario dell'hotel. */
+    EVENT_REWARD,
+    /** Premio della mostra delle collezioni. */
+    GALLERY_REWARD
 }

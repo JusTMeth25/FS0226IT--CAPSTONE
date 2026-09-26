@@ -1,6 +1,7 @@
 import { lazy, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
+import { useAuth } from '../hooks/useAuth.js';
 import { findCardById } from '../data/cards.js';
 import { PACKS } from '../data/packs.js';
 import { getRarityColor, getRarityName, getSourceLabel, formatCardPrice } from '../utils/cardUtils.js';
@@ -8,6 +9,7 @@ import { cardApi } from '../services/cardApi.js';
 import { useApiResource } from '../hooks/useApiResource.js';
 import CardHero from '../components/card/CardHero.jsx';
 import Fc27Credits from '../components/card/Fc27Credits.jsx';
+import GradingBox, { GradeBadge } from '../components/card/GradingBox.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import RarityAmbience from '../components/fx/RarityAmbience.jsx';
@@ -19,7 +21,8 @@ const Card3D = lazy(() => import('../components/three/Card3D.jsx'));
 export default function CardDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { collection, favorites, toggleFavorite } = useGame();
+  const { collection, favorites, toggleFavorite, gold, refreshCollection } = useGame();
+  const { refreshUser } = useAuth();
 
   // Catalogo statico locale (le 43 carte originali): copre subito il flusso "carta non ancora
   // scoperta" dell'Album. Le carte importate da API esterne non ci sono e vanno cercate lato server.
@@ -121,6 +124,7 @@ export default function CardDetailPage() {
 
       <h2 className="card-detail-title">{ownedEntry.name}</h2>
       <span className="card-detail-rarity-chip">{getRarityName(ownedEntry.rarity)}</span>
+      <GradeBadge grade={ownedEntry.grade} />
 
       <div className="card-detail-meta" style={{ width: '100%' }}>
         <div className="card-detail-meta-item">
@@ -144,6 +148,8 @@ export default function CardDetailPage() {
       </div>
 
       {ownedEntry.source === 'fc27' && <Fc27Credits />}
+
+      <GradingBox card={ownedEntry} gold={gold} onGraded={() => { refreshCollection(); refreshUser(); }} />
 
       <button className={`btn ${isFavorite ? 'btn-gold' : 'btn-secondary'}`} onClick={() => toggleFavorite(id)}>
         <i className={isFavorite ? 'ph-fill ph-star' : 'ph ph-star'} /> {isFavorite ? 'Preferita' : 'Aggiungi ai preferiti'}

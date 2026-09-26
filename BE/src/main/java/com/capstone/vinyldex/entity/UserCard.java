@@ -46,6 +46,14 @@ public class UserCard {
     @Column(name = "battles_used", nullable = false)
     private int battlesUsed = 0;
 
+    /** Voto del perito (1-10), null se la carta non e' stata gradata. */
+    @Column(name = "grade")
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.SMALLINT)
+    private Integer grade;
+
+    @Column(name = "graded_at")
+    private Instant gradedAt;
+
     public UserCard(User user, Card card, int quantity) {
         this.user = user;
         this.card = card;

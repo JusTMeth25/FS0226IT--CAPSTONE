@@ -50,9 +50,12 @@ public class RoomRegistry {
 
     /** Chi da' le risposte agli NPC: il modello linguistico, se configurato. */
     private final NpcMind mind;
+    /** Dove finiscono i fatti di gioco delle stanze: eventi Spring (missioni, eventi a orario...). */
+    private final org.springframework.context.ApplicationEventPublisher publisher;
 
-    public RoomRegistry(NpcMind mind) {
+    public RoomRegistry(NpcMind mind, org.springframework.context.ApplicationEventPublisher publisher) {
         this.mind = mind;
+        this.publisher = publisher;
         scheduler.scheduleAtFixedRate(this::safeTick, TICK_MILLIS, TICK_MILLIS, TimeUnit.MILLISECONDS);
     }
 
@@ -67,11 +70,28 @@ public class RoomRegistry {
         leaveRoom(session);
         RoomInstance.JoinResult[] result = new RoomInstance.JoinResult[1];
         rooms.compute(data.id(), (id, existing) -> {
-            RoomInstance room = existing != null ? existing : new RoomInstance(data, items, new Random(), mind);
+            RoomInstance room = existing != null ? existing : newRoom(data, items);
             result[0] = room.join(session);
             return room;
         });
         return result[0];
+    }
+
+    private RoomInstance newRoom(RoomData data, List<RoomItemView> items) {
+        RoomInstance room = new RoomInstance(data, items, new Random(), mind);
+        room.setEvents(event -> {
+            try {
+                publisher.publishEvent(event);
+            } catch (RuntimeException ex) {
+                // Una missione non aggiornata non deve fermare la partita.
+                LoggerHolder.LOG.warn("Evento dell'hotel non gestito: {}", ex.getMessage());
+            }
+        });
+        return room;
+    }
+
+    private static final class LoggerHolder {
+        static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(RoomRegistry.class);
     }
 
     public boolean isLoaded(UUID roomId) {
@@ -99,6 +119,13 @@ public class RoomRegistry {
     /** Connessione aperta dell'utente, oppure null se non e' online. */
     public HotelSession sessionOf(UUID userId) {
         return userId == null ? null : sessionsByUser.get(userId);
+    }
+
+    /** Manda un messaggio a tutti quelli connessi all'hotel, in qualunque stanza siano. */
+    public void broadcastAll(Object message) {
+        sessionsByUser.values().forEach(session -> {
+            if (session.isOpen()) session.send(message);
+        });
     }
 
     public void unregister(HotelSession session) {

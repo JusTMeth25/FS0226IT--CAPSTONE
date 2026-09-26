@@ -31,4 +31,13 @@ public final class MissionType {
 
     /** Valore assoluto: percentuale di catalogo completata. */
     public static final String ALBUM_PERCENT = "album_percent";
+
+    /** Contatore: gol segnati allo stadio dell'hotel. */
+    public static final String HOTEL_GOAL = "hotel_goal";
+
+    /**
+     * Contatore: partite ai minigiochi dell'hotel. In metadata: game (facoltativo, "golf" vale
+     * per tutte le buche) e minScore, il punteggio minimo perche' la partita conti.
+     */
+    public static final String HOTEL_MINIGAME = "hotel_minigame";
 }

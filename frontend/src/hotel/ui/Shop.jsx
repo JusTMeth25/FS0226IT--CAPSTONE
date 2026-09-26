@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { furniApi } from '../../services/furniApi.js';
 import FurniPreview from './FurniPreview.jsx';
 import CardBuyback from './CardBuyback.jsx';
+import PetShop from './PetShop.jsx';
 
 const CATEGORY_LABELS = {
   sedute: 'Sedute',
@@ -21,13 +22,15 @@ const CATEGORY_LABELS = {
 
 /** Scheda del negozio che non e' una categoria di mobili: la vendita delle carte. */
 const SELL_TAB = 'vendi';
+/** Scheda degli animali da compagnia. */
+const PET_TAB = 'animali';
 
 /**
  * Negozio dei mobili, come il catalogo di Habbo. Si paga in gold; il mobile finisce
  * nell'inventario e si posiziona nella propria stanza. Nell'ultima scheda il negozio ricompra
  * le carte che hanno un prezzo di mercato.
  */
-export default function Shop({ catalog, gold, onBought, onCardSold, onClose }) {
+export default function Shop({ catalog, gold, onBought, onCardSold, onPetChange, onClose }) {
   const buyable = useMemo(() => catalog.filter((d) => d.buyable), [catalog]);
   const categories = useMemo(() => [...new Set(buyable.map((d) => d.category))], [buyable]);
   const [category, setCategory] = useState(null);
@@ -64,6 +67,10 @@ export default function Shop({ catalog, gold, onBought, onCardSold, onClose }) {
           className={`hotel-tab hotel-tab-sell${active === SELL_TAB ? ' active' : ''}`} onClick={() => setCategory(SELL_TAB)}>
           <i className="ph-fill ph-hand-coins" /> Vendi carte
         </button>
+        <button type="button" role="tab" aria-selected={active === PET_TAB}
+          className={`hotel-tab hotel-tab-sell${active === PET_TAB ? ' active' : ''}`} onClick={() => setCategory(PET_TAB)}>
+          <i className="ph-fill ph-paw-print" /> Animali
+        </button>
         {categories.map((c) => (
           <button key={c} type="button" role="tab" aria-selected={active === c}
             className={`hotel-tab${active === c ? ' active' : ''}`} onClick={() => setCategory(c)}>
@@ -74,8 +81,10 @@ export default function Shop({ catalog, gold, onBought, onCardSold, onClose }) {
 
       {active === SELL_TAB && <CardBuyback onSold={onCardSold} />}
 
-      {active !== SELL_TAB && error && <p className="hotel-panel-error">{error}</p>}
-      {active !== SELL_TAB && (
+      {active === PET_TAB && <PetShop gold={gold} onChange={onPetChange} />}
+
+      {active !== SELL_TAB && active !== PET_TAB && error && <p className="hotel-panel-error">{error}</p>}
+      {active !== SELL_TAB && active !== PET_TAB && (
       <ul className="hotel-furni-grid">
         {buyable.filter((d) => d.category === active).map((def) => (
           <li key={def.type} className="hotel-furni-card">

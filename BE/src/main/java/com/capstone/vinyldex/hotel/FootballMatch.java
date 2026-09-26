@@ -164,6 +164,12 @@ final class FootballMatch {
         return null;
     }
 
+    /** Punteggio a zero (inizio e fine di una partita a squadre). */
+    void resetScore() {
+        blue = 0;
+        red = 0;
+    }
+
     /** Pallone a centrocampo; dopo una vittoria riparte anche il punteggio. */
     void kickOff() {
         if (winner() != null) {

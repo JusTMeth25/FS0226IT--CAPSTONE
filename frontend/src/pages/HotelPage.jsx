@@ -17,6 +17,13 @@ import ItemMenu from '../hotel/ui/ItemMenu.jsx';
 import CardPicker from '../hotel/ui/CardPicker.jsx';
 import CardViewer from '../hotel/ui/CardViewer.jsx';
 import useDraggablePanels from '../hotel/useDraggablePanels.js';
+import HotelTutorial from '../hotel/ui/HotelTutorial.jsx';
+import FriendsPanel from '../hotel/ui/FriendsPanel.jsx';
+import EventsPanel, { EventBanner } from '../hotel/ui/EventsPanel.jsx';
+import AuctionTab from '../hotel/ui/AuctionTab.jsx';
+import GalleryTab from '../hotel/ui/GalleryTab.jsx';
+import MatchBar from '../hotel/ui/MatchBar.jsx';
+import { hotelApi } from '../services/hotelApi.js';
 import RoomSettings from '../hotel/ui/RoomSettings.jsx';
 import UserCard from '../hotel/ui/UserCard.jsx';
 import PvpPanel from '../hotel/ui/PvpPanel.jsx';
@@ -51,7 +58,9 @@ const USABLE = ['bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart'
   'weight_bench', 'treadmill', 'punching_bag', 'claw_machine', 'arcade', 'pool_table',
   'basket_hoop', 'bowling_lane', ...[1, 2, 3, 4, 5, 6].map((hole) => `golf_hole_${hole}`),
   // Curl con i manubri della rastrelliera e i biliardi grandi.
-  'dumbbell_rack', 'billiard_table'];
+  'dumbbell_rack', 'billiard_table',
+  // Palco del karaoke, paletti da pesca e go-kart.
+  'karaoke_stage', 'fishing_post', 'go_kart'];
 
 /** Il chiosco e l'espositore dell'edicola aprono il banco dei pacchetti. */
 const NEWSSTAND_ITEMS = ['newsstand', 'pack_display'];
@@ -149,6 +158,28 @@ export default function HotelPage() {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [pickingCardFor, setPickingCardFor] = useState(null);
   const [viewingCard, setViewingCard] = useState(null);
+  /** Tutorial della prima visita: si chiede al server se e' gia' stato visto. */
+  const [tutorial, setTutorial] = useState(false);
+  /** Amici: messaggi e richieste non ancora visti, ultimo messaggio privato arrivato. */
+  const [friendsUnread, setFriendsUnread] = useState(0);
+  const [lastDm, setLastDm] = useState(null);
+  const [friendsVersion, setFriendsVersion] = useState(0);
+  /** Eventi a orario in corso (per la striscia in alto) e contatore per ricaricare la classifica. */
+  const [liveEvents, setLiveEvents] = useState([]);
+  const [eventsVersion, setEventsVersion] = useState(0);
+  const [auctionVersion, setAuctionVersion] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
+    const load = () => hotelApi.events().then((res) => { if (!cancelled) setLiveEvents(res.current); }).catch(() => {});
+    load();
+    const timer = setInterval(load, 60000);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [eventsVersion]);
+  useEffect(() => {
+    let cancelled = false;
+    hotelApi.tutorial().then((res) => { if (!cancelled && !res.done) setTutorial(true); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
   const [placement, setPlacement] = useState(null);
   const [inventoryVersion, setInventoryVersion] = useState(0);
   const [whisperTo, setWhisperTo] = useState(null);
@@ -168,6 +199,8 @@ export default function HotelPage() {
   const [minigameResult, setMinigameResult] = useState(null);
   /** Punteggio della partita nello stadio: { blue, red }, null nelle stanze senza pallone. */
   const [football, setFootball] = useState(null);
+  /** Partita a squadre dello stadio: squadre, fase e fine (ora del server). */
+  const [match, setMatch] = useState(null);
   /** Stagione e tempo di oggi (HotelWeather): uguali in tutto l'hotel. */
   const [weather, setWeather] = useState(null);
   const pageRef = useRef(null);
@@ -209,6 +242,7 @@ export default function HotelPage() {
         setItems(Object.fromEntries((message.items || []).map((i) => [i.id, i])));
         setJukebox({ track: message.jukebox?.track ?? -1 });
         setFootball(message.ball ? { blue: message.ball.blue, red: message.ball.red } : null);
+        setMatch(message.match || null);
         if (message.weather) setWeather(message.weather);
         getJukebox().set(message.jukebox?.track ?? -1, message.jukebox?.startedAt ?? 0, message.serverTime);
         setPanel((current) => (current === 'trades' ? current : null));
@@ -404,6 +438,65 @@ export default function HotelPage() {
         break;
       case 'weather':
         setWeather(message);
+        break;
+      case 'dm':
+        setLastDm(message);
+        setFriendsUnread((n) => n + 1);
+        showNotice(`Messaggio da ${message.fromName}: ${message.text}`);
+        break;
+      case 'hotel_event':
+        if (message.phase === 'start') {
+          showNotice(`E' iniziato l'evento "${message.title}" (${message.room})! Apri la Piazza per la classifica.`);
+          setEventsVersion((v) => v + 1);
+        } else if (message.phase === 'end') {
+          const podium = message.winners.map((w, i) => `${i + 1}. ${w.username}`).join(', ');
+          showNotice(`Fine di "${message.title}": ${podium}`);
+          setEventsVersion((v) => v + 1);
+        } else {
+          setEventsVersion((v) => v + 1);
+        }
+        break;
+      case 'auction':
+        setAuctionVersion((v) => v + 1);
+        if (message.phase === 'lot') showNotice(`All'asta: ${message.lot.card?.name}! Apri la Piazza per offrire.`);
+        else if (message.phase === 'outbid') {
+          showNotice(`${message.by} ha rilanciato a ${message.amount} gold: i tuoi gold sono tornati.`);
+          refreshUser();
+        } else if (message.phase === 'sold') {
+          showNotice(`Aggiudicata! ${message.lot.card?.name} va a ${message.lot.bidderName} per ${message.lot.currentBid} gold.`);
+          if (message.lot.bidderId === meRef.current?.id) sound.success();
+        }
+        break;
+      case 'fish_card':
+        sound.success();
+        setViewingCard(message.card);
+        refreshCollection();
+        showNotice(`Pesce raro! Dentro c'era una carta: ${message.card?.name}. Oggi ne puoi pescare ancora ${message.left}.`);
+        break;
+      case 'fish_catch':
+        if (message.byId !== meRef.current?.id) showNotice(`${message.by} ha pescato una carta: ${message.card?.name}!`);
+        break;
+      case 'match':
+        setMatch(message);
+        if (message.notice) showNotice(message.notice);
+        break;
+      case 'match_end':
+        sound.success();
+        showNotice(message.winner
+          ? `Fischio finale: vincono i ${message.label} ${message.blue}-${message.red}!`
+          : `Fischio finale: pareggio ${message.blue}-${message.red}.`);
+        break;
+      case 'match_reward':
+        showNotice(`${message.note}: +${message.gold} gold`);
+        refreshUser();
+        break;
+      case 'gallery':
+        if (message.phase === 'end') showNotice(`Mostra della settimana: vince ${message.winners[0]?.username}!`);
+        break;
+      case 'friend_event':
+        setFriendsVersion((v) => v + 1);
+        setFriendsUnread((n) => n + (message.kind === 'request' ? 1 : 0));
+        showNotice(message.kind === 'request' ? `${message.from} vuole essere tuo amico!` : `${message.from} ha accettato la tua amicizia!`);
         break;
       case 'goal':
         setFootball({ blue: message.blue, red: message.red });
@@ -650,6 +743,7 @@ export default function HotelPage() {
         <HotelCanvas
           ref={canvasRef}
           zoom={zoom}
+          onZoom={setZoom}
           catalog={catalog}
           placement={placement}
           buildMode={isOwner && buildMode}
@@ -673,6 +767,11 @@ export default function HotelPage() {
             <strong>{football.red}</strong>
             <span className="hotel-scoreboard-team is-red">Rossi</span>
           </div>
+        )}
+        {room && football && <MatchBar match={match} me={me} clockOffset={clockOffset} send={send} />}
+        {room && <EventBanner events={liveEvents} onOpen={() => setPanel('events')} />}
+        {tutorial && room && (
+          <HotelTutorial onDone={() => { setTutorial(false); hotelApi.tutorialDone().catch(() => {}); }} />
         )}
 
         {room && (
@@ -761,6 +860,9 @@ export default function HotelPage() {
             onRespect={() => send({ type: 'respect', userId: selected.id })}
             onKick={() => { send({ type: 'kick', userId: selected.id }); setSelected(null); }}
             onVisit={(roomId) => { join(roomId); setSelected(null); }}
+            onAddFriend={() => hotelApi.friendRequest(selected.username)
+              .then(() => showNotice(`Richiesta di amicizia mandata a ${selected.username}!`))
+              .catch((err) => showNotice(err?.code === 'already_friends' ? "Siete gia' amici." : err?.code === 'friend_already_requested' ? "Richiesta gia' mandata." : 'Richiesta non riuscita.'))}
             onViewCard={(card) => setViewingCard(card)}
             onChallenge={pvp ? null : () => { send({ type: 'challenge', userId: selected.id }); setSelected(null); }}
           />
@@ -843,6 +945,7 @@ export default function HotelPage() {
               showNotice(`${def.name} aggiunto all'inventario!`);
             }}
             onCardSold={cardSold}
+            onPetChange={(message) => { refreshUser(); if (message) showNotice(message); }}
           />
         )}
         {panel === 'inventory' && (
@@ -869,6 +972,17 @@ export default function HotelPage() {
           />
         )}
         {panel === 'settings' && room && isOwner && <RoomSettings room={room} onClose={() => setPanel(null)} />}
+        {panel === 'friends' && (
+          <FriendsPanel me={me} incoming={lastDm} version={friendsVersion} onUnreadChange={setFriendsUnread}
+            onJoin={(roomId) => { join(roomId); setPanel(null); }} onClose={() => setPanel(null)} />
+        )}
+        {panel === 'events' && (
+          <EventsPanel me={me} version={eventsVersion} onClose={() => setPanel(null)}
+            tabs={[
+              { key: 'auction', label: 'Asta', icon: 'ph-gavel', render: () => <AuctionTab me={me} gold={gold} live={auctionVersion} onChange={refreshUser} onViewCard={setViewingCard} /> },
+              { key: 'gallery', label: 'Mostra', icon: 'ph-frame-corners', render: () => <GalleryTab me={me} onViewCard={setViewingCard} /> }
+            ]} />
+        )}
         {panel === 'trades' && (
           <TradesPanel version={hotel.tradeVersion} onPendingChange={setPendingTrades} onClose={() => setPanel(null)}
             onViewCard={(card) => setViewingCard(card)} />
@@ -882,6 +996,7 @@ export default function HotelPage() {
       </div>
 
       {viewingCard && <CardViewer card={viewingCard} onClose={() => setViewingCard(null)} />}
+
 
       {packOpening && (
         <HotelPackOpening
@@ -911,6 +1026,14 @@ export default function HotelPage() {
         <button type="button" className={`hotel-tool${panel === 'trades' ? ' active' : ''}`} onClick={() => setPanel(panel === 'trades' ? null : 'trades')} title="Scambi">
           <i className="ph-fill ph-arrows-left-right" /><span>Scambi</span>
           {pendingTrades > 0 && <b className="hotel-tool-badge">{pendingTrades}</b>}
+        </button>
+        <button type="button" className={`hotel-tool${panel === 'friends' ? ' active' : ''}`} onClick={() => setPanel(panel === 'friends' ? null : 'friends')} title="Amici">
+          <i className="ph-fill ph-users-three" /><span>Amici</span>
+          {friendsUnread > 0 && <b className="hotel-tool-badge">{friendsUnread}</b>}
+        </button>
+        <button type="button" className={`hotel-tool${panel === 'events' ? ' active' : ''}`} onClick={() => setPanel(panel === 'events' ? null : 'events')} title="Piazza: eventi, asta e mostra">
+          <i className="ph-fill ph-confetti" /><span>Piazza</span>
+          {liveEvents.length > 0 && <b className="hotel-tool-badge">!</b>}
         </button>
         {isOwner && (
           <button type="button" className={`hotel-tool${buildMode ? ' active' : ''}`}

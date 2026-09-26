@@ -29,6 +29,8 @@ export class ApiError extends Error {
     this.name = 'ApiError';
     this.status = status;
     this.payload = payload;
+    /** Codice d'errore del backend (es. "insufficient_gold"), se c'e'. */
+    this.code = payload?.error ?? null;
   }
 }
 

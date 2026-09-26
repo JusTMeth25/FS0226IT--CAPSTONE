@@ -166,7 +166,8 @@ public class FcCardArtController {
         String[] labels = gk ? new String[]{"DIV", "HAN", "KIC", "REF", "SPD", "POS"}
                 : new String[]{"PAC", "SHO", "PAS", "DRI", "DEF", "PHY"};
         String[] keys = {"pac", "sho", "pas", "dri", "def", "phy"};
-        String shield = "M125 8 L150 22 L236 22 L242 70 L242 262 Q242 300 206 316 L125 346 L44 316 Q8 300 8 262 L8 70 L14 22 L100 22 Z";
+        // Carta rettangolare con gli angoli arrotondati, come tutte le altre carte del gioco.
+        String frame = "M18 3 H232 Q247 3 247 18 V332 Q247 347 232 347 H18 Q3 347 3 332 V18 Q3 3 18 3 Z";
 
         StringBuilder s = new StringBuilder();
         s.append("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 250 350' width='250' height='350'>");
@@ -177,9 +178,11 @@ public class FcCardArtController {
                 .append("<stop offset='0' stop-color='#fff' stop-opacity='0'/>")
                 .append("<stop offset='.5' stop-color='#fff' stop-opacity='.35'/>")
                 .append("<stop offset='1' stop-color='#fff' stop-opacity='0'/></linearGradient>")
-                .append("<clipPath id='card'><path d='").append(shield).append("'/></clipPath></defs>");
-        s.append("<rect width='250' height='350' fill='#0b0720'/>");
-        s.append("<path d='").append(shield).append("' fill='url(#bg)' stroke='").append(p.edge()).append("' stroke-width='4'/>");
+                .append("<clipPath id='card'><path d='").append(frame).append("'/></clipPath></defs>");
+        s.append("<rect width='250' height='350' fill='").append(p.edge()).append("'/>");
+        s.append("<path d='").append(frame).append("' fill='url(#bg)' stroke='").append(p.edge()).append("' stroke-width='4'/>");
+        // Cornice interna sottile, come le carte speciali.
+        s.append("<rect x='12' y='12' width='226' height='326' rx='10' fill='none' stroke='").append(p.accent()).append("' stroke-opacity='.45' stroke-width='1.5'/>");
         s.append("<g clip-path='url(#card)'>");
         // Motivo a raggi e riflesso diagonale, come le carte speciali.
         for (int i = 0; i < 9; i++) {

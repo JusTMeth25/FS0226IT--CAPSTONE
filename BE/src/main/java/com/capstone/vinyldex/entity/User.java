@@ -62,6 +62,10 @@ public class User {
     @Column(name = "hotel_look", length = 40)
     private String hotelLook;
 
+    /** La guida dell'hotel si e' gia' presentata (tutorial della prima visita). */
+    @Column(name = "hotel_tutorial_done", nullable = false)
+    private boolean hotelTutorialDone = false;
+
     @Column(name = "banned", nullable = false)
     private boolean banned = false;
 

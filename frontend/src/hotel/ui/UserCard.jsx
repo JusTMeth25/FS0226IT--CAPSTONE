@@ -15,7 +15,7 @@ const BADGE_ICONS = {
  * distintivi e la carta migliore. Da qui si sussurra, si da' rispetto, si propone uno
  * scambio, si visita la sua stanza, lo si sfida.
  */
-export default function UserCard({ user, look, isMe, isOwner, respectVersion, onClose, onWhisper, onRespect, onKick, onVisit, onChallenge, onViewCard }) {
+export default function UserCard({ user, look, isMe, isOwner, respectVersion, onClose, onWhisper, onRespect, onKick, onVisit, onChallenge, onViewCard, onAddFriend }) {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
 
@@ -48,7 +48,7 @@ export default function UserCard({ user, look, isMe, isOwner, respectVersion, on
             <div className="hotel-badges">
               {profile.badges.map((b) => (
                 <span key={b.code} className={`hotel-badge hotel-badge-${b.code}`} title={`${b.name}: ${b.description}`}>
-                  <i className={`ph-fill ${BADGE_ICONS[b.code] || 'ph-seal-check'}`} />
+                  <i className={`ph-fill ${BADGE_ICONS[b.code] || (b.icon ? `ph-${b.icon}` : 'ph-seal-check')}`} />
                 </span>
               ))}
             </div>
@@ -71,6 +71,11 @@ export default function UserCard({ user, look, isMe, isOwner, respectVersion, on
             title={profile?.respectedToday ? 'Gli hai gia\' dato rispetto oggi' : `Te ne restano ${profile?.respectsLeft ?? 0} oggi`}>
             <i className="ph-fill ph-heart" /> Rispetta
           </button>
+          {onAddFriend && (
+            <button type="button" className="btn btn-secondary btn-small" onClick={onAddFriend}>
+              <i className="ph-fill ph-user-plus" /> Amico
+            </button>
+          )}
           <button type="button" className="btn btn-secondary btn-small" onClick={() => navigate(`/trades?to=${encodeURIComponent(user.username)}`)}>
             <i className="ph-fill ph-arrows-left-right" /> Scambia
           </button>

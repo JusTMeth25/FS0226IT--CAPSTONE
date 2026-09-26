@@ -172,6 +172,12 @@ public final class FurniCatalog {
         for (int hole = 1; hole <= Minigames.GOLF_HOLES; hole++) {
             add(new FurniDef("golf_hole_" + hole, "Minigolf, buca " + hole, "minigolf", 0, 3, 2, false, false, -1, false, false));
         }
+        // Karaoke del Neon Bar, pesca dalla spiaggia e go-kart: minigiochi (Minigames).
+        add(new FurniDef("karaoke_stage", "Palco del karaoke", "musica", 0, 2, 2, false, false, -1, false, false));
+        add(new FurniDef("fishing_post", "Paletto da pesca", "spiaggia", 0, 1, 1, false, false, -1, false, false));
+        add(new FurniDef("go_kart", "Go-kart", "kart", 0, 1, 1, false, false, 2, false, false));
+        add(new FurniDef("tire_stack", "Pila di gomme", "kart", 40, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("race_lights", "Semaforo di partenza", "kart", 0, 1, 1, false, false, -1, false, false));
     }
 
     private FurniCatalog() {

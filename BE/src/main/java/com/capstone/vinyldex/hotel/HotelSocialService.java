@@ -45,10 +45,13 @@ public class HotelSocialService {
     private final RoomRepository roomRepository;
     private final UserCardRepository userCardRepository;
     private final Clock clock;
+    private final com.capstone.vinyldex.service.CardSetService setService;
 
     public HotelSocialService(UserRepository userRepository, UserRespectRepository respectRepository,
                               RoomLikeRepository likeRepository, RoomRepository roomRepository,
-                              UserCardRepository userCardRepository) {
+                              UserCardRepository userCardRepository,
+                              com.capstone.vinyldex.service.CardSetService setService) {
+        this.setService = setService;
         this.userRepository = userRepository;
         this.respectRepository = respectRepository;
         this.likeRepository = likeRepository;
@@ -192,7 +195,9 @@ public class HotelSocialService {
         profile.put("respects", respectRepository.countByReceiverId(userId));
         profile.put("uniqueCards", cards.size());
         profile.put("battlesWon", user.getBattlesWon());
-        profile.put("badges", badges(user, cards));
+        List<Map<String, String>> badges = new ArrayList<>(badges(user, cards));
+        badges.addAll(setService.badges(userId));
+        profile.put("badges", badges);
         profile.put("bestCard", best == null ? null : RoomItemView.CardView.from(best));
         profile.put("roomId", roomRepository.findFirstByOwnerIdOrderByCreatedAtAsc(userId).map(Room::getId).orElse(null));
         profile.put("respectsLeft", viewerId == null ? 0

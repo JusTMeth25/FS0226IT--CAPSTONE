@@ -150,6 +150,10 @@ function poseOffsets(pose, frame) {
   if (pose === 'lift') return { ...pose0, sit: true, frontUp: true, backUp: true, liftReach: [4, 9, 15, 9][frame % 4], sweat: frame };
   // Curl: manubri in mano, un braccio alla volta sale fino alla spalla (frame 1 davanti, 2 dietro).
   if (pose === 'curl') return { ...pose0, frontUp: frame === 1, backUp: frame === 2, curl: true, sweat: frame };
+  // Karaoke: microfono alla bocca con il braccio davanti; a tempo il corpo ondeggia.
+  if (pose === 'mic') return { ...pose0, frontUp: true, bodyY: frame % 2 ? -2 : 0, backArm: frame % 2 ? -3 : 3 };
+  // Pesca: canna in mano, braccio in avanti (frame 1 = recupero, la punta si piega).
+  if (pose === 'fish') return { ...pose0, frontArm: frame === 1 ? -3 : -6, backArm: 2 };
   // Sport: calcio al pallone, palleggio e tiro a canestro, lancio della boccia, colpo di golf.
   if (pose === 'kick') return { ...pose0, frontLeg: 10, backLeg: -3, frontArm: -4, backArm: 4, bodyY: -1 };
   if (pose === 'dribble') return { ...pose0, frontArm: 3, backArm: -1, bodyY: frame % 2, backLeg: 1, frontLeg: -1 };
@@ -644,6 +648,21 @@ function drawSportProp(ctx, pose, frame, y0, o) {
   if (o.sweat !== undefined && o.sweat % 2 === 1) {
     blob(ctx, 38, y0 + 14 + (o.sweat % 4), 1.6, 2.4, '#7dd3fc');
     px(ctx, 38, y0 + 12 + (o.sweat % 4), 1, 1, '#e0f2fe');
+  }
+  if (pose === 'mic') {
+    // Microfono davanti alla bocca: impugnatura scura e retina grigia.
+    px(ctx, 31, y0 + 24, 3, 8, '#27272a');
+    blob(ctx, 32, y0 + 22, 2.6, 2.6, '#a1a1aa');
+    px(ctx, 31, y0 + 21, 1, 1, '#e4e4e7');
+    return;
+  }
+  if (pose === 'fish') {
+    // Canna da pesca: dalla mano sale in diagonale verso il mare, con il mulinello.
+    const hand = frontHand(y0, o.frontArm);
+    const bend = frame === 1 ? 1 : 0;
+    for (let i = 0; i < 34; i += 1) px(ctx, hand.x + Math.round(i * 0.55), hand.y - i - (i > 24 ? bend * (i - 24) * -0.5 : 0), 1, 1, i < 8 ? '#44403c' : '#a16207');
+    px(ctx, hand.x - 2, hand.y - 3, 4, 3, '#71717a');
+    return;
   }
   if (pose === 'curl') {
     // Manubri: in mano giu' lungo i fianchi, oppure all'altezza della spalla per il braccio che sale.

@@ -21,6 +21,8 @@ import ProfilePage from './pages/ProfilePage.jsx';
 import AdminPage from './pages/AdminPage.jsx';
 import BattlePage from './pages/BattlePage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
+import NewsPage from './pages/NewsPage.jsx';
+import SetsPage from './pages/SetsPage.jsx';
 import LoadingSpinner from './components/common/LoadingSpinner.jsx';
 
 // L'hotel ha un motore grafico tutto suo: si scarica solo quando ci si entra.
@@ -60,6 +62,8 @@ export default function App() {
             <Route path="hotel" element={<Suspense fallback={<LoadingSpinner label="Apro l'hotel…" />}><HotelPage /></Suspense>} />
             <Route path="trades" element={<TradesPage />} />
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="news" element={<NewsPage />} />
+            <Route path="sets" element={<SetsPage />} />
 
             <Route element={<AdminRoute />}>
               <Route path="admin" element={<AdminPage />} />

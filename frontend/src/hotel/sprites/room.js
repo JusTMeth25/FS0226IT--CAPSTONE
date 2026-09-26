@@ -841,6 +841,81 @@ function logoBitmap() {
   return { width, height, alpha };
 }
 
+/** Bordi della stanza (caselle vere, porta esclusa). */
+function roomBounds(layout, door) {
+  let x0 = Infinity; let x1 = -Infinity; let y0 = Infinity; let y1 = -Infinity;
+  for (let y = 0; y < layout.height; y += 1) {
+    for (let x = 0; x < layout.width; x += 1) {
+      if (!layout.isTile(x, y) || (door && door.x === x && door.y === y)) continue;
+      x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+    }
+  }
+  return { x0, x1, y0, y1 };
+}
+
+/**
+ * Pista dei go-kart: il prato in mezzo (sette caselle dentro i bordi) e la linea che seguono i kart
+ * in gara, a meta' fra il prato e il bordo. Serve al pavimento e al motore (i kart che girano).
+ */
+export function kartTrack(layout, door) {
+  const { x0, x1, y0, y1 } = roomBounds(layout, door);
+  const infield = { x0: x0 + 7, x1: x1 - 6, y0: y0 + 7, y1: y1 - 6 };
+  return {
+    infield,
+    cx: (x0 + x1 + 1) / 2,
+    cy: (y0 + y1 + 1) / 2,
+    a: ((x1 + 1 - x0) + (infield.x1 - infield.x0)) / 4,
+    b: ((y1 + 1 - y0) + (infield.y1 - infield.y0)) / 4,
+    startX: (x0 + x1 + 1) / 2 + 1
+  };
+}
+
+/** Punto della pista a una frazione t del giro (0 = linea di partenza, in basso), in caselle. */
+export function kartPoint(track, t) {
+  const theta = Math.PI / 2 - t * Math.PI * 2;
+  const cos = Math.cos(theta);
+  const sin = Math.sin(theta);
+  // Superellisse: rettilinei lunghi e curve strette, come una pista vera.
+  return {
+    x: track.cx + track.a * Math.sign(cos) * Math.abs(cos) ** 0.45,
+    y: track.cy + track.b * Math.sign(sin) * Math.abs(sin) ** 0.45
+  };
+}
+
+// Pista dei go-kart: asfalto, prato in mezzo con i cordoli bianchi e rossi, linea di partenza a scacchi.
+FLOOR_FACTORIES.kart = (layout, door) => {
+  const bounds = roomBounds(layout, door);
+  const track = kartTrack(layout, door);
+  const { infield } = track;
+  const asphalt = rgb('#3f3f46');
+  const grass = ['#3f9a3f', '#48a846'].map(rgb);
+  const red = rgb('#dc2626');
+  const white = rgb('#f4f4f5');
+  const black = rgb('#18181b');
+  const CURB = 0.35;
+  return (X, Y, sx, sy) => {
+    const n = noise(sx, sy);
+    const inInfield = X >= infield.x0 && X <= infield.x1 && Y >= infield.y0 && Y <= infield.y1;
+    if (inInfield) {
+      const edge = Math.min(X - infield.x0, infield.x1 - X, Y - infield.y0, infield.y1 - Y);
+      if (edge < CURB) return Math.floor((X + Y) * 2) % 2 ? red : white;
+      return tint(grass[Math.floor(X - infield.x0) % 2], (n - 0.5) * 0.08);
+    }
+    // Cordolo esterno lungo i bordi della stanza.
+    const outer = Math.min(X - bounds.x0, bounds.x1 + 1 - X, Y - bounds.y0, bounds.y1 + 1 - Y);
+    if (outer < CURB * 0.8) return Math.floor((X + Y) * 2) % 2 ? red : white;
+    // Linea di partenza a scacchi, sul rettilineo in basso.
+    if (X >= track.startX && X < track.startX + 0.5 && Y > infield.y1) {
+      return (Math.floor(X * 4) + Math.floor(Y * 4)) % 2 ? black : white;
+    }
+    return tint(asphalt, (n - 0.5) * 0.12 + (hashDot(sx, sy) ? 0.12 : 0));
+  };
+};
+
+function hashDot(x, y) {
+  return noise(x * 7, y * 13) > 0.93;
+}
+
 export const FLOOR_STYLES = [...Object.keys(FLOORS), ...Object.keys(FLOOR_FACTORIES)];
 export const WALL_STYLES = Object.keys(WALLS);
 
@@ -886,19 +961,50 @@ export function renderRoom(layout, floorName, door, wallName = floorName, weathe
     data[i + 3] = alpha;
   };
 
-  // Pareti: dietro a tutto, lungo i lati che confinano con il vuoto. La porta resta aperta.
+  // Pareti: dietro a tutto, lungo i lati che confinano con il vuoto. Sopra la porta il muro
+  // continua, con il vano scuro dell'ingresso.
   const topCap = rgb('#6a5a96');
+  const doorColorWall = rgb('#1b1530');
+  const doorFrame = rgb('#8a6a4a');
   for (let y = 0; y < layout.height; y += 1) {
     for (let x = 0; x < layout.width; x += 1) {
       const z = layout.heightAt(x, y);
-      if (z < 0 || isDoor(x, y)) continue;
+      if (z < 0) continue;
       const t = tileTop(x, y, z);
       const tx = originX + t.x;
       const ty = originY + t.y;
       const wallTop = WALL_H - z * LEVEL_H;
       const sides = [];
-      if (!layout.isTile(x - 1, y) && !isDoor(x - 1, y)) sides.push('left');
-      if (!layout.isTile(x, y - 1) && !isDoor(x, y - 1)) sides.push('right');
+      if (!isDoor(x, y) && !layout.isTile(x - 1, y) && !isDoor(x - 1, y)) sides.push('left');
+      if (!isDoor(x, y) && !layout.isTile(x, y - 1) && !isDoor(x, y - 1)) sides.push('right');
+      // Dietro la casella della porta: il muro c'e', con il vano scuro e la cornice.
+      const doorSide = isDoor(x, y) ? null : isDoor(x - 1, y) ? 'left' : isDoor(x, y - 1) ? 'right' : null;
+      if (doorSide) {
+        const opening = Math.round(wallTop * 0.66);
+        for (let c = 0; c < HALF_W; c += 1) {
+          const sx = doorSide === 'left' ? tx - HALF_W + c : tx + c;
+          const baseY = doorSide === 'left' ? ty + HALF_H - Math.floor(c / 2) : ty + Math.floor(c / 2);
+          const col = doorSide === 'left' ? (y + 1) * HALF_W - c : x * HALF_W + c;
+          const edge = c < 3 || c >= HALF_W - 3;
+          for (let h = 0; h < wallTop; h += 1) {
+            const hAbs = h + z * LEVEL_H;
+            let color;
+            if (h < opening && !edge) {
+              // Vano della porta: buio che sfuma verso l'alto.
+              color = tint(doorColorWall, -0.4 * (h / opening));
+            } else if ((edge && h < opening + 3) || (h >= opening && h < opening + 3)) {
+              color = doorFrame;
+            } else {
+              color = wallPaint(col, hAbs, WALL_H, doorSide, baseY - h);
+              const deco = garland ? garland(col, hAbs, WALL_H) : null;
+              if (deco) color = rgb(deco);
+            }
+            if (doorSide === 'right') color = tint(color, -0.18);
+            put(sx, baseY - 1 - h, color);
+          }
+          for (let k = 0; k < 4; k += 1) put(sx, baseY - wallTop - 1 - k, k === 3 ? tint(topCap, 0.3) : topCap);
+        }
+      }
       sides.forEach((side) => {
         for (let c = 0; c < HALF_W; c += 1) {
           const sx = side === 'left' ? tx - HALF_W + c : tx + c;
@@ -929,7 +1035,6 @@ export function renderRoom(layout, floorName, door, wallName = floorName, weathe
   }
   tiles.sort((a, b) => (a.x + a.y) - (b.x + b.y) || a.z - b.z);
 
-  const doorColor = rgb('#07050d');
   tiles.forEach(({ x, y, z }) => {
     const t = tileTop(x, y, z);
     const tx = originX + t.x;
@@ -962,10 +1067,8 @@ export function renderRoom(layout, floorName, door, wallName = floorName, weathe
         const v = (b - a) / 2;
         const sx = tx + dx;
         const sy = ty + row;
-        if (isDoor(x, y)) {
-          put(sx, sy, doorColor);
-          continue;
-        }
+        // La casella della porta sta dietro il muro: si vede solo attraverso il vano.
+        if (isDoor(x, y)) continue;
         let color = floor(x + u, y + v, sx, sy);
         // Ombra morbida ai piedi delle pareti, come l'occlusione ambientale di Habbo.
         let shadow = 0;
