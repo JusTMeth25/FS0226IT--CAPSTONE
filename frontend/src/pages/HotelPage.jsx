@@ -6,6 +6,7 @@ import { useHotel } from '../hotel/hotel-context.js';
 import { furniApi } from '../services/furniApi.js';
 import { tradeApi } from '../services/tradeApi.js';
 import { roomApi } from '../services/roomApi.js';
+import { WEATHER_ICONS, isOutdoor } from '../hotel/weather.js';
 import HotelCanvas from '../hotel/ui/HotelCanvas.jsx';
 import ChatBar from '../hotel/ui/ChatBar.jsx';
 import Navigator from '../hotel/ui/Navigator.jsx';
@@ -44,8 +45,10 @@ const CONSUME = {
 /** Mobili che si usano cliccandoli: bibite, cibo, jukebox. */
 const USABLE = ['bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'pizza_oven', 'jukebox',
   'beach_bar', 'popcorn_machine', 'water_cooler',
-  // Minigiochi: panca, tapis roulant, sacco da boxe, pesca-peluche, cabinato arcade, biliardo.
-  'weight_bench', 'treadmill', 'punching_bag', 'claw_machine', 'arcade', 'pool_table'];
+  // Minigiochi: panca, tapis roulant, sacco da boxe, pesca-peluche, cabinato arcade, biliardo,
+  // canestri dello stadio, piste da bowling e buche del minigolf.
+  'weight_bench', 'treadmill', 'punching_bag', 'claw_machine', 'arcade', 'pool_table',
+  'basket_hoop', 'bowling_lane', ...[1, 2, 3, 4, 5, 6].map((hole) => `golf_hole_${hole}`)];
 
 /** Il chiosco e l'espositore dell'edicola aprono il banco dei pacchetti. */
 const NEWSSTAND_ITEMS = ['newsstand', 'pack_display'];
@@ -162,6 +165,8 @@ export default function HotelPage() {
   const [minigameResult, setMinigameResult] = useState(null);
   /** Punteggio della partita nello stadio: { blue, red }, null nelle stanze senza pallone. */
   const [football, setFootball] = useState(null);
+  /** Stagione e tempo di oggi (HotelWeather): uguali in tutto l'hotel. */
+  const [weather, setWeather] = useState(null);
   const pageRef = useRef(null);
   const noticeTimer = useRef(0);
   const meRef = useRef(null);
@@ -199,6 +204,7 @@ export default function HotelPage() {
         setItems(Object.fromEntries((message.items || []).map((i) => [i.id, i])));
         setJukebox({ track: message.jukebox?.track ?? -1 });
         setFootball(message.ball ? { blue: message.ball.blue, red: message.ball.red } : null);
+        if (message.weather) setWeather(message.weather);
         getJukebox().set(message.jukebox?.track ?? -1, message.jukebox?.startedAt ?? 0, message.serverTime);
         setPanel((current) => (current === 'trades' ? current : null));
         setSelected(null);
@@ -390,6 +396,9 @@ export default function HotelPage() {
       }
       case 'ball':
         setFootball({ blue: message.blue, red: message.red });
+        break;
+      case 'weather':
+        setWeather(message);
         break;
       case 'goal':
         setFootball({ blue: message.blue, red: message.red });
@@ -670,6 +679,12 @@ export default function HotelPage() {
                 <>{' · '}<span title="Personaggi dell'hotel (NPC)"><i className="ph-fill ph-robot" /> {Object.values(people).filter((p) => p.npc).length}</span></>
               )}
             </span>
+            {weather && (
+              <span className={`hotel-weather${isOutdoor(room) ? ' is-outdoor' : ''}`}
+                title={`${weather.seasonLabel}${weather.holiday === 'christmas' ? ' · Natale' : weather.holiday === 'halloween' ? ' · Halloween' : ''} · vento ${weather.wind} km/h${isOutdoor(room) ? '' : ' · fuori'}`}>
+                <i className={`ph-fill ${WEATHER_ICONS[weather.condition] || 'ph-cloud'}`} /> {weather.label} {weather.temperature}°C
+              </span>
+            )}
             <div className="hotel-room-info-actions">
               {likes && (
                 <button type="button" className={`hotel-like${likes.liked ? ' liked' : ''}`} onClick={toggleLike} disabled={isOwner}

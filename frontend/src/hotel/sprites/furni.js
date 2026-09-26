@@ -904,6 +904,54 @@ const DRAW = {
     });
   },
 
+  // ---------------------------------------------------------------- decorazioni della stagione
+
+  decor_leaves(b, { d }) {
+    const colors = ['#b45309', '#d97706', '#dc2626', '#a16207', '#65a30d'];
+    for (let i = 0; i < 9; i += 1) d(0.1 + hash(i, 3) * 0.8, 0.1 + hash(i, 5) * 0.8, 0, colors[i % colors.length], 3, 2);
+  },
+  decor_petals(b, { d }) {
+    const colors = ['#f9a8d4', '#fbcfe8', '#fde68a', '#ffffff', '#c4b5fd'];
+    for (let i = 0; i < 10; i += 1) d(0.1 + hash(i, 7) * 0.8, 0.1 + hash(i, 9) * 0.8, 0, colors[i % colors.length], 2, 1);
+  },
+  decor_snow(b, { d }) {
+    for (let i = 0; i < 26; i += 1) d(0.05 + hash(i, 11) * 0.9, 0.05 + hash(i, 13) * 0.9, 0, i % 3 ? '#f8fafc' : '#e2e8f0', 5, 2);
+  },
+  decor_pumpkin(b, { c, d, front }) {
+    c({ u: 0.5, v: 0.5, r: 0.26, z0: 0, z1: 24, color: '#ea580c', top: '#f97316' });
+    c({ u: 0.5, v: 0.5, r: 0.04, z0: 24, z1: 30, color: '#3f6212' });
+    front(() => {
+      d(0.52, 0.76, 17, '#fde047', 3, 3);
+      d(0.74, 0.76, 17, '#fde047', 3, 3);
+      d(0.56, 0.78, 9, '#fde047', 8, 2);
+    });
+  },
+  decor_tree(b, { c, d }) {
+    c({ u: 0.5, v: 0.5, r: 0.14, z0: 0, z1: 10, color: '#7f1d1d' });
+    [[10, 0.42], [34, 0.34], [56, 0.26], [76, 0.17]].forEach(([z, r]) => c({ u: 0.5, v: 0.5, r, z0: z, z1: z + 26, color: '#166534', top: '#15803d' }));
+    const lights = ['#facc15', '#ef4444', '#3b82f6', '#f472b6'];
+    for (let i = 0; i < 14; i += 1) d(0.2 + hash(i, 21) * 0.6, 0.72, 18 + hash(i, 23) * 70, lights[i % lights.length], 2, 2);
+    d(0.5, 0.5, 106, '#fde047', 5, 5);
+  },
+  decor_gifts(b) {
+    b({ u0: 0.15, v0: 0.2, u1: 0.55, v1: 0.6, z1: 18, color: '#dc2626' });
+    b({ u0: 0.31, v0: 0.2, u1: 0.39, v1: 0.6, z0: 18, z1: 19, color: '#facc15' });
+    b({ u0: 0.5, v0: 0.5, u1: 0.85, v1: 0.85, z1: 12, color: '#2563eb' });
+    b({ u0: 0.5, v0: 0.64, u1: 0.85, v1: 0.71, z0: 12, z1: 13, color: '#f8fafc' });
+  },
+  decor_snowman(b, { c, d, front }) {
+    c({ u: 0.5, v: 0.5, r: 0.3, z0: 0, z1: 28, color: '#f8fafc', top: '#ffffff' });
+    c({ u: 0.5, v: 0.5, r: 0.22, z0: 28, z1: 48, color: '#f8fafc', top: '#ffffff' });
+    c({ u: 0.5, v: 0.5, r: 0.16, z0: 48, z1: 62, color: '#f8fafc', top: '#ffffff' });
+    c({ u: 0.5, v: 0.5, r: 0.13, z0: 62, z1: 74, color: '#111827' });
+    front(() => {
+      d(0.62, 0.66, 56, '#111827', 2, 2);
+      d(0.74, 0.66, 56, '#111827', 2, 2);
+      d(0.68, 0.7, 52, '#f97316', 5, 2);
+      d(0.56, 0.7, 46, '#dc2626', 14, 3);
+    });
+  },
+
   // ---------------------------------------------------------------- stadio
 
   football_goal(b, { d }) {
@@ -935,6 +983,57 @@ const DRAW = {
     });
   },
 
+  basket_hoop(b, { c, d, front }) {
+    // Canestro: base zavorrata, palo, tabellone bianco con il quadrato rosso e il ferro arancione.
+    b({ u0: 0.2, v0: 0.1, u1: 0.8, v1: 0.5, z1: 12, color: '#1f2937' });
+    c({ u: 0.5, v: 0.3, r: 0.06, z0: 12, z1: 118, color: '#6b7280', tex: 'metal' });
+    b({ u0: 0.1, v0: 0.36, u1: 0.9, v1: 0.44, z0: 96, z1: 140, color: '#f8fafc', right: '#cbd5e1' });
+    front(() => {
+      d(0.36, 0.44, 124, '#dc2626', 14, 2);
+      d(0.36, 0.44, 112, '#dc2626', 2, 12);
+      d(0.6, 0.44, 112, '#dc2626', 2, 12);
+      c({ u: 0.5, v: 0.62, r: 0.16, z0: 100, z1: 102, color: '#f97316', open: true });
+      for (let i = 0; i < 5; i += 1) d(0.38 + i * 0.06, 0.66, 99 - (i % 2) * 2, '#f1f5f9', 1, 12);
+    });
+  },
+
+  // ---------------------------------------------------------------- bowling
+
+  bowling_lane(b, { c, d }) {
+    // Pista lunga otto caselle (lungo v): legno chiaro a listelli, canaline ai lati, frecce e birilli in fondo.
+    b({ u0: 0, v0: 0, u1: 1, v1: 8, z1: 2, color: '#27272a' });
+    b({ u0: 0.14, v0: 0, u1: 0.86, v1: 8, z0: 2, z1: 4, color: '#e7c38a', tex: 'wood' });
+    for (let u = 0.2; u < 0.86; u += 0.09) d(u, 0.2, 4, 'rgba(120, 80, 40, 0.25)', 1, 1);
+    for (let v = 0.5; v < 7; v += 0.5) d(0.14, v, 4, '#c79d62', 1, 1);
+    d(0.14, 0.12, 4, '#dc2626', 30, 1);
+    [0.3, 0.5, 0.7].forEach((u) => d(u, 2.2 - Math.abs(u - 0.5), 4, '#1e3a8a', 3, 2));
+    // Birilli a triangolo.
+    [[0.5, 6.9], [0.4, 7.15], [0.6, 7.15], [0.3, 7.4], [0.5, 7.4], [0.7, 7.4], [0.2, 7.65], [0.4, 7.65], [0.6, 7.65], [0.8, 7.65]]
+      .forEach(([u, v]) => {
+        c({ u, v, r: 0.035, z0: 4, z1: 20, color: '#f8fafc', top: '#ffffff' });
+        c({ u, v, r: 0.037, z0: 14, z1: 16, color: '#dc2626' });
+      });
+    b({ u0: 0, v0: 7.9, u1: 1, v1: 8, z0: 0, z1: 34, color: '#111827' });
+  },
+  bowling_rack(b, { c }) {
+    b({ u0: 0.15, v0: 0.2, u1: 0.85, v1: 0.8, z1: 36, color: '#3f3f46', tex: 'metal' });
+    ['#dc2626', '#2563eb', '#16a34a', '#9333ea'].forEach((color, i) => {
+      c({ u: 0.3 + (i % 2) * 0.4, v: 0.5, r: 0.14, z0: 36 + Math.floor(i / 2) * 14, z1: 48 + Math.floor(i / 2) * 14, color, top: shade(color, 0.3) });
+    });
+  },
+  shoe_counter(b, { d, front }) {
+    b({ u0: 0.04, v0: 0.3, u1: 1.96, v1: 0.9, z1: 40, color: '#7c3aed', left: '#6d28d9', right: '#4c1d95' });
+    b({ u0: 0, v0: 0.26, u1: 2, v1: 0.94, z0: 40, z1: 44, color: '#18181b' });
+    [[0.2, '#ef4444'], [0.9, '#3b82f6'], [1.5, '#f5f5f5']].forEach(([u, color]) => {
+      b({ u0: u, v0: 0.45, u1: u + 0.3, v1: 0.75, z0: 44, z1: 50, color });
+    });
+    front(() => d(0.4, 0.9, 30, '#fbbf24', 28, 5));
+  },
+
+  // ---------------------------------------------------------------- minigolf
+
+  ...Object.fromEntries([1, 2, 3, 4, 5, 6].map((n) => [`golf_hole_${n}`, (b, { c, d, now }) => golfHole(n, b, c, d, now)])),
+
   dj_booth(b, { c, d, now, front }) {
     b({ u0: 0.05, v0: 0.1, u1: 1.95, v1: 0.9, z1: 34, color: '#1f1f2e', left: '#18182a', right: '#101019', tex: 'metal' });
     b({ u0: 0.05, v0: 0.1, u1: 1.95, v1: 0.9, z0: 34, z1: 38, color: '#8b5cf6', glow: true });
@@ -949,8 +1048,45 @@ const DRAW = {
   }
 };
 
+/**
+ * Buca del minigolf (3x2): prato sintetico con il bordo in legno, la buca con la bandierina e
+ * l'ostacolo della buca: muretto, mulino a vento, respingenti, ponticello, giro della morte.
+ */
+function golfHole(n, b, c, d, now) {
+  const flags = ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6'];
+  b({ u0: 0, v0: 0, u1: 3, v1: 2, z1: 5, color: '#8a5a3b', tex: 'wood' });
+  b({ u0: 0.1, v0: 0.1, u1: 2.9, v1: 1.9, z0: 5, z1: 6, color: '#22c55e' });
+  for (let i = 0; i < 18; i += 1) d(0.2 + hash(i, n) * 2.6, 0.2 + hash(n, i) * 1.6, 6, '#16a34a', 2, 1);
+  // Partenza a sinistra, buca a destra.
+  d(0.35, 1.0, 6, '#f8fafc', 3, 3);
+  c({ u: 2.55, v: 1.0, r: 0.09, z0: 6, z1: 6, color: '#111827', top: '#111827' });
+  c({ u: 2.55, v: 1.0, r: 0.012, z0: 6, z1: 58, color: '#e5e7eb' });
+  for (let i = 0; i < 8; i += 1) d(2.57, 1.0, 57 - i, flags[n - 1], 10 - i, 1);
+  if (n === 2) b({ u0: 1.4, v0: 0.1, u1: 1.6, v1: 1.3, z0: 6, z1: 16, color: '#8a5a3b', tex: 'wood' });
+  if (n === 3) {
+    // Mulino: torretta rossa e pale che girano.
+    b({ u0: 1.25, v0: 0.7, u1: 1.75, v1: 1.3, z0: 6, z1: 50, color: '#dc2626', top: '#991b1b' });
+    const angle = ((now || 0) / 500) % (Math.PI * 2);
+    for (let k = 0; k < 4; k += 1) {
+      const a = angle + (k * Math.PI) / 2;
+      for (let r = 2; r < 22; r += 1) d(1.5 + Math.cos(a) * 0.012 * r, 1.3, 42 + Math.sin(a) * r, k % 2 ? '#f8fafc' : '#fde68a', 2, 2);
+    }
+  }
+  if (n === 4) [[1.1, 0.6], [1.6, 1.3], [2.0, 0.7]].forEach(([u, v]) => c({ u, v, r: 0.13, z0: 6, z1: 16, color: '#f472b6', top: '#fbcfe8' }));
+  if (n === 5) {
+    // Ponticello: una gobba di legno a meta'.
+    for (let i = 0; i < 6; i += 1) b({ u0: 1.1 + i * 0.13, v0: 0.7, u1: 1.23 + i * 0.13, v1: 1.3, z0: 6, z1: 6 + Math.round(Math.sin(((i + 0.5) / 6) * Math.PI) * 12), color: '#a16207', tex: 'wood' });
+    b({ u0: 1.1, v0: 0.1, u1: 1.9, v1: 0.6, z0: 5, z1: 5, color: '#38bdf8' });
+    b({ u0: 1.1, v0: 1.4, u1: 1.9, v1: 1.9, z0: 5, z1: 5, color: '#38bdf8' });
+  }
+  if (n === 6) {
+    // Giro della morte: un anello in verticale sul percorso.
+    for (let a = 0; a < Math.PI * 2; a += 0.12) d(1.5 + Math.cos(a) * 0.3, 1.0, 22 + Math.sin(a) * 16, '#3b82f6', 3, 3);
+  }
+}
+
 /** Mobili senza contorno, che si fondono con i vicini dello stesso tipo. */
-const SEAMLESS = new Set(['pool_water', 'sea_water', 'sea_foam']);
+const SEAMLESS = new Set(['pool_water', 'sea_water', 'sea_foam', 'decor_leaves', 'decor_petals', 'decor_snow']);
 
 // ------------------------------------------------------------------ mobili a parete
 
@@ -1195,7 +1331,8 @@ const ANIMATIONS = {
   fountain: { period: 250, steps: 4 },
   pizza_oven: { period: 150, steps: 4 },
   claw_machine: { period: 300, steps: 4 },
-  fire_pit: { period: 150, steps: 4 }
+  fire_pit: { period: 150, steps: 4 },
+  golf_hole_3: { period: 250, steps: 8 }
 };
 const DANCE_COLORS = 6;
 

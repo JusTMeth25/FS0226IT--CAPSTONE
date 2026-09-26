@@ -19,7 +19,14 @@ from collections import deque
 MIGRATIONS_DIR = os.path.join(os.path.dirname(__file__), '..', 'src', 'main', 'resources', 'db', 'migration')
 MIGRATION = os.path.join(MIGRATIONS_DIR, 'V12__hotel_big_rooms.sql')
 # Le stanze aggiunte dopo la V12 (gia' applicata, non si puo' cambiare) finiscono in migrazioni loro.
-LATER_MIGRATIONS = {15: os.path.join(MIGRATIONS_DIR, 'V17__hotel_stadium.sql')}
+V17 = os.path.join(MIGRATIONS_DIR, 'V17__hotel_stadium.sql')
+V18 = os.path.join(MIGRATIONS_DIR, 'V18__hotel_bowling_minigolf.sql')
+LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18}
+# Arredi aggiunti a stanze gia' pubblicate: finiscono nella migrazione indicata (vedi Room.migration).
+MIGRATION_TITLES = {
+    V17: 'Nuova stanza pubblica: Stadio.',
+    V18: 'Canestri nello stadio e due stanze nuove: Bowling e Minigolf.',
+}
 
 # ------------------------------------------------------------------ catalogo (come FurniCatalog.java)
 
@@ -67,11 +74,18 @@ FURNI = {
     # Stadio
     'football_goal': (1, 3, False, False, -1), 'corner_flag': (1, 1, False, False, -1),
     'floodlight': (1, 1, False, False, -1), 'scoreboard': (1, 1, True, False, -1),
+    'basket_hoop': (1, 1, False, False, -1),
+    # Bowling
+    'bowling_lane': (1, 8, False, False, -1), 'bowling_rack': (1, 1, False, False, -1),
+    'shoe_counter': (2, 1, False, False, -1),
+    # Minigolf
+    **{f'golf_hole_{n}': (3, 2, False, False, -1) for n in range(1, 7)},
 }
 
 # Mobili che si usano cliccandoli: serve una casella libera accanto.
 SERVING = {'bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'pizza_oven', 'beach_bar',
-           'popcorn_machine', 'water_cooler', 'newsstand'}
+           'popcorn_machine', 'water_cooler', 'newsstand', 'basket_hoop', 'bowling_lane', 'shoe_counter',
+           *[f'golf_hole_{n}' for n in range(1, 7)]}
 
 
 def footprint(kind, rot):
@@ -111,6 +125,9 @@ class Room:
         self.heights[self.door] = base
         self.items = []
         self.npcs = []
+        # Arredi aggiunti dopo la pubblicazione della stanza: indice del primo e migrazione in cui vanno.
+        self.split = None
+        self.split_migration = None
 
     # --- pianta
     def level(self, x0, y0, x1, y1, z):
@@ -158,6 +175,15 @@ class Room:
         self.add(seat, x, y - 1, 2).add(seat, x + 1, y - 1, 2)
         self.add(seat, x, y + 1, 6).add(seat, x + 1, y + 1, 6)
         return self
+
+    def migration(self, path):
+        """Gli arredi aggiunti da qui in poi vanno nella migrazione indicata, non in quella della stanza."""
+        self.split = len(self.items)
+        self.split_migration = path
+        return self
+
+    def published_items(self):
+        return self.items if self.split is None else self.items[:self.split]
 
     # --- NPC
     def worker(self, key, name, role, look, x, y, direction, *menu):
@@ -613,6 +639,48 @@ r.walker('mago', 'Mago', 'FOOTBALLER', 's4.h1.hc4.sh3.p0.t0.f1.a0', 12, 16, 10)
 r.walker('razzo', 'Razzo', 'FOOTBALLER', 's1.h0.hc2.sh6.p0.t0.f1.a0', 24, 8, 10)
 r.walker('muro', 'Muro', 'FOOTBALLER', 's3.h9.hc7.sh6.p0.t0.f1.a0', 24, 16, 10)
 r.walker('ultra', 'Ultra', 'GUEST', 's0.h3.hc6.sh1.p3.t1.f3.a5.b1', 16, 3, 4)
+# Canestri a bordo campo, sulla pista in basso: tiri liberi (minigioco).
+r.migration(V18)
+r.add('basket_hoop', 12, 23).add('basket_hoop', 24, 23)
+
+# ------------------------------------------------------------------ Bowling
+
+r = room(16, 'BOWLING', 'Bowling',
+         'Sei piste, luci al neon e il rumore dei birilli: prendi una palla e punta allo strike!',
+         24, 18, 9, 'carpet', 'neon', 16)
+# Piste lungo x: dalla linea di lancio (x=17) ai birilli (x=24). Si gioca dalla casella davanti.
+for y in range(2, 8):
+    r.add('bowling_lane', 17, y, 2)
+for y in (3, 6):
+    r.add('bowling_rack', 15, y)
+for y in (2, 5, 8, 11):
+    r.add('sofa_vinyl', 12, y, 2)
+r.add('coffee_table', 10, 3).add('coffee_table', 10, 9)
+r.add('bar_counter', 3, 3).row('bar_stool', 3, 4, 3, rot=6).add('jukebox', 8, 1).add('coffee_machine', 6, 1)
+r.add('shoe_counter', 3, 15).add('arcade', 1, 18).add('arcade', 2, 18).add('claw_machine', 3, 18)
+r.add('plant_big', 24, 16).add('plant_big', 13, 18).add('lamp_neon', 9, 18).add('trophy', 1, 1)
+for x in (18, 20, 22):
+    r.add('scoreboard', x, 1, 0)
+r.add('neon_sign', 1, 5, 2).add('neon_sign', 1, 13, 2).add('poster_neon', 12, 1, 0)
+r.worker('rita', 'Rita', 'BARISTA', 's0.h2.hc5.sh1.p3.t1.f3.a2.b1', 4, 2, 4, 'cola', 'juice', 'bubble')
+r.worker('beppe', 'Beppe', 'RECEPTIONIST', 's3.h1.hc2.sh7.p1.t2.f0.a1', 4, 16, 0)
+r.walker('strike', 'Strike', 'GUEST', 's2.h9.hc0.sh6.p0.t0.f1.a0', 13, 14, 4)
+r.walker('lulu', 'Lulu', 'GUEST', 's1.h7.hc4.sh2.p4.t4.f2.a2.b1', 8, 12, 4)
+
+# ------------------------------------------------------------------ Minigolf
+
+r = room(17, 'MINIGOLF', 'Minigolf',
+         'Sei buche all\'aperto tra siepi e fontane: mulino, ponticello, giro della morte... quanti colpi ti servono?',
+         30, 24, 12, 'grass', 'hedge', 17)
+for n, (x, y) in enumerate([(4, 3), (13, 3), (22, 3), (4, 19), (13, 19), (22, 19)], start=1):
+    r.add(f'golf_hole_{n}', x, y)
+r.add('fountain', 14, 11).add('bench', 6, 11, 0).add('bench', 22, 11, 0).add('icecream_cart', 2, 23)
+for x, y in [(1, 1), (30, 1), (1, 15), (30, 15), (30, 24), (10, 8), (20, 8), (10, 16), (20, 16)]:
+    r.add('flower_bed', x, y)
+r.add('plant_palm', 11, 11).add('plant_palm', 18, 11).add('umbrella', 26, 11).add('lamp_floor', 28, 12)
+r.worker('gigi', 'Gigi', 'ICE_CREAM', 's1.h0.hc3.sh7.p1.t2.f0.a0', 3, 22, 2, 'gelato')
+r.walker('birdie', 'Birdie', 'GUEST', 's1.h6.hc1.sh5.p3.t1.f1.a2.b1', 16, 16, 5)
+r.walker('par', 'Par', 'GUEST', 's4.h9.hc7.sh3.p0.t2.f0.a0', 12, 9, 5)
 
 
 # ------------------------------------------------------------------ output
@@ -641,9 +709,9 @@ def insert_room(rm):
     ]
 
 
-def insert_items(rm):
+def insert_items(rm, items, start=0):
     rows = []
-    for i, (kind, x, y, rot) in enumerate(rm.items, start=1):
+    for i, (kind, x, y, rot) in enumerate(items, start=start + 1):
         item_id = f'00000000-0000-0000-0000-c0{rm.num:02x}{i:08x}'
         rows.append(f"    ('{item_id}', NULL, '{rm.id}', {sql_string(kind)}, {x}, {y}, {rm.z(x, y)}, {rot})")
     return [f'-- Arredi: {rm.name}.', 'INSERT INTO room_items (id, owner_id, room_id, furni_type, x, y, z, rot) VALUES',
@@ -694,22 +762,25 @@ def main():
             out.extend(insert_room(rm))
         out.append('')
     for rm in base_rooms:
-        out.extend(insert_items(rm))
+        out.extend(insert_items(rm, rm.published_items()))
     with open(MIGRATION, 'w', encoding='utf-8', newline='\n') as f:
         f.write('\n'.join(out))
     print(f'Scritta {os.path.normpath(MIGRATION)}: {len(base_rooms)} stanze, {sum(len(rm.items) for rm in base_rooms)} mobili.')
 
+    files = {}
     for rm in ROOMS:
-        if rm.num not in LATER_MIGRATIONS:
-            continue
-        later = [f'-- Nuova stanza pubblica: {rm.name}. Generata da BE/scripts/hotel_rooms.py.', '']
-        later.extend(insert_room(rm))
-        later.append('')
-        later.extend(insert_items(rm))
-        path = LATER_MIGRATIONS[rm.num]
+        if rm.num in LATER_MIGRATIONS:
+            part = files.setdefault(LATER_MIGRATIONS[rm.num], [])
+            part.extend(insert_room(rm))
+            part.append('')
+            part.extend(insert_items(rm, rm.published_items()))
+        if rm.split is not None:
+            extra = files.setdefault(rm.split_migration, [])
+            extra.extend(insert_items(rm, rm.items[rm.split:], start=rm.split))
+    for path, lines in files.items():
         with open(path, 'w', encoding='utf-8', newline='\n') as f:
-            f.write('\n'.join(later))
-        print(f'Scritta {os.path.normpath(path)}: {rm.name}, {len(rm.items)} mobili.')
+            f.write('\n'.join([f'-- {MIGRATION_TITLES[path]} Generata da BE/scripts/hotel_rooms.py.', ''] + lines))
+        print(f'Scritta {os.path.normpath(path)}.')
 
     print('\n// ---- NpcRoster.java')
     for rm in ROOMS:

@@ -75,6 +75,8 @@ public class RoomInstance {
     private final FootballMatch football;
     /** Dopo un gol il pallone resta in rete un attimo, poi torna a centrocampo. */
     private static final long GOAL_PAUSE_MILLIS = 2_500;
+    /** Fascia di tre ore del meteo gia' mandato ai client: quando cambia, si manda quello nuovo. */
+    private long weatherSlot = HotelWeather.now().slot();
 
     private record Pending(long dueAt, Runnable action) {
     }
@@ -303,6 +305,13 @@ public class RoomInstance {
     /** Un passo per ogni avatar in cammino. Chiamato dal RoomRegistry ogni 500 ms. */
     public synchronized void tick() {
         long now = System.currentTimeMillis();
+        HotelWeather.Weather weather = HotelWeather.now();
+        if (weather.slot() != weatherSlot) {
+            weatherSlot = weather.slot();
+            Map<String, Object> message = new LinkedHashMap<>(weather.toMap());
+            message.put("type", "weather");
+            broadcast(message);
+        }
         for (Occupant occupant : occupants.values()) {
             if (occupant.handItem != null && now > occupant.handItemUntil) {
                 occupant.handItem = null;
@@ -754,7 +763,9 @@ public class RoomInstance {
         }
         if (now >= npc.nextChatAt) {
             npc.nextChatAt = now + 60_000 + random.nextInt(60_000);
-            say(npc, NpcDialog.idle(spec.role(), random), null, false, 0);
+            // Ogni tanto si parla del tempo che fa fuori.
+            String line = random.nextInt(4) == 0 ? HotelWeather.now().remark() : NpcDialog.idle(spec.role(), random);
+            say(npc, line, null, false, 0);
         }
         if (spec.role() == NpcRoster.Role.FOOTBALLER && football != null) {
             playFootball(npc, now);
@@ -1545,6 +1556,7 @@ public class RoomInstance {
                     "blue", football.score(FootballMatch.Team.BLUE), "red", football.score(FootballMatch.Team.RED)));
         }
         state.put("serverTime", System.currentTimeMillis());
+        state.put("weather", HotelWeather.now().toMap());
         return state;
     }
 

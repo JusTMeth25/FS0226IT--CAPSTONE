@@ -31,6 +31,8 @@ public final class NpcRoster {
     public static final UUID CINEMA = UUID.fromString("00000000-0000-0000-0000-00000000a00d");
     public static final UUID GYM = UUID.fromString("00000000-0000-0000-0000-00000000a00e");
     public static final UUID STADIUM = UUID.fromString("00000000-0000-0000-0000-00000000a00f");
+    public static final UUID BOWLING = UUID.fromString("00000000-0000-0000-0000-00000000a010");
+    public static final UUID MINIGOLF = UUID.fromString("00000000-0000-0000-0000-00000000a011");
 
     /** Cosa fa il personaggio: da qui dipendono movimento, azioni possibili e battute. */
     public enum Role {
@@ -166,7 +168,16 @@ public final class NpcRoster {
                     walker("mago", "Mago", Role.FOOTBALLER, "s4.h1.hc4.sh3.p0.t0.f1.a0", 12, 16, 10),
                     walker("razzo", "Razzo", Role.FOOTBALLER, "s1.h0.hc2.sh6.p0.t0.f1.a0", 24, 8, 10),
                     walker("muro", "Muro", Role.FOOTBALLER, "s3.h9.hc7.sh6.p0.t0.f1.a0", 24, 16, 10),
-                    walker("ultra", "Ultra", Role.GUEST, "s0.h3.hc6.sh1.p3.t1.f3.a5.b1", 16, 3, 4)))
+                    walker("ultra", "Ultra", Role.GUEST, "s0.h3.hc6.sh1.p3.t1.f3.a5.b1", 16, 3, 4))),
+            Map.entry(BOWLING, List.of(
+                    worker("rita", "Rita", Role.BARISTA, "s0.h2.hc5.sh1.p3.t1.f3.a2.b1", 4, 2, 4, "cola", "juice", "bubble"),
+                    worker("beppe", "Beppe", Role.RECEPTIONIST, "s3.h1.hc2.sh7.p1.t2.f0.a1", 4, 16, 0),
+                    walker("strike", "Strike", Role.GUEST, "s2.h9.hc0.sh6.p0.t0.f1.a0", 13, 14, 4),
+                    walker("lulu", "Lulu", Role.GUEST, "s1.h7.hc4.sh2.p4.t4.f2.a2.b1", 8, 12, 4))),
+            Map.entry(MINIGOLF, List.of(
+                    worker("gigi", "Gigi", Role.ICE_CREAM, "s1.h0.hc3.sh7.p1.t2.f0.a0", 3, 22, 2, "gelato"),
+                    walker("birdie", "Birdie", Role.GUEST, "s1.h6.hc1.sh5.p3.t1.f1.a2.b1", 16, 16, 5),
+                    walker("par", "Par", Role.GUEST, "s4.h9.hc7.sh3.p0.t2.f0.a0", 12, 9, 5)))
     );
 
     private NpcRoster() {

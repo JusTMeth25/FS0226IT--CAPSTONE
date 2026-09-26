@@ -942,3 +942,22 @@ button.hotel-trade-card:hover { background: var(--hp-surface-hover); }
 .hotel-room-npcs { margin-left: 4px; opacity: 0.75; font-size: 0.85em; }
 .mg-reward { color: #fcd34d; font-size: 1.2rem; font-weight: 800; }
 .mg-reward-note { color: var(--hp-muted); font-size: 0.75rem; text-align: center; }
+
+/* Minigiochi sportivi: stadio, bowling, minigolf. */
+.mg-sport { display: flex; flex-direction: column; gap: 8px; }
+.mg-svg { width: 100%; height: auto; max-height: 240px; border-radius: 10px; display: block; }
+.mg-zone-perfect { background: #facc15 !important; opacity: 0.9; }
+.mg-frames { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.mg-frames span {
+  text-align: center; padding: 3px 0; border-radius: 6px; font-size: 0.75rem; font-weight: 800;
+  background: rgba(255, 255, 255, 0.08); color: #e5e7eb;
+}
+.mg-frames span.current { background: rgba(250, 204, 21, 0.25); color: #facc15; }
+
+/* Meteo della giornata nella scheda della stanza. */
+.hotel-weather {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;
+  font-size: 0.72rem; font-weight: 700; color: #cbd5e1; cursor: help;
+}
+.hotel-weather.is-outdoor { color: #fde68a; }
+

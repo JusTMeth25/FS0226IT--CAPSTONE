@@ -1,5 +1,6 @@
 import { HALF_H, HALF_W, LEVEL_H, TILE_H, TILE_W, WALL_H, tileTop } from '../iso.js';
 import { createCanvas, px } from './pixel.js';
+import { garlandPaint } from '../weather.js';
 
 /**
  * Pavimento e pareti di una stanza, disegnati una volta in un'immagine sola.
@@ -721,10 +722,12 @@ export const WALL_STYLES = Object.keys(WALLS);
  * @returns {{ canvas, originX, originY }} immagine della stanza e posizione, al suo interno,
  * del vertice alto della casella (0, 0).
  */
-export function renderRoom(layout, floorName, door, wallName = floorName) {
+export function renderRoom(layout, floorName, door, wallName = floorName, weather = null) {
   const floor = FLOOR_FACTORIES[floorName] ? FLOOR_FACTORIES[floorName](layout, door) : (FLOORS[floorName] || FLOORS.neon);
   const wallPaint = WALLS[wallName] || WALLS.neon;
   const isDoor = (x, y) => door && door.x === x && door.y === y;
+  // Festone della stagione lungo la cima delle pareti.
+  const garland = garlandPaint(weather);
 
   // Ingombro in pixel base, pareti e dislivelli compresi.
   let minX = Infinity; let maxX = -Infinity; let minY = Infinity; let maxY = -Infinity;
@@ -777,6 +780,8 @@ export function renderRoom(layout, floorName, door, wallName = floorName) {
           for (let h = 0; h < wallTop; h += 1) {
             const hAbs = h + z * LEVEL_H;
             let color = wallPaint(col, hAbs, WALL_H, side, baseY - h);
+            const deco = garland ? garland(col, hAbs, WALL_H) : null;
+            if (deco) color = rgb(deco);
             if (side === 'right') color = tint(color, -0.18);
             put(sx, baseY - 1 - h, color);
           }

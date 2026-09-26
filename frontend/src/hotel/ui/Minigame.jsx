@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { basket, bowling, golf } from './sportGames.jsx';
 
 /**
  * Minigiochi sui mobili dell'hotel. Si gioca qui, nel browser; il server ha fatto partire la
@@ -249,7 +250,12 @@ const GAMES = {
         <div className="mg-row"><span>{s.result || `Tiri: ${s.shots}`}</span><div className="mg-big">{s.potted}<small>buche</small></div></div>
       </div>
     )
-  }
+  },
+
+  // Stadio, bowling e minigolf (sportGames.jsx): una buca del minigolf per mobile.
+  basket,
+  bowling,
+  ...Object.fromEntries([1, 2, 3, 4, 5, 6].map((hole) => [`golf${hole}`, golf(hole)]))
 };
 
 /**

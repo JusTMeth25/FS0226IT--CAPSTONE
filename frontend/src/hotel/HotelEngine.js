@@ -5,6 +5,7 @@ import { animationState, cardImage, footprintOf, furniSprite, isFlat } from './s
 import { isSolid } from './sprites/pixel.js';
 import { GEM_H, GEM_W, drawSparkle, gemSprite } from './sprites/gem.js';
 import { getRarityColor } from '../utils/cardUtils.js';
+import { DECOR_DEFS, createWeatherState, drawWeather, isOutdoor, seasonDecor } from './weather.js';
 
 /** Di quanti pixel base si alza chi e' seduto su una sedia o un divano, rispetto al pavimento. */
 const SEAT_LIFT = 7 * DETAIL;
@@ -75,6 +76,10 @@ export class HotelEngine {
     this.ball = null;
     /** Scritta del gol al centro dello schermo. */
     this.goalFlash = null;
+    /** Meteo e stagione (dal server), particelle della pioggia/neve e decorazioni della stagione. */
+    this.weather = null;
+    this.weatherState = createWeatherState();
+    this.decor = null;
 
     this.zoom = 2;
     this.camera = { x: 0, y: 0 };
@@ -177,8 +182,9 @@ export class HotelEngine {
       case 'typing': this.setTyping(message.id, message.on); break;
       case 'chat': this.addBubble(message, now); break;
       case 'item_added':
-      case 'item_updated': this.items.set(message.item.id, message.item); this.waterTiles = null; break;
-      case 'item_removed': this.items.delete(message.id); this.waterTiles = null; break;
+      case 'item_updated': this.items.set(message.item.id, message.item); this.waterTiles = null; this.decor = null; break;
+      case 'item_removed': this.items.delete(message.id); this.waterTiles = null; this.decor = null; break;
+      case 'weather': this.setWeather(message); break;
       case 'hand_item': this.setHandItem(message.id, message.item, message.left); break;
       case 'consume': this.setConsume(message.id, message.item, message.left, now); break;
       case 'minigame': {
@@ -208,14 +214,20 @@ export class HotelEngine {
     const restyle = (changes.floorStyle && changes.floorStyle !== this.room.floorStyle)
       || (changes.wallStyle && changes.wallStyle !== this.room.wallStyle);
     this.room = { ...this.room, ...changes };
-    if (restyle) this.roomImage = renderRoom(this.layout, this.room.floorStyle, this.room.door, this.room.wallStyle);
+    if (restyle) {
+      this.roomImage = renderRoom(this.layout, this.room.floorStyle, this.room.door, this.room.wallStyle, this.weather);
+      this.decor = null;
+    }
   }
 
   loadRoom(message, now) {
     this.room = message.room;
     this.meId = message.you;
     this.layout = parseLayout(message.room.layout);
-    this.roomImage = renderRoom(this.layout, message.room.floorStyle, message.room.door, message.room.wallStyle);
+    this.weather = message.weather || null;
+    this.weatherState = createWeatherState();
+    this.decor = null;
+    this.roomImage = renderRoom(this.layout, message.room.floorStyle, message.room.door, message.room.wallStyle, this.weather);
     this.users.clear();
     this.bubbles = [];
     this.items = new Map((message.items || []).map((item) => [item.id, item]));
@@ -257,6 +269,37 @@ export class HotelEngine {
     user.steps = path.map(([x, y, z]) => ({ x, y, z }));
     user.stepStart = now;
     user.status = 'idle';
+  }
+
+  /** Nuovo meteo: cambiando stagione o festa si ridisegnano festoni e decorazioni. */
+  setWeather(weather) {
+    const restyle = !this.weather || this.weather.season !== weather.season || this.weather.holiday !== weather.holiday
+      || this.weather.condition !== weather.condition;
+    this.weather = weather;
+    if (restyle && this.room) {
+      this.roomImage = renderRoom(this.layout, this.room.floorStyle, this.room.door, this.room.wallStyle, weather);
+      this.decor = null;
+    }
+  }
+
+  /** Decorazioni della stagione, calcolate quando servono (cambiano con i mobili e con il meteo). */
+  decorations() {
+    if (!this.decor) {
+      const items = [...this.items.values()].filter((item) => this.catalog.has(item.type) && !this.catalog.get(item.type).wall);
+      this.decor = seasonDecor(this.layout, items, (item) => this.footprint(item), this.room?.door, this.room, this.weather);
+    }
+    return this.decor;
+  }
+
+  decorSprite(entry) {
+    const key = `decor|${entry.type}`;
+    let cached = this.spriteCache.get(key);
+    if (!cached) {
+      cached = furniSprite(entry, DECOR_DEFS[entry.type]);
+      this.spriteCache.set(key, cached);
+    }
+    const t = tileTop(entry.x, entry.y, entry.z);
+    return { sprite: cached.canvas, left: t.x - cached.anchorX, top: t.y - cached.anchorY };
   }
 
   /** Tiro: il pallone parte da dove si trova ora (anche a meta' di un rotolamento) e segue il percorso. */
@@ -667,6 +710,14 @@ export class HotelEngine {
     const items = [...this.items.values()].filter((item) => this.catalog.has(item.type));
     const backItems = items.filter((item) => this.itemDepth(item) < -100).sort((a, b) => this.itemDepth(a) - this.itemDepth(b));
     backItems.forEach(drawItem);
+    // Foglie, petali e neve per terra; zucche, albero e pupazzo di neve vanno fra gli avatar.
+    const decor = this.catalog.size ? this.decorations() : [];
+    const drawDecor = (entry) => {
+      const { sprite, left, top } = this.decorSprite(entry);
+      const p = toScreen(left, top);
+      ctx.drawImage(sprite, p.x, p.y, sprite.width * scale, sprite.height * scale);
+    };
+    decor.filter((entry) => DECOR_DEFS[entry.type].walkable).forEach(drawDecor);
 
     if (this.hoverTile) {
       const t = tileTop(this.hoverTile.x, this.hoverTile.y, this.hoverTile.z);
@@ -681,6 +732,7 @@ export class HotelEngine {
     const scene = [
       ...users.map((user) => ({ kind: 'user', user, depth: this.userDepth(user) })),
       ...(ballAt ? [{ kind: 'ball', depth: ballAt.x + ballAt.y + 0.005 }] : []),
+      ...decor.filter((entry) => !DECOR_DEFS[entry.type].walkable).map((entry) => ({ kind: 'decor', entry, depth: entry.x + entry.y - 0.01 })),
       ...items.filter((item) => this.itemDepth(item) >= -100).map((item) => ({ kind: 'item', item, depth: this.itemDepth(item) }))
     ].sort((a, b) => a.depth - b.depth);
 
@@ -688,6 +740,10 @@ export class HotelEngine {
     scene.forEach((entry) => {
       if (entry.kind === 'item') {
         drawItem(entry.item);
+        return;
+      }
+      if (entry.kind === 'decor') {
+        drawDecor(entry.entry);
         return;
       }
       if (entry.kind === 'ball') {
@@ -765,6 +821,10 @@ export class HotelEngine {
     });
 
     this.drawPlacement(ctx, now, toScreen, scale);
+    // Pioggia, neve, vento e luce del sole sopra le stanze all'aperto.
+    if (this.weather && isOutdoor(this.room)) {
+      drawWeather(ctx, this.weather, this.weatherState, this.cssWidth, this.cssHeight, now, this.reducedMotion);
+    }
     this.drawHearts(ctx, now);
     this.drawSips(ctx, now);
     const animate = !this.reducedMotion;

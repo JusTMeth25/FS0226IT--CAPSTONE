@@ -162,6 +162,14 @@ public final class FurniCatalog {
         add(new FurniDef("corner_flag", "Bandierina", "stadio", 0, 1, 1, false, false, -1, false, false));
         add(new FurniDef("floodlight", "Torre faro", "stadio", 0, 1, 1, false, false, -1, false, false));
         add(new FurniDef("scoreboard", "Tabellone", "stadio", 0, 1, 1, true, false, -1, false, false));
+        add(new FurniDef("basket_hoop", "Canestro", "stadio", 0, 1, 1, false, false, -1, false, false));
+        // Bowling e minigolf: piste e buche sono minigiochi (Minigames).
+        add(new FurniDef("bowling_lane", "Pista da bowling", "bowling", 0, 1, 8, false, false, -1, false, false));
+        add(new FurniDef("bowling_rack", "Rastrelliera palle da bowling", "bowling", 0, 1, 1, false, false, -1, false, false));
+        add(new FurniDef("shoe_counter", "Banco noleggio scarpe", "bowling", 0, 2, 1, false, false, -1, false, false));
+        for (int hole = 1; hole <= Minigames.GOLF_HOLES; hole++) {
+            add(new FurniDef("golf_hole_" + hole, "Minigolf, buca " + hole, "minigolf", 0, 3, 2, false, false, -1, false, false));
+        }
     }
 
     private FurniCatalog() {
