@@ -140,11 +140,16 @@ function poseOffsets(pose, frame) {
   if (pose === 'wave') return { ...pose0, frontUp: true, frontArm: frame % 2 ? 2 : 0 };
   // Esercizi e giochi: corsa (passo lungo), pugni alternati, bilanciere su e giu' da seduti.
   if (pose === 'run') {
-    const swing = [0, 5, 0, -5][frame % 4];
-    return { ...pose0, backLeg: -swing, frontLeg: swing, backArm: swing, frontArm: -swing, bodyY: frame % 2 ? -2 : 0 };
+    // Corsa: passo lungo, braccia che vanno avanti e indietro, il corpo che rimbalza.
+    const swing = [0, 7, 0, -7][frame % 4];
+    return { ...pose0, backLeg: -swing, frontLeg: swing, backArm: swing * 0.8, frontArm: -swing * 0.8, bodyY: frame % 2 ? -3 : 0, sweat: frame };
   }
-  if (pose === 'punch') return { ...pose0, frontUp: frame % 2 === 1, backUp: frame % 2 === 0, frontArm: 3, bodyY: frame % 2 };
-  if (pose === 'lift') return { ...pose0, sit: true, frontUp: true, backUp: true, liftUp: frame % 2 === 1 };
+  // Pugni: jab dritto in avanti, alternando braccio davanti e braccio dietro, in guardia.
+  if (pose === 'punch') return { ...pose0, frontJab: frame === 1, backJab: frame === 2, bodyY: 1, frontLeg: 3, backLeg: -3, sweat: frame };
+  // Panca: il bilanciere sale in tre tempi (frame 0 giu', 2 braccia tese).
+  if (pose === 'lift') return { ...pose0, sit: true, frontUp: true, backUp: true, liftReach: [4, 9, 15, 9][frame % 4], sweat: frame };
+  // Curl: manubri in mano, un braccio alla volta sale fino alla spalla (frame 1 davanti, 2 dietro).
+  if (pose === 'curl') return { ...pose0, frontUp: frame === 1, backUp: frame === 2, curl: true, sweat: frame };
   // Sport: calcio al pallone, palleggio e tiro a canestro, lancio della boccia, colpo di golf.
   if (pose === 'kick') return { ...pose0, frontLeg: 10, backLeg: -3, frontArm: -4, backArm: 4, bodyY: -1 };
   if (pose === 'dribble') return { ...pose0, frontArm: 3, backArm: -1, bodyY: frame % 2, backLeg: 1, frontLeg: -1 };
@@ -184,7 +189,16 @@ function leg(ctx, x, top, swing, pants, shoe, back) {
 }
 
 /** Braccio: manica (corta, lunga o assente) e mano. Alzato per salutare o ballare. */
-function arm(ctx, x, y0, { up, swing, sleeve, skin, sleeveLength, reach = 0 }) {
+function arm(ctx, x, y0, { up, swing, sleeve, skin, sleeveLength, reach = 0, jab = false }) {
+  if (jab) {
+    // Braccio teso in avanti all'altezza della spalla, con il guantone.
+    const top = y0 + 44;
+    px(ctx, x, top, 14, 6, sleeveLength > 0 ? sleeve : skin);
+    px(ctx, x, top + 4, 14, 2, shade(sleeveLength > 0 ? sleeve : skin, -0.2));
+    blob(ctx, x + 16, top + 3, 4.5, 4.5, '#dc2626');
+    px(ctx, x + 14, top + 1, 3, 2, '#fca5a5');
+    return;
+  }
   if (up) {
     // Braccio alzato: sale sopra la spalla, la mano aperta in alto (piu' in alto se spinge un peso).
     const top = y0 + 22 - reach;
@@ -618,7 +632,27 @@ function frontHand(y0, swing) {
  * Attrezzi degli sport, disegnati sopra al corpo: pallone da basket (palleggiato o sopra la
  * testa), boccia da bowling in mano, mazza da golf, stecca da biliardo.
  */
+/** Manubrio: sbarra corta con due dischi scuri. */
+function dumbbell(ctx, cx, cy) {
+  px(ctx, cx - 5, cy - 1, 10, 2, '#9ca3af');
+  px(ctx, cx - 7, cy - 3, 3, 6, '#1f2937');
+  px(ctx, cx + 4, cy - 3, 3, 6, '#1f2937');
+}
+
 function drawSportProp(ctx, pose, frame, y0, o) {
+  // Fatica: una goccia di sudore che scende dalla fronte, a fotogrammi alterni.
+  if (o.sweat !== undefined && o.sweat % 2 === 1) {
+    blob(ctx, 38, y0 + 14 + (o.sweat % 4), 1.6, 2.4, '#7dd3fc');
+    px(ctx, 38, y0 + 12 + (o.sweat % 4), 1, 1, '#e0f2fe');
+  }
+  if (pose === 'curl') {
+    // Manubri: in mano giu' lungo i fianchi, oppure all'altezza della spalla per il braccio che sale.
+    const frontY = o.frontUp ? y0 + 30 : y0 + 64;
+    const backY = o.backUp ? y0 + 30 : y0 + 64;
+    dumbbell(ctx, 11, backY);
+    dumbbell(ctx, 38, frontY);
+    return;
+  }
   if (pose === 'dribble') {
     // Il pallone rimbalza fra la mano e il pavimento.
     const hand = frontHand(y0, o.frontArm);
@@ -683,8 +717,8 @@ function drawAvatar(look, { back, pose, frame, outfit }) {
 
   const sleeve = shirt;
   // Sulla panca le mani stanno sopra la testa (piu' in alto a braccia tese); nel tiro a canestro si allungano.
-  const reach = pose === 'lift' ? (o.liftUp ? 14 : 6) : (o.shootReach || 0);
-  arm(ctx, 8, y0, { up: o.backUp, swing: o.backArm, sleeve: shade(sleeve, -0.12), skin: shade(skin, -0.08), sleeveLength, reach });
+  const reach = pose === 'lift' ? o.liftReach : pose === 'curl' ? -12 : (o.shootReach || 0);
+  arm(ctx, 8, y0, { up: o.backUp, swing: o.backArm, sleeve: shade(sleeve, -0.12), skin: shade(skin, -0.08), sleeveLength, reach, jab: o.backJab });
   // Collo in ombra sotto la testa.
   px(ctx, 20, y0 + 35, 9, 7, shade(skin, -0.18));
   // In acqua gli uomini stanno a petto nudo (con il pantaloncino), le donne con il costume intero.
@@ -692,7 +726,7 @@ function drawAvatar(look, { back, pose, frame, outfit }) {
   else if (swim) drawSwimsuit(ctx, y0, { color: shirt, skin, back });
   else drawTorso(ctx, y0, parts, { shirt, skin, back });
   if (!o.sit && (swim ? man : parts.t !== 4)) px(ctx, 14, y0 + 63, 21, 2, shade(pants, -0.25)); // cintura / elastico
-  arm(ctx, 35, y0, { up: o.frontUp, swing: o.frontArm, sleeve, skin, sleeveLength, reach });
+  arm(ctx, 35, y0, { up: o.frontUp, swing: o.frontArm, sleeve, skin, sleeveLength, reach, jab: o.frontJab });
 
   drawHead(ctx, y0, { skin, back });
   const capped = outfit === 'pool';

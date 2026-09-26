@@ -153,8 +153,8 @@ public final class NpcRoster {
                     walker("tommy", "Tommy", Role.GUEST, "s2.h9.hc3.sh5.p0.t0.f5.a3", 7, 23, 4))),
             Map.entry(NEWSSTAND, List.of(
                     worker("edo", "Edo", Role.NEWSAGENT, "s3.h1.hc9.sh4.p1.t2.f4.a1", 9, 3, 4),
-                    walker("nando", "Nando", Role.GUEST, "s2.h0.hc2.sh9.p0.t0.f2.a0", 12, 10, 4),
-                    walker("bianca", "Bianca", Role.GUEST, "s0.h3.hc6.sh1.p3.t1.f3.a5.b1", 6, 16, 4))),
+                    walker("nando", "Nando", Role.GUEST, "s2.h0.hc2.sh9.p0.t0.f2.a0", 6, 13, 3),
+                    walker("bianca", "Bianca", Role.GUEST, "s0.h3.hc6.sh1.p3.t1.f3.a5.b1", 16, 13, 3))),
             Map.entry(CINEMA, List.of(
                     walker("mario", "Mario", Role.USHER, "s2.h9.hc0.sh8.p1.t2.f0.a0", 18, 21, 4, "popcorn", "cola"),
                     walker("irene", "Irene", Role.GUEST, "s1.h6.hc4.sh11.p4.t1.f3.a2.b1", 11, 13, 5),

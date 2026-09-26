@@ -759,6 +759,47 @@ const WALLS = {
     };
   })(),
 
+  // Negozio di fumetti e carte: scaffali pieni di albi in basso, parete viola con il logo
+  // VinylDex al neon ripetuto lungo il muro.
+  comics: (() => {
+    const paint = rgb('#2e1a4f');
+    const paintAlt = rgb('#33205a');
+    const shelf = rgb('#5b3a29');
+    const covers = ['#ef4444', '#3b82f6', '#facc15', '#22c55e', '#ec4899', '#f97316', '#a855f7', '#14b8a6', '#f5f5f5'].map(rgb);
+    const board = { shadow: rgb('#120a20'), board: rgb('#2b1a16'), trim: rgb('#ec4899') };
+    const logo = logoBitmap();
+    const neonA = rgb('#f472b6');
+    const neonB = rgb('#22d3ee');
+    return (col, h, height, side, sy) => {
+      const bb = baseboard(h, board);
+      if (bb) return bb;
+      // Tre ripiani di fumetti con le costole colorate.
+      if (h < 64) {
+        const row = Math.floor((h - 10) / 18);
+        const inRow = (h - 10) % 18;
+        if (inRow < 3) return tint(shelf, inRow === 2 ? 0.2 : -0.1);
+        const spine = Math.floor(col / 3);
+        const tall = 10 + Math.floor(noise(spine, row, 3) * 5);
+        if (inRow - 3 > tall) return tint(shelf, -0.45);
+        const color = covers[Math.floor(noise(spine, row) * covers.length)];
+        return tint(color, (col % 3 === 0 ? -0.25 : 0) + (noise(col, sy) - 0.5) * 0.06);
+      }
+      if (h < 67) return tint(shelf, 0.15);
+      // Logo: si legge dal bitmap disegnato una volta sola; alone del neon intorno.
+      if (logo) {
+        // Sulla parete sinistra la colonna scorre al contrario: si legge il logo da destra.
+        const lx = side === 'left' ? 439 - (col % 440) : col % 440;
+        const ly = height - 14 - h;
+        if (lx < logo.width && ly >= 0 && ly < logo.height) {
+          const a = logo.alpha[ly * logo.width + lx];
+          if (a > 120) return mix(neonA, neonB, lx / logo.width);
+          if (a > 20) return mix(paint, neonA, 0.45);
+        }
+      }
+      return tint((Math.floor(col / 24) % 2 ? paint : paintAlt), (noise(col, sy) - 0.5) * 0.04);
+    };
+  })(),
+
   // Arena: pannelli rosso scuro con una fascia dorata.
   arena: (() => {
     const panel = rgb('#3b1d2c');
@@ -774,6 +815,31 @@ const WALLS = {
     };
   })()
 };
+
+/**
+ * Scritta "VINYLDEX · CARDS & COMICS" disegnata una volta in un canvas e letta pixel per pixel
+ * dalla parete del negozio di fumetti. Senza documento (test, server) non c'e' logo.
+ */
+function logoBitmap() {
+  if (typeof document === 'undefined') return null;
+  const width = 360;
+  const height = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.font = '900 40px "Arial Black", Arial, sans-serif';
+  ctx.fillText('VINYLDEX', width / 2, 40);
+  ctx.font = '700 14px Arial, sans-serif';
+  ctx.fillText('CARDS & COMICS', width / 2, 60);
+  const data = ctx.getImageData(0, 0, width, height).data;
+  const alpha = new Uint8Array(width * height);
+  for (let i = 0; i < alpha.length; i += 1) alpha[i] = data[i * 4 + 3];
+  return { width, height, alpha };
+}
 
 export const FLOOR_STYLES = [...Object.keys(FLOORS), ...Object.keys(FLOOR_FACTORIES)];
 export const WALL_STYLES = Object.keys(WALLS);

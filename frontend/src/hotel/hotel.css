@@ -978,3 +978,8 @@ button.hotel-trade-card:hover { background: var(--hp-surface-hover); }
   background: #7c3aed; border: 2px solid #2e1065;
 }
 
+/* Pannelli trascinabili per la testata (useDraggablePanels). */
+.hotel-panel-header { cursor: grab; touch-action: none; }
+.hotel-panel.is-dragging { opacity: 0.92; transition: none; }
+.hotel-panel.is-dragging .hotel-panel-header { cursor: grabbing; }
+

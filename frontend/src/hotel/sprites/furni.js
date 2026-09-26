@@ -627,8 +627,17 @@ const DRAW = {
     b({ u0: 0.06, v0: 0.14, u1: 1.94, v1: 0.86, z0: 26, z1: 34, color: '#6b3e1f', tex: 'wood' });
     b({ u0: 0.14, v0: 0.22, u1: 1.86, v1: 0.78, z0: 34, z1: 35, color: '#15803d', tex: 'fabric' });
     [[0.14, 0.22], [1.0, 0.22], [1.86, 0.22], [0.14, 0.78], [1.0, 0.78], [1.86, 0.78]].forEach(([u, v]) => c({ u, v, r: 0.04, z0: 35, z1: 35, color: '#111018', top: '#111018' }));
-    [[0.5, 0.5, '#f5f5f5'], [1.3, 0.4, '#ef4444'], [1.4, 0.55, '#fbbf24'], [1.5, 0.45, '#3b82f6'], [1.4, 0.34, '#111018']].forEach(([u, v, color]) => c({ u, v, r: 0.035, z0: 35, z1: 38, color, top: color }));
-    b({ u0: 0.3, v0: 0.62, u1: 1.2, v1: 0.66, z0: 38, z1: 39, color: '#d9b77c' });
+  },
+  billiard_table(b, { c }) {
+    // Tavolo grande 4x2: gambe torniti, fascia in legno, sponde verde scuro, panno e sei buche.
+    [[0.25, 0.25], [0.25, 1.65], [3.65, 0.25], [3.65, 1.65], [1.95, 0.25], [1.95, 1.65]]
+      .forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.12, v1: v + 0.12, z1: 30, color: '#3f1d0b', tex: 'wood' }));
+    b({ u0: 0.08, v0: 0.08, u1: 3.92, v1: 1.92, z0: 30, z1: 40, color: '#6b3e1f', tex: 'wood' });
+    b({ u0: 0.2, v0: 0.2, u1: 3.8, v1: 1.8, z0: 40, z1: 42, color: '#14532d' });
+    b({ u0: 0.3, v0: 0.3, u1: 3.7, v1: 1.7, z0: 41, z1: 41, color: '#15803d', tex: 'fabric' });
+    [[0.3, 0.3], [2.0, 0.26], [3.7, 0.3], [0.3, 1.7], [2.0, 1.74], [3.7, 1.7]]
+      .forEach(([u, v]) => c({ u, v, r: 0.07, z0: 41, z1: 41, color: '#0a0a0a', top: '#0a0a0a' }));
+    [[1.0, 0.08], [3.0, 0.08]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.05, v1: v + 0.03, z0: 40, z1: 40, color: '#f5f5f4' }));
   },
   claw_machine(b, { c, d, now, front }) {
     const step = Math.floor((now || 0) / 300) % 4;
@@ -949,6 +958,23 @@ const DRAW = {
       d(0.74, 0.66, 56, '#111827', 2, 2);
       d(0.68, 0.7, 52, '#f97316', 5, 2);
       d(0.56, 0.7, 46, '#dc2626', 14, 3);
+    });
+  },
+
+  comic_shelf(b, { d, front }) {
+    // Scaffale del negozio: tre ripiani con gli albi girati in avanti, copertine colorate.
+    b({ u0: 0.08, v0: 0.2, u1: 0.92, v1: 0.8, z1: 104, color: '#5b3a29', tex: 'wood' });
+    front(() => {
+      const covers = ['#ef4444', '#3b82f6', '#facc15', '#22c55e', '#ec4899', '#f97316', '#a855f7', '#14b8a6'];
+      [8, 40, 72].forEach((z, row) => {
+        d(0.1, 0.8, z, '#3f2718', 30, 2);
+        for (let i = 0; i < 3; i += 1) {
+          const color = covers[(row * 3 + i) % covers.length];
+          d(0.14 + i * 0.26, 0.8, z + 24, color, 7, 22);
+          d(0.16 + i * 0.26, 0.8, z + 20, '#ffffff', 4, 3);
+          d(0.16 + i * 0.26, 0.8, z + 10, '#1f2937', 5, 1);
+        }
+      });
     });
   },
 

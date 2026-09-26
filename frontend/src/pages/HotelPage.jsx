@@ -16,6 +16,7 @@ import Inventory from '../hotel/ui/Inventory.jsx';
 import ItemMenu from '../hotel/ui/ItemMenu.jsx';
 import CardPicker from '../hotel/ui/CardPicker.jsx';
 import CardViewer from '../hotel/ui/CardViewer.jsx';
+import useDraggablePanels from '../hotel/useDraggablePanels.js';
 import RoomSettings from '../hotel/ui/RoomSettings.jsx';
 import UserCard from '../hotel/ui/UserCard.jsx';
 import PvpPanel from '../hotel/ui/PvpPanel.jsx';
@@ -48,7 +49,9 @@ const USABLE = ['bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart'
   // Minigiochi: panca, tapis roulant, sacco da boxe, pesca-peluche, cabinato arcade, biliardo,
   // canestri dello stadio, piste da bowling e buche del minigolf.
   'weight_bench', 'treadmill', 'punching_bag', 'claw_machine', 'arcade', 'pool_table',
-  'basket_hoop', 'bowling_lane', ...[1, 2, 3, 4, 5, 6].map((hole) => `golf_hole_${hole}`)];
+  'basket_hoop', 'bowling_lane', ...[1, 2, 3, 4, 5, 6].map((hole) => `golf_hole_${hole}`),
+  // Curl con i manubri della rastrelliera e i biliardi grandi.
+  'dumbbell_rack', 'billiard_table'];
 
 /** Il chiosco e l'espositore dell'edicola aprono il banco dei pacchetti. */
 const NEWSSTAND_ITEMS = ['newsstand', 'pack_display'];
@@ -168,6 +171,8 @@ export default function HotelPage() {
   /** Stagione e tempo di oggi (HotelWeather): uguali in tutto l'hotel. */
   const [weather, setWeather] = useState(null);
   const pageRef = useRef(null);
+  // I pannelli si spostano trascinandoli per la testata.
+  useDraggablePanels(pageRef);
   const noticeTimer = useRef(0);
   const meRef = useRef(null);
   const peopleRef = useRef({});
@@ -651,6 +656,7 @@ export default function HotelPage() {
           onTileClick={(tile) => send({ type: 'move', x: tile.x, y: tile.y })}
           onAvatarClick={(u) => { setSelectedItemId(null); if (u.npc) { setSelected(null); setSelectedNpc(u); } else { setSelectedNpc(null); setSelected(u); } }}
           onItemClick={onItemClick}
+          onCardClick={(card) => setViewingCard(card)}
           onPlace={(tile, current) => {
             send({ type: 'place', itemId: current.itemId, x: tile.x, y: tile.y, rot: current.rot });
             setPlacement(null);

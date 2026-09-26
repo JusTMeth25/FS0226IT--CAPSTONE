@@ -12,16 +12,16 @@ const DRAG_THRESHOLD = 5;
  *
  * Il genitore passa i messaggi del server con ref.current.handle(message).
  */
-const HotelCanvas = forwardRef(function HotelCanvas({ zoom, catalog, placement, buildMode, onTileClick, onAvatarClick, onItemClick, onPlace }, ref) {
+const HotelCanvas = forwardRef(function HotelCanvas({ zoom, catalog, placement, buildMode, onTileClick, onAvatarClick, onItemClick, onPlace, onCardClick }, ref) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const engineRef = useRef(null);
-  const callbacks = useRef({ onTileClick, onAvatarClick, onItemClick, onPlace });
+  const callbacks = useRef({ onTileClick, onAvatarClick, onItemClick, onPlace, onCardClick });
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
-    callbacks.current = { onTileClick, onAvatarClick, onItemClick, onPlace };
-  }, [onTileClick, onAvatarClick, onItemClick, onPlace]);
+    callbacks.current = { onTileClick, onAvatarClick, onItemClick, onPlace, onCardClick };
+  }, [onTileClick, onAvatarClick, onItemClick, onPlace, onCardClick]);
 
   useImperativeHandle(ref, () => ({
     handle: (message) => engineRef.current?.handle(message),
@@ -33,7 +33,8 @@ const HotelCanvas = forwardRef(function HotelCanvas({ zoom, catalog, placement, 
       onTileClick: (tile) => callbacks.current.onTileClick?.(tile),
       onAvatarClick: (user) => callbacks.current.onAvatarClick?.(user),
       onItemClick: (item, tile) => callbacks.current.onItemClick?.(item, tile),
-      onPlace: (tile, current) => callbacks.current.onPlace?.(tile, current)
+      onPlace: (tile, current) => callbacks.current.onPlace?.(tile, current),
+      onCardClick: (card) => callbacks.current.onCardClick?.(card)
     });
     engineRef.current = engine;
 

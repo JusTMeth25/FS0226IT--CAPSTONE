@@ -55,7 +55,7 @@ class PackRecapServiceTest {
     void announcesOnce() throws Exception {
         PackOpeningRepository openings = mock(PackOpeningRepository.class);
         PackRecapService service = new PackRecapService(openings, mock(PackRepository.class), mock(PackGenerator.class),
-                mock(RoomRegistry.class));
+                mock(RoomRegistry.class), mock(NpcDeals.class));
 
         Pack pack = new Pack();
         pack.setName("Pacchetto Deluxe");
@@ -99,7 +99,8 @@ class PackRecapServiceTest {
         PackRepository packs = mock(PackRepository.class);
         PackGenerator generator = mock(PackGenerator.class);
         RoomRegistry registry = mock(RoomRegistry.class);
-        PackRecapService service = new PackRecapService(mock(PackOpeningRepository.class), packs, generator, registry);
+        NpcDeals deals = mock(NpcDeals.class);
+        PackRecapService service = new PackRecapService(mock(PackOpeningRepository.class), packs, generator, registry, deals);
         Pack pack = new Pack();
         pack.setName("Pacchetto Base");
         when(packs.findAllActiveWithRates()).thenReturn(List.of(pack));

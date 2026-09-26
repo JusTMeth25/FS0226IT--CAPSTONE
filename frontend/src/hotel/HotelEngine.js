@@ -6,6 +6,7 @@ import { isSolid } from './sprites/pixel.js';
 import { GEM_H, GEM_W, drawSparkle, gemSprite } from './sprites/gem.js';
 import { getRarityColor } from '../utils/cardUtils.js';
 import { DECOR_DEFS, createWeatherState, drawWeather, isOutdoor, seasonDecor } from './weather.js';
+import { BALL_COLORS } from './ui/billiards.jsx';
 
 /** Di quanti pixel base si alza chi e' seduto su una sedia o un divano, rispetto al pavimento. */
 const SEAT_LIFT = 7 * DETAIL;
@@ -35,6 +36,14 @@ const SHOT_HOLD_MS = 180;
 const ROLL_MS = 1_100;
 const PIN_FALLEN_MS = 1_400;
 /** Birilli: posizione laterale (in larghezze di birillo) e fila, come in sportGames.jsx. */
+/**
+ * Panno dei tavoli da biliardo, in caselle del mobile: da dove a dove si muovono le bilie e a che
+ * altezza sta il panno.
+ */
+const POOL_CLOTH = {
+  billiard_table: { u0: 0.34, u1: 3.66, v0: 0.3, v1: 1.7, z: 41 },
+  pool_table: { u0: 0.16, u1: 1.84, v0: 0.24, v1: 0.76, z: 35 }
+};
 const BOWLING_PINS = [[0, 0], [-0.5, 1], [0.5, 1], [-1, 2], [0, 2], [1, 2], [-1.5, 3], [-0.5, 3], [0.5, 3], [1.5, 3]];
 
 const BUBBLE_H = 20;
@@ -55,13 +64,16 @@ const WAVE_MS = 2_500;
  * smussature. Testi e fumetti invece si disegnano a piena risoluzione, per restare leggibili.
  */
 export class HotelEngine {
-  constructor(canvas, { onTileClick, onAvatarClick, onItemClick, onPlace, reducedMotion = false } = {}) {
+  constructor(canvas, { onTileClick, onAvatarClick, onItemClick, onPlace, onCardClick, reducedMotion = false } = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.onTileClick = onTileClick;
     this.onAvatarClick = onAvatarClick;
     this.onItemClick = onItemClick;
     this.onPlace = onPlace;
+    this.onCardClick = onCardClick;
+    /** Carte disegnate sopra le teste in questo fotogramma (riepiloghi, carte di bandiera): si cliccano. */
+    this.cardHotspots = [];
 
     /** Catalogo dei mobili (type -> regole), arriva da GET /api/furni/catalog. */
     this.catalog = new Map();
@@ -92,6 +104,9 @@ export class HotelEngine {
     this.rolls = [];
     this.lanes = new Map();
     this.golfBalls = new Map();
+    this.bagHits = new Map();
+    /** Bilie dei tavoli da biliardo: posizioni di prima e di adesso, per scorrere fra un aggiornamento e l'altro. */
+    this.poolBalls = new Map();
 
     this.zoom = 2;
     this.camera = { x: 0, y: 0 };
@@ -297,7 +312,12 @@ export class HotelEngine {
   applyFx(message, now) {
     const user = this.users.get(message.id);
     const fx = message.fx || {};
-    if (user) user.fx = { kind: fx.kind, born: now };
+    if (user) {
+      user.fx = { kind: fx.kind, born: now, arm: fx.arm };
+      if (fx.kind === 'hit') user.hits = (user.hits || 0) + 1;
+    }
+    // Il sacco colpito oscilla.
+    if (fx.kind === 'hit' && message.item) this.bagHits.set(message.item, now);
     const item = this.items.get(message.item);
     if (!item) return;
     if (message.game === 'basket' && fx.kind === 'shoot' && user) {
@@ -310,6 +330,10 @@ export class HotelEngine {
       } else if (fx.kind === 'reset') {
         lane.resetAt = now + PIN_FALLEN_MS + 300;
       }
+    } else if (message.game === 'pool' && fx.kind === 'balls' && Array.isArray(fx.balls)) {
+      const prev = this.poolBalls.get(item.id);
+      const from = prev ? poolPositions(prev, now) : fx.balls;
+      this.poolBalls.set(item.id, { from, to: fx.balls, born: now });
     } else if (message.game.startsWith('golf')) {
       if (fx.kind === 'ball') {
         const prev = this.golfBalls.get(item.id);
@@ -398,6 +422,37 @@ export class HotelEngine {
       ctx.beginPath();
       ctx.arc(p.x, p.y, 5 * scale, 0, Math.PI * 2);
       ctx.fill();
+    });
+  }
+
+  /** Bilie sul tavolo da biliardo, come nel gioco di chi sta tirando. */
+  drawPoolBalls(ctx, item, now, toScreen, scale) {
+    const state = this.poolBalls.get(item.id);
+    if (!state) return;
+    const cloth = POOL_CLOTH[item.type];
+    const at = poolPositions(state, now);
+    const balls = [];
+    for (let i = 0; i + 1 < at.length; i += 2) {
+      if (at[i] < 0) continue;
+      const u = cloth.u0 + at[i] * (cloth.u1 - cloth.u0);
+      const v = cloth.v0 + at[i + 1] * (cloth.v1 - cloth.v0);
+      balls.push({ n: i / 2, p: toScreen(...Object.values(this.itemScreen(item, u, v, cloth.z + 2))) });
+    }
+    // Da dietro in avanti, cosi' le bilie vicine coprono quelle lontane.
+    balls.sort((a, b) => a.p.y - b.p.y).forEach(({ n, p }) => {
+      const r = (item.type === 'billiard_table' ? 2.6 : 1.9) * scale;
+      ctx.fillStyle = '#0a0a0a';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r + scale * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = n >= 9 ? '#f8fafc' : BALL_COLORS[n];
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fill();
+      if (n >= 9) {
+        ctx.fillStyle = BALL_COLORS[n];
+        ctx.fillRect(p.x - r, p.y - r * 0.4, r * 2, r * 0.8);
+      }
     });
   }
 
@@ -649,6 +704,13 @@ export class HotelEngine {
       if (tile) this.onPlace?.(tile, this.placement);
       return;
     }
+    // Una carta sopra la testa (riepilogo di un pacchetto o carte di bandiera): si ispeziona.
+    const hotspot = [...this.cardHotspots].reverse()
+      .find((h) => cssX >= h.x && cssX <= h.x + h.w && cssY >= h.y && cssY <= h.y + h.h);
+    if (hotspot && !this.buildMode) {
+      this.onCardClick?.(hotspot.card);
+      return;
+    }
     if (this.buildMode) {
       const target = this.itemAt(cssX, cssY);
       if (target) {
@@ -854,13 +916,19 @@ export class HotelEngine {
     } else if (user.game === 'bench') {
       // Panca: il bilanciere sale a ogni ripetizione (le proprie in tempo reale, quelle degli altri a ritmo).
       pose = 'lift';
-      frame = user.id === this.meId ? (now - (user.pulseAt || 0) < 260 ? 1 : 0) : (animate ? Math.floor(now / 700) % 2 : 0);
+      // Le proprie ripetizioni seguono i tasti premuti (spinta in tre tempi), quelle degli altri vanno a ritmo.
+      const since = now - (user.pulseAt || 0);
+      frame = user.id === this.meId ? (since < 120 ? 1 : since < 320 ? 2 : since < 480 ? 3 : 0) : (animate ? Math.floor(now / 350) % 4 : 0);
     } else if (user.game === 'run') {
       pose = 'run';
       frame = animate ? Math.floor(now / (user.id === this.meId && now - (user.pulseAt || 0) > 600 ? 260 : 95)) % 4 : 0;
     } else if (user.game === 'box') {
       pose = 'punch';
-      frame = user.id === this.meId ? (now - (user.pulseAt || 0) < 180 ? 1 : 0) : (animate ? Math.floor(now / 320) % 2 : 0);
+      // Ogni pugno cambia braccio: si vede dall'evento "hit" (anche per gli altri), altrimenti in guardia.
+      frame = fx?.kind === 'hit' && fxAge < 220 ? 1 + ((user.hits || 0) % 2) : (animate && user.id !== this.meId && !fx ? Math.floor(now / 320) % 3 : 0);
+    } else if (user.game === 'curl') {
+      pose = 'curl';
+      frame = fx?.kind === 'curl' && fxAge < 380 ? (fx.arm === 1 ? 2 : 1) : 0;
     } else if (user.game === 'basket') {
       // Palleggio, poi il tiro: pallone sopra la testa e braccia che si distendono.
       if (fx?.kind === 'shoot' && fxAge < 650) {
@@ -881,8 +949,9 @@ export class HotelEngine {
       pose = 'play';
       frame = animate ? Math.floor(now / 260) % 2 : 0;
     } else if (user.game === 'pool') {
+      // Chino sul tavolo con la stecca; al tiro la stecca va avanti.
       pose = 'cue';
-      frame = animate ? Math.floor(now / 500) % 2 : 0;
+      frame = fx?.kind === 'cue' && fxAge < 300 ? 1 : 0;
     } else if (user.status === 'sit') {
       pose = 'sit';
     } else if (user.status === 'dance' || (this.jukeboxOn && user.status !== 'sit' && this.onDanceFloor(at))) {
@@ -914,6 +983,7 @@ export class HotelEngine {
     // Zoom indietro: meta' dei pixel, con lo smussamento per non perdere le righe sottili.
     ctx.imageSmoothingEnabled = this.zoom < 1;
     ctx.clearRect(0, 0, this.cssWidth, this.cssHeight);
+    this.cardHotspots = [];
     if (!this.roomImage) return;
 
     const { canvas: roomCanvas, originX, originY } = this.roomImage;
@@ -928,9 +998,13 @@ export class HotelEngine {
     const drawItem = (item) => {
       const { sprite, left, top } = this.itemSprite(item, now);
       const p = toScreen(left, top);
+      // Sacco da boxe colpito: dondola e si ferma piano piano.
+      const hitAt = item.type === 'punching_bag' ? this.bagHits.get(item.id) : 0;
+      if (hitAt && now - hitAt < 900) p.x += Math.sin((now - hitAt) / 70) * 4 * scale * (1 - (now - hitAt) / 900);
       ctx.drawImage(sprite, p.x, p.y, sprite.width * scale, sprite.height * scale);
       if (item.type === 'bowling_lane') this.drawLaneExtras(ctx, item, now, toScreen, scale);
       else if (item.type.startsWith('golf_hole_')) this.drawGolfBall(ctx, item, now, toScreen, scale);
+      else if (POOL_CLOTH[item.type]) this.drawPoolBalls(ctx, item, now, toScreen, scale);
     };
     const items = [...this.items.values()].filter((item) => this.catalog.has(item.type));
     const backItems = items.filter((item) => this.itemDepth(item) < -100).sort((a, b) => this.itemDepth(a) - this.itemDepth(b));
@@ -1062,7 +1136,7 @@ export class HotelEngine {
       else if (label.kind === 'staff') drawStaffTag(ctx, label, gemScale);
       else if (label.kind === 'cards') {
         const bob = animate ? Math.round(Math.sin(now / 450 + label.seed)) * cardScale : 0;
-        drawTopCards(ctx, label.x, label.y + bob, label.cards, cardScale, now, animate);
+        drawTopCards(ctx, label.x, label.y + bob, label.cards, cardScale, now, animate, this.cardHotspots);
       } else if (label.kind === 'gem') {
         const bob = animate ? Math.round(Math.sin(now / 450 + label.seed)) * gemScale : 0;
         drawGem(ctx, label.x - (GEM_W * gemScale) / 2, label.y + bob, label.rarity, gemScale, now, animate);
@@ -1131,7 +1205,8 @@ export class HotelEngine {
       ctx.lineWidth = 2;
       roundRect(ctx, x, y, w, h, 8);
       ctx.stroke();
-      // Miniatura della carta migliore, con il bordo della rarita'.
+      // Miniatura della carta migliore, con il bordo della rarita'. Tutto il riquadro si clicca.
+      if (data.top) this.cardHotspots.push({ x, y, w, h, card: data.top });
       ctx.fillStyle = color;
       ctx.fillRect(x + 6, y + 6, 33, 46);
       const img = data.top ? cardImage(data.top) : null;
@@ -1270,6 +1345,16 @@ function drawBall(ctx, at, lift, r, spin) {
   ctx.arc(cx - r * 0.35, cy - r * 0.4, r * 0.22, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
+}
+
+/** Bilie fra un aggiornamento e il successivo (arrivano ogni ~130 ms). Quelle in buca valgono -1. */
+function poolPositions(state, now) {
+  const t = Math.min(1, (now - state.born) / 140);
+  return state.to.map((value, i) => {
+    const before = state.from[i];
+    if (value < 0 || before === undefined || before < 0) return value;
+    return before + (value - before) * t;
+  });
 }
 
 /** Pallina del golf fra un punto e il successivo (la posizione arriva ogni ~120 ms). */
@@ -1432,7 +1517,7 @@ const MINI_H = 21;
  * Le tre carte di bandiera in miniatura, a ventaglio, centrate su x e con il fondo in bottom:
  * quella in mezzo sta un po' piu' in alto. Il bordo ha il colore della rarita'.
  */
-function drawTopCards(ctx, x, bottom, cards, scale, now, animate) {
+function drawTopCards(ctx, x, bottom, cards, scale, now, animate, hotspots) {
   const w = MINI_W * scale;
   const h = MINI_H * scale;
   const gap = 3 * scale;
@@ -1446,6 +1531,7 @@ function drawTopCards(ctx, x, bottom, cards, scale, now, animate) {
     const cx = Math.round(left + slot * (w + gap));
     const lift = cards.length === 3 && index === 0 ? 3 * scale : 0;
     const cy = Math.round(bottom - h - lift);
+    hotspots?.push({ x: cx - 2, y: cy - 2, w: w + 4, h: h + 4, card });
     ctx.fillStyle = '#1a1030';
     ctx.fillRect(cx - scale, cy - scale, w + 2 * scale, h + 2 * scale);
     ctx.fillStyle = getRarityColor(card.rarity);

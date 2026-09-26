@@ -86,6 +86,25 @@ class NpcDealsTest {
     }
 
     @Test
+    @DisplayName("Le carte trovate nei pacchetti entrano nella vetrina dell'NPC e ne escono se le scambia")
+    void foundCardsGoOnShowcase() {
+        UUID npc = UUID.randomUUID();
+        Card found = card("trovata", "legendary", null);
+        pool.add(found);
+        when(cards.findByCode("trovata")).thenReturn(Optional.of(found));
+        deals.addFound(npc, List.of(card("scarsa", "common", 0.1), found));
+        assertEquals("trovata", deals.showcase(npc).get(0).getCode(), "la piu' preziosa per prima");
+        assertEquals(2, deals.found(npc).size());
+        for (int i = 0; i < 5; i++) deals.addFound(npc, List.of(card("altra" + i, "rare", null)));
+        assertEquals(NpcDeals.FOUND_KEPT, deals.found(npc).size(), "se ne tengono solo le ultime");
+
+        deals.addFound(npc, List.of(found));
+        when(userCardService.owns(any(), any(), eq(1))).thenReturn(true);
+        assertEquals(NpcDeals.Verdict.ACCEPTED, deals.propose(npc, "Dario", anna.getId(), "legendary0", "trovata"));
+        assertTrue(deals.found(npc).stream().noneMatch(c -> c.getCode().equals("trovata")), "scambiata, non e' piu' sua");
+    }
+
+    @Test
     @DisplayName("L'NPC accetta solo scambi equi e mai carte che non sono nella sua vetrina")
     void proposalsMustBeFair() {
         UUID npc = UUID.randomUUID();

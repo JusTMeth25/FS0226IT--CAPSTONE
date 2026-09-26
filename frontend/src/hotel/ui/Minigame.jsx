@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { basket, bowling, golf } from './sportGames.jsx';
+import { pool } from './billiards.jsx';
 
 /**
  * Minigiochi sui mobili dell'hotel. Si gioca qui, nel browser; il server ha fatto partire la
@@ -94,11 +95,12 @@ const GAMES = {
       s.window = Math.max(480, s.window - 25);
       s.left = s.window;
     },
-    press(s, action, pulse) {
+    press(s, action, pulse, emit) {
       if (action === s.target) {
         s.combo += 1;
         s.points += s.combo >= 5 ? 2 : 1;
         s.flash = 200;
+        emit?.({ kind: 'hit' });
         pulse();
       } else {
         s.combo = 0;
@@ -114,6 +116,54 @@ const GAMES = {
           <span className="mg-target-time" style={{ width: `${(s.left / s.window) * 100}%` }} />
         </div>
         <div className="mg-row"><span>Combo x{s.combo}</span><div className="mg-big">{s.points}<small>colpi</small></div></div>
+      </div>
+    )
+  },
+
+  // Curl bicipiti: un braccio alla volta, alternando sinistro e destro. Ogni curl stanca: se
+  // l'energia finisce bisogna rifiatare un attimo. Due volte lo stesso braccio non vale.
+  curl: {
+    help: 'Alterna FRECCIA SINISTRA e FRECCIA DESTRA (o A e D): ogni curl alternato e\' una ripetizione. Non esagerare, l\'energia cala!',
+    duration: 25_000,
+    keys: { ArrowLeft: 0, a: 0, A: 0, ArrowRight: 1, d: 1, D: 1 },
+    buttons: [[0, 'Sinistro', 'ph-barbell'], [1, 'Destro', 'ph-barbell']],
+    init: () => ({ reps: 0, last: null, busy: 0, energy: 100, tired: false, result: null }),
+    tick(s, dt) {
+      s.busy = Math.max(0, s.busy - dt);
+      s.energy = Math.min(100, s.energy + dt * 0.012);
+      if (s.tired && s.energy >= 35) s.tired = false;
+    },
+    press(s, arm, pulse, emit) {
+      if (s.busy > 0 || s.tired) return;
+      if (arm === s.last) {
+        s.result = 'Alterna le braccia!';
+        s.energy = Math.max(0, s.energy - 8);
+        return;
+      }
+      s.last = arm;
+      s.busy = 260;
+      s.energy -= 7 + s.reps * 0.1;
+      if (s.energy <= 0) {
+        s.energy = 0;
+        s.tired = true;
+        s.result = 'Stanco! Rifiata un attimo…';
+        return;
+      }
+      s.reps += 1;
+      s.result = null;
+      emit?.({ kind: 'curl', arm });
+      pulse();
+    },
+    score: (s) => s.reps,
+    done: (s, max) => s.reps >= max,
+    view: (s) => (
+      <div className="mg-curl">
+        <div className="mg-row"><span>Energia</span><span>{s.tired ? 'rifiata…' : `${Math.round(s.energy)}%`}</span></div>
+        <div className="mg-meter"><span style={{ width: `${s.energy}%`, background: s.tired ? '#ef4444' : undefined }} /></div>
+        <div className="mg-row">
+          <span>{s.result || (s.last === null ? 'Parti con un braccio' : `Ora il ${s.last === 0 ? 'destro' : 'sinistro'}`)}</span>
+          <div className="mg-big">{s.reps}<small>ripetizioni</small></div>
+        </div>
       </div>
     )
   },
@@ -209,54 +259,19 @@ const GAMES = {
     )
   },
 
-  // Biliardo: la forza del tiro oscilla, tira quando e' nella zona verde. Sette tiri.
-  pool: {
-    help: 'La barra della forza sale e scende: premi SPAZIO quando e\' nella zona verde. Hai 7 tiri.',
-    duration: 0,
-    keys: { ' ': 'shoot', Enter: 'shoot' },
-    buttons: [['shoot', 'Tira', 'ph-target']],
-    init: () => ({ power: 0, dir: 1, shots: 7, potted: 0, zone: rand(45, 80), pause: 0, result: null }),
-    tick(s, dt) {
-      if (s.pause > 0) {
-        s.pause = Math.max(0, s.pause - dt);
-        return;
-      }
-      s.power += s.dir * dt * (0.09 + (7 - s.shots) * 0.012);
-      if (s.power >= 100) { s.power = 100; s.dir = -1; }
-      if (s.power <= 0) { s.power = 0; s.dir = 1; }
-    },
-    press(s, action, pulse) {
-      if (action !== 'shoot' || s.pause > 0 || s.shots <= 0) return;
-      s.shots -= 1;
-      const inZone = s.power >= s.zone && s.power <= s.zone + 12;
-      if (inZone) {
-        s.potted += 1;
-        s.result = 'In buca!';
-        pulse();
-      } else {
-        s.result = s.power < s.zone ? 'Troppo piano' : 'Troppo forte';
-      }
-      s.zone = rand(30, 85);
-      s.pause = 700;
-    },
-    score: (s) => s.potted,
-    done: (s) => s.shots <= 0 && s.pause === 0,
-    view: (s) => (
-      <div className="mg-pool">
-        <div className="mg-meter mg-power">
-          <span className="mg-zone" style={{ left: `${s.zone}%`, width: '12%' }} />
-          <span className="mg-cue" style={{ left: `${s.power}%` }} />
-        </div>
-        <div className="mg-row"><span>{s.result || `Tiri: ${s.shots}`}</span><div className="mg-big">{s.potted}<small>buche</small></div></div>
-      </div>
-    )
-  },
+  // Biliardo stile 8 Ball (billiards.jsx): si mira sul tavolo e si tira.
+  pool,
 
   // Stadio, bowling e minigolf (sportGames.jsx): una buca del minigolf per mobile.
   basket,
   bowling,
   ...Object.fromEntries([1, 2, 3, 4, 5, 6].map((hole) => [`golf${hole}`, golf(hole)]))
 };
+
+/** Scena del gioco; `act` serve ai giochi che si comandano anche con il mouse (il biliardo). */
+function GameView({ game, snap, act }) {
+  return game.view(snap, act);
+}
 
 /**
  * @param start messaggio minigame_start del server (gioco, titolo, record della stanza)
@@ -379,7 +394,7 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
       {phase === 'ready' && <div className="mg-countdown">{countdown}</div>}
 
       {phase === 'play' && snap && (
-        <div className="mg-stage">{game.view(snap)}</div>
+        <div className="mg-stage"><GameView game={game} snap={snap} act={act} /></div>
       )}
 
       {phase === 'play' && (

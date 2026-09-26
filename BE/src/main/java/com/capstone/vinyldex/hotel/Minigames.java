@@ -39,7 +39,11 @@ public final class Minigames {
                 "punching_bag", new Game("box", "Sacco da boxe", "colpi", 80, 10_000, 90_000, false),
                 "claw_machine", new Game("claw", "Pesca-peluche", "peluche", 3, 3_000, 90_000, false),
                 "arcade", new Game("rhythm", "Vinyl Rush", "note", 60, 10_000, 90_000, false),
-                "pool_table", new Game("pool", "Biliardo", "buche", 7, 4_000, 120_000, false),
+                // Biliardo stile 8 ball: si mira e si tira sul tavolo, punti = bilie in buca (quindici).
+                "pool_table", new Game("pool", "Biliardo", "bilie", 15, 8_000, 300_000, false),
+                "billiard_table", new Game("pool", "Biliardo", "bilie", 15, 8_000, 300_000, false),
+                // Curl con i manubri: braccio destro e sinistro alternati, a tempo.
+                "dumbbell_rack", new Game("curl", "Curl bicipiti", "ripetizioni", 40, 5_000, 90_000, false),
                 // Canestri dello stadio: 30 secondi di tiri, 2 punti a canestro e 3 se non tocca il ferro.
                 "basket_hoop", new Game("basket", "Tiri liberi", "punti", 60, 15_000, 90_000, false),
                 // Pista da bowling: 5 frame da due tiri, strike +10 e spare +5 di bonus.

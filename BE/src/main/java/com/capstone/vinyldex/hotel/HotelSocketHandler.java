@@ -444,8 +444,11 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     }
 
     /** Tipi di evento dei minigiochi che si inoltrano alla stanza, e i campi ammessi. */
-    private static final java.util.Set<String> FX_KINDS = java.util.Set.of("dribble", "shoot", "aim", "roll", "reset", "ball", "hole");
-    private static final List<String> FX_NUMBERS = List.of("made", "swish", "off", "x", "power", "u", "v");
+    private static final java.util.Set<String> FX_KINDS = java.util.Set.of("dribble", "shoot", "aim", "roll", "reset", "ball",
+            "hole", "curl", "hit", "balls", "cue");
+    private static final List<String> FX_NUMBERS = List.of("made", "swish", "off", "x", "power", "u", "v", "arm", "dx", "dy");
+    /** Bilie del biliardo: coppie (x, y) da 0 a 1 sul tavolo, -1 per quelle in buca. Al massimo 16 bilie. */
+    private static final int MAX_BALL_NUMBERS = 32;
 
     /**
      * Evento di un minigioco ripulito: solo il tipo, qualche numero entro limiti ragionevoli e le
@@ -460,6 +463,15 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         for (String field : FX_NUMBERS) {
             JsonNode value = node.get(field);
             if (value != null && value.isNumber()) fx.put(field, Math.max(-100.0, Math.min(100.0, value.asDouble())));
+        }
+        JsonNode balls = node.get("balls");
+        if (balls != null && balls.isArray() && balls.size() <= MAX_BALL_NUMBERS) {
+            List<Double> values = new java.util.ArrayList<>();
+            for (JsonNode value : balls) {
+                if (!value.isNumber()) return null;
+                values.add(Math.round(Math.max(-1.0, Math.min(1.0, value.asDouble())) * 1000) / 1000.0);
+            }
+            fx.put("balls", values);
         }
         for (String field : List.of("fallen", "standing")) {
             JsonNode list = node.get(field);

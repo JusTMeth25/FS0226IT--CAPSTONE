@@ -83,7 +83,7 @@ public class RoomService {
     public static final Set<String> FLOOR_STYLES = Set.of("neon", "parquet", "carpet", "checker", "marble", "arena",
             "grass", "pooldeck", "terracotta", "wooddeck", "sand", "cobble", "cinema", "rubber", "pitch", "court");
     public static final Set<String> WALL_STYLES = Set.of("neon", "brick", "teal", "wood", "windows", "arena",
-            "hedge", "pooltile", "skyline", "seaside", "shops", "curtain", "mirror", "stadium");
+            "hedge", "pooltile", "skyline", "seaside", "shops", "curtain", "mirror", "stadium", "comics");
 
     /** Nome, descrizione, porta, capienza e stile: solo il proprietario. Le modifiche arrivano subito ai presenti. */
     @Transactional

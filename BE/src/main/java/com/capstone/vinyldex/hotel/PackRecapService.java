@@ -45,16 +45,18 @@ public class PackRecapService {
     private final PackRepository packRepository;
     private final PackGenerator packGenerator;
     private final RoomRegistry registry;
+    private final NpcDeals deals;
     private final SecureRandom random = new SecureRandom();
     /** Ultima apertura gia' annunciata per giocatore: la stessa non si ripete. */
     private final Map<UUID, UUID> announced = new ConcurrentHashMap<>();
 
     public PackRecapService(PackOpeningRepository openingRepository, PackRepository packRepository,
-                            PackGenerator packGenerator, RoomRegistry registry) {
+                            PackGenerator packGenerator, RoomRegistry registry, NpcDeals deals) {
         this.openingRepository = openingRepository;
         this.packRepository = packRepository;
         this.packGenerator = packGenerator;
         this.registry = registry;
+        this.deals = deals;
     }
 
     /** Il giocatore ha finito di guardare il pacchetto: la stanza vede il riepilogo. */
@@ -90,6 +92,8 @@ public class PackRecapService {
                 List<Card> cards = packGenerator.generate(pack);
                 if (cards.isEmpty()) continue;
                 room.announce(recap(npcId, npc.username(), pack, cards, true));
+                // Le carte trovate finiscono nella vetrina degli scambi dell'NPC.
+                deals.addFound(npcId, cards);
                 Card top = top(cards);
                 room.npcSay(npcId, NpcDialog.packOpened(pack.getName(), top.getName(), random), null);
             } catch (RuntimeException ex) {

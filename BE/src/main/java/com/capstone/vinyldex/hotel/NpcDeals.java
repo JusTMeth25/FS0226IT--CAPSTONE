@@ -71,6 +71,12 @@ public class NpcDeals {
     private final Clock clock = Clock.systemDefaultZone();
 
     private List<Card> pool = List.of();
+    /**
+     * Carte trovate dagli NPC nei pacchetti aperti nell'hotel: finiscono nella loro vetrina degli
+     * scambi, le piu' recenti prima. Restano finche' il server non si riavvia o non le scambiano.
+     */
+    private final Map<UUID, java.util.Deque<Card>> found = new java.util.concurrent.ConcurrentHashMap<>();
+    static final int FOUND_KEPT = 4;
     private long poolLoadedAt;
 
     public NpcDeals(CardRepository cardRepository, UserCardRepository userCardRepository, UserRepository userRepository,
@@ -119,7 +125,8 @@ public class NpcDeals {
         Random random = new Random(npcId.hashCode() * 31L + LocalDate.now(clock).toEpochDay());
         List<String> wanted = new ArrayList<>(List.of("common", "uncommon", "uncommon", "rare"));
         wanted.add(random.nextInt(5) == 0 ? "legendary" : "epic");
-        List<Card> cards = new ArrayList<>();
+        // Prima le carte appena trovate nei pacchetti, poi quelle del giorno.
+        List<Card> cards = new ArrayList<>(found.getOrDefault(npcId, new java.util.ArrayDeque<>()));
         for (String rarity : wanted) {
             List<Card> options = ofRarity(rarity);
             if (options.isEmpty()) continue;
@@ -127,6 +134,27 @@ public class NpcDeals {
             if (cards.stream().noneMatch(c -> c.getId().equals(card.getId()))) cards.add(card);
         }
         return cards;
+    }
+
+    /**
+     * L'NPC ha aperto un pacchetto: le carte migliori (fino a FOUND_KEPT, le piu' preziose) entrano
+     * nella sua vetrina degli scambi al posto delle meno recenti.
+     */
+    public void addFound(UUID npcId, List<Card> cards) {
+        java.util.Deque<Card> kept = found.computeIfAbsent(npcId, id -> new java.util.concurrent.ConcurrentLinkedDeque<>());
+        // Le due piu' preziose; si inseriscono dalla meno preziosa, cosi' la migliore resta in cima.
+        List<Card> best = cards.stream().sorted(Comparator.comparingInt(NpcDeals::value).reversed()).limit(2).toList();
+        for (int i = best.size() - 1; i >= 0; i--) {
+            Card card = best.get(i);
+            kept.removeIf(c -> c.getId().equals(card.getId()));
+            kept.addFirst(card);
+        }
+        while (kept.size() > FOUND_KEPT) kept.removeLast();
+    }
+
+    /** Carte trovate ancora nella vetrina dell'NPC (per i test e per la scheda dell'NPC). */
+    public List<Card> found(UUID npcId) {
+        return List.copyOf(found.getOrDefault(npcId, new java.util.ArrayDeque<>()));
     }
 
     /**
@@ -190,7 +218,13 @@ public class NpcDeals {
         Card give = cardRepository.findByCode(giveCode).orElse(null);
         if (give == null) return Verdict.NOT_OWNED;
         if (value(give) < value(want) * FAIRNESS) return Verdict.UNFAIR;
-        return trade(userId, npcName, giveCode, wantCode);
+        Verdict verdict = trade(userId, npcName, giveCode, wantCode);
+        // Una carta trovata e poi scambiata non e' piu' dell'NPC.
+        if (verdict == Verdict.ACCEPTED) {
+            java.util.Deque<Card> kept = found.get(npcId);
+            if (kept != null) kept.removeIf(c -> c.getCode().equals(wantCode));
+        }
+        return verdict;
     }
 
     @Transactional(readOnly = true)

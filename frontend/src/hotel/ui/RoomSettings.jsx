@@ -12,7 +12,7 @@ const WALLS = [
   ['wood', 'Boiserie in legno'], ['windows', 'Vetrate'], ['arena', 'Pannelli arena'], ['hedge', 'Siepe'],
   ['pooltile', 'Piastrelle da piscina'], ['skyline', 'Skyline notturno'], ['seaside', 'Orizzonte sul mare'],
   ['shops', 'Vetrine dei negozi'], ['curtain', 'Sipario di velluto'], ['mirror', 'Specchi da palestra'],
-  ['stadium', 'Tribune dello stadio']
+  ['stadium', 'Tribune dello stadio'], ['comics', 'Negozio di fumetti']
 ];
 
 /** Impostazioni della propria stanza. Le modifiche arrivano subito a chi e' dentro. */

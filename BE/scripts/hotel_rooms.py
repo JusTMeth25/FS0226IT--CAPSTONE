@@ -22,18 +22,20 @@ MIGRATION = os.path.join(MIGRATIONS_DIR, 'V12__hotel_big_rooms.sql')
 V17 = os.path.join(MIGRATIONS_DIR, 'V17__hotel_stadium.sql')
 V18 = os.path.join(MIGRATIONS_DIR, 'V18__hotel_bowling_minigolf.sql')
 V19 = os.path.join(MIGRATIONS_DIR, 'V19__hotel_basket_court_bowling.sql')
+V20 = os.path.join(MIGRATIONS_DIR, 'V20__hotel_comic_shop_billiards.sql')
 LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18, 18: V19}
 # Migrazione in lavorazione: le altre, gia' pubblicate, non si riscrivono piu' (Flyway ne controlla
 # il contenuto). Le stanze cambiate dopo la pubblicazione si rifanno qui (REBUILT) e gli arredi da
 # togliere si elencano in REMOVED.
-CURRENT = V19
-REBUILT = {16: V19}
+CURRENT = V20
+REBUILT = {16: V19, 8: V20, 12: V20}
 REMOVED = {V19: [('00000000-0000-0000-0000-00000000a00f', 'basket_hoop')]}
 # Arredi aggiunti a stanze gia' pubblicate: finiscono nella migrazione indicata (vedi Room.migration).
 MIGRATION_TITLES = {
     V17: 'Nuova stanza pubblica: Stadio.',
     V18: 'Canestri nello stadio e due stanze nuove: Bowling e Minigolf.',
     V19: 'Palazzetto con il campo da basket, bowling rifatto con piu\' piste, canestri tolti dallo stadio.',
+    V20: 'Edicola come un negozio di fumetti e carte con il museo VinylDex, biliardi grandi in sala giochi.',
 }
 
 # ------------------------------------------------------------------ catalogo (come FurniCatalog.java)
@@ -82,7 +84,8 @@ FURNI = {
     # Stadio
     'football_goal': (1, 3, False, False, -1), 'corner_flag': (1, 1, False, False, -1),
     'floodlight': (1, 1, False, False, -1), 'scoreboard': (1, 1, True, False, -1),
-    'basket_hoop': (1, 1, False, False, -1),
+    'basket_hoop': (1, 1, False, False, -1), 'billiard_table': (4, 2, False, False, -1),
+    'comic_shelf': (1, 1, False, False, -1),
     # Bowling
     'bowling_lane': (1, 8, False, False, -1), 'bowling_rack': (1, 1, False, False, -1),
     'shoe_counter': (2, 1, False, False, -1),
@@ -91,7 +94,7 @@ FURNI = {
 }
 
 # Mobili che si usano cliccandoli: serve una casella libera accanto.
-SERVING = {'bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'pizza_oven', 'beach_bar',
+SERVING = {'billiard_table', 'bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'pizza_oven', 'beach_bar',
            'popcorn_machine', 'water_cooler', 'newsstand', 'basket_hoop', 'bowling_lane', 'shoe_counter',
            *[f'golf_hole_{n}' for n in range(1, 7)]}
 
@@ -136,6 +139,8 @@ class Room:
         # Arredi aggiunti dopo la pubblicazione della stanza: indice del primo e migrazione in cui vanno.
         self.split = None
         self.split_migration = None
+        # Carte esposte (vetrine e quadri): indice dell'arredo -> code della carta.
+        self.cards = {}
 
     # --- pianta
     def level(self, x0, y0, x1, y1, z):
@@ -183,6 +188,11 @@ class Room:
         self.add(seat, x, y - 1, 2).add(seat, x + 1, y - 1, 2)
         self.add(seat, x, y + 1, 6).add(seat, x + 1, y + 1, 6)
         return self
+
+    def show(self, kind, x, y, code, rot=0):
+        """Vetrina o quadro con una carta esposta (il code della carta nel catalogo)."""
+        self.cards[len(self.items)] = code
+        return self.add(kind, x, y, rot)
 
     def migration(self, path):
         """Gli arredi aggiunti da qui in poi vanno nella migrazione indicata, non in quella della stanza."""
@@ -492,8 +502,9 @@ r = room(8, 'GAMES', 'Sala Giochi',
          24, 22, 11, 'carpet', 'neon', 8)
 r.row('arcade', 5, 1, 12).row('claw_machine', 19, 1, 4).add('jukebox', 1, 1)
 r.row('arcade', 1, 3, 3, dx=0, dy=2)
-for x, y in [(7, 7), (13, 7), (7, 12), (13, 12)]:
-    r.add('pool_table', x, y).add('lamp_neon', x - 2, y)
+# Quattro biliardi grandi (V20), ognuno con la sua lampada.
+for x, y in [(5, 7), (13, 7), (5, 13), (13, 13)]:
+    r.add('billiard_table', x, y).add('lamp_neon', x - 2, y)
 r.lounge(19, 9).lounge(19, 16)
 r.table_for_two(5, 19).table_for_two(10, 19)
 r.add('cafe_counter', 15, 21).add('coffee_machine', 17, 21)
@@ -574,20 +585,24 @@ r.walker('tommy', 'Tommy', 'GUEST', 's2.h9.hc3.sh5.p0.t0.f5.a3', 7, 23, 4)
 # ------------------------------------------------------------------ Edicola
 
 r = room(12, 'NEWSSTAND', 'Edicola',
-         'Giornali, fumetti e i pacchetti di carte VinylDex: compra qui e aprili dalla tua borsa.',
-         20, 18, 9, 'cobble', 'shops', 12)
+         'Fumetti, pacchetti di carte e il museo VinylDex: le carte piu\' belle esposte in vetrina.',
+         20, 18, 9, 'marble', 'comics', 12)
+# Banco dei pacchetti (si comprano qui e si aprono dalla borsa).
 r.add('newsstand', 8, 4).add('pack_display', 7, 4).add('pack_display', 11, 4)
-r.add('magazine_rack', 7, 1).add('magazine_rack', 11, 1).add('street_lamp', 5, 5).add('street_lamp', 13, 5)
-r.row('magazine_rack', 1, 2, 4, dx=0, dy=1).row('magazine_rack', 15, 1, 4)
-r.add('bench', 4, 13, 0).add('bench', 8, 13, 0).add('bench', 12, 13, 0)
-r.add('flower_bed', 3, 13).add('flower_bed', 6, 13).add('flower_bed', 10, 13).add('flower_bed', 14, 13)
-r.add('table_round', 17, 9).add('chair_neon', 16, 9, 0).add('chair_neon', 18, 9, 4)
-r.add('table_round', 17, 13).add('chair_neon', 16, 13, 0).add('chair_neon', 18, 13, 4)
-r.add('plant_big', 20, 1).add('plant_big', 1, 18).add('plant_big', 20, 18).add('street_lamp', 20, 9)
-r.add('poster_neon', 1, 12, 2).add('poster_neon', 1, 15, 2).add('card_frame', 13, 1, 0).add('card_frame', 5, 1, 0)
+# Scaffali di fumetti lungo le pareti.
+r.row('comic_shelf', 1, 1, 6).row('comic_shelf', 14, 1, 7).row('comic_shelf', 1, 2, 5, dx=0, dy=1)
+r.row('comic_shelf', 1, 12, 6, dx=0, dy=1)
+# Museo VinylDex: le carte con l'illustrazione vera, in vetrina e nei quadri.
+MUSEUM = ['synth-001', 'showman-001', 'rebel-001', 'rebel-extra-001', 'showman-002', 'synth-002', 'synth-003', 'dreamer-004']
+for i, (x, y) in enumerate([(13, 8), (15, 8), (17, 8), (19, 8), (13, 11), (15, 11), (17, 11), (19, 11)]):
+    r.show('card_pedestal', x, y, MUSEUM[i])
+for x, code in [(8, 'synth-004'), (10, 'synth-005'), (12, 'dreamer-005')]:
+    r.show('card_frame', x, 1, code, 0)
+r.add('bench', 13, 15, 0).add('bench', 17, 15, 0).add('lamp_floor', 12, 6).add('lamp_floor', 20, 6)
+r.add('plant_big', 20, 18).add('plant_big', 1, 18).add('plant_big', 20, 13).add('cafe_table', 5, 8).add('chair_neon', 4, 8, 0)
 r.worker('edo', 'Edo', 'NEWSAGENT', 's3.h1.hc9.sh4.p1.t2.f4.a1', 9, 3, 4)
-r.walker('nando', 'Nando', 'GUEST', 's2.h0.hc2.sh9.p0.t0.f2.a0', 12, 10, 4)
-r.walker('bianca', 'Bianca', 'GUEST', 's0.h3.hc6.sh1.p3.t1.f3.a5.b1', 6, 16, 4)
+r.walker('nando', 'Nando', 'GUEST', 's2.h0.hc2.sh9.p0.t0.f2.a0', 6, 13, 3)
+r.walker('bianca', 'Bianca', 'GUEST', 's0.h3.hc6.sh1.p3.t1.f3.a5.b1', 16, 13, 3)
 
 # ------------------------------------------------------------------ Cinema
 
@@ -735,11 +750,17 @@ def insert_room(rm):
 
 def insert_items(rm, items, start=0):
     rows = []
+    with_cards = any(start + k in rm.cards for k in range(len(items)))
     for i, (kind, x, y, rot) in enumerate(items, start=start + 1):
         item_id = f'00000000-0000-0000-0000-c0{rm.num:02x}{i:08x}'
-        rows.append(f"    ('{item_id}', NULL, '{rm.id}', {sql_string(kind)}, {x}, {y}, {rm.z(x, y)}, {rot})")
-    return [f'-- Arredi: {rm.name}.', 'INSERT INTO room_items (id, owner_id, room_id, furni_type, x, y, z, rot) VALUES',
-            ',\n'.join(rows) + ';', '']
+        row = f"    ('{item_id}', NULL, '{rm.id}', {sql_string(kind)}, {x}, {y}, {rm.z(x, y)}, {rot}"
+        if with_cards:
+            code = rm.cards.get(i - 1)
+            # La carta si cerca per code: in un database senza quella carta la vetrina resta vuota.
+            row += f", (SELECT id FROM cards WHERE code = {sql_string(code)})" if code else ", NULL"
+        rows.append(row + ')')
+    columns = 'id, owner_id, room_id, furni_type, x, y, z, rot' + (', card_id' if with_cards else '')
+    return [f'-- Arredi: {rm.name}.', f'INSERT INTO room_items ({columns}) VALUES', ',\n'.join(rows) + ';', '']
 
 
 def main():
@@ -787,9 +808,12 @@ def main():
         out.append('')
     for rm in base_rooms:
         out.extend(insert_items(rm, rm.published_items()))
-    with open(MIGRATION, 'w', encoding='utf-8', newline='\n') as f:
-        f.write('\n'.join(out))
-    print(f'Scritta {os.path.normpath(MIGRATION)}: {len(base_rooms)} stanze, {sum(len(rm.items) for rm in base_rooms)} mobili.')
+    if os.path.exists(MIGRATION):
+        print(f'Pubblicata, non si tocca: {os.path.normpath(MIGRATION)}.')
+    else:
+        with open(MIGRATION, 'w', encoding='utf-8', newline='\n') as f:
+            f.write('\n'.join(out))
+        print(f'Scritta {os.path.normpath(MIGRATION)}.')
 
     files = {}
     for path, removals in REMOVED.items():
