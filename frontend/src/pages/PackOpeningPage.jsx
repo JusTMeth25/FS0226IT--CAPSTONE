@@ -39,7 +39,11 @@ function PackSelectCard({ pack, gold, isFreeAvailable, cooldownRemaining, gifted
     <CardHoloFrame rarity={PACK_TILT_RARITY[pack.id] || 'rare'} maxTilt={6} className="pack-card">
       <div className="pack-card-art-wrap" style={{ background: packImage ? undefined : PACK_GRADIENT[pack.id] }}>
         {packImage ? (
-          <img className="pack-card-art-full" src={packImage} alt={pack.name} />
+          <>
+            <img className="pack-card-art-full" src={packImage} alt={pack.name} />
+            {/* La grafica dei pacchetti di un solo gioco e' il dorso delle carte: il nome va scritto. */}
+            {pack.source && <span className="pack-card-name-tag">{pack.name.replace('Pacchetto ', '')}</span>}
+          </>
         ) : (
           <>
             <span className="pack-icon"><i className={`ph-fill ${PACK_ICON[pack.id] || 'ph-gift'}`} /></span>

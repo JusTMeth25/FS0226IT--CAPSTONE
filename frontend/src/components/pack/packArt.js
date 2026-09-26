@@ -1,6 +1,7 @@
 /**
  * Aspetto dei pacchetti, condiviso fra la pagina Pacchetti e l'hotel (edicola e borsa).
  */
+import { CARD_BACKS } from '../../utils/cardBacks.js';
 
 /** Pacchetti di un solo gioco (V16): icona e colori (chiaro, scuro) del gioco. */
 const GAME_PACKS = {
@@ -41,8 +42,10 @@ export const PACK_IMAGE = {
   'pack-base': '/assets/img/BasePack.png',
   'pack-deluxe': '/assets/img/DeluxePack.png',
   'pack-premium': '/assets/img/PremiumPack.png',
-  'pack-ultimate': '/assets/img/UltimatePack.svg',
-  ...gamePacks((source) => `/assets/img/packs/${source}.svg`)
+  // I pacchetti di un solo gioco hanno come grafica il dorso delle carte di quel gioco
+  // (VinylDex Originali non ha un dorso in file: resta la grafica disegnata).
+  'pack-ultimate': CARD_BACKS.fc27,
+  ...gamePacks((source) => CARD_BACKS[source] || `/assets/img/packs/${source}.svg`)
 };
 
 // Intensità dell'effetto tilt/holo sui pacchetti, mappata su una rarità equivalente per tier.

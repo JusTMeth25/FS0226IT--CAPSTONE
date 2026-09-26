@@ -1832,7 +1832,13 @@
   "phy": 79,
   "version": "icon",
   "women": false,
-  "coinPrice": 9000000
+  "coinPrice": 9000000,
+  "look": {
+   "skin": "tan",
+   "hair": "curly",
+   "hairColor": "black",
+   "beard": "none"
+  }
  },
  {
   "id": "icon-ronaldo-nazario",
@@ -1885,7 +1891,13 @@
   "phy": 88,
   "version": "icon",
   "women": false,
-  "coinPrice": 4000000
+  "coinPrice": 4000000,
+  "look": {
+   "skin": "light",
+   "hair": "short",
+   "hairColor": "brown",
+   "beard": "none"
+  }
  },
  {
   "id": "icon-garrincha",
@@ -1902,7 +1914,13 @@
   "phy": 73,
   "version": "icon",
   "women": false,
-  "coinPrice": 4000000
+  "coinPrice": 4000000,
+  "look": {
+   "skin": "brown",
+   "hair": "short",
+   "hairColor": "black",
+   "beard": "none"
+  }
  },
  {
   "id": "icon-johan-cruyff",
@@ -1937,7 +1955,13 @@
   "phy": 87,
   "version": "icon",
   "women": true,
-  "coinPrice": 1600000
+  "coinPrice": 1600000,
+  "look": {
+   "skin": "light",
+   "hair": "ponytail",
+   "hairColor": "brown",
+   "beard": "none"
+  }
  },
  {
   "id": "icon-paolo-maldini",
@@ -1990,7 +2014,13 @@
   "phy": 80,
   "version": "icon",
   "women": false,
-  "coinPrice": 2500000
+  "coinPrice": 2500000,
+  "look": {
+   "skin": "light",
+   "hair": "receding",
+   "hairColor": "darkbrown",
+   "beard": "none"
+  }
  },
  {
   "id": "icon-bobby-charlton",
@@ -2007,7 +2037,13 @@
   "phy": 76,
   "version": "icon",
   "women": false,
-  "coinPrice": 2500000
+  "coinPrice": 2500000,
+  "look": {
+   "skin": "light",
+   "hair": "receding",
+   "hairColor": "lightbrown",
+   "beard": "none"
+  }
  },
  {
   "id": "icon-ferenc-puskas",
@@ -2078,7 +2114,13 @@
   "phy": 83,
   "version": "icon",
   "women": true,
-  "coinPrice": 1000000
+  "coinPrice": 1000000,
+  "look": {
+   "skin": "light",
+   "hair": "short",
+   "hairColor": "blond",
+   "beard": "none"
+  }
  },
  {
   "id": "icon-carlos-alberto",
@@ -2095,7 +2137,13 @@
   "phy": 83,
   "version": "icon",
   "women": false,
-  "coinPrice": 1500000
+  "coinPrice": 1500000,
+  "look": {
+   "skin": "medium",
+   "hair": "short",
+   "hairColor": "black",
+   "beard": "none"
+  }
  },
  {
   "id": "icon-cafu",
@@ -2112,7 +2160,13 @@
   "phy": 83,
   "version": "icon",
   "women": false,
-  "coinPrice": 1500000
+  "coinPrice": 1500000,
+  "look": {
+   "skin": "dark",
+   "hair": "bald",
+   "hairColor": "black",
+   "beard": "none"
+  }
  },
  {
   "id": "icon-eusebio",
@@ -2147,7 +2201,13 @@
   "phy": 89,
   "version": "icon",
   "women": false,
-  "coinPrice": 1500000
+  "coinPrice": 1500000,
+  "look": {
+   "skin": "light",
+   "hair": "receding",
+   "hairColor": "darkbrown",
+   "beard": "none"
+  }
  },
  {
   "id": "icon-oliver-kahn",
@@ -2164,7 +2224,13 @@
   "phy": 90,
   "version": "icon",
   "women": false,
-  "coinPrice": 1500000
+  "coinPrice": 1500000,
+  "look": {
+   "skin": "light",
+   "hair": "short",
+   "hairColor": "blond",
+   "beard": "none"
+  }
  },
  {
   "id": "icon-roberto-baggio",
@@ -2181,7 +2247,13 @@
   "phy": 75,
   "version": "icon",
   "women": false,
-  "coinPrice": 1500000
+  "coinPrice": 1500000,
+  "look": {
+   "skin": "light",
+   "hair": "ponytail",
+   "hairColor": "darkbrown",
+   "beard": "goatee"
+  }
  },
  {
   "id": "icon-ruud-gullit",
@@ -2234,7 +2306,13 @@
   "phy": 84,
   "version": "icon",
   "women": false,
-  "coinPrice": 1500000
+  "coinPrice": 1500000,
+  "look": {
+   "skin": "light",
+   "hair": "mullet",
+   "hairColor": "brown",
+   "beard": "none"
+  }
  },
  {
   "id": "icon-xavi",
@@ -2269,7 +2347,13 @@
   "phy": 85,
   "version": "icon",
   "women": false,
-  "coinPrice": 1500000
+  "coinPrice": 1500000,
+  "look": {
+   "skin": "tan",
+   "hair": "bun",
+   "hairColor": "darkbrown",
+   "beard": "beard"
+  }
  },
  {
   "id": "icon-zico",
@@ -2286,7 +2370,13 @@
   "phy": 75,
   "version": "icon",
   "women": false,
-  "coinPrice": 1500000
+  "coinPrice": 1500000,
+  "look": {
+   "skin": "tan",
+   "hair": "curly",
+   "hairColor": "black",
+   "beard": "none"
+  }
  },
  {
   "id": "icon-socrates",
@@ -2339,7 +2429,13 @@
   "phy": 77,
   "version": "icon",
   "women": false,
-  "coinPrice": 900000
+  "coinPrice": 900000,
+  "look": {
+   "skin": "light",
+   "hair": "long",
+   "hairColor": "darkbrown",
+   "beard": "beard"
+  }
  },
  {
   "id": "icon-sergio-aguero",
@@ -2356,7 +2452,13 @@
   "phy": 84,
   "version": "icon",
   "women": false,
-  "coinPrice": 900000
+  "coinPrice": 900000,
+  "look": {
+   "skin": "tan",
+   "hair": "short",
+   "hairColor": "black",
+   "beard": "stubble"
+  }
  },
  {
   "id": "icon-karl-heinz-rummenigge",
@@ -2373,7 +2475,13 @@
   "phy": 83,
   "version": "icon",
   "women": false,
-  "coinPrice": 900000
+  "coinPrice": 900000,
+  "look": {
+   "skin": "light",
+   "hair": "curly",
+   "hairColor": "lightbrown",
+   "beard": "none"
+  }
  },
  {
   "id": "icon-raphael-varane",

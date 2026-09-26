@@ -190,10 +190,8 @@ public class FcCardArtController {
         if (photo != null) {
             s.append("<image href='").append(photo).append("' x='88' y='34' width='150' height='150' preserveAspectRatio='xMidYMax slice'/>");
         } else {
-            // Sagoma del giocatore: testa e spalle.
-            s.append("<g fill='").append(p.text()).append("' opacity='.22'>")
-                    .append("<circle cx='165' cy='86' r='34'/>")
-                    .append("<path d='M100 186 Q104 128 165 124 Q226 128 230 186 Z'/></g>");
+            // Senza foto: ritratto a pixel in stile Habbo, con la maglia della nazionale.
+            s.append(PixelAvatar.svg(name, m, 90, 34, 150));
         }
         s.append("</g>");
 

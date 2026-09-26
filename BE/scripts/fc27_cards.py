@@ -8,7 +8,7 @@ Da dove vengono i dati:
   dal sito EA, con lo stesso id ("ea-<id EA>"), quindi un import successivo aggiorna queste carte.
 - le icone: EA non le pubblica nella classifica. Valutazione dai tracker delle icone FC 27,
   ruolo noto, le sei statistiche stimate dal ruolo e dalla valutazione; foto ufficiale EA
-  quando l'id del giocatore e' noto.
+  quando l'id del giocatore e' noto, altrimenti un ritratto a pixel stile Habbo (LOOKS).
 
 Dati e foto: EA SPORTS FC(TM) 27 Player Ratings, (c) Electronic Arts Inc. Uso didattico, non
 ufficiale, non affiliato ne' approvato da Electronic Arts.
@@ -81,6 +81,29 @@ Miroslav Klose | Germany | ST | 90 | 242510
 Hernán Crespo | Argentina | ST | 90 | 7512
 Michael Owen | England | ST | 90 | 5419
 """
+
+# Aspetto per il ritratto a pixel stile Habbo delle icone senza foto EA (disegnato dal backend,
+# PixelAvatar): carnagione, capelli, colore dei capelli, barba. Come erano da giocatori.
+LOOKS = {
+    'Diego Maradona': ('tan', 'curly', 'black', 'none'),
+    'Franz Beckenbauer': ('light', 'short', 'brown', 'none'),
+    'Garrincha': ('brown', 'short', 'black', 'none'),
+    'Mia Hamm': ('light', 'ponytail', 'brown', 'none'),
+    'Andrés Iniesta': ('light', 'receding', 'darkbrown', 'none'),
+    'Bobby Charlton': ('light', 'receding', 'lightbrown', 'none'),
+    'Birgit Prinz': ('light', 'short', 'blond', 'none'),
+    'Carlos Alberto': ('medium', 'short', 'black', 'none'),
+    'Cafú': ('dark', 'bald', 'black', 'none'),
+    'Franco Baresi': ('light', 'receding', 'darkbrown', 'none'),
+    'Oliver Kahn': ('light', 'short', 'blond', 'none'),
+    'Roberto Baggio': ('light', 'ponytail', 'darkbrown', 'goatee'),
+    'Marco van Basten': ('light', 'mullet', 'brown', 'none'),
+    'Zlatan Ibrahimović': ('tan', 'bun', 'darkbrown', 'beard'),
+    'Zico': ('tan', 'curly', 'black', 'none'),
+    'Andrea Pirlo': ('light', 'long', 'darkbrown', 'beard'),
+    'Sergio Agüero': ('tan', 'short', 'black', 'stubble'),
+    'Karl-Heinz Rummenigge': ('light', 'curly', 'lightbrown', 'none'),
+}
 
 PORTRAIT_URL = 'https://ratings-images-prod.pulse.ea.com/FC25/full/player-portraits/p{}.png?padding=0.7'
 
@@ -187,6 +210,9 @@ def main():
         })
         if ea_id:
             cards[-1]['photoUrl'] = PORTRAIT_URL.format(ea_id)
+        elif name in LOOKS:
+            skin, hair, color, beard = LOOKS[name]
+            cards[-1]['look'] = {'skin': skin, 'hair': hair, 'hairColor': color, 'beard': beard}
 
     ids = [c['id'] for c in cards]
     assert len(ids) == len(set(ids)), 'id duplicati'

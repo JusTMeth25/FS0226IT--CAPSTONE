@@ -8,6 +8,7 @@ import { coverScale } from './holoMaterial.js';
 import { getCardBackTexture, useSafeTexture } from './textures.js';
 import { useDocumentVisible } from './useThreeEnabled.js';
 import { BASE_URL } from '../../services/apiClient.js';
+import { CARD_BACKS } from '../../utils/cardBacks.js';
 
 const CARD_W = 2.5;
 const CARD_H = 3.5;
@@ -24,24 +25,6 @@ function textureUrl(card) {
   if (!/^https?:\/\//.test(url)) return url;
   return `${BASE_URL}/cards/${encodeURIComponent(card.id)}/image`;
 }
-
-/**
- * Dorsi ufficiali dei giochi da cui arrivano le carte importate, salvati in locale cosi'
- * funzionano anche offline. Le carte VinylDex usano il dorso VinylDex disegnato su canvas.
- */
-const CARD_BACKS = {
-  pokemon: '/assets/img/backs/pokemon.jpg',
-  scryfall: '/assets/img/backs/scryfall.jpg',
-  yugioh: '/assets/img/backs/yugioh.jpg',
-  onepiece: '/assets/img/backs/onepiece.jpg',
-  digimon: '/assets/img/backs/digimon.jpg',
-  lorcana: '/assets/img/backs/lorcana.png',
-  riftbound: '/assets/img/backs/riftbound.png',
-  dragonball: '/assets/img/backs/dragonball.png',
-  gundam: '/assets/img/backs/gundam.jpg',
-  // Dorso in stile Ultimate Team disegnato da noi: le carte UT non hanno un retro ufficiale.
-  fc27: '/assets/img/backs/fc27.svg'
-};
 
 function CardModel({ card, flipped, onFlip }) {
   const color = getRarityColor(card.rarity);

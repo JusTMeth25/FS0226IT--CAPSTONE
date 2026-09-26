@@ -147,8 +147,19 @@ public class Fc27Importer extends AbstractCardImporter {
                     boolean women = node.has("women") && node.get("women").asBoolean();
                     coins = estimateCoins(ovr, position, stats[0], women, integer(node, "rank"));
                 }
-                cards.add(toCard(text(node, "id"), text(node, "name"), text(node, "club"), text(node, "nation"),
-                        position, ovr, stats, text(node, "version"), coins, text(node, "photoUrl"), "stima"));
+                ImportedCard card = toCard(text(node, "id"), text(node, "name"), text(node, "club"), text(node, "nation"),
+                        position, ovr, stats, text(node, "version"), coins, text(node, "photoUrl"), "stima");
+                // Aspetto per il ritratto a pixel delle icone senza foto (PixelAvatar).
+                JsonNode look = child(node, "look");
+                if (look != null && look.isObject()) {
+                    Map<String, Object> lookMap = new HashMap<>();
+                    for (String key : List.of("skin", "hair", "hairColor", "beard")) {
+                        String value = text(look, key);
+                        if (value != null) lookMap.put(key, value);
+                    }
+                    card.metadata().put("look", lookMap);
+                }
+                cards.add(card);
             }
             return cards;
         }

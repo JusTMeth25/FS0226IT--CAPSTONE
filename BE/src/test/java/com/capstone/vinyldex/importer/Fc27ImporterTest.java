@@ -62,7 +62,10 @@ class Fc27ImporterTest {
         assertEquals("icon", pele.metadata().get("version"));
         assertEquals("legendary", pele.rarity());
         assertTrue(((String) pele.metadata().get("photoUrl")).endsWith("/p237067.png?padding=0.7"), "foto ufficiale EA dell'icona");
-        assertFalse(find(cards, "Diego Maradona").metadata().containsKey("photoUrl"), "senza foto EA resta la sagoma");
+        ImportedCard maradona = find(cards, "Diego Maradona");
+        assertFalse(maradona.metadata().containsKey("photoUrl"), "EA non ha la foto di Maradona");
+        assertEquals(Map.of("skin", "tan", "hair", "curly", "hairColor", "black", "beard", "none"), maradona.metadata().get("look"),
+                "senza foto c'e' l'aspetto per il ritratto a pixel");
         assertEquals("common", cheapest(cards).rarity(), "l'oro raro meno caro costa poco");
         assertTrue(cards.stream().anyMatch(c -> "Aitana Bonmatí".equals(c.name())), "ci sono anche le giocatrici");
         assertTrue(cards.stream().allMatch(c -> c.imgUrl().isEmpty()), "le carte le disegna il server");
@@ -217,5 +220,13 @@ class Fc27ImporterTest {
         assertTrue(gk.contains("DIV") && gk.contains("REF"));
         assertFalse(FcCardArtControllerProbe.render("A <b>", Map.of()).contains("<b>"), "il nome e' sempre escapato");
         assertTrue(FcCardArtControllerProbe.render("Virgil van Dijk", Map.of()).contains("VAN DIJK"), "la particella resta col cognome");
+
+        String pixel = FcCardArtControllerProbe.render("Diego Maradona", Map.of("nation", "Argentina",
+                "look", Map.of("skin", "tan", "hair", "curly", "hairColor", "black")));
+        assertTrue(pixel.contains("shape-rendering='crispEdges'"), "senza foto: ritratto a pixel");
+        assertTrue(pixel.contains("#8fd3f4"), "maglia albiceleste");
+        assertTrue(pixel.contains("#e0b088"), "carnagione dal look");
+        assertEquals(FcCardArtControllerProbe.render("Nome Qualsiasi", Map.of()), FcCardArtControllerProbe.render("Nome Qualsiasi", Map.of()),
+                "senza look il ritratto si ricava dal nome, sempre uguale");
     }
 }
