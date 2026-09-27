@@ -413,6 +413,12 @@ const DRAW = {
     c({ u: 0.5, v: 0.5, r: 0.22, z0: 30, z1: 52, color: '#ffd700', top: '#fff3b0', open: true });
     b({ u0: 0.72, v0: 0.46, u1: 0.8, v1: 0.54, z0: 38, z1: 48, color: '#ffd700' });
   },
+  // Teca 3D: basamento scuro con bordo d'oro; la carta che gira e il vetro li disegna il motore.
+  card_case(b) {
+    b({ u0: 0.2, v0: 0.2, u1: 0.8, v1: 0.8, z1: 22, color: '#1e1b3a', left: '#15122b', right: '#0e0c1f', tex: 'stone' });
+    b({ u0: 0.16, v0: 0.16, u1: 0.84, v1: 0.84, z0: 22, z1: 26, color: '#fbbf24', glow: true });
+    b({ u0: 0.3, v0: 0.3, u1: 0.7, v1: 0.7, z0: 26, z1: 28, color: '#8b5cf6', glow: true });
+  },
   card_pedestal(b) {
     b({ u0: 0.22, v0: 0.22, u1: 0.78, v1: 0.78, z1: 32, color: '#f4f1ff', left: '#d9d2f5', right: '#b7aee0', tex: 'stone' });
     b({ u0: 0.16, v0: 0.16, u1: 0.84, v1: 0.84, z0: 32, z1: 36, color: '#8b5cf6', glow: true });
@@ -1207,7 +1213,7 @@ const SEAMLESS = new Set(['pool_water', 'sea_water', 'sea_foam', 'decor_leaves',
  * (lungo x, in discesa verso destra), con rot 2 quello di sinistra. `a` e' la distanza lungo
  * il muro dall'angolo della casella, `h` l'altezza dal pavimento.
  */
-function wallPoint(ox, oy, rot, a, h) {
+export function wallPoint(ox, oy, rot, a, h) {
   return rot === 2
     ? { x: ox - HALF_W + a, y: oy + HALF_H - a / 2 - h }
     : { x: ox + a, y: oy + a / 2 - h };
@@ -1233,6 +1239,11 @@ function drawWallItem(ctx, ox, oy, item, img, rarityColor, now) {
     R(9, 24, 64, 68, '#22d3ee');
     R(11, 22, 52, 56, '#ffd700');
     R(13, 20, 44, 47, '#8b5cf6');
+  } else if (type === 'badge_board') {
+    // Bacheca di sughero con cornice: i distintivi li appende il motore, uno per uno.
+    R(2, 31, 40, 100, '#6b3f16');
+    R(4, 29, 42, 98, (a, h) => ((a * 7 + h * 3) % 11 < 2 ? '#a8733c' : '#c08a4a'));
+    R(4, 29, 94, 98, '#8b5a2b');
   } else if (type === 'card_frame') {
     R(6, 27, 42, 86, '#c9a227');
     R(8, 25, 44, 84, rarityColor || '#8b5cf6');

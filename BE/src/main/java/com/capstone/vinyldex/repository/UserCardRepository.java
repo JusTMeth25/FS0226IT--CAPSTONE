@@ -34,7 +34,7 @@ public interface UserCardRepository extends JpaRepository<UserCard, UUID> {
     @Query("""
             SELECT uc.user.id AS userId, uc.user.username AS username, COUNT(uc.card.id) AS value
             FROM UserCard uc
-            WHERE uc.user.banned = false AND uc.quantity > 0
+            WHERE uc.user.banned = false AND uc.user.npc = false AND uc.quantity > 0
             GROUP BY uc.user.id, uc.user.username
             ORDER BY COUNT(uc.card.id) DESC
             """)

@@ -42,6 +42,13 @@ public class MatchRewardListener {
         }
     }
 
+    static final int QUIZ_PRIZE = 30;
+
+    @EventListener
+    public void onQuiz(HotelGameEvents.QuizWon event) {
+        pay(event.userId(), QUIZ_PRIZE, "Quiz: hai indovinato " + event.cardName());
+    }
+
     private void pay(UUID userId, int gold, String note) {
         try {
             walletService.adjustGold(userId, gold, WalletTransactionType.MINIGAME_REWARD, "match", note);

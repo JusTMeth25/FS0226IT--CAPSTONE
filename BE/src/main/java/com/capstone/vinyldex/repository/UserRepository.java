@@ -25,10 +25,14 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> findAllByOrderByCreatedAtDesc();
 
     /** Classifica gold: solo utenti non bannati. */
-    List<User> findByBannedFalseOrderByGoldDesc(Limit limit);
+    List<User> findByBannedFalseAndNpcFalseOrderByGoldDesc(Limit limit);
 
     /** Classifica battaglie: esclude chi non ne ha ancora vinta nessuna. */
-    List<User> findByBannedFalseAndBattlesWonGreaterThanOrderByBattlesWonDesc(int minWins, Limit limit);
+    List<User> findByBannedFalseAndNpcFalseAndBattlesWonGreaterThanOrderByBattlesWonDesc(int minWins, Limit limit);
+
+    /** Gli account degli NPC dell'hotel. */
+    List<User> findByNpcTrue();
+
 
     /**
      * Riga bloccata in scrittura fino a fine transazione.

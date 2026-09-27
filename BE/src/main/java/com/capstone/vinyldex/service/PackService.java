@@ -94,7 +94,11 @@ public class PackService {
                     WalletTransactionType.PACK_OPEN_PAID, pack.getId().toString());
         }
 
-        List<Card> cards = packGenerator.generate(pack);
+        CardSetService.Weekend weekend = WEEKEND_PACK.equals(pack.getCode()) ? weekend() : null;
+        if (weekend != null && !weekend.active() && openMode != PackOpenMode.GIFT) throw ApiException.badRequest("weekend_only");
+        List<Card> cards = packGenerator.generate(pack, user.getPackPity(), weekend == null ? List.of() : weekend.cards());
+        // Pity counter: si azzera con una leggendaria, altrimenti sale di uno.
+        user.setPackPity(cards.stream().anyMatch(c -> "legendary".equals(c.getRarity())) ? 0 : user.getPackPity() + 1);
 
         PackOpening opening = new PackOpening();
         opening.setUser(user);
@@ -123,7 +127,7 @@ public class PackService {
 
         // Il saldo si rilegge dall'entita' gestita: WalletService l'ha gia' aggiornata.
         int gold = userRepository.findById(userId).map(User::getGold).orElse(user.getGold());
-        return new OpenPackResult(cards.stream().map(CardDto::from).toList(), gold, foil);
+        return new OpenPackResult(cards.stream().map(CardDto::from).toList(), gold, foil, user.getPackPity());
     }
 
     /**
@@ -136,6 +140,7 @@ public class PackService {
                 .filter(Pack::isActive)
                 .orElseThrow(() -> ApiException.notFound("pack_not_found"));
         if (pack.getPriceGold() <= 0) throw ApiException.badRequest("pack_not_for_sale");
+        if (WEEKEND_PACK.equals(pack.getCode()) && !weekend().active()) throw ApiException.badRequest("weekend_only");
 
         User user = walletService.adjustGold(userId, -pack.getPriceGold(), WalletTransactionType.PACK_PURCHASE,
                 pack.getId().toString(), "Edicola: " + pack.getName());
@@ -167,11 +172,49 @@ public class PackService {
         userRepository.save(user);
     }
 
+    /** Il pacchetto del weekend: si compra e si apre solo sabato e domenica. */
+    public static final String WEEKEND_PACK = "pack-weekend";
+
+    private CardSetService setService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setSetService(CardSetService setService) {
+        this.setService = setService;
+    }
+
+    private CardSetService.Weekend weekend() {
+        return setService == null
+                ? new CardSetService.Weekend(false, null, null, null, List.of(), Instant.now(), Instant.now())
+                : setService.weekend(java.time.ZonedDateTime.now());
+    }
+
+    /** Pity counter del giocatore, per la barra nella pagina dei pacchetti. */
+    @Transactional(readOnly = true)
+    public Map<String, Object> pity(UUID userId) {
+        int pity = userRepository.findById(userId).map(User::getPackPity).orElse(0);
+        return Map.of("pity", pity, "soft", PackGenerator.PITY_SOFT, "hard", PackGenerator.PITY_HARD);
+    }
+
+    /** Il pacchetto del weekend: il set in vetrina e quando si puo' aprire. */
+    @Transactional(readOnly = true)
+    public Map<String, Object> weekendInfo() {
+        CardSetService.Weekend w = weekend();
+        Map<String, Object> view = new java.util.LinkedHashMap<>();
+        view.put("active", w.active());
+        view.put("setKey", w.key());
+        view.put("setTitle", w.title());
+        view.put("icon", w.icon());
+        view.put("startsAt", w.startsAt());
+        view.put("endsAt", w.endsAt());
+        view.put("cards", w.cards().stream().map(CardDto::from).toList());
+        return view;
+    }
+
     public record PackListView(List<PackDto> packs, Instant lastFreePackAt) {
     }
 
     /** Carte uscite, saldo, e quali sono olografiche (stesso ordine delle carte). */
-    public record OpenPackResult(List<CardDto> cards, int gold, List<Boolean> foil) {
+    public record OpenPackResult(List<CardDto> cards, int gold, List<Boolean> foil, int pity) {
     }
 
     private static final java.util.Random FOIL_RANDOM = new java.util.Random();

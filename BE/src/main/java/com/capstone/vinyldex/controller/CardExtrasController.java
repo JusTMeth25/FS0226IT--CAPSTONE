@@ -19,9 +19,23 @@ import java.util.Map;
 public class CardExtrasController {
 
     private final CardExtrasService service;
+    private final com.capstone.vinyldex.service.MarketSalesService marketSales;
 
-    public CardExtrasController(CardExtrasService service) {
+    public CardExtrasController(CardExtrasService service, com.capstone.vinyldex.service.MarketSalesService marketSales) {
         this.service = service;
+        this.marketSales = marketSales;
+    }
+
+    /** Borsa del mercato: vendite fra giocatori di una carta (pubblico come il resto di /api/cards). */
+    @GetMapping("/cards/{code}/market-sales")
+    public Map<String, Object> marketSales(@PathVariable String code) {
+        return marketSales.history(code);
+    }
+
+    /** Prezzo medio fra giocatori di ogni carta venduta almeno una volta. */
+    @GetMapping("/market/averages")
+    public Map<String, Integer> marketAverages() {
+        return marketSales.averages();
     }
 
     public record FuseDto(List<String> cards) {

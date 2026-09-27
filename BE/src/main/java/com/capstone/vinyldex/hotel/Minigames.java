@@ -80,6 +80,11 @@ public final class Minigames {
     private Minigames() {
     }
 
+    /** Punteggio massimo di un minigioco dalla sua chiave (0 se non esiste). */
+    public static int maxScore(String gameKey) {
+        return BY_FURNI.values().stream().filter(g -> g.key().equals(gameKey)).mapToInt(Game::maxScore).max().orElse(0);
+    }
+
     public static Optional<Game> forFurni(String type) {
         return Optional.ofNullable(type == null ? null : BY_FURNI.get(type));
     }

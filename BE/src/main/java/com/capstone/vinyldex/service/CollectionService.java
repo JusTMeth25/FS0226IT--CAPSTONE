@@ -28,6 +28,13 @@ public class CollectionService {
         this.userCardRepository = userCardRepository;
     }
 
+    private CollectionExtrasService extras;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setExtras(CollectionExtrasService extras) {
+        this.extras = extras;
+    }
+
     /**
      * Catalogo filtrato con lo stato di possesso.
      *
@@ -42,8 +49,9 @@ public class CollectionService {
         Map<UUID, UserCard> ownedByCardId = userCardRepository.findByUserId(userId).stream()
                 .collect(Collectors.toMap(uc -> uc.getCard().getId(), Function.identity()));
 
+        Map<UUID, Integer> serials = extras == null ? Map.of() : extras.firstEditions(userId);
         List<CollectionEntryDto> entries = cards.stream()
-                .map(card -> CollectionEntryDto.from(card, ownedByCardId.get(card.getId())))
+                .map(card -> CollectionEntryDto.from(card, ownedByCardId.get(card.getId())).withFirstEdition(serials.get(card.getId())))
                 .filter(entry -> {
                     if ("true".equalsIgnoreCase(owned)) return entry.owned();
                     if ("false".equalsIgnoreCase(owned)) return !entry.owned();

@@ -205,6 +205,7 @@ public class CommunityService {
         User seller = userRepository.findById(sellerId).orElseThrow();
         User buyer = userRepository.findById(buyerId).orElseThrow(() -> ApiException.notFound("user_not_found"));
         jdbc.update("DELETE FROM stall_items WHERE id = ?", stallItemId);
+        jdbc.update("INSERT INTO market_sales (card_id, price, quantity, channel) VALUES (?, ?, 1, 'stall')", card.getId(), price);
         if (!userCardService.owns(seller, card, 1)) throw ApiException.badRequest("stall_card_gone");
         walletService.adjustGold(buyerId, -price, WalletTransactionType.STALL, card.getCode(), "Banchetto di " + seller.getUsername() + ": " + card.getName());
         walletService.adjustGold(sellerId, price, WalletTransactionType.STALL, card.getCode(), "Venduta al banchetto: " + card.getName());
@@ -245,20 +246,34 @@ public class CommunityService {
     /** Manda a un amico gold e/o una carta con un biglietto. Il mittente paga subito. */
     @Transactional
     public Map<String, Object> sendMail(UUID fromId, UUID toId, int gold, String cardCode, String rawNote) {
+        return sendMail(fromId, toId, gold, cardCode, rawNote, null);
+    }
+
+    /**
+     * Come sopra, con in piu' un mobile della borsa (non posizionato in una stanza): passa subito
+     * all'amico, che lo trova nella sua borsa; la lettera dice da chi arriva.
+     */
+    @Transactional
+    public Map<String, Object> sendMail(UUID fromId, UUID toId, int gold, String cardCode, String rawNote, UUID furniItemId) {
         if (fromId.equals(toId)) throw ApiException.badRequest("mail_self");
         if (!friendService.areFriends(fromId, toId)) throw ApiException.badRequest("not_friends");
         if (gold < 0 || gold > 10_000) throw ApiException.badRequest("mail_gold");
         Card card = cardCode == null || cardCode.isBlank() ? null
                 : cardRepository.findByCode(cardCode).orElseThrow(() -> ApiException.notFound("card_not_found"));
-        if (gold == 0 && card == null) throw ApiException.badRequest("mail_empty");
+        if (gold == 0 && card == null && furniItemId == null) throw ApiException.badRequest("mail_empty");
         String note = rawNote == null || rawNote.isBlank() ? null : ChatFilter.clean(rawNote.trim());
         if (note != null && note.length() > 200) note = note.substring(0, 200);
         User from = userRepository.findById(fromId).orElseThrow();
         User to = userRepository.findById(toId).orElseThrow(() -> ApiException.notFound("user_not_found"));
         if (gold > 0) walletService.adjustGold(fromId, -gold, WalletTransactionType.MAIL, toId.toString(), "Regalo per " + to.getUsername());
         if (card != null) userCardService.remove(from, card, 1);
-        jdbc.update("INSERT INTO hotel_mail (from_id, to_id, gold, card_id, note) VALUES (?, ?, ?, ?, ?)",
-                fromId, toId, gold, card == null ? null : card.getId(), note);
+        if (furniItemId != null) {
+            int moved = jdbc.update("UPDATE room_items SET owner_id = ? WHERE id = ? AND owner_id = ? AND room_id IS NULL",
+                    toId, furniItemId, fromId);
+            if (moved == 0) throw ApiException.badRequest("mail_furni_unavailable");
+        }
+        jdbc.update("INSERT INTO hotel_mail (from_id, to_id, gold, card_id, note, furni_item_id) VALUES (?, ?, ?, ?, ?, ?)",
+                fromId, toId, gold, card == null ? null : card.getId(), note, furniItemId);
         HotelSession session = registry.sessionOf(toId);
         if (session != null) session.send(Map.of("type", "mail", "from", from.getUsername()));
         return mailbox(fromId);
@@ -267,7 +282,8 @@ public class CommunityService {
     @Transactional(readOnly = true)
     public Map<String, Object> mailbox(UUID userId) {
         List<Map<String, Object>> inbox = jdbc.queryForList("SELECT m.id, u.username AS \"from\", m.gold, m.card_id, m.note, "
-                + "m.created_at AS \"createdAt\", m.claimed_at AS \"claimedAt\" FROM hotel_mail m LEFT JOIN users u ON u.id = m.from_id "
+                + "i.furni_type AS furni, m.created_at AS \"createdAt\", m.claimed_at AS \"claimedAt\" FROM hotel_mail m "
+                + "LEFT JOIN users u ON u.id = m.from_id LEFT JOIN room_items i ON i.id = m.furni_item_id "
                 + "WHERE m.to_id = ? ORDER BY m.claimed_at NULLS FIRST, m.created_at DESC LIMIT 40", userId);
         inbox.forEach(m -> {
             UUID cardId = (UUID) m.remove("card_id");

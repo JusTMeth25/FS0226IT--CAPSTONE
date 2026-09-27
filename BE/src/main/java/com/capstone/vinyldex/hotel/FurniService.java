@@ -46,6 +46,13 @@ public class FurniService {
         this.walletService = walletService;
     }
 
+    private com.capstone.vinyldex.repository.UserRepository userRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setUserRepository(com.capstone.vinyldex.repository.UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
     @Transactional
     public RoomItemView buy(UUID userId, String type) {
         FurniCatalog.FurniDef def = FurniCatalog.get(type)
@@ -58,6 +65,16 @@ public class FurniService {
         User user = walletService.adjustGold(userId, -def.price(), WalletTransactionType.FURNI_PURCHASE, def.type());
         RoomItem item = new RoomItem();
         item.setOwner(user);
+        item.setFurniType(def.type());
+        return RoomItemView.from(itemRepository.save(item));
+    }
+
+    /** Mobile regalato (premio di un incarico): va nell'inventario senza pagare, anche se non si compra. */
+    @Transactional
+    public RoomItemView grant(UUID userId, String type) {
+        FurniCatalog.FurniDef def = FurniCatalog.get(type).orElseThrow(() -> ApiException.badRequest("furni_unknown"));
+        RoomItem item = new RoomItem();
+        item.setOwner(userRepository.findById(userId).orElseThrow(() -> ApiException.notFound("user_not_found")));
         item.setFurniType(def.type());
         return RoomItemView.from(itemRepository.save(item));
     }

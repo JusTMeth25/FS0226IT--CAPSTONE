@@ -23,10 +23,26 @@ public class HotelController {
 
     private final HotelSocialService socialService;
     private final UserRepository userRepository;
+    private final com.capstone.vinyldex.hotel.NpcQuestService questService;
 
-    public HotelController(HotelSocialService socialService, UserRepository userRepository) {
+    public HotelController(HotelSocialService socialService, UserRepository userRepository,
+                           com.capstone.vinyldex.hotel.NpcQuestService questService) {
         this.socialService = socialService;
         this.userRepository = userRepository;
+        this.questService = questService;
+    }
+
+    /** Incarichi degli NPC di oggi, con le carte del giocatore che vanno bene. */
+    @GetMapping("/quests")
+    public Map<String, Object> quests(@CurrentUser UserPrincipal principal) {
+        return questService.quests(principal.getId());
+    }
+
+    /** Consegna una carta per un incarico: { "card": "codice" }. */
+    @PostMapping("/quests/{index}")
+    public Map<String, Object> deliver(@CurrentUser UserPrincipal principal, @PathVariable int index,
+                                       @RequestBody Map<String, String> body) {
+        return questService.deliver(principal.getId(), index, body == null ? null : body.get("card"));
     }
 
     /** Il tutorial dell'hotel e' gia' stato visto? La guida si presenta solo alla prima visita. */

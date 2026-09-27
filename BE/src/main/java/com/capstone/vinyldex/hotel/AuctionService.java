@@ -90,6 +90,7 @@ public class AuctionService {
             // Chiamati da qui non passano dal proxy di Spring: la transazione si apre a mano.
             tx.executeWithoutResult(status -> closeExpired());
             tx.executeWithoutResult(status -> openIfIdle());
+            tx.executeWithoutResult(status -> npcBid());
         } catch (RuntimeException ex) {
             LOG.warn("Asta dell'hotel: {}", ex.getMessage());
         }
@@ -114,6 +115,10 @@ public class AuctionService {
         }
         User winner = userRepository.findById(bidderId).orElseThrow();
         userCardService.add(winner, card, 1);
+        // Vinta da un NPC: la carta finisce anche nella sua vetrina degli scambi, cosi' si puo' provare a prenderla.
+        if (npcPlayers != null) npcPlayers.bot(bidderId).ifPresent(bot -> jdbc.update(
+                "INSERT INTO hotel_npc_found_cards (id, npc_id, card_id) VALUES (gen_random_uuid(), ?, ?) ON CONFLICT DO NOTHING",
+                bot.npcId(), card.getId()));
         jdbc.update("UPDATE hotel_auctions SET status = 'SOLD' WHERE id = ?", id);
         registry.broadcastAll(Map.of("type", "auction", "phase", "sold", "lot", view(jdbc.queryForMap("SELECT * FROM hotel_auctions WHERE id = ?", id))));
     }
@@ -136,6 +141,50 @@ public class AuctionService {
                 card.getId(), startBid(card), Timestamp.from(ends));
         Map<String, Object> lot = jdbc.queryForMap("SELECT * FROM hotel_auctions WHERE status = 'OPEN' ORDER BY starts_at DESC LIMIT 1");
         registry.broadcastAll(Map.of("type", "auction", "phase", "lot", "lot", view(lot)));
+    }
+
+    // ------------------------------------------------------------------ offerte degli NPC
+
+    private NpcPlayers npcPlayers;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setNpcPlayers(@org.springframework.context.annotation.Lazy NpcPlayers npcPlayers) {
+        this.npcPlayers = npcPlayers;
+    }
+
+    /**
+     * Quanto un NPC e' disposto a spendere per un lotto: fra il 90% e il 130% del valore della carta,
+     * sempre lo stesso per lo stesso lotto (cosi' non rilancia all'infinito).
+     */
+    static int npcCap(Card card, UUID lotId) {
+        double factor = 0.9 + Math.floorMod(lotId.hashCode(), 41) / 100.0;
+        return (int) Math.round(Math.max(20, NpcDeals.value(card)) * factor);
+    }
+
+    /**
+     * Ogni tanto un NPC rilancia: mai contro se' stesso o un altro NPC appena passato in testa,
+     * mai oltre il suo tetto. I giocatori veri possono sempre superarlo.
+     */
+    @Transactional
+    public void npcBid() {
+        if (npcPlayers == null || npcPlayers.bots().isEmpty() || random.nextInt(100) >= 12) return;
+        Map<String, Object> lot = jdbc.queryForList("SELECT * FROM hotel_auctions WHERE status = 'OPEN' AND ends_at > now() "
+                + "ORDER BY starts_at DESC LIMIT 1").stream().findFirst().orElse(null);
+        if (lot == null) return;
+        UUID top = (UUID) lot.get("bidder_id");
+        if (npcPlayers.isBot(top)) return;
+        Card card = cardRepository.findById((UUID) lot.get("card_id")).orElse(null);
+        if (card == null) return;
+        int next = minimumBid((Integer) lot.get("start_bid"), (Integer) lot.get("current_bid"));
+        if (next > npcCap(card, (UUID) lot.get("id"))) return;
+        NpcPlayers.Bot bot = npcPlayers.randomBot();
+        User user = userRepository.findById(bot.userId()).orElse(null);
+        if (user == null) return;
+        // Gli NPC hanno sempre abbastanza gold per giocare.
+        if (user.getGold() < next + 1_000) {
+            walletService.adjustGold(bot.userId(), 10_000, WalletTransactionType.AUCTION, "npc", "Fondi dell'NPC per l'asta");
+        }
+        bid(bot.userId(), next);
     }
 
     // ------------------------------------------------------------------ offerte

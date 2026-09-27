@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../hooks/useAuth.js';
 import { useGame } from '../hooks/useGame.js';
 import { useApiResource } from '../hooks/useApiResource.js';
 import { marketApi } from '../services/marketApi.js';
+import { apiClient } from '../services/apiClient.js';
 import { getRarityColor, resolveCardImage } from '../utils/cardUtils.js';
 import { dedupeCollection } from '../utils/collectionUtils.js';
 import { useCardFilters } from '../hooks/useCardFilters.js';
@@ -24,6 +25,14 @@ export default function MarketplacePage() {
   const ownedCards = useMemo(() => uniqueOwnedCards(game.collection), [game.collection]);
   const sellFilter = useCardFilters(ownedCards, undefined, { sort: 'name', dir: 'asc' });
   const listings = data?.listings || [];
+  // Borsa del mercato: prezzo medio fra giocatori, per capire se un annuncio e' un affare.
+  const [averages, setAverages] = useState({});
+  useEffect(() => {
+    if (!isAuthenticated) return undefined;
+    let cancelled = false;
+    apiClient.get('/market/averages').then((res) => { if (!cancelled) setAverages(res); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [isAuthenticated, data]);
 
   async function handleBuy(listing) {
     setActionError(null);
@@ -115,6 +124,12 @@ export default function MarketplacePage() {
               <div className="listing-item-info">
                 <span className="listing-item-name" style={{ color: getRarityColor(listing.card?.rarity) }}>{listing.card?.name}</span>
                 <span className="listing-item-meta">Venditore: {listing.seller?.username} · Quantità: {listing.quantity}</span>
+                {averages[listing.card?.id] > 0 && (
+                  <span className={`listing-item-average${listing.pricePerUnit <= averages[listing.card.id] ? ' good' : ''}`}>
+                    <i className="ph-fill ph-scales" /> Media fra giocatori: {averages[listing.card.id]} gold
+                    {listing.pricePerUnit <= averages[listing.card.id] ? ' · affare!' : ''}
+                  </span>
+                )}
               </div>
               <span className="listing-item-price"><i className="ph-fill ph-coin" /> {listing.pricePerUnit}</span>
               <div className="listing-item-actions">

@@ -23,6 +23,18 @@ public class PackController {
         return packService.listPacks(principal != null ? principal.getId() : null);
     }
 
+    /** Pity counter: pacchetti di fila senza leggendaria, con le soglie. */
+    @GetMapping("/pack-pity")
+    public java.util.Map<String, Object> pity(@CurrentUser UserPrincipal principal) {
+        return packService.pity(principal.getId());
+    }
+
+    /** Pacchetto del weekend: set della settimana e finestra di apertura. */
+    @GetMapping("/pack-weekend")
+    public java.util.Map<String, Object> weekend() {
+        return packService.weekendInfo();
+    }
+
     @PostMapping("/open-pack")
     public PackService.OpenPackResult openPack(@CurrentUser UserPrincipal principal,
                                                @Valid @RequestBody GameRequests.OpenPackRequest request) {

@@ -4,6 +4,7 @@ import { useGame } from '../../hooks/useGame.js';
 import { useCountUp } from '../../hooks/useCountUp.js';
 import UserAvatar from '../common/UserAvatar.jsx';
 import { useUnseenNews } from '../../hooks/useUnseenNews.js';
+import { useWishAlerts } from '../../hooks/useWishAlerts.js';
 
 const NAV_ITEMS = [
   { to: '/home', label: 'Home', icon: 'ph-house' },
@@ -11,6 +12,8 @@ const NAV_ITEMS = [
   { to: '/collection', label: 'Collezione', icon: 'ph-cards' },
   { to: '/sets', label: 'Set', icon: 'ph-stack' },
   { to: '/binder', label: 'Raccoglitore', icon: 'ph-book-open' },
+  { to: '/wishlist', label: 'Desideri', icon: 'ph-heart' },
+  { to: '/stats', label: 'Statistiche', icon: 'ph-chart-line' },
   { to: '/fusion', label: 'Fusione', icon: 'ph-flask' },
   { to: '/marketplace', label: 'Mercato', icon: 'ph-storefront' },
   { to: '/trades', label: 'Scambi', icon: 'ph-arrows-left-right' },
@@ -29,6 +32,7 @@ export default function Sidebar() {
   const { gold, levelInfo } = useGame();
   const displayGold = useCountUp(gold);
   const unseenNews = useUnseenNews();
+  const wishAlerts = useWishAlerts();
   const xpPercent = levelInfo.xpForNext > 0 ? Math.round((levelInfo.xpRemaining / levelInfo.xpForNext) * 100) : 100;
 
   return (
@@ -62,6 +66,7 @@ export default function Sidebar() {
               >
                 <i className={`ph-fill ${item.icon}`} /> {item.label}
                 {item.to === '/news' && unseenNews && <span className="nav-new-dot" aria-label="Novità da vedere" />}
+                {item.to === '/wishlist' && wishAlerts > 0 && <span className="nav-count" aria-label={`${wishAlerts} desideri disponibili`}>{wishAlerts}</span>}
               </NavLink>
             </li>
           ))}

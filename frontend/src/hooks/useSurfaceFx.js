@@ -42,7 +42,10 @@ export function useSurfaceFx(containerRef, routeKey) {
             observer.unobserve(entry.target);
           });
         },
-        { rootMargin: '0px 0px -40px 0px', threshold: 0.05 }
+        // Soglia 0 (basta un pixel dentro lo schermo), non una percentuale: un pannello altissimo,
+        // come la griglia con centinaia di carte in Battaglie, non arriverebbe mai al 5% visibile
+        // e resterebbe trasparente per sempre.
+        { rootMargin: '0px 0px -40px 0px', threshold: 0 }
       );
     }
 

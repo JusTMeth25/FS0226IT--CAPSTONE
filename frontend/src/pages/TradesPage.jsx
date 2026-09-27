@@ -98,7 +98,8 @@ export default function TradesPage() {
   // Dall'hotel si arriva con ?to=nome: il destinatario e' gia' compilato.
   const [searchParams] = useSearchParams();
   const [form, setForm] = useState(() => ({
-    toUserId: searchParams.get('to') || '', offeredCardId: '', offeredGold: 0, requestedCardId: '', requestedGold: 0
+    toUserId: searchParams.get('to') || '', offeredCardId: searchParams.get('give') || '', offeredGold: 0,
+    requestedCardId: searchParams.get('want') || '', requestedGold: 0
   }));
 
   const incoming = useApiResource(() => tradeApi.getIncoming(), []);
@@ -155,6 +156,10 @@ export default function TradesPage() {
                 <option value="">Seleziona…</option>
                 {ownedCards.map((c) => <option key={c.id} value={c.id}>{c.name} (x{c.owned})</option>)}
               </select>
+            </div>
+            <div className="filter-group">
+              <label className="filter-label">Carta che chiedi (codice, facoltativa)</label>
+              <input className="ai-input" value={form.requestedCardId} onChange={(e) => setForm((f) => ({ ...f, requestedCardId: e.target.value.trim() }))} placeholder="dal confronto collezioni" />
             </div>
             <div className="filter-group">
               <label className="filter-label">+ Gold offerti</label>

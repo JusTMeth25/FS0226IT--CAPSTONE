@@ -22,6 +22,8 @@ import FriendsPanel from '../hotel/ui/FriendsPanel.jsx';
 import EventsPanel, { EventBanner } from '../hotel/ui/EventsPanel.jsx';
 import AuctionTab from '../hotel/ui/AuctionTab.jsx';
 import GalleryTab from '../hotel/ui/GalleryTab.jsx';
+import QuestsTab from '../hotel/ui/QuestsTab.jsx';
+import QuizOverlay from '../hotel/ui/QuizOverlay.jsx';
 import MatchBar from '../hotel/ui/MatchBar.jsx';
 import ClubPanel from '../hotel/ui/ClubPanel.jsx';
 import StallPanel from '../hotel/ui/StallPanel.jsx';
@@ -75,6 +77,9 @@ const NEWSSTAND_ITEMS = ['newsstand', 'pack_display'];
 const canFullscreen = typeof document !== 'undefined' && !!document.documentElement.requestFullscreen;
 
 const ERRORS = {
+  quiz_running: 'C\'e\' gia\' un quiz in corso: scrivi la risposta in chat!',
+  quiz_cooldown: 'Un attimo: il prossimo quiz parte fra qualche secondo.',
+  show_card_cooldown: 'Aspetta qualche secondo prima di mostrare un\'altra carta.',
   room_full: 'La stanza e\' piena. Riprova tra poco.',
   room_closed: 'La porta di questa stanza e\' chiusa.',
   room_not_found: 'Questa stanza non esiste piu\'.',
@@ -165,6 +170,12 @@ export default function HotelPage() {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [pickingCardFor, setPickingCardFor] = useState(null);
   const [viewingCard, setViewingCard] = useState(null);
+  // Quiz "Indovina la carta" in corso nella stanza e il suo esito; carta da mostrare sopra la testa.
+  const [quiz, setQuiz] = useState(null);
+  const [quizResult, setQuizResult] = useState(null);
+  const [showingCard, setShowingCard] = useState(false);
+  // Regalo a un amico dalla sua scheda: apre la posta con il destinatario gia' scelto.
+  const [giftTo, setGiftTo] = useState('');
   /** Tutorial della prima visita: si chiede al server se e' gia' stato visto. */
   const [tutorial, setTutorial] = useState(false);
   /** Amici: messaggi e richieste non ancora visti, ultimo messaggio privato arrivato. */
@@ -296,6 +307,8 @@ export default function HotelPage() {
         setJukebox({ track: message.jukebox?.track ?? -1 });
         setFootball(message.ball ? { blue: message.ball.blue, red: message.ball.red } : null);
         setMatch(message.match || null);
+        setQuiz(message.quiz || null);
+        setQuizResult(null);
         if (message.weather) setWeather(message.weather);
         getJukebox().set(message.jukebox?.track ?? -1, message.jukebox?.startedAt ?? 0, message.serverTime);
         setPanel((current) => (current === 'trades' ? current : null));
@@ -516,8 +529,14 @@ export default function HotelPage() {
           showNotice(`${message.by} ha rilanciato a ${message.amount} gold: i tuoi gold sono tornati.`);
           refreshUser();
         } else if (message.phase === 'sold') {
-          showNotice(`Aggiudicata! ${message.lot.card?.name} va a ${message.lot.bidderName} per ${message.lot.currentBid} gold.`);
-          if (message.lot.bidderId === meRef.current?.id) sound.success();
+          if (message.lot.bidderId === meRef.current?.id) {
+            // Le carte vinte vanno subito nella collezione (i gold erano gia' stati scalati all'offerta).
+            showNotice(`Hai vinto l'asta! ${message.lot.card?.name} è già nella tua collezione.`);
+            sound.success();
+            refreshCollection();
+          } else {
+            showNotice(`Aggiudicata! ${message.lot.card?.name} va a ${message.lot.bidderName} per ${message.lot.currentBid} gold.`);
+          }
         }
         break;
       case 'fish_card':
@@ -582,6 +601,15 @@ export default function HotelPage() {
         if (message.ranking[0]?.id === meRef.current?.id) sound.success();
         break;
       }
+      case 'quiz_start':
+        setQuizResult(null);
+        setQuiz(message);
+        break;
+      case 'quiz_end':
+        setQuiz(null);
+        setQuizResult(message);
+        if (message.winnerId && message.winnerId === meRef.current?.id) sound.success();
+        break;
       case 'match':
         setMatch(message);
         if (message.notice) showNotice(message.notice);
@@ -977,6 +1005,7 @@ export default function HotelPage() {
               .then(() => showNotice(`Richiesta di amicizia mandata a ${selected.username}!`))
               .catch((err) => showNotice(err?.code === 'already_friends' ? "Siete gia' amici." : err?.code === 'friend_already_requested' ? "Richiesta gia' mandata." : 'Richiesta non riuscita.'))}
             onViewCard={(card) => setViewingCard(card)}
+            onGift={selected.id === me?.id ? null : () => { setGiftTo(selected.id); setPanel('friends'); setSelected(null); }}
             onWearBadge={selected.id === me?.id ? (code) => hotelApi.wearBadge(code).then((res) => {
               // Il server rilegge il profilo e aggiorna l'avatar per tutti nella stanza.
               send({ type: 'refresh_profile' });
@@ -984,6 +1013,16 @@ export default function HotelPage() {
               return res;
             }) : null}
             onChallenge={pvp ? null : () => { send({ type: 'challenge', userId: selected.id }); setSelected(null); }}
+          />
+        )}
+
+        {(quiz || quizResult) && (
+          <QuizOverlay quiz={quiz} result={quizResult} clockOffset={clockOffset} onClose={() => setQuizResult(null)} />
+        )}
+        {showingCard && (
+          <CardPicker
+            onClose={() => setShowingCard(false)}
+            onPick={(card) => { send({ type: 'show_card', cardId: card.id }); setShowingCard(false); }}
           />
         )}
 
@@ -1096,6 +1135,7 @@ export default function HotelPage() {
         {panel === 'friends' && (
           <FriendsPanel me={me} incoming={lastDm} version={friendsVersion} onUnreadChange={setFriendsUnread}
             gold={gold} mailVersion={mailVersion} onMailUnread={setMailUnread} onMailChanged={refreshUser}
+            key={giftTo || 'friends'} initialTab={giftTo ? 'mail' : 'friends'} mailTo={giftTo}
             onJoin={(roomId) => { join(roomId); setPanel(null); }} onClose={() => setPanel(null)} />
         )}
         {panel === 'clubs' && (
@@ -1110,6 +1150,7 @@ export default function HotelPage() {
         {panel === 'events' && (
           <EventsPanel me={me} version={eventsVersion} onClose={() => setPanel(null)}
             tabs={[
+              { key: 'quests', label: 'Incarichi', icon: 'ph-scroll', render: () => <QuestsTab onDone={() => { refreshUser(); refreshCollection(); }} onGoToRoom={(roomId) => { join(roomId); setPanel(null); }} /> },
               { key: 'auction', label: 'Asta', icon: 'ph-gavel', render: () => <AuctionTab me={me} gold={gold} live={auctionVersion} onChange={refreshUser} onViewCard={setViewingCard} /> },
               { key: 'gallery', label: 'Mostra', icon: 'ph-frame-corners', render: () => <GalleryTab me={me} onViewCard={setViewingCard} /> },
               { key: 'tournament', label: 'Tornei', icon: 'ph-tree-structure', render: () => <TournamentTab me={me} version={sportVersion} /> },
@@ -1160,7 +1201,7 @@ export default function HotelPage() {
           <i className="ph-fill ph-arrows-left-right" /><span>Scambi</span>
           {pendingTrades > 0 && <b className="hotel-tool-badge">{pendingTrades}</b>}
         </button>
-        <button type="button" className={`hotel-tool${panel === 'friends' ? ' active' : ''}`} onClick={() => setPanel(panel === 'friends' ? null : 'friends')} title="Amici">
+        <button type="button" className={`hotel-tool${panel === 'friends' ? ' active' : ''}`} onClick={() => { setGiftTo(''); setPanel(panel === 'friends' ? null : 'friends'); }} title="Amici">
           <i className="ph-fill ph-users-three" /><span>Amici</span>
           {friendsUnread + mailUnread > 0 && <b className="hotel-tool-badge">{friendsUnread + mailUnread}</b>}
         </button>
@@ -1196,6 +1237,15 @@ export default function HotelPage() {
               title={`${(CONSUME[myHand] || ['Bevi'])[0]} (ne restano ${people[me.id]?.handLeft ?? 0})`}>
               <i className={`ph-fill ${(CONSUME[myHand] || ['Bevi', 'ph-coffee'])[1]}`} />
               <span>{(CONSUME[myHand] || ['Bevi'])[0]}</span>
+            </button>
+          )}
+          <button type="button" className="hotel-tool" onClick={() => setShowingCard(true)} disabled={!room} title="Mostra una carta sopra la testa">
+            <i className="ph-fill ph-cards" />
+          </button>
+          {room?.name === 'Arena' && (
+            <button type="button" className={`hotel-tool${quiz ? ' active' : ''}`} onClick={() => send({ type: 'quiz_start' })} disabled={!!quiz}
+              title="Quiz: indovina la carta">
+              <i className="ph-fill ph-question" />
             </button>
           )}
           <button type="button" className="hotel-tool" onClick={() => send({ type: 'emote', emote: 'wave' })} disabled={!room} title="Saluta">

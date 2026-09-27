@@ -125,6 +125,10 @@ public class RoomInstance {
         /** Ordinazione da ritirare arrivati dal barista: chi la prepara e cosa. */
         UUID orderFrom;
         String orderItem;
+        /** NPC che va a giocare a un minigioco: il mobile scelto e fino a quando gioca. */
+        UUID npcGameItem;
+        long npcGameUntil;
+        int npcFx;
         /** Minigioco in corso su un mobile (panca, sacco, arcade...), da quando e da dove si era partiti. */
         Minigames.Game game;
         UUID gameItem;
@@ -332,6 +336,7 @@ public class RoomInstance {
             broadcast(message);
         }
         if (now % 5_000 < TICK_CHECK_MILLIS) closeKartRace();
+        if (quiz != null && now > quiz.deadline()) endQuiz(null);
         if (football != null && match.playing()) {
             TeamMatch.Outcome outcome = match.onTick(now, football.score(FootballMatch.Team.BLUE), football.score(FootballMatch.Team.RED));
             if (outcome == TeamMatch.Outcome.EXTRA_TIME) {
@@ -803,6 +808,7 @@ public class RoomInstance {
         }
         if (now < npc.nextThinkAt || !npc.path.isEmpty()) return;
         npc.nextThinkAt = now + 4_000 + random.nextInt(6_000);
+        if (npcPlays(npc, now)) return;
 
         // Balla chi e' ospite o DJ quando c'e' musica; smette quando si spegne.
         boolean music = jukeboxTrack >= 0;
@@ -849,6 +855,57 @@ public class RoomInstance {
             move(npc.user.id(), x, y);
             return;
         }
+    }
+
+    /** Minigiochi che gli NPC giocano nelle stanze (quelli che si animano senza un vero giocatore). */
+    static final java.util.Set<String> NPC_GAMES = java.util.Set.of("pong", "box", "sing", "rhythm", "run", "curl");
+
+    /**
+     * Gli ospiti ogni tanto vanno a giocare a un minigioco libero vicino (ping pong, sacco, karaoke,
+     * arcade, tapis roulant, manubri), ci restano un po' e poi lo lasciano libero. Solo scena: i
+     * punteggi degli NPC nelle gare li registra NpcPlayers.
+     *
+     * @return true se l'NPC in questo turno e' occupato col minigioco
+     */
+    private boolean npcPlays(Occupant npc, long now) {
+        if (npc.game != null) {
+            if (now > npc.npcGameUntil) {
+                stopGame(npc);
+                npc.npcGameItem = null;
+                return true;
+            }
+            // A ping pong si vede lo scambio: un colpo a ogni turno, da una parte e dall'altra.
+            if ("pong".equals(npc.game.key())) minigameFx(npc.user.id(), Map.of("kind", "rally", "x", (npc.npcFx++) % 2));
+            else if ("box".equals(npc.game.key())) minigameFx(npc.user.id(), Map.of("kind", "hit"));
+            npc.nextThinkAt = now + 900 + random.nextInt(500);
+            return true;
+        }
+        if (npc.npcGameItem != null) {
+            RoomItemView item = items.get(npc.npcGameItem);
+            boolean free = item != null && occupants.values().stream().noneMatch(o -> o != npc && item.id().equals(o.gameItem));
+            if (free && isNextTo(npc, item)) {
+                Minigames.forFurni(item.type()).ifPresent(game -> {
+                    startGame(npc, item, game);
+                    npc.npcGameUntil = now + 25_000 + random.nextInt(30_000);
+                });
+                npc.nextThinkAt = now + 1_000;
+            }
+            npc.npcGameItem = null;
+            return npc.game != null;
+        }
+        if (npc.npc.role() != NpcRoster.Role.GUEST || random.nextInt(5) != 0) return false;
+        List<RoomItemView> games = items.values().stream()
+                .filter(i -> Minigames.forFurni(i.type()).map(g -> NPC_GAMES.contains(g.key())).orElse(false))
+                .filter(i -> occupants.values().stream().noneMatch(o -> i.id().equals(o.gameItem) || i.id().equals(o.npcGameItem)))
+                .filter(i -> Math.abs(i.x() - npc.npc.x()) + Math.abs(i.y() - npc.npc.y()) <= npc.npc.radius() + 8)
+                .toList();
+        if (games.isEmpty()) return false;
+        RoomItemView item = games.get(random.nextInt(games.size()));
+        int[] spot = freeSpotNextTo(npc.user.id(), item);
+        if (spot == null) return false;
+        npc.npcGameItem = item.id();
+        move(npc.user.id(), spot[0], spot[1]);
+        return true;
     }
 
     // ------------------------------------------------------------------ calcio
@@ -1080,6 +1137,94 @@ public class RoomInstance {
         if (speaker == null) return;
         broadcast(Map.of("type", "chat", "id", userId, "text", text, "style", style));
         if (!speaker.isNpc()) hear(speaker, text);
+        if (quiz != null && !speaker.isNpc() && quiz.guessed(text)) endQuiz(speaker);
+    }
+
+    // ------------------------------------------------------------------ mostra una carta
+
+    /** Tra una carta mostrata e l'altra: niente raffiche sopra la testa. */
+    static final long SHOW_CARD_COOLDOWN_MILLIS = 4_000;
+    /** Quanto resta la carta sopra la testa (lo usa anche il client). */
+    public static final long SHOW_CARD_MILLIS = 6_000;
+    private final Map<UUID, Long> lastShownCard = new HashMap<>();
+
+    /** Il giocatore mostra una sua carta a tutta la stanza, grande sopra la testa. */
+    public synchronized boolean showCard(UUID userId, Map<String, Object> card) {
+        Occupant occupant = occupants.get(userId);
+        long now = System.currentTimeMillis();
+        if (occupant == null || occupant.isNpc() || now - lastShownCard.getOrDefault(userId, 0L) < SHOW_CARD_COOLDOWN_MILLIS) return false;
+        lastShownCard.put(userId, now);
+        broadcast(Map.of("type", "show_card", "id", userId, "card", card, "until", now + SHOW_CARD_MILLIS));
+        return true;
+    }
+
+    // ------------------------------------------------------------------ quiz "Indovina la carta"
+
+    /** Durata di una domanda del quiz. */
+    public static final long QUIZ_MILLIS = 60_000;
+    static final long QUIZ_COOLDOWN_MILLIS = 8_000;
+
+    /** Domanda in corso: la carta (senza nome per i client) e le risposte giuste. */
+    record Quiz(String name, List<String> answers, Map<String, Object> card, long startedAt, long deadline) {
+        boolean guessed(String text) {
+            String guess = NpcDialog.normalize(text).replace(" ", "");
+            return guess.length() >= 3 && answers.stream().anyMatch(guess::equals);
+        }
+    }
+
+    private Quiz quiz;
+    private long quizCooldownUntil;
+
+    /** Risposte accettate: il nome intero o la sua prima parte ("Charizard ex" -> "charizard"). */
+    static List<String> quizAnswers(String name) {
+        List<String> answers = new ArrayList<>();
+        String full = NpcDialog.normalize(name).replace(" ", "");
+        if (!full.isEmpty()) answers.add(full);
+        String main = name.split("//|,| - |\\(")[0];
+        String mainNorm = NpcDialog.normalize(main).replace(" ", "");
+        if (mainNorm.length() >= 3 && !answers.contains(mainNorm)) answers.add(mainNorm);
+        return answers;
+    }
+
+    /**
+     * Parte una domanda: la carta arriva sfocata ai client, chi scrive il nome giusto in chat vince.
+     *
+     * @param card la carta per i client, senza il nome
+     */
+    public synchronized String startQuiz(UUID userId, String name, Map<String, Object> card) {
+        long now = System.currentTimeMillis();
+        if (!occupants.containsKey(userId)) return "not_in_room";
+        if (quiz != null) return "quiz_running";
+        if (now < quizCooldownUntil) return "quiz_cooldown";
+        quiz = new Quiz(name, quizAnswers(name), card, now, now + QUIZ_MILLIS);
+        broadcast(quizMessage());
+        broadcast(Map.of("type", "chat", "id", userId, "text", "Quiz! Chi indovina il nome della carta?", "style", "shout"));
+        return "ok";
+    }
+
+    private Map<String, Object> quizMessage() {
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put("type", "quiz_start");
+        message.put("card", quiz.card());
+        message.put("letters", quiz.name().replaceAll("[^\\p{L}\\p{N}]", "").length());
+        message.put("initial", quiz.name().substring(0, 1).toUpperCase());
+        message.put("startedAt", quiz.startedAt());
+        message.put("deadline", quiz.deadline());
+        return message;
+    }
+
+    private void endQuiz(Occupant winner) {
+        Quiz done = quiz;
+        quiz = null;
+        quizCooldownUntil = System.currentTimeMillis() + QUIZ_COOLDOWN_MILLIS;
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put("type", "quiz_end");
+        message.put("name", done.name());
+        message.put("card", done.card());
+        message.put("winner", winner == null ? null : winner.user.username());
+        message.put("winnerId", winner == null ? null : winner.user.id());
+        broadcast(message);
+        if (winner != null) events.accept(new HotelGameEvents.QuizWon(data.id(), winner.user.id(), winner.user.username(), done.name()));
     }
 
     /** Sussurro: arriva solo al destinatario e a chi lo scrive. A un NPC si sussurra e lui risponde. */
@@ -1265,6 +1410,12 @@ public class RoomInstance {
     private String useGame(Occupant occupant, RoomItemView item, Minigames.Game game) {
         if (occupant.isNpc()) return "not_usable";
         UUID userId = occupant.user.id();
+        // Un NPC che ci sta giocando lascia subito il posto a un giocatore vero.
+        occupants.values().stream().filter(o -> o != occupant && o.isNpc() && item.id().equals(o.gameItem)).toList()
+                .forEach(npc -> {
+                    stopGame(npc);
+                    npc.npcGameUntil = 0;
+                });
         boolean busy = occupants.values().stream()
                 .anyMatch(o -> o != occupant && item.id().equals(o.gameItem));
         if (busy) return "item_busy";
@@ -1755,6 +1906,7 @@ public class RoomInstance {
         }
         state.put("serverTime", System.currentTimeMillis());
         state.put("weather", HotelWeather.now().toMap());
+        if (quiz != null) state.put("quiz", quizMessage());
         return state;
     }
 

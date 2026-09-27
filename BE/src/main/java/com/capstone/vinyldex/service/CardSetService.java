@@ -94,6 +94,30 @@ public class CardSetService {
         return c -> source.equals(c.getSource()) && c.getName() != null && pattern.matcher(c.getName()).find();
     }
 
+    /** Set in vetrina nel pacchetto del weekend: cambia ogni settimana. */
+    public record Weekend(boolean active, String key, String title, String icon, List<Card> cards,
+                          java.time.Instant startsAt, java.time.Instant endsAt) {
+    }
+
+    static final java.time.ZoneId ZONE = java.time.ZoneId.of("Europe/Rome");
+
+    /** Il set della settimana (fra quelli con almeno tre carte) e se oggi e' weekend. */
+    @Transactional(readOnly = true)
+    public Weekend weekend(java.time.ZonedDateTime now) {
+        java.time.LocalDate today = now.withZoneSameInstant(ZONE).toLocalDate();
+        java.time.LocalDate saturday = today.with(java.time.temporal.TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SATURDAY));
+        if (today.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) saturday = today.minusDays(1);
+        boolean active = today.getDayOfWeek() == java.time.DayOfWeek.SATURDAY || today.getDayOfWeek() == java.time.DayOfWeek.SUNDAY;
+        List<Map.Entry<SetDef, List<Card>>> sets = members(cardRepository.findAllActiveWithArtistClass()).entrySet().stream()
+                .filter(e -> e.getValue().size() >= 3).toList();
+        java.time.Instant starts = saturday.atStartOfDay(ZONE).toInstant();
+        java.time.Instant ends = saturday.plusDays(2).atStartOfDay(ZONE).toInstant();
+        if (sets.isEmpty()) return new Weekend(false, null, null, null, List.of(), starts, ends);
+        int index = (int) Math.floorMod(saturday.toEpochDay() / 7, (long) sets.size());
+        Map.Entry<SetDef, List<Card>> pick = sets.get(index);
+        return new Weekend(active, pick.getKey().key(), pick.getKey().title(), pick.getKey().icon(), pick.getValue(), starts, ends);
+    }
+
     /** Le carte di ogni set, dal catalogo attivo. */
     static Map<SetDef, List<Card>> members(List<Card> catalog) {
         Map<SetDef, List<Card>> result = new LinkedHashMap<>();

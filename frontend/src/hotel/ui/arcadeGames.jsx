@@ -1,6 +1,7 @@
 /**
  * Ping pong e freccette della sala giochi. Stessa forma degli altri minigiochi (Minigame.jsx).
  */
+import PongCanvas from './PongCanvas.jsx';
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 const rand = (min, max) => min + Math.random() * (max - min);
@@ -17,24 +18,33 @@ function serve(s, towardPlayer) {
 }
 
 export const pong = {
-  compact: true,
-  help: 'Tieni premuto SINISTRA/DESTRA (A/D) per muovere la racchetta e rimandare la pallina. Colpirla col bordo la manda di lato. Si vince a 11.',
+  // Non compatto: il tavolo sta tutto nel pannello, in orizzontale.
+  help: 'Tieni premuto SU/GIU (W/S o le frecce) per spostarti lungo il tavolo e rimandare la pallina. Colpirla col bordo della racchetta la manda di lato. Si vince a 11.',
   duration: 240_000,
-  keys: { ArrowLeft: 'left', a: 'left', A: 'left', ArrowRight: 'right', d: 'right', D: 'right' },
-  buttons: [['left', '◀', null], ['right', '▶', null]],
+  // Il tavolo e' in orizzontale: su e giu' muovono il giocatore lungo il suo lato (restano anche sinistra e destra).
+  keys: {
+    ArrowUp: 'left', w: 'left', W: 'left', ArrowLeft: 'left', a: 'left', A: 'left',
+    ArrowDown: 'right', s: 'right', S: 'right', ArrowRight: 'right', d: 'right', D: 'right'
+  },
+  buttons: [['left', '▲', null], ['right', '▼', null]],
   init() {
-    const s = { me: 50, ai: 50, score: 0, cpu: 0, held: {}, hits: 0, flash: 0, last: null };
+    const s = { me: 50, ai: 50, score: 0, cpu: 0, held: {}, hits: 0, flash: 0, aiFlash: 0, meMove: 0, aiMove: 0, last: null };
     serve(s, true);
     return s;
   },
   tick(s, dt, emit) {
     s.flash = Math.max(0, s.flash - dt);
+    s.aiFlash = Math.max(0, s.aiFlash - dt);
     const dir = (s.held.right ? 1 : 0) - (s.held.left ? 1 : 0);
+    const before = s.me;
     s.me = clamp(s.me + dir * dt * 0.09, PADDLE / 2, 100 - PADDLE / 2);
+    s.meMove = Math.sign(s.me - before);
     // Paddle, il robot: segue la palla con un po' di ritardo (e sbaglia di piu' quando va veloce).
     const target = s.ball.vy < 0 ? s.ball.x : 50;
     const speed = 0.045 + Math.min(0.03, s.hits * 0.0015);
-    s.ai += clamp(target - s.ai, -speed * dt, speed * dt);
+    const aiStep = clamp(target - s.ai, -speed * dt, speed * dt);
+    s.ai += aiStep;
+    s.aiMove = Math.abs(aiStep) > 0.01 ? Math.sign(aiStep) : 0;
     if (s.pause > 0) {
       s.pause -= dt;
       return;
@@ -60,6 +70,7 @@ export const pong = {
     } else if (b.vy < 0 && b.y <= 10 && b.y >= 5 && Math.abs(b.x - s.ai) <= PADDLE / 2 + 1) {
       b.y = 10;
       hit(s.ai, 1);
+      s.aiFlash = 180;
       emit?.({ kind: 'rally', x: 0 });
     }
     if (b.y > 102) {
@@ -85,12 +96,7 @@ export const pong = {
   done: (s) => s.score >= WIN || s.cpu >= WIN,
   view: (s) => (
     <div className="mg-pong">
-      <div className="mg-pong-table" aria-label="Tavolo da ping pong">
-        <span className="mg-pong-net" />
-        <span className="mg-pong-paddle ai" style={{ left: `${s.ai}%`, width: `${PADDLE}%` }} />
-        <span className={`mg-pong-paddle me${s.flash ? ' hit' : ''}`} style={{ left: `${s.me}%`, width: `${PADDLE}%` }} />
-        <span className="mg-pong-ball" style={{ left: `${s.ball.x}%`, top: `${s.ball.y}%` }} />
-      </div>
+      <PongCanvas s={s} />
       <div className="mg-row"><span>Paddle <b>{s.cpu}</b></span><span>{s.last || 'Al servizio…'}</span><div className="mg-big">{s.score}<small>tu</small></div></div>
     </div>
   )

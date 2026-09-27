@@ -4,6 +4,31 @@
  */
 export const NEWS = [
   {
+    date: '2026-09-29',
+    title: 'Desideri, statistiche, quiz, incarichi e app installabile',
+    icon: 'ph-heart',
+    items: [
+      ['ph-heart', 'Lista dei desideri', 'Metti nei desideri le carte che cerchi: ti diciamo quando compaiono al mercato, su un banchetto o su un NPC.'],
+      ['ph-users-three', 'Squadre salvate', 'Salva fino a tre squadre da battaglia con un nome e richiamale con un clic, anche nella sfida dell\'hotel.'],
+      ['ph-git-diff', 'Confronto collezioni', 'Dalla scheda di un giocatore: le carte che ha lui e ti mancano, e il contrario. Da lì parte lo scambio.'],
+      ['ph-chart-line', 'Statistiche', 'Valore della collezione nel tempo, carte per gioco e rarità, pacchetti aperti e fortuna rispetto agli altri.'],
+      ['ph-medal', 'Prima edizione', 'I primi dieci che trovano una carta hanno la copia numerata #1/10 … #10/10, che vale una volta e mezza.'],
+      ['ph-crown', 'Leggendaria garantita', 'Pacchetti di fila senza leggendaria: dal 20° la probabilità sale, al 40° è sicura.'],
+      ['ph-calendar-star', 'Pacchetto del Weekend', 'Solo sabato e domenica, con due carte del set della settimana.'],
+      ['ph-scales', 'Borsa del mercato', 'Il prezzo medio fra giocatori di ogni carta, per capire se un annuncio è un affare.'],
+      ['ph-scroll', 'Incarichi degli NPC', 'Ogni giorno tre personaggi dell\'hotel cercano una carta: premi in gold e la Teca 3D.'],
+      ['ph-cube-transparent', 'Teca 3D', 'La carta gira dentro una campana di vetro nella tua stanza.'],
+      ['ph-moon-stars', 'Giorno e notte', 'Le stanze all\'aperto seguono l\'ora vera: tramonto, notte blu e lampioni accesi.'],
+      ['ph-cards', 'Mostra una carta', 'Fai vedere una tua carta a tutta la stanza, grande sopra la testa.'],
+      ['ph-question', 'Quiz: indovina la carta', 'In Arena: la carta arriva sfocata, il primo che scrive il nome giusto vince 30 gold.'],
+      ['ph-identification-badge', 'Bacheca dei distintivi', 'Un mobile a parete con tutti i tuoi distintivi.'],
+      ['ph-trophy', 'Classifiche per gioco', 'Chi ha più carte Pokémon, Magic, FC 27…: il primo del lunedì vince 200 gold.'],
+      ['ph-gift', 'Regali', 'Oltre a gold e carte ora puoi regalare anche un mobile della borsa.'],
+      ['ph-device-mobile', 'App installabile', 'VinylDex si installa sul telefono e ti avvisa quando il pacchetto gratis è pronto.'],
+      ['ph-signpost', 'Giro guidato', 'Alla prima visita di Pacchetti, Collezione, Battaglie e Raccoglitore una breve guida.']
+    ]
+  },
+  {
     date: '2026-09-28',
     title: 'Go-kart rifatto, club, tornei e carte olografiche',
     icon: 'ph-flag-checkered',

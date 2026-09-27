@@ -1298,3 +1298,39 @@ button.hotel-badge { cursor: pointer; font: inherit; padding: 0; transition: tra
 button.hotel-badge:hover:not(:disabled) { transform: translateY(-2px) scale(1.08); }
 .hotel-badge.worn { outline: 2px solid #ffd24a; outline-offset: 2px; box-shadow: 0 0 10px rgba(255, 210, 74, 0.7); }
 .hotel-badges-hint { display: block; font-size: 0.68rem; color: var(--hp-muted); margin-top: 4px; }
+
+/* Incarichi degli NPC */
+.quests-tab { padding: 0 10px 10px; }
+.quest-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.quest { padding: 10px; border-radius: 10px; background: var(--hp-surface); border: 1px solid var(--hp-line); display: flex; flex-direction: column; gap: 6px; }
+.quest.done { opacity: 0.65; }
+.quest-head { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.quest-room { border: 0; background: rgba(139, 92, 246, 0.25); color: var(--hp-text); border-radius: 6px; font: inherit; font-size: 0.7rem; padding: 2px 8px; cursor: pointer; }
+.quest-text { margin: 0; font-style: italic; font-size: 0.82rem; }
+.quest-reward { margin: 0; color: var(--hp-accent); font-weight: 800; font-size: 0.78rem; }
+.quest-done { color: #7de0a0; font-weight: 700; font-size: 0.78rem; }
+.quest-none { color: var(--hp-muted); font-size: 0.75rem; }
+.quest-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 5px; max-height: 120px; overflow-y: auto; }
+.quest-card { padding: 0; border: 2px solid transparent; border-radius: 5px; background: none; cursor: pointer; }
+.quest-card img { width: 100%; display: block; border-radius: 3px; }
+.quest-card.picked { border-color: #ffd24a; box-shadow: 0 0 8px rgba(255, 210, 74, 0.7); }
+
+/* Quiz "Indovina la carta" */
+.quiz-panel { top: var(--space-sm); left: 50%; transform: translateX(-50%); width: min(300px, calc(100% - 16px)); z-index: 7; }
+.quiz-body { padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.quiz-card-wrap { width: 170px; border-radius: 10px; overflow: hidden; box-shadow: 0 0 18px rgba(139, 92, 246, 0.6); }
+.quiz-card { width: 170px; display: block; border-radius: 10px; transition: filter 0.25s linear; }
+.quiz-hint { margin: 0; font-size: 0.85rem; }
+.quiz-answer { margin: 0; font-size: 0.95rem; }
+.quiz-winner { margin: 0; color: #ffd24a; font-weight: 800; }
+.quiz-nobody { margin: 0; color: var(--hp-muted); }
+.quest-requirement { margin: 0; font-size: 0.72rem; color: var(--hp-muted); }
+.quest-count { margin: 0; font-size: 0.74rem; }
+.quest-filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 0.72rem; }
+.quest-filters input[type="search"] { flex: 1 1 140px; background: #0b0720; color: var(--hp-text); border: 1px solid #3b2f72; border-radius: 6px; padding: 4px 6px; font: inherit; }
+.quest-filters label { display: flex; gap: 4px; align-items: center; cursor: pointer; }
+.quest-cards { max-height: 170px; }
+.quest-card { position: relative; }
+.quest-card-qty { position: absolute; right: 2px; bottom: 2px; padding: 0 4px; border-radius: 4px; background: rgba(5, 3, 13, 0.85); color: #fff; font-size: 0.6rem; font-weight: 800; }
+.quest-card-qty.spare { background: #16a34a; }
+.mg-pong-canvas { display: block; margin: 0 auto; border-radius: 10px; image-rendering: auto; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45); }

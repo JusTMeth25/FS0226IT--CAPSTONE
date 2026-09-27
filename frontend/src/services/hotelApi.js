@@ -103,8 +103,8 @@ export const hotelApi = {
   async mail() {
     return apiClient.get('/hotel/mail');
   },
-  async sendMail(to, gold, card, note) {
-    return apiClient.post('/hotel/mail', { to, gold, card, note });
+  async sendMail(to, gold, card, note, furni = null) {
+    return apiClient.post('/hotel/mail', { to, gold, card, note, furni });
   },
   async claimMail(mailId) {
     return apiClient.post(`/hotel/mail/${mailId}/claim`);

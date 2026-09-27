@@ -28,6 +28,8 @@ const BattlePage = lazy(() => import('./pages/BattlePage.jsx'));
 const NewsPage = lazy(() => import('./pages/NewsPage.jsx'));
 const SetsPage = lazy(() => import('./pages/SetsPage.jsx'));
 const FusionPage = lazy(() => import('./pages/FusionPage.jsx'));
+const WishlistPage = lazy(() => import('./pages/WishlistPage.jsx'));
+const StatsPage = lazy(() => import('./pages/StatsPage.jsx'));
 const BinderPage = lazy(() => import('./pages/BinderPage.jsx'));
 // L'hotel ha un motore grafico tutto suo: si scarica solo quando ci si entra.
 const HotelPage = lazy(() => import('./pages/HotelPage.jsx'));
@@ -70,6 +72,8 @@ export default function App() {
             <Route path="sets" element={<SetsPage />} />
             <Route path="fusion" element={<FusionPage />} />
             <Route path="binder" element={<BinderPage />} />
+            <Route path="wishlist" element={<WishlistPage />} />
+            <Route path="stats" element={<StatsPage />} />
 
             <Route element={<AdminRoute />}>
               <Route path="admin" element={<AdminPage />} />

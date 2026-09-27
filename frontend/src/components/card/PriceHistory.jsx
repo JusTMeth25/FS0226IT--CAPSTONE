@@ -62,7 +62,12 @@ export default function PriceHistory({ code }) {
     <section className="price-history glass-panel">
       <h3><i className="ph-fill ph-chart-line-up" /> Andamento del prezzo</h3>
       {data.market.length > 0 && <Chart points={market} color="#fbbf24" format={usd} label="Valore di mercato" />}
-      {data.sales.length > 0 && <Chart points={sales} color="#22d3ee" format={gold} label="Vendite nel Mercato" />}
+      {data.sales.length > 0 && <Chart points={sales} color="#22d3ee" format={gold} label="Vendite fra giocatori" />}
+      {data.playerSales > 0 && (
+        <p className="price-history-players">
+          <i className="ph-fill ph-scales" /> Borsa: prezzo medio fra giocatori <strong>{data.playerAverage} gold</strong> su {data.playerSales} {data.playerSales === 1 ? 'vendita' : 'vendite'} (mercato e banchetti).
+        </p>
+      )}
       {data.market.length === 1 && <p className="price-history-empty">Il grafico si riempie un giorno alla volta.</p>}
     </section>
   );

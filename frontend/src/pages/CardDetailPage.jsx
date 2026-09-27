@@ -12,6 +12,7 @@ import Fc27Credits from '../components/card/Fc27Credits.jsx';
 import GradingBox, { GradeBadge } from '../components/card/GradingBox.jsx';
 import PriceHistory from '../components/card/PriceHistory.jsx';
 import GradedSlab from '../components/card/GradedSlab.jsx';
+import WishButton from '../components/card/WishButton.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import RarityAmbience from '../components/fx/RarityAmbience.jsx';
@@ -104,6 +105,11 @@ export default function CardDetailPage() {
       {!ownedEntry && <span className="card-detail-rarity-chip card-detail-missing"><i className="ph ph-lock-simple" /> Non ce l&apos;hai ancora</span>}
       <span className="card-detail-rarity-chip">{getRarityName(card.rarity)}</span>
       <GradeBadge grade={card.grade} />
+      {card.firstEdition && (
+        <span className="first-edition-badge" title="Fra i primi dieci giocatori ad averla trovata: vale una volta e mezza">
+          <i className="ph-fill ph-medal" /> Prima edizione #{card.firstEdition}/10
+        </span>
+      )}
       {card.foil > 0 && <span className="foil-badge foil-badge-inline">Olografica{card.foil > 1 ? ` ×${card.foil}` : ''}</span>}
 
       <div className="card-detail-meta" style={{ width: '100%' }}>
@@ -134,6 +140,8 @@ export default function CardDetailPage() {
       {card.source === 'fc27' && <Fc27Credits />}
 
       <PriceHistory code={card.id} />
+
+      <WishButton code={card.id} />
 
       {ownedEntry ? (
         <>

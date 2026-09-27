@@ -132,9 +132,13 @@ public class CardExtrasService {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("market", jdbc.queryForList("SELECT day::text AS day, price::float8 AS price FROM card_price_history "
                 + "WHERE card_id = ? AND day > CURRENT_DATE - 180 ORDER BY day", card.getId()));
-        result.put("sales", jdbc.queryForList("SELECT t.created_at AS at, l.price_per_unit AS price FROM user_wallet_transactions t "
-                + "JOIN market_listings l ON l.id::text = t.related_id WHERE t.type = 'MARKET_PURCHASE' AND l.card_id = ? "
-                + "ORDER BY t.created_at DESC LIMIT 30", card.getId()));
+        // Borsa del mercato: vendite fra giocatori, al mercato e sui banchetti dell'hotel.
+        result.put("sales", jdbc.queryForList("SELECT sold_at AS at, price, channel FROM market_sales WHERE card_id = ? "
+                + "ORDER BY sold_at DESC LIMIT 30", card.getId()));
+        result.put("playerAverage", jdbc.queryForObject("SELECT ROUND(SUM(price * quantity)::numeric / NULLIF(SUM(quantity), 0), 0)::int "
+                + "FROM market_sales WHERE card_id = ?", Integer.class, card.getId()));
+        result.put("playerSales", jdbc.queryForObject("SELECT COALESCE(SUM(quantity), 0)::int FROM market_sales WHERE card_id = ?",
+                Integer.class, card.getId()));
         result.put("current", card.getMarketPrice());
         return result;
     }

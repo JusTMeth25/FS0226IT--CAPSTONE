@@ -41,7 +41,8 @@ public class CommunityController {
     public record PhotoDto(String image, String roomName) {
     }
 
-    public record MailDto(UUID to, int gold, String card, String note) {
+    /** furni: id di un mobile della borsa da regalare (facoltativo). */
+    public record MailDto(UUID to, int gold, String card, String note, UUID furni) {
     }
 
     // ---- club
@@ -138,7 +139,7 @@ public class CommunityController {
 
     @PostMapping("/mail")
     public Map<String, Object> sendMail(@CurrentUser UserPrincipal principal, @RequestBody MailDto body) {
-        return community.sendMail(principal.getId(), body.to(), body.gold(), body.card(), body.note());
+        return community.sendMail(principal.getId(), body.to(), body.gold(), body.card(), body.note(), body.furni());
     }
 
     @PostMapping("/mail/{mailId}/claim")

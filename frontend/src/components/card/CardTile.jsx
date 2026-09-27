@@ -66,6 +66,7 @@ export default function CardTile({ card, quantity, onClick }) {
         <HoloLayers />
         {quantity > 1 && <span className="card-quantity-badge" style={{ position: 'absolute', bottom: 8, right: 8, zIndex: 2 }}>×{quantity}</span>}
         {card.foil > 0 && <span className="foil-badge" title={`${card.foil} copie olografiche`}>Olo{card.foil > 1 ? ` ×${card.foil}` : ''}</span>}
+        {card.firstEdition && <span className="first-edition-tag" title="Prima edizione numerata">#{card.firstEdition}/10</span>}
       </CardHoloFrame>
     );
   }
@@ -81,6 +82,7 @@ export default function CardTile({ card, quantity, onClick }) {
       <RarityBadge rarity={card.rarity} />
       {quantity > 1 && <span className="card-quantity-badge">×{quantity}</span>}
       {card.foil > 0 && <span className="foil-badge" title={`${card.foil} copie olografiche`}>Olo{card.foil > 1 ? ` ×${card.foil}` : ''}</span>}
+      {card.firstEdition && <span className="first-edition-tag" title="Prima edizione numerata">#{card.firstEdition}/10</span>}
       <div className="card-artwork">
         <img src={resolveCardImage(card)} alt={card.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>

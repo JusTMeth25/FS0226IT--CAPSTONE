@@ -213,6 +213,12 @@ public class HotelSocialService {
         return badges;
     }
 
+    /** Tutti i distintivi sbloccati da un giocatore (per la bacheca nella sua stanza). */
+    @Transactional(readOnly = true)
+    public List<Map<String, String>> badgesOf(UUID userId) {
+        return allBadges(userId);
+    }
+
     private List<Map<String, String>> allBadges(UUID userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> ApiException.notFound("user_not_found"));
         List<UserCard> cards = userCardRepository.findByUserIdWithCard(userId).stream()

@@ -29,6 +29,13 @@ public class MarketService {
     private final WalletService walletService;
     private final MissionEngine missionEngine;
 
+    private MarketSalesService marketSales;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setMarketSales(MarketSalesService marketSales) {
+        this.marketSales = marketSales;
+    }
+
     public MarketService(MarketListingRepository listingRepository,
                          CardRepository cardRepository,
                          UserRepository userRepository,
@@ -106,6 +113,7 @@ public class MarketService {
         walletService.adjustGold(listing.getSeller().getId(), total, WalletTransactionType.MARKET_SALE, relatedId);
 
         userCardService.add(buyer, listing.getCard(), quantity);
+        if (marketSales != null) marketSales.record(listing.getCard().getId(), listing.getPricePerUnit(), quantity, "market");
 
         int remaining = listing.getQuantity() - quantity;
         listing.setQuantity(remaining);

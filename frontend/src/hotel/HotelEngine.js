@@ -2,7 +2,7 @@ import { DETAIL, HALF_W, STEP_MS, TILE_H, TILE_W, directionBetween, insideDiamon
 import { AVATAR_FOOT_X, AVATAR_FOOT_Y, AVATAR_H, AVATAR_SCALE, AVATAR_W, avatarSprite } from './sprites/avatar.js';
 import { hoverTileSprite, kartPoint, kartTrack, renderRoom } from './sprites/room.js';
 import { lapDelta } from './kartTrack.js';
-import { animationState, cardImage, footprintOf, furniSprite, isFlat } from './sprites/furni.js';
+import { animationState, cardImage, footprintOf, furniSprite, isFlat, wallPoint } from './sprites/furni.js';
 import { isSolid } from './sprites/pixel.js';
 import { GEM_H, GEM_W, drawSparkle, gemSprite } from './sprites/gem.js';
 import { getRarityColor } from '../utils/cardUtils.js';
@@ -135,6 +135,10 @@ export class HotelEngine {
     this.hoverTile = null;
     this.hoverUserId = null;
     this.hoverPetId = null;
+    /** Carte mostrate sopra la testa (comando "Mostra carta"): chi, quale e fino a quando. */
+    this.shownCards = new Map();
+    /** Ora finta per provare giorno e notte (null = ora vera). */
+    this.forcedHour = null;
 
     this.frame = 0;
     this.running = false;
@@ -223,6 +227,8 @@ export class HotelEngine {
       case 'user_update': this.updateUser(message.user); break;
       case 'match': this.setTeams(message); break;
       case 'emote': this.setEmote(message.id, message.emote, now); break;
+      case 'owner_badges': this.ownerBadges = message.badges || []; break;
+      case 'show_card': this.shownCards.set(message.id, { card: message.card, born: now, until: now + SHOWN_CARD_MS }); break;
       case 'typing': this.setTyping(message.id, message.on); break;
       case 'chat': this.addBubble(message, now); break;
       case 'item_added':
@@ -1161,7 +1167,7 @@ export class HotelEngine {
       this.spriteCache.set(key, cached);
     }
     const t = tileTop(item.x, item.y, item.z);
-    return { sprite: cached.canvas, left: t.x - cached.anchorX, top: t.y - cached.anchorY };
+    return { sprite: cached.canvas, left: t.x - cached.anchorX, top: t.y - cached.anchorY, anchorX: cached.anchorX, anchorY: cached.anchorY };
   }
 
   clearCardCache(cardId) {
@@ -1438,6 +1444,8 @@ export class HotelEngine {
       if (item.type === 'bowling_lane') this.drawLaneExtras(ctx, item, now, toScreen, scale);
       else if (item.type.startsWith('golf_hole_')) this.drawGolfBall(ctx, item, now, toScreen, scale);
       else if (POOL_CLOTH[item.type]) this.drawPoolBalls(ctx, item, now, toScreen, scale);
+      else if (item.type === 'card_case') this.drawCardCase(ctx, item, now, toScreen, scale);
+      else if (item.type === 'badge_board') this.drawBadgeBoard(ctx, item, now, toScreen, scale);
     };
     const items = [...this.items.values()].filter((item) => this.catalog.has(item.type));
     const backItems = items.filter((item) => this.itemDepth(item) < -100).sort((a, b) => this.itemDepth(a) - this.itemDepth(b));
@@ -1513,6 +1521,9 @@ export class HotelEngine {
       const p = toScreen(left, top + sink);
       const width = AVATAR_W * AVATAR_SCALE * scale;
       const height = AVATAR_H * AVATAR_SCALE * scale;
+      // Ping pong: il giocatore si sposta di lato seguendo la pallina, come al tavolo vero.
+      const ponging = user.game === 'pong' && !this.reducedMotion;
+      if (ponging) p.x += Math.sin(now / 420 + phaseOf(user.id)) * 4 * scale;
       // Chi e' su un'altra pagina del sito resta nella stanza, ma sbiadito.
       if (user.away) ctx.globalAlpha = 0.45;
       if (swimming) {
@@ -1535,6 +1546,10 @@ export class HotelEngine {
       }
       ctx.globalAlpha = 1;
       if (user.handItem) drawDrink(ctx, user, p, scale * AVATAR_SCALE, viewForDirection(user.dir ?? 2), now < (user.sipUntil || 0));
+      if (user.game === 'pong') {
+        const hit = user.fx?.kind === 'rally' && now - user.fx.born < 250;
+        drawRacket(ctx, p, width, height, scale, hit, viewForDirection(user.dir ?? 2));
+      }
       const head = toScreen(center.x, top + sink);
       user.headY = head.y;
       user.screenX = head.x;
@@ -1573,6 +1588,8 @@ export class HotelEngine {
     this.drawLeisure(ctx, now, toScreen, scale);
     this.drawPlacement(ctx, now, toScreen, scale);
     // Pioggia, neve, vento e luce del sole sopra le stanze all'aperto.
+    // Stanze all'aperto: la luce segue l'ora vera, di sera si accendono i lampioni.
+    if (isOutdoor(this.room)) this.drawDaylight(ctx, now, toScreen, scale);
     if (this.weather && isOutdoor(this.room)) {
       drawWeather(ctx, this.weather, this.weatherState, this.cssWidth, this.cssHeight, now, this.reducedMotion);
     }
@@ -1582,6 +1599,16 @@ export class HotelEngine {
     // La gemma resta leggibile anche con lo zoom indietro.
     const gemScale = Math.max(1, Math.round(scale * 2));
     const cardScale = Math.max(1, Math.round(scale * 2)) / 2;
+    // Carte mostrate: grandi sopra la testa per qualche secondo.
+    this.shownCards.forEach((shown, id) => {
+      const user = this.users.get(id);
+      if (!user || now > shown.until) {
+        this.shownCards.delete(id);
+        return;
+      }
+      if (user.screenX == null) return;
+      labels.push({ kind: 'shown', x: user.screenX, y: user.headY - 42, shown });
+    });
     // Animale sotto il mouse: il suo nome (e di chi e') su una targhetta.
     const petOwner = this.hoverPetId && this.users.get(this.hoverPetId);
     if (petOwner?.pet && petOwner.petBox) {
@@ -1595,6 +1622,8 @@ export class HotelEngine {
       else if (label.kind === 'cards') {
         const bob = animate ? Math.round(Math.sin(now / 450 + label.seed)) * cardScale : 0;
         drawTopCards(ctx, label.x, label.y + bob, label.cards, cardScale, now, animate, this.cardHotspots);
+      } else if (label.kind === 'shown') {
+        this.drawShownCard(ctx, label, now, cardScale);
       } else if (label.kind === 'badge') {
         // Il distintivo indossato sta a sinistra della gemma o delle carte, altrimenti da solo.
         const width = BADGE_W * gemScale;
@@ -1610,6 +1639,157 @@ export class HotelEngine {
     this.drawRecaps(ctx, now);
     this.drawGoal(ctx, now);
     this.drawBubbles(ctx, now);
+  }
+
+  /** Carta mostrata sopra la testa: entra con un piccolo salto e sparisce sfumando. */
+  drawShownCard(ctx, { x, y, shown }, now, scale) {
+    const img = cardImage(shown.card, () => {});
+    const age = now - shown.born;
+    const left = shown.until - now;
+    const pop = Math.min(1, age / 220);
+    const w = Math.round(46 * scale * 2 * (0.6 + 0.4 * pop));
+    const h = Math.round(w * 1.4);
+    const bob = this.reducedMotion ? 0 : Math.sin(now / 380) * 2 * scale;
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, left / 400);
+    const cx = Math.round(x - w / 2);
+    const cy = Math.round(y - h + bob);
+    ctx.fillStyle = getRarityColor(shown.card.rarity);
+    ctx.shadowColor = getRarityColor(shown.card.rarity);
+    ctx.shadowBlur = 14;
+    ctx.fillRect(cx - 3, cy - 3, w + 6, h + 6);
+    ctx.shadowBlur = 0;
+    if (img) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(img, cx, cy, w, h);
+      ctx.imageSmoothingEnabled = false;
+    } else {
+      ctx.fillStyle = '#1a1030';
+      ctx.fillRect(cx, cy, w, h);
+    }
+    if (shown.card.name) {
+      ctx.font = 'bold 10px "Segoe UI", system-ui, sans-serif';
+      const label = clip(ctx, shown.card.name, 140);
+      const lw = ctx.measureText(label).width + 10;
+      ctx.fillStyle = 'rgba(10, 7, 22, 0.9)';
+      roundRect(ctx, x - lw / 2, cy + h + 5, lw, 14, 4);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, x, cy + h + 12);
+    }
+    ctx.restore();
+  }
+
+  /**
+   * Teca 3D: la carta esposta gira su se stessa dentro una campana di vetro. Di spalle si vede il
+   * dorso nel colore della rarita'. Con le animazioni ridotte resta ferma, di fronte.
+   */
+  drawCardCase(ctx, item, now, toScreen, scale) {
+    const c = tileCenter(item.x, item.y, item.z);
+    const base = toScreen(c.x, c.y - 30);
+    const angle = this.reducedMotion ? 0 : now / 900;
+    const cos = Math.cos(angle);
+    const cw = 20 * scale;
+    const ch = 28 * scale;
+    const bob = this.reducedMotion ? 0 : Math.sin(now / 600) * 1.5 * scale;
+    const top = base.y - ch - 6 * scale + bob;
+    const w = Math.max(1, Math.abs(cos) * cw);
+    if (item.card) {
+      const color = getRarityColor(item.card.rarity);
+      ctx.fillStyle = color;
+      ctx.fillRect(base.x - w / 2 - scale, top - scale, w + 2 * scale, ch + 2 * scale);
+      if (cos > 0) {
+        const img = cardImage(item.card, () => {});
+        if (img) {
+          ctx.imageSmoothingEnabled = true;
+          ctx.drawImage(img, base.x - w / 2, top, w, ch);
+          ctx.imageSmoothingEnabled = false;
+        }
+      } else {
+        ctx.fillStyle = '#1a1030';
+        ctx.fillRect(base.x - w / 2, top, w, ch);
+        ctx.fillStyle = color;
+        ctx.fillRect(base.x - w / 4, top + ch * 0.35, w / 2, ch * 0.3);
+      }
+    }
+    // Campana di vetro: riflesso che scorre e bordo chiaro.
+    const gx = base.x - 14 * scale;
+    const gy = base.y - 44 * scale;
+    const gw = 28 * scale;
+    const gh = 44 * scale;
+    ctx.save();
+    ctx.fillStyle = 'rgba(190, 230, 255, 0.12)';
+    ctx.strokeStyle = 'rgba(220, 245, 255, 0.55)';
+    ctx.lineWidth = Math.max(1, scale);
+    roundRect(ctx, gx, gy, gw, gh, 6 * scale);
+    ctx.fill();
+    ctx.stroke();
+    const shine = this.reducedMotion ? 0.3 : (now / 2400) % 1;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+    ctx.fillRect(gx + gw * shine * 0.8, gy + 3 * scale, 3 * scale, gh - 6 * scale);
+    ctx.restore();
+  }
+
+  /** Bacheca: i distintivi del padrone di casa appesi in righe da tre (al massimo dodici). */
+  drawBadgeBoard(ctx, item, now, toScreen, scale) {
+    const badges = (this.ownerBadges || []).slice(0, 12);
+    if (!badges.length) return;
+    const { left, top, anchorX, anchorY } = this.itemSprite(item, now);
+    const size = scale * 0.75;
+    badges.forEach((badge, i) => {
+      const col = i % 3;
+      const row = Math.floor(i / 3);
+      // Tre per riga, dall'alto: il punto e' il centro dello scudetto sulla parete.
+      const pt = wallPoint(anchorX, anchorY, item.rot, 7 + col * 9.5, 88 - row * 13);
+      const p = toScreen(left + pt.x, top + pt.y);
+      drawBadge(ctx, p.x - (BADGE_W * size) / 2, p.y + (BADGE_H * size) / 2, badge, size);
+    });
+  }
+
+  /** Ora del giorno da 0 a 24 (quella vera, o quella forzata per le prove). */
+  hourOfDay() {
+    if (this.forcedHour != null) return this.forcedHour;
+    const d = new Date();
+    return d.getHours() + d.getMinutes() / 60;
+  }
+
+  /**
+   * Luce delle stanze all'aperto: notte blu dalle 21:30 alle 5:30, tramonto arancio prima e alba
+   * dopo. Di notte lampade e lampioni fanno un alone di luce calda.
+   */
+  drawDaylight(ctx, now, toScreen, scale) {
+    const h = this.hourOfDay();
+    let night = 0;
+    if (h >= 21.5 || h < 5.5) night = 1;
+    else if (h >= 18.5) night = (h - 18.5) / 3;
+    else if (h < 7.5) night = 1 - (h - 5.5) / 2;
+    const dusk = (h >= 17.5 && h < 21.5) || (h >= 5 && h < 8) ? Math.sin(Math.PI * Math.min(1, Math.max(0, h >= 17.5 ? (h - 17.5) / 4 : (h - 5) / 3))) : 0;
+    if (night <= 0.01 && dusk <= 0.01) return;
+    ctx.save();
+    if (dusk > 0.01) {
+      ctx.fillStyle = `rgba(255, 120, 60, ${0.14 * dusk})`;
+      ctx.fillRect(0, 0, this.cssWidth, this.cssHeight);
+    }
+    if (night > 0.01) {
+      ctx.fillStyle = `rgba(8, 12, 44, ${0.55 * night})`;
+      ctx.fillRect(0, 0, this.cssWidth, this.cssHeight);
+      ctx.globalCompositeOperation = 'lighter';
+      const flicker = this.reducedMotion ? 1 : 0.92 + Math.sin(now / 170) * 0.04;
+      this.items.forEach((item) => {
+        if (!/lamp|lantern|torch|light|neon/.test(item.type)) return;
+        const c = tileCenter(item.x, item.y, item.z);
+        const p = toScreen(c.x, c.y - 40);
+        const r = 70 * scale;
+        const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+        glow.addColorStop(0, `rgba(255, 210, 120, ${0.45 * night * flicker})`);
+        glow.addColorStop(1, 'rgba(255, 210, 120, 0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(p.x - r, p.y - r, r * 2, r * 2);
+      });
+    }
+    ctx.restore();
   }
 
   /** "GOL!" grande al centro, nel colore della squadra che ha segnato. */
@@ -1938,6 +2118,35 @@ function drawStaffTag(ctx, { x, y }, scale) {
   ctx.fillRect(left + 2 * s, top + 2 * s, s, s);
 }
 
+/**
+ * Racchetta da ping pong nella mano davanti: manico di legno e piatto rosso. Durante il colpo
+ * si alza e ruota in avanti.
+ */
+function drawRacket(ctx, p, width, height, scale, hit, view) {
+  const flip = view && view.flip ? -1 : 1;
+  const hx = p.x + width * (flip > 0 ? 0.78 : 0.22);
+  const hy = p.y + height * (hit ? 0.42 : 0.56);
+  const angle = (hit ? -1.1 : -0.35) * flip;
+  const len = 5 * scale;
+  const px = hx + Math.sin(angle) * len;
+  const py = hy - Math.cos(angle) * len;
+  ctx.save();
+  ctx.strokeStyle = '#92400e';
+  ctx.lineWidth = Math.max(1.5, 1.6 * scale);
+  ctx.beginPath();
+  ctx.moveTo(hx, hy);
+  ctx.lineTo(px, py);
+  ctx.stroke();
+  ctx.fillStyle = '#dc2626';
+  ctx.strokeStyle = '#1f0a0a';
+  ctx.lineWidth = Math.max(1, 0.8 * scale);
+  ctx.beginPath();
+  ctx.ellipse(px + Math.sin(angle) * 3 * scale, py - Math.cos(angle) * 3 * scale, 3.4 * scale, 4.2 * scale, angle, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
 function drawName(ctx, { x, y, text, me, gem, card, npc, club, badge }, scale, now, animate) {
   ctx.font = 'bold 11px "Segoe UI", system-ui, sans-serif';
   const width = ctx.measureText(text).width + 10;
@@ -1984,6 +2193,8 @@ function drawName(ctx, { x, y, text, me, gem, card, npc, club, badge }, scale, n
 
 /** Quanto resta visibile il riepilogo di un pacchetto aperto. */
 const RECAP_MS = 7_000;
+/** Quanto resta una carta mostrata sopra la testa (come sul server). */
+const SHOWN_CARD_MS = 6_000;
 const USD = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
 
 /** Taglia un testo con i puntini perche' stia nella larghezza data. */

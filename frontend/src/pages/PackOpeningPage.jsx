@@ -4,6 +4,9 @@ import { useGame } from '../hooks/useGame.js';
 import { useSound } from '../hooks/useSound.js';
 import { useCountUp } from '../hooks/useCountUp.js';
 import { PACKS } from '../data/packs.js';
+import PityBar from '../components/pack/PityBar.jsx';
+import NotifyToggle from '../components/pack/NotifyToggle.jsx';
+import { apiClient } from '../services/apiClient.js';
 import { formatDuration } from '../hooks/useCountdown.js';
 import StarBorder from '../components/common/StarBorder.jsx';
 import CardHoloFrame from '../components/card/CardHoloFrame.jsx';
@@ -31,8 +34,18 @@ function PackHoloLayers() {
   );
 }
 
-function PackSelectCard({ pack, gold, isFreeAvailable, cooldownRemaining, giftedCount, onOpen, submitting }) {
+/** Quanto manca a una data, in giorni e ore (per il pacchetto del weekend). */
+function until(iso) {
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms <= 0) return 'poco';
+  const h = Math.floor(ms / 3_600_000);
+  return h >= 24 ? `${Math.floor(h / 24)} g ${h % 24} h` : `${h} h ${Math.floor((ms % 3_600_000) / 60_000)} min`;
+}
+
+function PackSelectCard({ pack, gold, isFreeAvailable, cooldownRemaining, giftedCount, onOpen, submitting, weekend }) {
   const canAffordPaid = gold >= pack.price;
+  // Il pacchetto del weekend si apre solo sabato e domenica (i regali in borsa sempre).
+  const closed = pack.weekend && !weekend?.active;
   const packImage = PACK_IMAGE[pack.id];
 
   return (
@@ -51,6 +64,9 @@ function PackSelectCard({ pack, gold, isFreeAvailable, cooldownRemaining, gifted
           </>
         )}
         <span className="pack-card-count">{pack.cardCount} carte</span>
+        {pack.weekend && weekend?.setTitle && (
+          <span className="pack-weekend-set"><i className="ph-fill ph-star" /> Set: {weekend.setTitle}</span>
+        )}
         {giftedCount > 0 && <span className="pack-card-price-badge pack-card-price-free pack-card-gift-badge"><i className="ph-fill ph-gift" /> x{giftedCount}</span>}
         <PackHoloLayers />
       </div>
@@ -66,7 +82,11 @@ function PackSelectCard({ pack, gold, isFreeAvailable, cooldownRemaining, gifted
               ? <button className="btn btn-primary" disabled={submitting} onClick={() => onOpen(pack.id, 'free')}><i className="ph-fill ph-sparkle" /> Apri Gratis</button>
               : <button className="btn btn-secondary" disabled><i className="ph-fill ph-hourglass" /> Gratis tra {formatDuration(cooldownRemaining).slice(0, 5)}</button>
           )}
-          {pack.id === 'pack-premium' && canAffordPaid ? (
+          {closed ? (
+            <button className="btn btn-secondary" disabled>
+              <i className="ph-fill ph-lock-simple" /> {weekend ? `Apre fra ${until(weekend.startsAt)}` : 'Solo nel weekend'}
+            </button>
+          ) : pack.id === 'pack-premium' && canAffordPaid ? (
             <StarBorder color="#FFD700" speed="3s">
               <button className="btn btn-gold" style={{ width: '100%' }} disabled={submitting} onClick={() => onOpen(pack.id, 'paid')}>
                 <i className="ph-fill ph-coin" /> {submitting ? 'Apertura…' : `Apri Pacchetto (${pack.price})`}
@@ -99,6 +119,13 @@ export default function PackOpeningPage() {
   const [openingId, setOpeningId] = useState(0);
   const [notice, setNotice] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [weekend, setWeekend] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    apiClient.get('/pack-weekend').then((res) => { if (!cancelled) setWeekend(res); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   // Il messaggio d'errore sparisce da solo: il timer va annullato se si lascia la pagina prima.
   const pendingTimers = useRef(new Set());
@@ -117,7 +144,8 @@ export default function PackOpeningPage() {
     insufficient_gold: 'Non hai abbastanza gold per questo pacchetto.',
     cooldown: 'Il pacchetto gratuito non è ancora disponibile.',
     no_gift_available: 'Non hai più pacchetti regalo di questo tipo.',
-    open_pack_failed: 'Non è stato possibile aprire il pacchetto. Riprova.'
+    open_pack_failed: 'Non è stato possibile aprire il pacchetto. Riprova.',
+    weekend_only: 'Il Pacchetto del Weekend si apre solo sabato e domenica.'
   };
 
   async function handleOpen(packId, mode) {
@@ -166,6 +194,9 @@ export default function PackOpeningPage() {
           <span className="gold-label">Gold disponibili</span>
         </div>
 
+        <PityBar version={openingId} />
+        <div className="text-center notify-row"><NotifyToggle /></div>
+
         {PACK_GROUPS.map((group) => (
           <div key={group.title} className="packs-group">
             <h3 className="packs-group-title">{group.title}</h3>
@@ -180,6 +211,7 @@ export default function PackOpeningPage() {
                   giftedCount={game.freePacks[pack.id] || 0}
                   onOpen={handleOpen}
                   submitting={submitting}
+                  weekend={weekend}
                 />
               ))}
             </div>

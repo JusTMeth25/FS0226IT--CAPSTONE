@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { hotelApi } from '../../services/hotelApi.js';
 import { collectionApi } from '../../services/collectionApi.js';
+import { furniApi } from '../../services/furniApi.js';
 import { getRarityColor, resolveCardImage } from '../../utils/cardUtils.js';
 
 const ERRORS = {
@@ -15,11 +16,14 @@ const ERRORS = {
  * Posta fra amici: si spedisce un pacco con gold e/o una carta e un biglietto, anche a chi non
  * e' collegato. Chi lo riceve lo ritira quando vuole.
  */
-export default function MailTab({ friends, gold, version, onUnread, onChanged }) {
+export default function MailTab({ friends, gold, version, onUnread, onChanged, initialTo = '' }) {
   const [data, setData] = useState(null);
   const [notice, setNotice] = useState(null);
-  const [composing, setComposing] = useState(false);
-  const [to, setTo] = useState('');
+  const [composing, setComposing] = useState(Boolean(initialTo));
+  const [to, setTo] = useState(initialTo);
+  // Un mobile della borsa da regalare (solo quelli non posizionati in una stanza).
+  const [furni, setFurni] = useState(null);
+  const [bag, setBag] = useState(null);
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [card, setCard] = useState(null);
@@ -31,10 +35,21 @@ export default function MailTab({ friends, gold, version, onUnread, onChanged })
   }, [onUnread]);
   useEffect(() => { load(); }, [load, version]);
 
+  const loadChoices = useCallback(() => {
+    collectionApi.getCollection({ owned: 'true' }).then((res) => setOwned(res.collection || [])).catch(() => setOwned([]));
+    Promise.all([furniApi.inventory(), furniApi.catalog()]).then(([inv, cat]) => {
+      const names = Object.fromEntries((cat.furni || []).map((d) => [d.type, d.name]));
+      setBag((inv.items || []).map((i) => ({ id: i.id, type: i.type, name: names[i.type] || i.type })));
+    }).catch(() => setBag([]));
+  }, []);
   const openCompose = () => {
     setComposing(true);
-    if (!owned) collectionApi.getCollection({ owned: 'true' }).then((res) => setOwned(res.collection || [])).catch(() => setOwned([]));
+    if (!owned) loadChoices();
   };
+  // Aperto dalla scheda di un amico: il destinatario e' gia' scelto, si caricano carte e borsa.
+  useEffect(() => {
+    if (initialTo) loadChoices();
+  }, [initialTo, loadChoices]);
 
   const choices = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -51,9 +66,9 @@ export default function MailTab({ friends, gold, version, onUnread, onChanged })
   const send = (e) => {
     e.preventDefault();
     const g = Number(amount) || 0;
-    if (!to || (g <= 0 && !card)) return;
-    run(hotelApi.sendMail(to, g, card?.id || null, note.trim()), 'Pacco spedito!').then(() => {
-      setComposing(false); setAmount(''); setNote(''); setCard(null);
+    if (!to || (g <= 0 && !card && !furni)) return;
+    run(hotelApi.sendMail(to, g, card?.id || null, note.trim(), furni?.id || null), 'Pacco spedito!').then(() => {
+      setComposing(false); setAmount(''); setNote(''); setCard(null); setFurni(null); setBag(null); setOwned(null);
     });
   };
 
@@ -86,9 +101,17 @@ export default function MailTab({ friends, gold, version, onUnread, onChanged })
               </button>
             ))}
           </div>
+          {bag?.length > 0 && (
+            <label>Un mobile dalla borsa?
+              <select value={furni?.id || ''} onChange={(e) => setFurni(bag.find((b) => b.id === e.target.value) || null)}>
+                <option value="">Nessuno</option>
+                {bag.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            </label>
+          )}
           <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder="Biglietto (facoltativo)" aria-label="Biglietto" />
           <div className="club-actions">
-            <button type="submit" className="btn btn-gold btn-small" disabled={!to || (!(Number(amount) > 0) && !card)}>Spedisci</button>
+            <button type="submit" className="btn btn-gold btn-small" disabled={!to || (!(Number(amount) > 0) && !card && !furni)}>Spedisci</button>
             <button type="button" className="btn btn-secondary btn-small" onClick={() => setComposing(false)}>Annulla</button>
           </div>
         </form>
@@ -104,6 +127,7 @@ export default function MailTab({ friends, gold, version, onUnread, onChanged })
               <small>
                 {m.gold > 0 && <><i className="ph-fill ph-coin" /> {m.gold} </>}
                 {m.card && <>· {m.card.name}</>}
+                {m.furni && <> · <i className="ph-fill ph-armchair" /> mobile nella borsa</>}
               </small>
               {m.note && <p>«{m.note}»</p>}
             </div>

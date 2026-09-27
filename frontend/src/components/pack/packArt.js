@@ -26,6 +26,7 @@ export const PACK_ICON = {
   'pack-deluxe': 'ph-diamond',
   'pack-premium': 'ph-crown',
   'pack-ultimate': 'ph-soccer-ball',
+  'pack-weekend': 'ph-calendar-star',
   ...gamePacks((source, [icon]) => icon)
 };
 
@@ -34,6 +35,7 @@ export const PACK_GRADIENT = {
   'pack-deluxe': 'linear-gradient(135deg, var(--neon-blue), var(--neon-cyan))',
   'pack-premium': 'linear-gradient(135deg, #FFD700, #FFA500)',
   'pack-ultimate': 'linear-gradient(135deg, #15803d, #052e1a)',
+  'pack-weekend': 'linear-gradient(135deg, #f43f5e, #f59e0b 60%, #7c3aed)',
   ...gamePacks((source, [, light, dark]) => `linear-gradient(135deg, ${light}, ${dark})`)
 };
 
@@ -42,6 +44,8 @@ export const PACK_IMAGE = {
   'pack-base': '/assets/img/BasePack.png',
   'pack-deluxe': '/assets/img/DeluxePack.png',
   'pack-premium': '/assets/img/PremiumPack.png',
+  // Il pacchetto del weekend: la grafica del Deluxe nei colori del tramonto, con il suo titolo.
+  'pack-weekend': '/assets/img/WeekendPack.png',
   // I pacchetti di un solo gioco hanno come grafica il dorso delle carte di quel gioco
   // (VinylDex Originali non ha un dorso in file: resta la grafica disegnata).
   'pack-ultimate': CARD_BACKS.fc27,
@@ -53,6 +57,7 @@ export const PACK_TILT_RARITY = {
   'pack-base': 'rare',
   'pack-deluxe': 'epic',
   'pack-premium': 'legendary',
+  'pack-weekend': 'epic',
   'pack-ultimate': 'epic',
   ...gamePacks(() => 'rare')
 };

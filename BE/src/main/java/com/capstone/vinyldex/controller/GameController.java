@@ -23,6 +23,13 @@ public class GameController {
     private final LeaderboardService leaderboardService;
     private final BattleService battleService;
 
+    private com.capstone.vinyldex.service.GameLeaderboardService gameLeaderboardService;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    void setGameLeaderboardService(com.capstone.vinyldex.service.GameLeaderboardService gameLeaderboardService) {
+        this.gameLeaderboardService = gameLeaderboardService;
+    }
+
     public GameController(EventService eventService,
                           LeaderboardService leaderboardService,
                           BattleService battleService) {
@@ -34,6 +41,12 @@ public class GameController {
     @GetMapping("/events")
     public Map<String, List<EventDto>> events() {
         return Map.of("events", eventService.listActive());
+    }
+
+    /** Classifica di un gioco (carte diverse possedute) con il premio settimanale. */
+    @GetMapping("/leaderboard/games")
+    public Map<String, Object> gameLeaderboard(@RequestParam(required = false) String source) {
+        return gameLeaderboardService.leaderboard(source);
     }
 
     @GetMapping("/leaderboard")

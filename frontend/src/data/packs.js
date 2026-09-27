@@ -44,6 +44,17 @@ export const PACKS = [
     isFree: false,
     source: 'fc27'
   },
+  {
+    id: 'pack-weekend',
+    name: 'Pacchetto del Weekend',
+    description: 'Solo sabato e domenica: 5 carte, 2 del set della settimana e 1 Rara garantita.',
+    price: 120,
+    cardCount: 5,
+    dropRates: { common: 0.35, uncommon: 0.30, rare: 0.20, epic: 0.10, legendary: 0.05 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    weekend: true
+  },
   // Pacchetti di un solo gioco (V16): pescano solo le carte di quella fonte.
   {
     id: 'pack-pokemon',

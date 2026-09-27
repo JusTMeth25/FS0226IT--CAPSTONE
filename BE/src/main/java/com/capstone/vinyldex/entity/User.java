@@ -62,6 +62,14 @@ public class User {
     @Column(name = "hotel_look", length = 40)
     private String hotelLook;
 
+    /** Account di un NPC dell'hotel (asta, eventi, tornei): niente accesso, fuori dalle classifiche. */
+    @Column(name = "is_npc", nullable = false)
+    private boolean npc = false;
+
+    /** Pacchetti aperti di fila senza una leggendaria (pity counter, vedi PackGenerator). */
+    @Column(name = "pack_pity", nullable = false)
+    private int packPity = 0;
+
     /** Distintivo mostrato accanto al nome nell'hotel (codice, vedi HotelSocialService). */
     @Column(name = "worn_badge", length = 80)
     private String wornBadge;

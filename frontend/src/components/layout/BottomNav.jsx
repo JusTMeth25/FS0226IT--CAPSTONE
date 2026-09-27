@@ -18,6 +18,8 @@ const MORE_ITEMS = [
   { to: '/missions', label: 'Missioni', icon: 'ph-target' },
   { to: '/sets', label: 'Set', icon: 'ph-stack' },
   { to: '/binder', label: 'Raccoglitore', icon: 'ph-book-open' },
+  { to: '/wishlist', label: 'Desideri', icon: 'ph-heart' },
+  { to: '/stats', label: 'Statistiche', icon: 'ph-chart-line' },
   { to: '/fusion', label: 'Fusione', icon: 'ph-flask' },
   { to: '/events', label: 'Eventi', icon: 'ph-calendar-star' },
   { to: '/leaderboard', label: 'Classifica', icon: 'ph-trophy' },

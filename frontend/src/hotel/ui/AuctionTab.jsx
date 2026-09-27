@@ -55,6 +55,7 @@ export default function AuctionTab({ me, gold, live, onChange, onViewCard }) {
   return (
     <div className="auction-tab">
       <p className="hotel-panel-hint"><i className="ph-fill ph-gavel" /> {data.auctioneer}: &laquo;Chi offre di piu&apos;?&raquo;</p>
+      <p className="hotel-panel-hint">Anche gli NPC fanno offerte. Chi vince trova subito la carta nella sua collezione; se vince un NPC, la carta finisce nella sua vetrina degli scambi.</p>
       {notice && <p className="hotel-panel-hint" role="status">{notice}</p>}
       {lot ? (
         <section className="auction-lot" style={{ '--rarity': getRarityColor(lot.card?.rarity) }}>

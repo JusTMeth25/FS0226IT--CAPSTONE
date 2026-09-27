@@ -143,7 +143,7 @@ export function GameProvider({ children }) {
       }));
 
       // Le carte uscite olografiche hanno il riflesso arcobaleno (res.foil, stesso ordine).
-      return { cards: res.cards.map((card, i) => ({ ...card, foil: res.foil?.[i] ? 1 : 0 })) };
+      return { cards: res.cards.map((card, i) => ({ ...card, foil: res.foil?.[i] ? 1 : 0 })), pity: res.pity };
     } catch (err) {
       return { error: err.payload?.error || 'open_pack_failed' };
     }

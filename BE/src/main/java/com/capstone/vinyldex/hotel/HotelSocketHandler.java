@@ -272,6 +272,12 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             case "away" -> {
                 if (room != null) room.setAway(userId, node.path("on").asBoolean(false));
             }
+            case "show_card" -> {
+                if (room != null) showCard(session, room, text(node, "cardId"));
+            }
+            case "quiz_start" -> {
+                if (room != null) startQuiz(session, room);
+            }
             case "match_join" -> {
                 if (room != null) reply(session, room.matchJoin(userId, text(node, "team")));
             }
@@ -318,7 +324,11 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         switch (result) {
             case FULL -> session.send(error("room_full"));
             case CLOSED -> session.send(error("room_closed"));
-            case OK -> { }
+            case OK -> {
+                // Distintivi del padrone di casa, per la bacheca a parete (le stanze pubbliche non ne hanno).
+                UUID ownerId = data.get().ownerId();
+                session.send(Map.of("type", "owner_badges", "badges", ownerId == null ? List.of() : socialService.badgesOf(ownerId)));
+            }
         }
     }
 
@@ -371,6 +381,63 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             return;
         }
         room.putItem(furniService.setDisplay(userId, itemId, cardCode));
+    }
+
+    private com.capstone.vinyldex.repository.CardRepository cardRepository;
+    private com.capstone.vinyldex.repository.UserCardRepository userCardRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setCardRepositories(com.capstone.vinyldex.repository.CardRepository cardRepository,
+                             com.capstone.vinyldex.repository.UserCardRepository userCardRepository) {
+        this.cardRepository = cardRepository;
+        this.userCardRepository = userCardRepository;
+    }
+
+    /** Mostra una carta della propria collezione sopra la testa, a tutta la stanza. */
+    private void showCard(HotelSession session, RoomInstance room, String cardCode) {
+        if (cardRepository == null || cardCode == null) return;
+        UUID userId = session.user().id();
+        var card = cardRepository.findByCode(cardCode).orElse(null);
+        boolean owned = card != null && userCardRepository.findByUserIdAndCardId(userId, card.getId())
+                .map(uc -> uc.getQuantity() > 0).orElse(false);
+        if (!owned) {
+            session.send(error("card_not_owned"));
+            return;
+        }
+        if (!room.showCard(userId, cardView(card, true))) session.send(error("show_card_cooldown"));
+    }
+
+    /** Fonti con immagini vere delle carte: le carte disegnate da noi riportano il nome in chiaro. */
+    private static final java.util.Set<String> QUIZ_SOURCES = java.util.Set.of(
+            "pokemon", "yugioh", "scryfall", "onepiece", "digimon", "dragonball", "lorcana", "gundam", "riftbound");
+    private static final java.util.Random QUIZ_RANDOM = new java.util.Random();
+
+    /** Quiz "Indovina la carta": una carta a caso con immagine, il nome resta sul server. */
+    private void startQuiz(HotelSession session, RoomInstance room) {
+        if (cardRepository == null) return;
+        List<com.capstone.vinyldex.entity.Card> pool = cardRepository.findAllActiveWithArtistClass().stream()
+                .filter(c -> QUIZ_SOURCES.contains(c.getSource()) && c.getImgUrl() != null && !c.getImgUrl().isBlank())
+                .toList();
+        if (pool.isEmpty()) {
+            session.send(error("quiz_no_cards"));
+            return;
+        }
+        var card = pool.get(QUIZ_RANDOM.nextInt(pool.size()));
+        String result = room.startQuiz(session.user().id(), card.getName(), cardView(card, false));
+        if (!"ok".equals(result)) session.send(error(result));
+    }
+
+    /** La carta come la legge il client; senza nome per il quiz. */
+    private static Map<String, Object> cardView(com.capstone.vinyldex.entity.Card card, boolean withName) {
+        Map<String, Object> view = new java.util.LinkedHashMap<>();
+        // Nel quiz niente codice: dal codice si risalirebbe al nome.
+        view.put("id", withName ? card.getCode() : "quiz");
+        view.put("img", card.getImgUrl());
+        view.put("source", card.getSource());
+        view.put("rarity", card.getRarity());
+        view.put("fullImage", true);
+        if (withName) view.put("name", card.getName());
+        return view;
     }
 
     /** Rispetto a un giocatore presente nella stanza: lo vedono tutti, e chi lo da' sa quanti gliene restano. */

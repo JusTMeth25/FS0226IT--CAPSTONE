@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../services/apiClient.js';
 import { getRarityColor } from '../../utils/cardUtils.js';
 import AvatarPreview from './AvatarPreview.jsx';
 import PhotoGallery from '../../components/common/PhotoGallery.jsx';
+import CompareCollections from '../../components/card/CompareCollections.jsx';
 
 const BADGE_ICONS = {
   collector1: 'ph-cards', collector2: 'ph-cards-three', collector3: 'ph-crown-simple',
@@ -16,10 +18,11 @@ const BADGE_ICONS = {
  * distintivi e la carta migliore. Da qui si sussurra, si da' rispetto, si propone uno
  * scambio, si visita la sua stanza, lo si sfida.
  */
-export default function UserCard({ user, look, isMe, isOwner, respectVersion, onClose, onWhisper, onRespect, onKick, onVisit, onChallenge, onViewCard, onAddFriend, onWearBadge }) {
+export default function UserCard({ user, look, isMe, isOwner, respectVersion, onClose, onWhisper, onRespect, onKick, onVisit, onChallenge, onViewCard, onAddFriend, onWearBadge, onGift }) {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [comparing, setComparing] = useState(false);
 
   // Nella propria scheda un distintivo si indossa (o si toglie) con un click.
   const wear = (code) => {
@@ -107,6 +110,14 @@ export default function UserCard({ user, look, isMe, isOwner, respectVersion, on
           <button type="button" className="btn btn-secondary btn-small" onClick={() => navigate(`/trades?to=${encodeURIComponent(user.username)}`)}>
             <i className="ph-fill ph-arrows-left-right" /> Scambia
           </button>
+          {onGift && (
+            <button type="button" className="btn btn-secondary btn-small" onClick={onGift} title="Regala gold, una carta o un mobile (solo agli amici)">
+              <i className="ph-fill ph-gift" /> Regala
+            </button>
+          )}
+          <button type="button" className="btn btn-secondary btn-small" onClick={() => setComparing(true)}>
+            <i className="ph-fill ph-git-diff" /> Confronta
+          </button>
           {onChallenge && (
             <button type="button" className="btn btn-primary btn-small" onClick={onChallenge}>
               <i className="ph-fill ph-sword" /> Sfida
@@ -124,6 +135,8 @@ export default function UserCard({ user, look, isMe, isOwner, respectVersion, on
           )}
         </div>
       )}
+      {/* Fuori dalla scheda (che scorre e taglia): il confronto sta sopra tutto. */}
+      {comparing && createPortal(<CompareCollections user={user} onClose={() => setComparing(false)} />, document.body)}
     </div>
   );
 }

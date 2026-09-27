@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useGame } from '../../hooks/useGame.js';
 import { dedupeCollection } from '../../utils/collectionUtils.js';
+import SavedTeams from '../../components/card/SavedTeams.jsx';
 import { RARITIES, SOURCE_LABELS, getRarityColor, getSourceLabel, getTotalScore, resolveCardImage } from '../../utils/cardUtils.js';
 
 const CATEGORIES = [
@@ -138,6 +139,7 @@ export default function PvpPanel({ pvp, clockOffset, send, onClose }) {
         <p className="pvp-text">{pvp.teamSent ? 'Squadra pronta! Aspetto l\'avversario…' : 'Scegli 3 carte per la tua squadra.'}{pvp.opponentReady && ' L\'avversario e\' pronto.'}</p>
         {!pvp.teamSent && (
           <>
+            <SavedTeams compact cards={allCards} team={team} onLoad={setTeam} />
             <div className="pvp-filters">
               <input className="pvp-filter" type="search" placeholder="Cerca per nome…" value={search}
                 onChange={(e) => setSearch(e.target.value)} aria-label="Cerca per nome" />

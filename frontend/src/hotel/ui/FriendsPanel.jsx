@@ -17,7 +17,7 @@ const ERRORS = {
  * Amici dell'hotel: chi e' online e in che stanza (per raggiungerlo), le richieste in arrivo,
  * la chat privata. I messaggi nuovi arrivano dal WebSocket (prop `incoming`).
  */
-export default function FriendsPanel({ me, incoming, version, onJoin, onUnreadChange, onClose, gold = 0, mailVersion, onMailUnread, onMailChanged, initialTab = 'friends' }) {
+export default function FriendsPanel({ me, incoming, version, onJoin, onUnreadChange, onClose, gold = 0, mailVersion, onMailUnread, onMailChanged, initialTab = 'friends', mailTo = '' }) {
   const [data, setData] = useState(null);
   const [tab, setTab] = useState(initialTab);
   const [name, setName] = useState('');
@@ -112,7 +112,7 @@ export default function FriendsPanel({ me, incoming, version, onJoin, onUnreadCh
           </form>}
 
           {tab === 'mail' && (
-            <MailTab friends={friends} gold={gold} version={mailVersion} onUnread={onMailUnread} onChanged={onMailChanged} />
+            <MailTab friends={friends} gold={gold} version={mailVersion} onUnread={onMailUnread} onChanged={onMailChanged} initialTo={mailTo} />
           )}
           {tab === 'friends' && (
             <ul className="friends-list">

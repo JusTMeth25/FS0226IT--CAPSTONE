@@ -200,4 +200,28 @@ public final class NpcRoster {
     public static List<NpcSpec> forRoom(UUID roomId) {
         return roomId == null ? List.of() : ROSTER.getOrDefault(roomId, List.of());
     }
+
+    /** NPC con la sua stanza, ritrovato dall'id stabile (per esempio dalle carte che ha trovato). */
+    public record Located(UUID roomId, NpcSpec spec) {
+    }
+
+    /** NPC con la sua stanza, dalla chiave (per esempio "nando"). */
+    public static java.util.Optional<Located> byKey(String key) {
+        for (Map.Entry<UUID, List<NpcSpec>> room : ROSTER.entrySet()) {
+            for (NpcSpec spec : room.getValue()) {
+                if (spec.key().equals(key)) return java.util.Optional.of(new Located(room.getKey(), spec));
+            }
+        }
+        return java.util.Optional.empty();
+    }
+
+    public static java.util.Optional<Located> byId(UUID npcId) {
+        if (npcId == null) return java.util.Optional.empty();
+        for (Map.Entry<UUID, List<NpcSpec>> room : ROSTER.entrySet()) {
+            for (NpcSpec spec : room.getValue()) {
+                if (spec.id(room.getKey()).equals(npcId)) return java.util.Optional.of(new Located(room.getKey(), spec));
+            }
+        }
+        return java.util.Optional.empty();
+    }
 }

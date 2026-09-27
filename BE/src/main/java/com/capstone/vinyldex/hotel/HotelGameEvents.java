@@ -25,6 +25,10 @@ public final class HotelGameEvents {
     }
 
     /** Gol segnato allo stadio (anche nelle partite fra giocatori). */
+    /** Quiz "Indovina la carta": chi ha scritto per primo il nome giusto. */
+    public record QuizWon(UUID roomId, UUID userId, String username, String cardName) {
+    }
+
     public record GoalScored(UUID roomId, UUID userId, String username, String team) {
     }
 }

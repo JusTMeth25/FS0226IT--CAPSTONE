@@ -24,7 +24,8 @@ export function gradeTone(grade) {
 
 /** Valore stimato della copia gradata (prezzo di mercato per il moltiplicatore del voto). */
 export function gradedValue(card) {
-  const k = gradeInfo(card.grade).multiplier;
+  // La prima edizione numerata vale una volta e mezza, sopra il voto del perito.
+  const k = gradeInfo(card.grade).multiplier * (card.firstEdition ? 1.5 : 1);
   if (card.coinPrice > 0) return formatCoins(Math.round(card.coinPrice * k));
   if (card.marketPrice > 0) return formatMarketPrice(card.marketPrice * k);
   return null;

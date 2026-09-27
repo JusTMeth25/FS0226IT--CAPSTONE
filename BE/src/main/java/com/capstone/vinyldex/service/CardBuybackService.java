@@ -49,6 +49,18 @@ public class CardBuybackService {
         this.userCardService = userCardService;
     }
 
+    /** Prime edizioni numerate: una copia vale di piu'. Facoltativo, cosi' i test lo possono omettere. */
+    private CollectionExtrasService extras;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setExtras(CollectionExtrasService extras) {
+        this.extras = extras;
+    }
+
+    private Map<java.util.UUID, Integer> firstEditions(UUID userId) {
+        return extras == null ? Map.of() : extras.firstEditions(userId);
+    }
+
     /** Gold offerti per una copia; 0 se la carta non ha un prezzo di mercato. */
     public static int quote(Card card) {
         Double price = card.getMarketPrice();
@@ -80,10 +92,12 @@ public class CardBuybackService {
     /** Le carte della collezione che il negozio compra, dalla piu' pagata. */
     @Transactional(readOnly = true)
     public Quotes quotes(UUID userId) {
+        Map<UUID, Integer> serials = firstEditions(userId);
         List<Offer> offers = userCardRepository.findByUserIdWithCard(userId).stream()
                 .filter(uc -> uc.getQuantity() > 0 && quote(uc.getCard()) > 0)
                 .map(uc -> new Offer(cardView(uc.getCard(), uc.getGrade()), uc.getQuantity(), sellable(userId, uc),
-                        uc.getCard().getMarketPrice(), graded(quote(uc.getCard()), uc.getGrade())))
+                        uc.getCard().getMarketPrice(),
+                        CollectionExtrasService.withFirstEdition(graded(quote(uc.getCard()), uc.getGrade()), serials.get(uc.getCard().getId()))))
                 .sorted(Comparator.comparingInt(Offer::gold).reversed()
                         .thenComparing(Comparator.comparingDouble(Offer::marketPrice).reversed()))
                 .toList();
@@ -103,6 +117,9 @@ public class CardBuybackService {
         // La copia gradata vale di piu', ma solo una: le altre al prezzo normale.
         int total = each * quantity;
         if (owned.getGrade() != null) total += graded(each, owned.getGrade()) - each;
+        // Anche la copia numerata di prima edizione vale di piu' (una sola).
+        Integer serial = firstEditions(userId).get(card.getId());
+        if (serial != null) total += CollectionExtrasService.withFirstEdition(each, serial) - each;
 
         User user = owned.getUser();
         userCardService.remove(user, card, quantity);

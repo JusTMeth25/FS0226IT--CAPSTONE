@@ -100,6 +100,10 @@ public final class FurniCatalog {
         add(new FurniDef("trophy", "Trofeo", "arredo", 200, 1, 1, false, false, -1, false, true));
         add(new FurniDef("card_pedestal", "Vetrina", "carte", 150, 1, 1, false, false, -1, true, true));
         add(new FurniDef("card_frame", "Quadro carta", "carte", 100, 1, 1, true, false, -1, true, true));
+        // Teca 3D: la carta gira dentro una campana di vetro. Premio degli incarichi piu' difficili.
+        add(new FurniDef("card_case", "Teca 3D", "carte", 600, 1, 1, false, false, -1, true, true));
+        // Bacheca dei distintivi: a parete, mostra tutti i distintivi del padrone della stanza.
+        add(new FurniDef("badge_board", "Bacheca distintivi", "carte", 250, 1, 1, true, false, -1, false, true));
         add(new FurniDef("poster_neon", "Poster neon", "pareti", 40, 1, 1, true, false, -1, false, true));
         add(new FurniDef("armchair", "Poltrona", "sedute", 90, 1, 1, false, false, 2, false, true));
         add(new FurniDef("bar_stool", "Sgabello", "sedute", 35, 1, 1, false, false, 2, false, true));

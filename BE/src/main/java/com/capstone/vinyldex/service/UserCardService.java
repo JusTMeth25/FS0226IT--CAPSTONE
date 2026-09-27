@@ -26,14 +26,25 @@ public class UserCardService {
         this.userCardRepository = userCardRepository;
     }
 
+    /** Prima edizione: chi trova una carta fra i primi dieci riceve la copia numerata. */
+    private CollectionExtrasService extras;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setExtras(@org.springframework.context.annotation.Lazy CollectionExtrasService extras) {
+        this.extras = extras;
+    }
+
     /** Aggiunge copie, creando la riga di collezione se l'utente non aveva ancora la carta. */
     @Transactional(propagation = Propagation.MANDATORY)
     public UserCard add(User user, Card card, int quantity) {
         UserCard userCard = userCardRepository.findByUserIdAndCardId(user.getId(), card.getId())
                 .orElseGet(() -> new UserCard(user, card, 0));
+        boolean firstCopy = userCard.getQuantity() == 0;
         userCard.setQuantity(userCard.getQuantity() + quantity);
         userCard.setObtainedAt(Instant.now());
-        return userCardRepository.save(userCard);
+        UserCard saved = userCardRepository.save(userCard);
+        if (firstCopy && extras != null && card.getId() != null) extras.claimFirstEdition(user.getId(), card.getId());
+        return saved;
     }
 
     /**

@@ -10,8 +10,10 @@ import { AuthProvider } from './context/AuthContext.jsx'
 import { GameProvider } from './context/GameContext.jsx'
 import { SoundProvider } from './context/SoundContext.jsx'
 import { initNativeApp } from './services/nativeInit.js'
+import { registerServiceWorker } from './services/pwa.js'
 
 initNativeApp()
+registerServiceWorker()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

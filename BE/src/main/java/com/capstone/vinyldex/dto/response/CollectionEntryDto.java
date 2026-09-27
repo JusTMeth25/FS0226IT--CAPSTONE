@@ -38,8 +38,16 @@ public record CollectionEntryDto(
         int foil,
         // Cofanetto del perito: numero di certificato e quando e' stata gradata.
         String gradeCert,
-        Instant gradedAt
+        Instant gradedAt,
+        // Prima edizione: numero da 1 a 10 se il giocatore e' fra i primi dieci ad averla trovata.
+        Integer firstEdition
 ) {
+
+    public CollectionEntryDto withFirstEdition(Integer serial) {
+        return new CollectionEntryDto(id, name, artistClass, variant, group, rarity, img, fullImage, stats, description,
+                source, setName, setCode, number, marketPrice, coinPrice, owned, quantity, favorite, obtainedAt, grade, foil,
+                gradeCert, gradedAt, serial);
+    }
 
     public static CollectionEntryDto from(Card card, UserCard userCard) {
         CardDto base = CardDto.from(card);
@@ -54,7 +62,8 @@ public record CollectionEntryDto(
                 userCard != null ? userCard.getGrade() : null,
                 userCard != null ? userCard.getFoilCount() : 0,
                 userCard != null && userCard.getGrade() != null ? certificate(userCard) : null,
-                userCard != null ? userCard.getGradedAt() : null
+                userCard != null ? userCard.getGradedAt() : null,
+                null
         );
     }
 

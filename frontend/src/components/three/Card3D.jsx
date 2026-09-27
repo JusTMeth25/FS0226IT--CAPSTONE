@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Float, Lightformer, PresentationControls, RoundedBox, Sparkles } from '@react-three/drei';
-import { CanvasTexture, DoubleSide, MathUtils, Quaternion, SRGBColorSpace } from 'three';
+import { CanvasTexture, DoubleSide, FrontSide, MathUtils, Quaternion, SRGBColorSpace } from 'three';
 import { getRarityColor, resolveCardImage } from '../../utils/cardUtils.js';
 import { getTier } from './rarityTiers.js';
 import { coverScale } from './holoMaterial.js';
@@ -107,10 +107,10 @@ function SlabCase({ card }) {
         <planeGeometry args={[SLAB_W - 0.24, SLAB_LABEL_H]} />
         <meshStandardMaterial color="#f5f5f0" roughness={0.6} />
       </mesh>
-      {/* Culla scura attorno alla carta. */}
+      {/* Culla scura attorno alla carta, solo sul davanti: girando il cofanetto si vede il dorso vero della carta. */}
       <mesh position={[0, 0, -0.03]}>
         <planeGeometry args={[CARD_W + 0.16, CARD_H + 0.16]} />
-        <meshStandardMaterial color="#0f1222" roughness={0.8} side={DoubleSide} />
+        <meshStandardMaterial color="#0f1222" roughness={0.8} side={FrontSide} />
       </mesh>
     </group>
   );

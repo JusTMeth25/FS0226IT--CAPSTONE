@@ -11,6 +11,7 @@ import CardTile from '../components/card/CardTile.jsx';
 import RevealSpark from '../components/common/RevealSpark.jsx';
 import StarBorder from '../components/common/StarBorder.jsx';
 import ScrollToTopButton from '../components/common/ScrollToTopButton.jsx';
+import SavedTeams from '../components/card/SavedTeams.jsx';
 
 const CATEGORIES = ['fans', 'style', 'influence', 'energy'];
 const CATEGORY_NAMES = { fans: 'Fans', style: 'Style', influence: 'Influence', energy: 'Energy' };
@@ -473,6 +474,8 @@ export default function BattlePage() {
             </div>
           ))}
         </div>
+
+        <SavedTeams cards={collectionCards} team={b.team} onLoad={(team) => update({ team, selectedSlot: 0 })} />
 
         <div className="battle-mode-actions">
           <button className="btn btn-primary btn-large" disabled={filledCount < 3} onClick={startBattle}><i className="ph-fill ph-sword" /> Inizia Battaglia</button>

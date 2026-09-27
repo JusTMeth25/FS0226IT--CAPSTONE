@@ -30,13 +30,13 @@ public class LeaderboardService {
     @Transactional(readOnly = true)
     public List<LeaderboardEntryDto> getLeaderboard(String type) {
         return switch (type == null ? "collection" : type.toLowerCase()) {
-            case "gold" -> userRepository.findByBannedFalseOrderByGoldDesc(TOP).stream()
+            case "gold" -> userRepository.findByBannedFalseAndNpcFalseOrderByGoldDesc(TOP).stream()
                     .map(u -> new LeaderboardEntryDto(u.getId(), u.getUsername(), u.getGold()))
                     .toList();
 
             // Chi non ha ancora vinto nulla resta fuori: una classifica di zeri non dice niente.
             case "battles" -> userRepository
-                    .findByBannedFalseAndBattlesWonGreaterThanOrderByBattlesWonDesc(0, TOP).stream()
+                    .findByBannedFalseAndNpcFalseAndBattlesWonGreaterThanOrderByBattlesWonDesc(0, TOP).stream()
                     .map(u -> new LeaderboardEntryDto(u.getId(), u.getUsername(), u.getBattlesWon()))
                     .toList();
 

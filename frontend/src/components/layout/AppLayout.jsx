@@ -10,6 +10,8 @@ import GoldFlight from '../fx/GoldFlight.jsx';
 import { useSurfaceFx } from '../../hooks/useSurfaceFx.js';
 import { useScrollRestoration } from '../../hooks/useScrollRestoration.js';
 import HotelProvider from '../../hotel/HotelProvider.jsx';
+import PageTour from '../common/PageTour.jsx';
+import { useFreePackNotifier } from '../../hooks/useFreePackNotifier.js';
 
 export default function AppLayout() {
   const location = useLocation();
@@ -18,6 +20,8 @@ export default function AppLayout() {
   // Alone al passaggio del puntatore e comparsa allo scroll su ogni pannello di vetro.
   // Passa da qui e non dalle singole pagine: cosi' vale anche per i pannelli futuri.
   useSurfaceFx(viewRef, location.pathname);
+  // Notifica "pacchetto gratis pronto" (se l'utente l'ha chiesta), su qualunque pagina.
+  useFreePackNotifier();
 
   // Tornando indietro da una carta si riprende la collezione dal punto in cui si era,
   // invece di ripartire dall'inizio dell'elenco.
@@ -28,6 +32,7 @@ export default function AppLayout() {
     // nella stanza e si ricevono sfide e scambi.
     <HotelProvider>
       <GoldFlight />
+      <PageTour key={location.pathname} path={location.pathname} />
 
       <div className="app-shell">
         <Sidebar />

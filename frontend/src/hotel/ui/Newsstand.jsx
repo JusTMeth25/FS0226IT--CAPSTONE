@@ -10,6 +10,8 @@ import CardBuyback from './CardBuyback.jsx';
  */
 export default function Newsstand({ gold, owned, buying, onBuy, onOpenBag, onCardSold, onClose }) {
   const [tab, setTab] = useState('buy');
+  // Il pacchetto del weekend si vende solo sabato e domenica (il server lo controlla comunque).
+  const [weekendOpen] = useState(() => [0, 6].includes(new Date().getDay()));
   return (
     <div className="hotel-panel hotel-newsstand" role="dialog" aria-label="Edicola">
       <header className="hotel-panel-header">
@@ -32,7 +34,7 @@ export default function Newsstand({ gold, owned, buying, onBuy, onOpenBag, onCar
         <>
           <p className="hotel-panel-hint">I pacchetti comprati vanno nella borsa: aprili da li&apos; quando vuoi.</p>
           <ul className="hotel-pack-grid">
-            {PACKS.map((pack) => {
+            {PACKS.filter((pack) => !pack.weekend || weekendOpen).map((pack) => {
               const count = owned[pack.id] || 0;
               return (
                 <li key={pack.id} className="hotel-pack-card">
