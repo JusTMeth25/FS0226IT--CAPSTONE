@@ -21,6 +21,21 @@ import java.util.UUID;
 @RequestMapping("/api/hotel")
 public class HotelController {
 
+    private com.capstone.vinyldex.hotel.RockScoreService rockScores;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setRockScores(com.capstone.vinyldex.hotel.RockScoreService rockScores) {
+        this.rockScores = rockScores;
+    }
+
+    /** Classifica della gara rock per canzone, difficolta' e strumento. */
+    @org.springframework.web.bind.annotation.GetMapping("/rock-scores")
+    public java.util.Map<String, Object> rockScores(@org.springframework.web.bind.annotation.RequestParam String song,
+                                                    @org.springframework.web.bind.annotation.RequestParam String difficulty,
+                                                    @org.springframework.web.bind.annotation.RequestParam(defaultValue = "guitar") String instrument) {
+        return java.util.Map.of("top", rockScores == null ? java.util.List.of() : rockScores.top(song, difficulty, instrument));
+    }
+
     private final HotelSocialService socialService;
     private final UserRepository userRepository;
     private final com.capstone.vinyldex.hotel.NpcQuestService questService;

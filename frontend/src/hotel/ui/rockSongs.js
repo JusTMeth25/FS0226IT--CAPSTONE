@@ -8,12 +8,22 @@
  * Il tasto sceglie la nota: i cinque tasti sono i cinque gradi della scala pentatonica minore
  * sopra la fondamentale della battuta (roots), suonati come power chord distorti.
  * Le sezioni "star" sono le frasi con le note stella: prendendole tutte si carica lo star power.
+ * Altre opzioni della sezione:
+ *   scale  'minor' (pentatonica minore, di base) o 'major' (pentatonica maggiore)
+ *   lead   note singole della chitarra solista (assoli, arpeggi), non power chord; "up" le alza
+ *          di altrettanti semitoni. Le note lunghe dell'assolo si piegano (bending) e vibrano.
+ *   tone   'clean' per la chitarra pulita (fingerpicking), altrimenti distorta
+ *   keys   'synth' (tappeto di sintetizzatore sulla battuta) o 'piano' (accordi a tempo con la chitarra)
  */
 
 /** Gradi della pentatonica minore per i cinque tasti (semitoni sopra la fondamentale). */
 export const LANE_STEPS = [0, 3, 5, 7, 10];
+/** Scale dei cinque tasti: pentatonica minore (quella di sempre) e maggiore. */
+export const SCALES = { minor: LANE_STEPS, major: [0, 2, 4, 7, 9] };
 export const LANE_COLORS = ['#22c55e', '#ef4444', '#facc15', '#3b82f6', '#f97316'];
 export const LANE_NAMES = ['Verde', 'Rosso', 'Giallo', 'Blu', 'Arancione'];
+/** Batteria: cassa, rullante, charleston, piatto. */
+export const DRUM_COLORS = ['#f97316', '#ef4444', '#facc15', '#3b82f6'];
 
 /** Moltiplicatore della serie: x1, poi x2 dopo 10 note di fila, x3 dopo 20, x4 dopo 30. */
 export const multOf = (streak) => Math.min(4, 1 + Math.floor(streak / 10));
@@ -25,7 +35,13 @@ export const DRUMS = {
   metal: { kick: 'x.xxx.xxx.xxx.xx', snare: '....x.......x...', hat: 'x...x...x...x...' },
   glam: { kick: 'x.......x.x.....', snare: '....x.......x...', hat: 'x.o.x.o.x.o.x.o.' },
   ballad: { kick: 'x.......x.......', snare: '........x.......', hat: 'x...x...x...x...' },
-  half: { kick: 'x.......x.......', snare: '........x.......', hat: 'x.x.x.x.x.x.x.x.' }
+  half: { kick: 'x.......x.......', snare: '........x.......', hat: 'x.x.x.x.x.x.x.x.' },
+  // Shuffle in half time (quello dei turnisti californiani): charleston con il passo zoppo.
+  shuffle: { kick: 'x.....x...x.....', snare: '........x.......', hat: 'x..xx..xx..xx..x' },
+  // Indie dance anni 2000: cassa in quattro, charleston aperto in levare.
+  dance: { kick: 'x...x...x...x...', snare: '....x.......x...', hat: 'x.o.x.o.x.o.x.o.' },
+  // Hard rock da stadio: cassa che galoppa.
+  gallop: { kick: 'x.x...x.x.x...x.', snare: '....x.......x...', hat: 'x.x.x.x.x.x.x.x.' }
 };
 
 const E = 40;
@@ -34,6 +50,8 @@ const D = 38;
 const G = 43;
 const B = 47;
 const C = 48;
+const FS = 42;
+const BB = 46;
 
 export const SONGS = [
   {
@@ -111,6 +129,112 @@ export const SONGS = [
       { drums: 'half', star: true, bars: ['2-------3-------', '4-------3-------', '2-------3-------', '1---------------'], roots: [D, A, G, D] },
       { drums: 'half', bars: ['G.R.Y.B.O---B---', 'Y.R.G.R.Y---B---', 'O.B.Y.R.G---R---', '1---------------'], roots: [D, A, G, D] }
     ]
+  },
+  // ---------------------------------------------------------------- canzoni con gli assoli
+  // Brani originali nello stile delle grandi band: riff, ritornelli da stadio e assoli lunghi.
+  {
+    id: 'sultani',
+    title: 'Sultani del Naviglio',
+    band: 'Canali Stretti',
+    genre: 'Pub rock, chitarra pulita',
+    style: 'Dire Straits',
+    bpm: 148,
+    level: 3,
+    sections: [
+      { drums: 'half', tone: 'clean', lead: true, up: 12, bars: ['G.R.Y.R.G...B-..', 'Y.R.G.R.Y...R-..'], roots: [D, C] },
+      { drums: 'rock', tone: 'clean', repeat: 2, bars: ['G...Y...G.R.Y...', '1...2...1.......', 'G...Y...G.R.Y...', '3...2...1-------'], roots: [D, C, BB, A] },
+      { drums: 'rock', tone: 'clean', star: true, bars: ['2-..2-..3-..2...', '1-..1-..2-..1...', '2-..2-..3-..2...', '4-------3-------'], roots: [D, C, BB, A] },
+      { drums: 'rock', tone: 'clean', lead: true, up: 12, star: true, bars: ['G.RY.B.O.B.YR.G.', 'YBOBYBOBY-..R.G.', 'GRYRGRYRBOBOBOBO', 'O-------B-Y-R-G-'], roots: [D, C, BB, A] },
+      { drums: 'rock', tone: 'clean', bars: ['G...Y...G.R.Y...', '1...2...1.......', 'G...Y...G.R.Y...', '3...2...1-------'], roots: [D, C, BB, A] },
+      {
+        drums: 'rock', tone: 'clean', lead: true, up: 12, star: true,
+        bars: ['GRYBGRYBRYBORYBO', 'OBYROBYROBYROBYR', 'GYGYRBRBYOYOBOBO', 'OBOBOBOBYBYBYBYB', 'GRYBOBYRGRYBOBYR', 'O.O.B.B.O.O.B.B.', 'OBYRGRYBOBYRGRYB', 'O---------------'],
+        roots: [D, C, BB, A, D, C, BB, A]
+      }
+    ]
+  },
+  {
+    id: 'viale',
+    title: 'Viale Luminoso',
+    band: 'I Sicari del Neon',
+    genre: 'Indie rock anni 2000',
+    style: 'The Killers',
+    bpm: 148,
+    level: 2,
+    sections: [
+      { drums: 'half', lead: true, up: 12, scale: 'major', keys: 'synth', bars: ['G.G.R.G.Y.G.R.G.', 'G.G.R.G.B.Y.R.G.'], roots: [D, D] },
+      { drums: 'dance', scale: 'major', repeat: 2, bars: ['G.G.G.G.G.G.G.G.', 'G.G.G.G.R.R.R.R.', 'Y.Y.Y.Y.Y.Y.Y.Y.', 'R.R.R.R.G.G.G.G.'], roots: [D, FS, G, D] },
+      { drums: 'dance', scale: 'major', keys: 'synth', star: true, bars: ['1.1.1.1.1.1.1.1.', '2.2.2.2.2.2.2.2.', '3.3.3.3.3.3.3.3.', '2.2.2.2.1---....'], roots: [D, FS, G, D] },
+      { drums: 'dance', scale: 'major', keys: 'synth', bars: ['1...1...2...2...', '3...3...4...4...', '1.1.2.2.3.3.4.4.', 'OOOOBBBBYYYYRRRR'], roots: [G, G, D, A] },
+      { drums: 'dance', scale: 'major', lead: true, up: 12, star: true, bars: ['G-R-Y-B-O-B-Y-R-', 'GRYBOBYRGRYBOBYR', 'O-------B-------', 'Y-B-O-B-Y-R-G---'], roots: [D, FS, G, D] },
+      { drums: 'dance', scale: 'major', keys: 'synth', star: true, bars: ['1.1.1.1.1.1.1.1.', '2.2.2.2.2.2.2.2.', '3.3.3.3.3.3.3.3.', '1---------------'], roots: [D, FS, G, D] }
+    ]
+  },
+  {
+    id: 'giungla',
+    title: 'Giungla di Neon',
+    band: 'Rose e Revolver',
+    genre: 'Hard rock anni 80',
+    style: "Guns N' Roses",
+    bpm: 124,
+    level: 4,
+    sections: [
+      { drums: 'half', lead: true, up: 12, scale: 'major', bars: ['G.O.B.Y.O.B.R.B.', 'G.O.B.Y.O.B.R.B.', 'G.O.B.Y.O.B.R.B.', 'G.O.B.Y.O.B.R.B.'], roots: [D, C, G, D] },
+      { drums: 'rock', scale: 'major', repeat: 2, bars: ['G...G.R.Y...G...', 'G...G.R.B.Y.R...', 'G...G.R.Y...G...', 'Y-..R-..G-......'], roots: [D, C, G, D] },
+      { drums: 'rock', scale: 'major', star: true, bars: ['1-..1.2.3-..2...', '1-..1.2.3-..2...', '2-..2.3.4-..3...', '4-------3-------'], roots: [G, D, A, D] },
+      {
+        drums: 'rock', lead: true, up: 12, star: true,
+        bars: ['G.R.Y.B.O---B-Y-', 'R.Y.B.O.B.Y.R.G.', 'OBOBOBOBYBYBYBYB', 'O-------Y-------', 'GRYBOBYRGRYBOBYR', 'RYBORYBORYBORYBO', 'O.B.O.B.Y.B.Y.R.', 'O---------------'],
+        roots: [E, E, A, E, E, E, A, B]
+      },
+      { drums: 'half', bars: ['1-------2-------', '3-------2-------', '1-------2-------', '4---------------'], roots: [C, D, E, E] },
+      {
+        drums: 'gallop', lead: true, up: 12, star: true,
+        bars: ['GRYBOBYRGRYBOBYR', 'OBYROBYROBYROBYR', 'GYRBYOBOGYRBYOBO', 'OOBBYYRRGGRRYYBB', 'OBOBOBOBOBOBOBOB', 'YBYBYBYBRYRYRYRY', 'GRYBOBYRGRYBO---', 'O---------------'],
+        roots: [E, E, A, A, E, E, B, E]
+      }
+    ]
+  },
+  {
+    id: 'uragano',
+    title: 'Uragano di Vinile',
+    band: 'Pungiglione',
+    genre: 'Hard rock da stadio',
+    style: 'Scorpions',
+    bpm: 126,
+    level: 3,
+    sections: [
+      { drums: 'half', bars: ['G.GG.GG.G.GG.GG.', 'G.GG.GG.Y.R.G...'], roots: [E, E] },
+      { drums: 'gallop', repeat: 2, bars: ['G...Y...G.R.Y.R.', 'G...Y...B.Y.R...', 'G...Y...G.R.Y.R.', 'O-..B-..Y-..R...'], roots: [E, E, E, E] },
+      { drums: 'gallop', star: true, bars: ['1---1.1.3---3...', '2---2.2.4---....', '1---1.1.3---3...', '4-------1-------'], roots: [E, A, E, B] },
+      { drums: 'ballad', tone: 'clean', lead: true, up: 12, bars: ['G-------R---Y---', 'B-------Y-------', 'G-------R---Y---', 'O---------------'], roots: [E, A, E, B] },
+      {
+        drums: 'gallop', lead: true, up: 12, star: true,
+        bars: ['G.R.Y.B.O-B-Y-R-', 'OBYROBYRO---B---', 'GRYBGRYBRYBORYBO', 'O-------B-------', 'OBOBOBOBYBYBRYRY', 'GRYBOBYRGRYBOBYR', 'O.O.O.O.B.B.B.B.', 'O---------------'],
+        roots: [E, E, A, A, E, E, B, E]
+      },
+      { drums: 'gallop', star: true, bars: ['1---1.1.3---3...', '2---2.2.4---....', '1---1.1.3---3...', '1---------------'], roots: [E, A, E, E] }
+    ]
+  },
+  {
+    id: 'rosa',
+    title: 'Rosa dei Venti',
+    band: 'I Totem',
+    genre: 'West Coast AOR',
+    style: 'Toto',
+    bpm: 96,
+    level: 4,
+    sections: [
+      { drums: 'shuffle', scale: 'major', keys: 'piano', bars: ['1..1..1.1..1..1.', '2..2..2.2..2..2.'], roots: [G, D] },
+      { drums: 'shuffle', scale: 'major', keys: 'piano', repeat: 2, bars: ['G..R..Y.G..R..Y.', 'B..Y..R.G.......', 'G..R..Y.G..R..Y.', 'Y..R..G.R-------'], roots: [G, D, E, C] },
+      { drums: 'shuffle', scale: 'major', keys: 'piano', star: true, bars: ['2-----2-3-----..', '1-----1-2-------', '2-----2-3-----..', '4---------------'], roots: [G, D, C, D] },
+      {
+        drums: 'shuffle', scale: 'major', lead: true, up: 12, star: true,
+        bars: ['G..R..Y.B-..O-..', 'OBYRGRYBO-------', 'GRYBOBYRGRYBOBYR', 'O---B---Y---R---', 'YBOBYBOBYBOBYBOB', 'GRGRYRYRBYBYOBOB', 'OBYRGRYBOBYRGRYB', 'O---------------'],
+        roots: [G, D, E, C, G, D, C, D]
+      },
+      { drums: 'shuffle', scale: 'major', keys: 'piano', star: true, bars: ['2-----2-3-----..', '1-----1-2-------', '2-----2-3-----..', '1---------------'], roots: [G, D, C, G] }
+    ]
   }
 ];
 
@@ -130,7 +254,8 @@ export function songBars(song) {
     for (let rep = 0; rep < (section.repeat || 1); rep += 1) {
       section.bars.forEach((pattern, i) => bars.push({
         pattern, root: section.roots[i % section.roots.length], drums: section.drums, tone: section.tone || 'drive',
-        star: !!section.star, phrase: `${index}:${rep}`, first: i === 0
+        star: !!section.star, phrase: `${index}:${rep}`, first: i === 0, scale: section.scale || 'minor',
+        lead: !!section.lead, up: section.up || 0, keys: section.keys || null
       }));
     }
   });
@@ -151,7 +276,7 @@ export function fullNotes(song) {
       while (i + length < 16 && bar.pattern[i + length] === '-') length += 1;
       notes.push({
         bar: b, step: i, time: (b * 16 + i) * step, lanes, sustain: length >= 4 ? length * step : 0,
-        root: bar.root, tone: bar.tone, star: bar.star, phrase: bar.phrase
+        root: bar.root, tone: bar.tone, star: bar.star, phrase: bar.phrase, scale: bar.scale, lead: bar.lead, up: bar.up
       });
     }
   });
@@ -170,6 +295,34 @@ export function buildChart(song, difficulty) {
     .filter((n) => n.step % every === 0)
     .map((n, id) => ({ ...n, id, lanes: [...new Set(n.lanes.map((l) => map[l]))], hit: false, missed: false }));
   return { ...full, chart };
+}
+
+/**
+ * Spartito della batteria dalla batteria della canzone: cassa, rullante, charleston (anche
+ * aperto) e il piatto all'inizio di ogni sezione. Facile: cassa, rullante e piatto sui quarti;
+ * Medio: anche il charleston, sugli ottavi; Difficile: tutto. Colpi insieme = accordi.
+ */
+export function buildDrumChart(song, difficulty) {
+  const bars = songBars(song);
+  const step = 60000 / song.bpm / 4;
+  const every = difficulty.lanes === 3 ? 4 : difficulty.lanes === 4 ? 2 : 1;
+  const chart = [];
+  bars.forEach((bar, b) => {
+    const d = DRUMS[bar.drums] || DRUMS.rock;
+    for (let i = 0; i < 16; i += every) {
+      const lanes = [];
+      if (d.kick[i] === 'x') lanes.push(0);
+      if (d.snare[i] === 'x') lanes.push(1);
+      if ((d.hat[i] === 'x' || d.hat[i] === 'o') && difficulty.lanes > 3) lanes.push(2);
+      if (i === 0 && bar.first) lanes.push(3);
+      if (!lanes.length) continue;
+      chart.push({
+        id: chart.length, bar: b, step: i, time: (b * 16 + i) * step, lanes: lanes.slice(0, difficulty.lanes === 3 ? 1 : 2), sustain: 0,
+        root: bar.root, tone: bar.tone, star: bar.star, phrase: bar.phrase, hit: false, missed: false
+      });
+    }
+  });
+  return { ...fullNotes(song), chart };
 }
 
 /** Punteggio perfetto senza star power: 50 punti per tasto, moltiplicatore che sale con la serie, note lunghe. */

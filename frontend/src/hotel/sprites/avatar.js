@@ -62,6 +62,26 @@ export const WATCHES = ['Nessuno', 'Rolaix Submarino', 'Rolaix Daytona d\'oro', 
 export const NECKLACES = ['Nessuna', 'Collana di perle', 'Catena d\'oro', 'Riviera di diamanti', 'Pendente smeraldo',
   'Collier di rubini', 'Medaglione d\'oro'];
 export const EARRINGS = ['Nessuno', 'Punti luce', 'Cerchi d\'oro', 'Perle pendenti', 'Gocce di smeraldo', 'Rubini', 'Zaffiri'];
+/**
+ * Gatti rockstar: le leggende delle carte originali di VinylDex (la band del Locale Rock).
+ * Parte "k" del codice aspetto, solo per i personaggi dell'hotel: pelo, strisce, occhi e un
+ * dettaglio (corona, visiera d'oro, bocca aperta a urlare, muso scuro del siamese).
+ */
+export const CATS = ['Nessuno', 'Riot Avenue', 'Royal Echo', 'Digital God', 'Whisker Riot', 'Thunder Chord',
+  "Virtuoso's Soul", 'Lyric Storm', 'Astral Lullaby', 'Future Frequency'];
+const CAT_STYLES = [
+  null,
+  { fur: '#a9804d', stripes: '#5b3b1d', muzzle: '#e6d2b0', eyes: '#84cc16' },
+  { fur: '#24212b', muzzle: '#3a3644', eyes: '#38bdf8', odd: '#facc15', extra: 'crown' },
+  { fur: '#1d1b24', muzzle: '#34313d', eyes: '#facc15', extra: 'visor' },
+  { fur: '#8e8b96', stripes: '#44414c', muzzle: '#d9d6de', eyes: '#a855f7', extra: 'scream' },
+  { fur: '#e0883a', stripes: '#9a4d14', muzzle: '#f6dcc0', eyes: '#fde047' },
+  { fur: '#efebe4', muzzle: '#ffffff', eyes: '#60a5fa', odd: '#34d399' },
+  { fur: '#6f7e95', muzzle: '#9aa7ba', eyes: '#fbbf24' },
+  { fur: '#d9c6ea', stripes: '#b49ad0', muzzle: '#f3ecfa', eyes: '#f472b6', extra: 'stars' },
+  { fur: '#eadabd', muzzle: '#4b3426', eyes: '#3b82f6', points: '#4b3426' }
+];
+
 export const RIDES = ['A piedi', 'Skateboard street', 'Longboard', 'BMX', 'Bici da corsa', 'Ferraro Spider rossa',
   'Lamborgo Toro giallo', 'Porsa Novecento undici', 'Bugatto Hypercar nera', 'Lotto Coupe\' blu'];
 
@@ -165,7 +185,7 @@ export const LUXURY_PARTS = [
 ];
 
 /** Ordine delle parti nel codice salvato: le prime cinque sono quelle della prima versione. */
-const CODE_ORDER = ['s', 'h', 'hc', 'sh', 'p', 't', 'f', 'a', 'b', 'o', 'w', 'r', 'n', 'e', 'g'];
+const CODE_ORDER = ['s', 'h', 'hc', 'sh', 'p', 't', 'f', 'a', 'b', 'o', 'w', 'r', 'n', 'e', 'g', 'k'];
 
 export const DEFAULT_LOOK = 's1.h1.hc0.sh0.p0.t0.f0.a0.b0';
 
@@ -175,7 +195,7 @@ export function fixLook(parts) {
 }
 
 export function parseLook(look) {
-  const parts = { s: 1, h: 1, hc: 0, sh: 0, p: 0, t: 0, f: 0, a: 0, b: 0, o: 0, w: 0, r: 0, n: 0, e: 0, g: 0 };
+  const parts = { s: 1, h: 1, hc: 0, sh: 0, p: 0, t: 0, f: 0, a: 0, b: 0, o: 0, w: 0, r: 0, n: 0, e: 0, g: 0, k: 0 };
   (look || DEFAULT_LOOK).split('.').forEach((part) => {
     const match = /^([a-z]+)(\d+)$/.exec(part);
     if (match && match[1] in parts) parts[match[1]] = Number(match[2]);
@@ -186,16 +206,19 @@ export function parseLook(look) {
   LUXURY_PARTS.forEach(({ key, names }) => {
     if (!(parts[key] >= 0 && parts[key] < names.length)) parts[key] = 0;
   });
+  if (!(parts.k >= 0 && parts.k < CATS.length)) parts.k = 0;
   return fixLook(parts);
 }
 
 export function formatLook(parts) {
   // I pezzi dei negozi si scrivono solo se ce n'e' almeno uno: i codici di sempre restano uguali.
   // Collana e orecchini vengono dopo e solo se c'e' uno dei due (o la chitarra, che chiude il codice).
-  const guitar = parts.g;
+  const cat = parts.k;
+  const guitar = parts.g || cat;
   const jewels = guitar || parts.n || parts.e;
   const luxury = jewels || parts.o || parts.w || parts.r;
   return CODE_ORDER.filter((key) => {
+    if (key === 'k') return cat;
     if (key === 'g') return guitar;
     if (key === 'n' || key === 'e') return jewels;
     return luxury || !['o', 'w', 'r'].includes(key);
@@ -749,6 +772,83 @@ function drawAccessory(ctx, y0, a, back) {
   }
 }
 
+/**
+ * Testa da gatto al posto di capelli, orecchie e viso: orecchie a punta, strisce del tigrato,
+ * occhi grandi con la pupilla a fessura, muso chiaro, naso rosa e baffi.
+ */
+function drawCatHead(ctx, y0, cat, back) {
+  const cy = y0 + 24;
+  const { fur } = cat;
+  const dark = shade(fur, -0.3);
+  const inner = '#f9a8d4';
+  // Orecchie: triangoli sopra la testa, con l'interno rosa.
+  const ear = (x0, pink) => {
+    for (let i = 0; i < 8; i += 1) {
+      const w = Math.max(1, 8 - i);
+      const x = x0 + Math.floor(i / 2);
+      px(ctx, x, cy - 11 - i, w, 1, cat.points || fur);
+      if (pink && i < 5 && w > 3) px(ctx, x + 2, cy - 11 - i, w - 4, 1, inner);
+    }
+  };
+  ear(13, !back);
+  ear(27, !back);
+  // Strisce del tigrato sulla fronte (e sulla nuca).
+  if (cat.stripes) {
+    [21, 25, 29].forEach((x, i) => px(ctx, x, cy - 12, 2, 4 - (i % 2), cat.stripes));
+    px(ctx, 13, cy - 3, 4, 1, cat.stripes);
+    px(ctx, 13, cy + 1, 3, 1, cat.stripes);
+    if (back) [16, 24, 32].forEach((x) => px(ctx, x, cy - 6, 2, 10, cat.stripes));
+  }
+  if (cat.extra === 'stars') {
+    px(ctx, 18, cy - 8, 1, 1, '#fef08a');
+    px(ctx, 33, cy - 9, 1, 1, '#fef08a');
+    px(ctx, 26, cy - 11, 1, 1, '#ffffff');
+  }
+  if (cat.extra === 'crown') {
+    // Corona d'oro fra le orecchie.
+    px(ctx, 18, cy - 15, 13, 4, '#facc15');
+    [18, 22, 26, 30].forEach((x) => px(ctx, x, cy - 18, 1, 3, '#facc15'));
+    px(ctx, 18, cy - 15, 13, 1, '#fde68a');
+    px(ctx, 21, cy - 14, 2, 2, '#ef4444');
+    px(ctx, 26, cy - 14, 2, 2, '#3b82f6');
+  }
+  if (back) return;
+  // Muso chiaro (scuro nel siamese) sotto gli occhi.
+  blob(ctx, 29, cy + 5, 7, 4.5, cat.muzzle);
+  if (cat.extra === 'visor') {
+    // Visiera d'oro sugli occhi, con la luce che scorre.
+    px(ctx, 19, cy - 4, 19, 5, '#d4a017');
+    px(ctx, 19, cy - 4, 19, 1, '#fde68a');
+    px(ctx, 24, cy - 2, 6, 1, '#fff7c2');
+  } else {
+    const eye = (x, w, color) => {
+      px(ctx, x, cy - 3, w, 5, color);
+      px(ctx, x + Math.floor(w / 2), cy - 3, 1, 5, '#0b0b10');
+      px(ctx, x, cy - 3, 1, 1, '#ffffff');
+      px(ctx, x - 1, cy - 4, w + 2, 1, dark);
+    };
+    eye(23, 4, cat.eyes);
+    eye(31, 3, cat.odd || cat.eyes);
+  }
+  // Naso rosa e bocca.
+  px(ctx, 28, cy + 2, 3, 2, '#f472b6');
+  px(ctx, 29, cy + 4, 1, 1, '#f472b6');
+  if (cat.extra === 'scream') {
+    // Bocca spalancata a urlare, con le zanne.
+    px(ctx, 26, cy + 5, 7, 5, '#7f1d1d');
+    px(ctx, 27, cy + 7, 5, 3, '#ef4444');
+    px(ctx, 26, cy + 5, 1, 2, '#ffffff');
+    px(ctx, 32, cy + 5, 1, 2, '#ffffff');
+  } else {
+    px(ctx, 27, cy + 5, 2, 1, '#1a1030');
+    px(ctx, 30, cy + 5, 2, 1, '#1a1030');
+  }
+  // Baffi che escono dal muso.
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+  [[36, cy + 3, 7], [36, cy + 6, 6]].forEach(([x, y, w]) => ctx.fillRect(x, y, w, 1));
+  ctx.fillRect(15, cy + 4, 5, 1);
+}
+
 /** Giacca, cappotto o busto dell'abito al posto della maglia (capi dei negozi del quartiere). */
 function drawOutfitTorso(ctx, y0, style, { skin, back }) {
   const top = y0 + 40;
@@ -1134,7 +1234,9 @@ function drawHockeyGear(ctx, y0, { shirt, back, frontArm }) {
 function drawAvatar(look, { back, pose, frame, outfit, gear }) {
   const { canvas, ctx } = createCanvas(AVATAR_W, AVATAR_H, { readable: true });
   const parts = parseLook(look);
-  const skin = SKINS[parts.s];
+  const cat = CAT_STYLES[parts.k];
+  // I gatti hanno il pelo al posto della pelle: mani (zampe) e collo dello stesso colore.
+  const skin = cat ? cat.fur : SKINS[parts.s];
   const swim = !!outfit;
   const man = parts.b !== 1;
   const shirt = SHIRTS[parts.sh];
@@ -1194,11 +1296,12 @@ function drawAvatar(look, { back, pose, frame, outfit, gear }) {
 
   drawHead(ctx, y0, { skin, back });
   const capped = outfit === 'pool';
-  if (capped) drawSwimCap(ctx, y0, CAP_COLORS[(parts.hc + parts.sh) % CAP_COLORS.length], back);
+  if (cat) drawCatHead(ctx, y0, cat, back);
+  else if (capped) drawSwimCap(ctx, y0, CAP_COLORS[(parts.hc + parts.sh) % CAP_COLORS.length], back);
   else drawHair(ctx, y0, parts.h, hairColor, back);
   // Capelli lunghi, caschetto e ricci coprono le orecchie; gli altri (e la cuffia) le lasciano fuori.
-  if (capped || ![2, 6, 8].includes(parts.h)) drawEars(ctx, y0, skin, back);
-  if (!back) {
+  if (!cat && (capped || ![2, 6, 8].includes(parts.h))) drawEars(ctx, y0, skin, back);
+  if (!back && !cat) {
     faceWindow(ctx, y0, skin);
     drawFace(ctx, y0, skin);
     drawBrows(ctx, y0, hairColor);

@@ -106,7 +106,19 @@ public class AuctionService {
     private void close(UUID id) {
         Map<String, Object> lot = jdbc.queryForMap("SELECT * FROM hotel_auctions WHERE id = ?", id);
         UUID bidderId = (UUID) lot.get("bidder_id");
-        Card card = cardRepository.findById((UUID) lot.get("card_id")).orElse(null);
+        String luxury = (String) lot.get("luxury_item");
+        if (luxury != null) {
+            if (bidderId != null && wardrobe != null) {
+                wardrobe.grantLimited(bidderId, luxury, lot.get("serial") == null ? null : ((Number) lot.get("serial")).intValue());
+                jdbc.update("UPDATE hotel_auctions SET status = 'SOLD' WHERE id = ?", id);
+                registry.broadcastAll(Map.of("type", "auction", "phase", "sold", "lot", view(jdbc.queryForMap("SELECT * FROM hotel_auctions WHERE id = ?", id))));
+            } else {
+                jdbc.update("UPDATE hotel_auctions SET status = 'UNSOLD' WHERE id = ?", id);
+                registry.broadcastAll(Map.of("type", "auction", "phase", "unsold", "lot", view(jdbc.queryForMap("SELECT * FROM hotel_auctions WHERE id = ?", id))));
+            }
+            return;
+        }
+        Card card = lot.get("card_id") == null ? null : cardRepository.findById((UUID) lot.get("card_id")).orElse(null);
         if (bidderId == null || card == null) {
             // Nessuno ha offerto: la carta resta al banditore.
             jdbc.update("UPDATE hotel_auctions SET status = 'UNSOLD' WHERE id = ?", id);
@@ -129,6 +141,8 @@ public class AuctionService {
         if (open != null && open > 0) return;
         Timestamp last = jdbc.query("SELECT max(ends_at) FROM hotel_auctions", rs -> rs.next() ? rs.getTimestamp(1) : null);
         if (last != null && last.toInstant().plus(PAUSE).isAfter(Instant.now())) return;
+        // Un lotto su quattro e' un pezzo dei negozi in edizione limitata, numerato (10 copie al massimo).
+        if (wardrobe != null && random.nextInt(4) == 0 && openLuxury()) return;
         List<Card> pool = cardRepository.findAllActiveWithArtistClass().stream()
                 .filter(c -> RARITIES.contains(c.getRarity()) && c.getImgUrl() != null && !c.getImgUrl().isBlank())
                 .toList();
@@ -141,6 +155,35 @@ public class AuctionService {
                 card.getId(), startBid(card), Timestamp.from(ends));
         Map<String, Object> lot = jdbc.queryForMap("SELECT * FROM hotel_auctions WHERE status = 'OPEN' ORDER BY starts_at DESC LIMIT 1");
         registry.broadcastAll(Map.of("type", "auction", "phase", "lot", "lot", view(lot)));
+    }
+
+    // ------------------------------------------------------------------ edizioni limitate
+
+    private WardrobeService wardrobe;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setWardrobe(WardrobeService wardrobe) {
+        this.wardrobe = wardrobe;
+    }
+
+    /** Base d'asta di un pezzo di lusso: il 60% del prezzo in negozio. */
+    static int luxuryStart(LuxuryCatalog.Item item) {
+        return Math.max(50, item.price() * 6 / 10);
+    }
+
+    private boolean openLuxury() {
+        List<LuxuryCatalog.Item> pool = LuxuryCatalog.ITEMS.stream().filter(i -> i.price() >= 700).toList();
+        for (int attempt = 0; attempt < 5; attempt++) {
+            LuxuryCatalog.Item item = pool.get(random.nextInt(pool.size()));
+            Integer serial = wardrobe.nextSerial(item.key());
+            if (serial == null) continue;
+            jdbc.update("INSERT INTO hotel_auctions (luxury_item, serial, start_bid, ends_at) VALUES (?, ?, ?, ?)",
+                    item.key(), serial, luxuryStart(item), Timestamp.from(Instant.now().plus(LENGTH)));
+            Map<String, Object> lot = jdbc.queryForMap("SELECT * FROM hotel_auctions WHERE status = 'OPEN' ORDER BY starts_at DESC LIMIT 1");
+            registry.broadcastAll(Map.of("type", "auction", "phase", "lot", "lot", view(lot)));
+            return true;
+        }
+        return false;
     }
 
     // ------------------------------------------------------------------ offerte degli NPC
@@ -173,10 +216,17 @@ public class AuctionService {
         if (lot == null) return;
         UUID top = (UUID) lot.get("bidder_id");
         if (npcPlayers.isBot(top)) return;
-        Card card = cardRepository.findById((UUID) lot.get("card_id")).orElse(null);
-        if (card == null) return;
         int next = minimumBid((Integer) lot.get("start_bid"), (Integer) lot.get("current_bid"));
-        if (next > npcCap(card, (UUID) lot.get("id"))) return;
+        String luxury = (String) lot.get("luxury_item");
+        if (luxury != null) {
+            // Pezzi di lusso: gli NPC arrivano al massimo al prezzo del negozio.
+            int cap = LuxuryCatalog.get(luxury).map(LuxuryCatalog.Item::price).orElse(0);
+            if (next > cap) return;
+        } else {
+            Card card = lot.get("card_id") == null ? null : cardRepository.findById((UUID) lot.get("card_id")).orElse(null);
+            if (card == null) return;
+            if (next > npcCap(card, (UUID) lot.get("id"))) return;
+        }
         NpcPlayers.Bot bot = npcPlayers.randomBot();
         User user = userRepository.findById(bot.userId()).orElse(null);
         if (user == null) return;
@@ -266,8 +316,23 @@ public class AuctionService {
     private Map<String, Object> view(Map<String, Object> row) {
         Map<String, Object> view = new LinkedHashMap<>();
         view.put("id", row.get("id"));
-        Card card = cardRepository.findById((UUID) row.get("card_id")).orElse(null);
+        Card card = row.get("card_id") == null ? null : cardRepository.findById((UUID) row.get("card_id")).orElse(null);
         view.put("card", card == null ? null : CardDto.from(card));
+        String luxury = (String) row.get("luxury_item");
+        if (luxury != null) {
+            LuxuryCatalog.get(luxury).ifPresent(item -> {
+                Map<String, Object> lux = new LinkedHashMap<>();
+                lux.put("key", item.key());
+                lux.put("part", item.part());
+                lux.put("index", item.index());
+                lux.put("name", item.name());
+                lux.put("brand", item.brand());
+                lux.put("price", item.price());
+                lux.put("serial", row.get("serial"));
+                lux.put("copies", WardrobeService.LIMITED_COPIES);
+                view.put("luxury", lux);
+            });
+        }
         Integer current = (Integer) row.get("current_bid");
         view.put("startBid", row.get("start_bid"));
         view.put("currentBid", current);

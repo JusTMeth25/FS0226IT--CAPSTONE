@@ -240,10 +240,16 @@ public class HotelSocketHandler extends TextWebSocketHandler {
                 if (room != null) packRecapService.announceLatest(session, room);
             }
             case "minigame_result" -> {
-                if (room != null) minigameResult(session, room, integer(node, "score"));
+                if (room != null) minigameResult(session, room, integer(node, "score"), node);
             }
             case "minigame_fx" -> {
-                if (room != null) room.minigameFx(userId, minigameFx(node.get("fx")));
+                Map<String, Object> fx = minigameFx(node.get("fx"));
+                // Gara rock: la scelta dello sfidante (una leggenda del locale) non si mostra, si accetta.
+                if (room != null && fx != null && "rival".equals(fx.get("kind")) && fx.get("x") instanceof Double x) {
+                    room.rockChallenge(userId, x.intValue());
+                } else if (room != null) {
+                    room.minigameFx(userId, fx);
+                }
             }
             case "minigame_quit" -> {
                 if (room != null) room.minigameQuit(userId);
@@ -320,7 +326,9 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         // Ogni ingresso rilegge le carte in mostra: dopo un pacchetto fortunato o una battaglia basta
         // cambiare stanza.
         session.authenticate(session.user().withShowcase(socialService.showcase(session.user().id())));
+        boolean fresh = !registry.isLoaded(roomId);
         RoomInstance.JoinResult result = registry.join(session, data.get(), roomService.loadItems(roomId));
+        if (fresh && result == RoomInstance.JoinResult.OK && community != null) community.resumeParty(roomId);
         switch (result) {
             case FULL -> session.send(error("room_full"));
             case CLOSED -> session.send(error("room_closed"));
@@ -456,11 +464,32 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     }
 
     /** Fine di un minigioco: il punteggio lo controlla la stanza, un nuovo record vale dei gold. */
-    private void minigameResult(HotelSession session, RoomInstance room, int score) {
+    private RockScoreService rockScores;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setRockScores(RockScoreService rockScores) {
+        this.rockScores = rockScores;
+    }
+
+    private CommunityService community;
+
+    /** Per le feste gia' cominciate quando la stanza si carica (setter: i test costruiscono il gestore a mano). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setCommunity(@org.springframework.context.annotation.Lazy CommunityService community) {
+        this.community = community;
+    }
+
+    private void minigameResult(HotelSession session, RoomInstance room, int score, JsonNode node) {
         Minigames.Outcome outcome = room.minigameResult(session.user().id(), score);
         if (outcome.error() != null) {
             session.send(error(outcome.error()));
             return;
+        }
+        // Gara rock: il voto va anche nella classifica della canzone.
+        String key = outcome.game().key();
+        if (rockScores != null && ("rock".equals(key) || "drums".equals(key))) {
+            rockScores.record(session.user().id(), text(node, "song"), text(node, "difficulty"),
+                    "drums".equals(key) ? "drums" : "guitar", outcome.score());
         }
         if ("fish".equals(outcome.game().key())) fishCard(session, room, outcome.score());
         if (!outcome.record()) return;
@@ -552,7 +581,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
 
     /** Tipi di evento dei minigiochi che si inoltrano alla stanza, e i campi ammessi. */
     private static final java.util.Set<String> FX_KINDS = java.util.Set.of("dribble", "shoot", "aim", "roll", "reset", "ball",
-            "hole", "curl", "hit", "balls", "cue", "cast", "bite", "catch", "reel", "sing", "lap", "kart", "rally", "point", "dart");
+            "hole", "curl", "hit", "balls", "cue", "cast", "bite", "catch", "reel", "sing", "lap", "kart", "rally", "point", "dart", "rock", "rival");
     private static final List<String> FX_NUMBERS = List.of("made", "swish", "off", "x", "power", "u", "v", "arm", "dx", "dy");
     /** Bilie del biliardo: coppie (x, y) da 0 a 1 sul tavolo, -1 per quelle in buca. Al massimo 16 bilie. */
     private static final int MAX_BALL_NUMBERS = 32;

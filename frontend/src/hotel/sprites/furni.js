@@ -610,7 +610,8 @@ const DRAW = {
     d(0.72, 0.5, 40, '#111827', 6, 2);
     d(1.42, 0.5, 42, '#111827', 5, 2);
   },
-  // Pedana girevole: l'auto sopra la disegna il motore (e gira piano).
+  // Pedana girevole: l'auto sopra la disegna il motore (e gira piano). Le showcar_N sono le
+  // pedane del garage di casa, con l'auto N del giocatore.
   car_display(b, { c }) {
     c({ u: 1.5, v: 1.5, r: 1.35, z0: 0, z1: 5, color: '#27272a', top: '#3f3f46', tex: 'metal' });
     c({ u: 1.5, v: 1.5, r: 1.2, z0: 5, z1: 6, color: '#52525b', top: '#e4e4e7' });
@@ -839,6 +840,37 @@ const DRAW = {
     });
     front(() => {
       for (let i = 0; i < 12; i += 1) d(0.08 + i * 0.16, 1.98, 7, (i + lit) % 3 === 0 ? '#fde047' : '#f97316', 3, 3);
+    });
+  },
+  // Partenza della gara in citta': portale con la bandiera a scacchi e le luci rosse.
+  race_start(b, { c, d, now }) {
+    c({ u: 0.2, v: 0.5, r: 0.05, z0: 0, z1: 96, color: '#27272a', tex: 'metal' });
+    c({ u: 0.8, v: 0.5, r: 0.05, z0: 0, z1: 96, color: '#27272a', tex: 'metal' });
+    b({ u0: 0.14, v0: 0.44, u1: 0.86, v1: 0.56, z0: 84, z1: 100, color: '#111' });
+    for (let i = 0; i < 8; i += 1) for (let j = 0; j < 2; j += 1) d(0.18 + i * 0.08, 0.56, 98 - j * 7, (i + j) % 2 ? '#fff' : '#111', 3, 6);
+    const on = Math.floor((now || 0) / 700) % 4;
+    [0.3, 0.5, 0.7].forEach((u, i) => c({ u, v: 0.56, r: 0.05, z0: 76, z1: 82, color: i < on ? '#ef4444' : '#3f3f46', top: i < on ? '#fca5a5' : '#52525b' }));
+  },
+  // Posteggio dei taxi: palina gialla e un taxi fermo.
+  taxi_stand(b, { c, d }) {
+    c({ u: 0.2, v: 0.2, r: 0.03, z0: 0, z1: 70, color: '#52525b' });
+    b({ u0: 0.08, v0: 0.18, u1: 0.34, v1: 0.24, z0: 60, z1: 76, color: '#facc15', left: '#eab308' });
+    d(0.12, 0.24, 72, '#111', 7, 3);
+    b({ u0: 0.3, v0: 0.35, u1: 0.95, v1: 0.9, z0: 3, z1: 14, color: '#facc15', left: '#eab308', right: '#ca8a04' });
+    b({ u0: 0.45, v0: 0.42, u1: 0.8, v1: 0.83, z0: 14, z1: 22, color: '#1e3a5f' });
+    b({ u0: 0.55, v0: 0.55, u1: 0.7, v1: 0.7, z0: 22, z1: 25, color: '#111' });
+    [[0.4, 0.38], [0.4, 0.87], [0.85, 0.38], [0.85, 0.87]].forEach(([u, v]) => c({ u, v, r: 0.07, z0: 0, z1: 6, color: '#111' }));
+  },
+  // Pedana della gara di batteria (2x2): quattro pad colorati e una piccola batteria elettronica.
+  drum_duel(b, { c, d, now, front }) {
+    b({ u0: 0.02, v0: 0.02, u1: 1.98, v1: 1.98, z1: 12, color: '#18181b', left: '#27272a', right: '#0c0a09', tex: 'metal' });
+    const colors = ['#f97316', '#ef4444', '#facc15', '#3b82f6'];
+    const lit = Math.floor((now || 0) / 250) % 4;
+    [[0.5, 0.6], [1.4, 0.6], [0.5, 1.4], [1.4, 1.4]].forEach(([u, v], i) => {
+      c({ u, v, r: 0.26, z0: 12, z1: 16, color: i === lit ? colors[i] : shade(colors[i], -0.45), top: i === lit ? shade(colors[i], 0.3) : shade(colors[i], -0.3) });
+    });
+    front(() => {
+      for (let i = 0; i < 12; i += 1) d(0.08 + i * 0.16, 1.98, 7, (i + lit) % 3 === 0 ? '#fde047' : '#3b82f6', 3, 3);
     });
   },
   guitar_wall(b, { d }) {
@@ -1997,9 +2029,14 @@ const ANIMATIONS = {
   traffic_light: { period: 1500, steps: 3 },
   dance_contest: { period: 300, steps: 4 },
   rock_stage: { period: 250, steps: 4 },
-  guitar_duel: { period: 200, steps: 5 }
+  guitar_duel: { period: 200, steps: 5 },
+  drum_duel: { period: 250, steps: 4 },
+  race_start: { period: 700, steps: 4 }
 };
 const DANCE_COLORS = 6;
+
+// Garage di casa: stessa pedana della concessionaria per ogni auto.
+[5, 6, 7, 8, 9].forEach((ride) => { DRAW[`showcar_${ride}`] = DRAW.car_display; });
 
 /**
  * Stato visivo del mobile in questo istante: la chiave per la cache e il `now` da passare a

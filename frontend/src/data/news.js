@@ -4,6 +4,33 @@
  */
 export const NEWS = [
   {
+    date: '2026-10-04',
+    title: 'Le leggende suonano al Locale Rock',
+    icon: 'ph-guitar',
+    items: [
+      ['ph-crown', 'Band di leggende', 'Riot Avenue, Thunder Chord, Royal Echo e Whisker Riot, i gatti rockstar delle carte leggendarie, suonano sul palco con la loro carta sopra la testa. Virtuoso’s Soul, Digital God e le altre leggende girano per il locale.'],
+      ['ph-sword', 'Sfida una leggenda', 'Sulla pedana della gara scegli lo sfidante: la leggenda accetta, suona con te e alla fine la band annuncia chi ha vinto.'],
+      ['ph-music-notes', 'Cinque canzoni con gli assoli', 'Nello stile di Dire Straits, The Killers, Guns N’ Roses, Scorpions e Toto: arpeggi, shuffle, tastiere e assoli lunghi con bending e vibrato.']
+    ]
+  },
+  {
+    date: '2026-10-03',
+    title: 'Batteria, karaoke, gare in città e mercato dell’usato',
+    icon: 'ph-metronome',
+    items: [
+      ['ph-metronome', 'Gara di batteria', 'Nuova pedana al Locale Rock: cassa, rullante, charleston e piatto come in Rock Band. Sfida a due tra chitarra e batteria, e classifica per ogni canzone.'],
+      ['ph-trophy', 'Torneo rock settimanale', 'Una volta a settimana il torneo è di chitarra rock. Con la chitarra a tracolla suoni con il suo suono.'],
+      ['ph-microphone-stage', 'Karaoke nuovo', 'Quattro canzoni con il testo a sillabe, la base suonata e le note su quattro altezze. Le note d’oro valgono doppio.'],
+      ['ph-flag-checkered', 'Gare in città', 'Dal semaforo del Quartiere: due giri fra i palazzi contro tre avversari, con la tua auto.'],
+      ['ph-car-profile', 'Guida e scendi', 'Pulsante Guida/Scendi nella barra: sali sul tuo veicolo con un clic.'],
+      ['ph-recycle', 'Mercato dell’usato', 'Rivendi capi, orologi e veicoli agli altri giocatori. Le aste mettono in palio edizioni limitate numerate (#1/10).'],
+      ['ph-garage', 'Garage in casa', 'La tua supercar su una pedana girevole nella tua stanza.'],
+      ['ph-bus', 'Autobus e taxi', 'Dalla fermata del Quartiere si viaggia verso le stanze pubbliche.'],
+      ['ph-confetti', 'Feste a tema', 'Disco, rock, neon o lounge: luci e musica della festa cambiano la stanza.'],
+      ['ph-moon-stars', 'Notte nel Quartiere', 'Di sera si accendono i fari delle auto e le insegne al neon.']
+    ]
+  },
+  {
     date: '2026-10-02',
     title: 'Locale Rock, gara di chitarre e Rock Store',
     icon: 'ph-guitar',

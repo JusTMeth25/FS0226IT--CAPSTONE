@@ -1,98 +1,22 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { authApi } from '../../services/authApi.js';
 import { hotelApi } from '../../services/hotelApi.js';
-import { WATCH_STYLES, formatLook, parseLook } from '../sprites/avatar.js';
-import { drawVehiclePreview, whenVehicleReady } from '../sprites/vehicles.js';
+import { formatLook, parseLook } from '../sprites/avatar.js';
 import AvatarPreview from './AvatarPreview.jsx';
+import LuxuryArt from './LuxuryArt.jsx';
 import { tailorAdvice } from './tailor.js';
-import GuitarFace from './GuitarFace.jsx';
 import GuitarTester from './GuitarTester.jsx';
 
 /** Negozi del quartiere: nome, icona e se c'e' il sarto che consiglia. */
 const LUXURY_SHOPS = {
   atelier: { title: 'Atelier di sartoria', icon: 'ph-coat-hanger', tailor: true },
   orologi: { title: 'Gioielleria: orologi e gioielli', icon: 'ph-watch', tailor: true },
-  skate: { title: 'Skate shop', icon: 'ph-skateboard' },
+  skate: { title: 'Skate shop', icon: 'ph-person-simple-snowboard' },
   bici: { title: 'Negozio di bici', icon: 'ph-bicycle' },
   auto: { title: 'Concessionaria di auto sportive', icon: 'ph-car-profile' },
   chitarre: { title: 'Rock Store: chitarre e bassi', icon: 'ph-guitar' },
   rock: { title: 'Rock Store: abbigliamento rock', icon: 'ph-lightning' }
 };
-
-/** Veicolo in anteprima, girato di tre quarti: con il modello 3D appena e' pronto. */
-function VehiclePreview({ ride }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    let alive = true;
-    const draw = () => { if (alive && ref.current) drawVehiclePreview(ref.current, ride); };
-    draw();
-    whenVehicleReady(ride).then(draw);
-    return () => { alive = false; };
-  }, [ride]);
-  return <canvas ref={ref} className="lux-vehicle" width={180} height={120} aria-hidden="true" />;
-}
-
-/** Quadrante dell'orologio ingrandito: rotondo, ottagonale ("Quercia Reale") o a botte (scheletrato). */
-function WatchFace({ index }) {
-  const w = WATCH_STYLES[index];
-  if (!w) return null;
-  const octagon = index === 5 || index === 6;
-  let shape = <circle cx="40" cy="32" r="22" fill={w.steel} stroke={w.bezel} strokeWidth="5" />;
-  if (octagon) shape = <polygon points="30,8 50,8 64,22 64,42 50,56 30,56 16,42 16,22" fill={w.steel} stroke={w.bezel} strokeWidth="5" />;
-  if (w.skeleton) shape = <rect x="20" y="6" width="40" height="52" rx="14" fill={w.steel} stroke={w.bezel} strokeWidth="4" />;
-  if (w.bezel2) {
-    shape = (
-      <>
-        <path d="M18 32 A22 22 0 0 1 62 32 Z" fill={w.bezel} />
-        <path d="M18 32 A22 22 0 0 0 62 32 Z" fill={w.bezel2} />
-      </>
-    );
-  }
-  return (
-    <svg className="lux-watch" viewBox="0 0 80 64" aria-hidden="true">
-      <rect x="31" y="0" width="18" height="64" rx="4" fill={w.strap} />
-      {shape}
-      <circle cx="40" cy="32" r="14" fill={w.dial} />
-      {w.skeleton && [0, 1, 2].map((i) => <circle key={i} cx={34 + i * 6} cy={28 + (i % 2) * 8} r="3" fill="none" stroke="#d4a017" strokeWidth="1.5" />)}
-      {index === 3 && [26, 30, 34, 38].map((y) => <line key={y} x1="30" x2="50" y1={y} y2={y} stroke="#3b5bb5" strokeWidth="1" />)}
-      {octagon && [0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-        <circle key={i} cx={40 + Math.cos((i * Math.PI) / 4) * 18} cy={32 + Math.sin((i * Math.PI) / 4) * 18} r="1.4" fill="#f5f5f5" />
-      ))}
-      <line x1="40" y1="32" x2="40" y2="22" stroke="#f8fafc" strokeWidth="2" strokeLinecap="round" />
-      <line x1="40" y1="32" x2="47" y2="35" stroke="#f8fafc" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-/** Gioiello ingrandito: collana sul busto o coppia di orecchini. */
-function JewelFace({ part, index }) {
-  const n = { 1: ['#f8fafc', 'beads'], 2: ['#e0a82e', 'chain'], 3: ['#dbeafe', 'beads'], 4: ['#16a34a', 'pendant'], 5: ['#dc2626', 'beads'], 6: ['#e0a82e', 'medal'] };
-  const e = { 1: ['#e0f2fe', 'dot'], 2: ['#e0a82e', 'hoop'], 3: ['#f8fafc', 'drop'], 4: ['#16a34a', 'drop'], 5: ['#dc2626', 'dot'], 6: ['#1d4ed8', 'dot'] };
-  if (part === 'n') {
-    const [color, kind] = n[index] || [];
-    const gold = index === 2 || index === 4 || index === 6;
-    return (
-      <svg className="lux-watch" viewBox="0 0 80 64" aria-hidden="true">
-        <path d="M14 6 Q40 58 66 6" fill="none" stroke={gold ? '#e0a82e' : '#e5e7eb'} strokeWidth={kind === 'chain' ? 5 : 2} />
-        {kind === 'beads' && Array.from({ length: 11 }, (_, i) => {
-          const t = i / 10;
-          const x = 14 + t * 52;
-          const y = 6 + 4 * 26 * t * (1 - t) * 1.0;
-          return <circle key={i} cx={x} cy={y} r="3.4" fill={color} stroke="rgba(0,0,0,.25)" />;
-        })}
-        {kind === 'pendant' && <ellipse cx="40" cy="38" rx="5" ry="8" fill={color} stroke="#e0a82e" strokeWidth="1.5" />}
-        {kind === 'medal' && <circle cx="40" cy="38" r="8" fill={color} stroke="#a16207" strokeWidth="2" />}
-      </svg>
-    );
-  }
-  const [color, shape] = e[index] || [];
-  const one = (x) => {
-    if (shape === 'hoop') return <circle key={x} cx={x} cy="34" r="12" fill="none" stroke={color} strokeWidth="4" />;
-    if (shape === 'drop') return <g key={x}><line x1={x} y1="14" x2={x} y2="26" stroke="#e0a82e" strokeWidth="2" /><ellipse cx={x} cy="36" rx="7" ry="10" fill={color} /></g>;
-    return <circle key={x} cx={x} cy="30" r="8" fill={color} stroke="#e5e7eb" strokeWidth="2" />;
-  };
-  return <svg className="lux-watch" viewBox="0 0 80 64" aria-hidden="true">{[22, 58].map(one)}</svg>;
-}
 
 /**
  * Negozio del quartiere: le merci esposte (capi, orologi o veicoli) con il prezzo in gold, la
@@ -107,6 +31,18 @@ export default function LuxuryShop({ shop, look, gold, onBought, onWear, onClose
   const [trying, setTrying] = useState(null);
   const [advice, setAdvice] = useState(null);
   const [testing, setTesting] = useState(null);
+  const [tab, setTab] = useState('shop');
+  const [market, setMarket] = useState(null);
+  const [selling, setSelling] = useState(null);
+  const [notice, setNotice] = useState(null);
+
+  // Usato: annunci dei giocatori per i pezzi di questo negozio.
+  useEffect(() => {
+    if (tab !== 'used') return undefined;
+    let cancelled = false;
+    hotelApi.luxuryMarket(shop).then((res) => { if (!cancelled) setMarket(res.listings || []); }).catch(() => { if (!cancelled) setMarket([]); });
+    return () => { cancelled = true; };
+  }, [tab, shop]);
   // Crediti dei modelli 3D delle auto (Sketchfab, CC Attribution).
   const [credits, setCredits] = useState({});
   useEffect(() => {
@@ -126,6 +62,46 @@ export default function LuxuryShop({ shop, look, gold, onBought, onWear, onClose
 
   const items = (data?.items || []).filter((item) => item.shop === shop);
   const owned = new Set(data?.owned || []);
+  const serials = data?.serials || {};
+  const itemByKey = Object.fromEntries((data?.items || []).map((item) => [item.key, item]));
+  const worn = (item) => parts[item.part] === item.index;
+
+  async function run(action, done) {
+    setBusy('market');
+    setError(null);
+    try {
+      const res = await action();
+      done?.(res);
+    } catch (err) {
+      const messages = {
+        insufficient_gold: 'Non hai abbastanza gold.', item_worn: 'Prima toglilo di dosso: poi puoi venderlo.',
+        already_owned: 'Ce l\'hai gia\'.', invalid_price: 'Prezzo non valido.', already_showcased: 'Quest\'auto e\' gia\' nella tua borsa dei mobili.'
+      };
+      setError(messages[err?.message] || 'Operazione non riuscita. Riprova.');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  const refresh = () => hotelApi.wardrobe().then(setData).catch(() => {});
+  const sell = (item, price) => run(() => hotelApi.sellLuxury(item.key, price), (res) => {
+    setMarket(res.listings);
+    setSelling(null);
+    refresh();
+    setNotice(`${item.name} e' in vendita all'usato per ${price} gold.`);
+  });
+  const buyUsed = (listing) => run(() => hotelApi.buyListing(listing.id), (res) => {
+    setData(res);
+    setMarket((m) => (m || []).filter((l) => l.id !== listing.id));
+    onBought?.(itemByKey[listing.item]);
+  });
+  const withdraw = (listing) => run(() => hotelApi.withdrawListing(listing.id), (res) => {
+    setMarket(res.listings);
+    refresh();
+  });
+  const showcase = (item) => run(() => hotelApi.showcaseCar(item.key), () => {
+    setNotice(`La pedana con ${item.brand} ${item.name} e' nella tua borsa dei mobili: mettila nella tua stanza!`);
+  });
   const preview = trying || look;
 
   async function buy(item) {
@@ -183,8 +159,47 @@ export default function LuxuryShop({ shop, look, gold, onBought, onWear, onClose
         </div>
 
         <div className="lux-list">
-          {!data && !error && <p className="hotel-panel-hint">Il commesso apre le vetrine…</p>}
-          {advice && (
+          <div className="lux-tabs" role="tablist">
+            <button type="button" role="tab" aria-selected={tab === 'shop'} className={tab === 'shop' ? 'active' : ''} onClick={() => setTab('shop')}>
+              <i className="ph-fill ph-storefront" /> Negozio
+            </button>
+            <button type="button" role="tab" aria-selected={tab === 'used'} className={tab === 'used' ? 'active' : ''} onClick={() => setTab('used')}>
+              <i className="ph-fill ph-recycle" /> Usato
+            </button>
+          </div>
+          {notice && <p className="hotel-panel-hint" role="status">{notice}</p>}
+          {tab === 'used' && (
+            <>
+              {market === null && <p className="hotel-panel-hint">Carico gli annunci…</p>}
+              {market?.length === 0 && <p className="hotel-panel-hint">Nessuno vende niente, per ora. Vendi tu qualcosa dalla scheda Negozio!</p>}
+              {(market || []).map((listing) => {
+                const item = itemByKey[listing.item];
+                if (!item) return null;
+                return (
+                  <article key={listing.id} className="lux-item">
+                    <div className="lux-item-art"><LuxuryArt part={item.part} index={item.index} look={item.part === 'o' ? withItem(item) : null} /></div>
+                    <div className="lux-item-info">
+                      <small>{item.brand}</small>
+                      <strong>{item.name}{listing.serial ? <span className="lux-serial">#{listing.serial}/{data?.limitedCopies || 10}</span> : null}</strong>
+                      <p>Venduto da {listing.mine ? 'te' : listing.seller} · nuovo costa {item.price} gold</p>
+                    </div>
+                    <div className="lux-item-actions">
+                      <span className="lux-price"><i className="ph-fill ph-coin" /> {listing.price}</span>
+                      {listing.mine ? (
+                        <button type="button" className="btn btn-secondary btn-small" disabled={busy === 'market'} onClick={() => withdraw(listing)}>Ritira</button>
+                      ) : (
+                        <button type="button" className="btn btn-primary btn-small" disabled={busy === 'market' || owned.has(item.key) || gold < listing.price} onClick={() => buyUsed(listing)}>
+                          {owned.has(item.key) ? 'Ce l\'hai' : 'Compra'}
+                        </button>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+            </>
+          )}
+          {tab === 'shop' && !data && !error && <p className="hotel-panel-hint">Il commesso apre le vetrine…</p>}
+          {tab === 'shop' && advice && (
             <div className="lux-advice">
               <strong><i className="ph-fill ph-scissors" /> {shop === 'atelier' ? 'Il sarto dice:' : 'Il commesso dice:'}</strong>
               <p>{advice.text}</p>
@@ -196,21 +211,17 @@ export default function LuxuryShop({ shop, look, gold, onBought, onWear, onClose
               </div>
             </div>
           )}
-          {items.map((item) => {
+          {tab === 'shop' && items.map((item) => {
             const mine = owned.has(item.key);
-            const worn = parts[item.part] === item.index;
+            const isWorn = worn(item);
             return (
-              <article key={item.key} className={`lux-item${mine ? ' owned' : ''}${worn ? ' worn' : ''}`}>
+              <article key={item.key} className={`lux-item${mine ? ' owned' : ''}${isWorn ? ' worn' : ''}`}>
                 <div className="lux-item-art">
-                  {item.part === 'r' && <VehiclePreview ride={item.index} />}
-                  {item.part === 'w' && <WatchFace index={item.index} />}
-                  {(item.part === 'n' || item.part === 'e') && <JewelFace part={item.part} index={item.index} />}
-                  {item.part === 'g' && <GuitarFace index={item.index} />}
-                  {item.part === 'o' && <AvatarPreview look={withItem(item)} scale={1} />}
+                  <LuxuryArt part={item.part} index={item.index} look={item.part === 'o' ? withItem(item) : null} />
                 </div>
                 <div className="lux-item-info">
                   <small>{item.brand}</small>
-                  <strong>{item.name}</strong>
+                  <strong>{item.name}{serials[item.key] ? <span className="lux-serial" title="Edizione limitata vinta all'asta">#{serials[item.key]}/{data.limitedCopies}</span> : null}</strong>
                   <p>{item.description}</p>
                   {item.part === 'r' && <span className="lux-speed"><i className="ph-fill ph-gauge" /> {item.speed}x piu&apos; veloce all&apos;aperto</span>}
                   {credits[item.key] && (
@@ -234,12 +245,29 @@ export default function LuxuryShop({ shop, look, gold, onBought, onWear, onClose
                       {busy === item.key ? '…' : 'Compra'}
                     </button>
                   )}
-                  {mine && !worn && (
+                  {mine && !isWorn && (
                     <button type="button" className="btn btn-primary btn-small" disabled={busy === 'wear'} onClick={() => wear(withItem(item))}>
                       {item.part === 'r' ? 'Guida' : item.part === 'g' ? 'A tracolla' : 'Indossa'}
                     </button>
                   )}
-                  {mine && worn && (
+                  {mine && item.part === 'r' && /^r[5-9]$/.test(item.key) && (
+                    <button type="button" className="btn btn-secondary btn-small" disabled={busy === 'market'} onClick={() => showcase(item)}>
+                      <i className="ph-fill ph-garage" /> In casa
+                    </button>
+                  )}
+                  {mine && !isWorn && (
+                    selling === item.key ? (
+                      <form className="lux-sell" onSubmit={(e) => { e.preventDefault(); sell(item, Number(new FormData(e.currentTarget).get('price'))); }}>
+                        <input name="price" type="number" min={Math.max(10, Math.floor(item.price / 10))} max={item.price * 5} defaultValue={Math.round(item.price * 0.7)} aria-label="Prezzo in gold" />
+                        <button type="submit" className="btn btn-primary btn-small" disabled={busy === 'market'}>Metti in vendita</button>
+                      </form>
+                    ) : (
+                      <button type="button" className="btn btn-secondary btn-small" onClick={() => setSelling(item.key)}>
+                        <i className="ph-fill ph-tag" /> Vendi
+                      </button>
+                    )
+                  )}
+                  {mine && isWorn && (
                     <button type="button" className="btn btn-secondary btn-small" disabled={busy === 'wear'} onClick={() => wear(withItem(item, false))}>
                       {item.part === 'r' ? 'Scendi' : item.part === 'g' ? 'Posa' : 'Togli'}
                     </button>

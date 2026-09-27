@@ -78,25 +78,50 @@ public class CommunityService {
     // ------------------------------------------------------------------ feste
 
     /** Il proprietario lancia una festa nella sua stanza: mezz'ora in cima al navigatore. */
+    /** Temi della festa: musica e luci nella stanza (RoomInstance.startParty). */
+    static final java.util.Set<String> PARTY_THEMES = java.util.Set.of("classic", "disco", "rock", "neon", "lounge");
+
     @Transactional
     public Map<String, Object> startParty(UUID userId, UUID roomId, String rawTitle) {
+        return startParty(userId, roomId, rawTitle, "classic");
+    }
+
+    @Transactional
+    public Map<String, Object> startParty(UUID userId, UUID roomId, String rawTitle, String rawTheme) {
+        String theme = rawTheme != null && PARTY_THEMES.contains(rawTheme) ? rawTheme : "classic";
         Room room = roomRepository.findWithOwner(roomId).orElseThrow(() -> ApiException.notFound("room_not_found"));
         if (room.getOwner() == null || !room.getOwner().getId().equals(userId)) throw ApiException.forbidden("not_your_room");
         String title = rawTitle == null || rawTitle.isBlank() ? "Festa da " + room.getOwner().getUsername() : rawTitle.trim();
         if (title.length() > 60) title = title.substring(0, 60);
         Instant ends = Instant.now().plus(PARTY_LENGTH);
-        jdbc.update("INSERT INTO room_parties (room_id, host_id, title, ends_at) VALUES (?, ?, ?, ?) "
-                + "ON CONFLICT (room_id) DO UPDATE SET title = EXCLUDED.title, starts_at = now(), ends_at = EXCLUDED.ends_at",
-                roomId, userId, title, Timestamp.from(ends));
+        jdbc.update("INSERT INTO room_parties (room_id, host_id, title, ends_at, theme) VALUES (?, ?, ?, ?, ?) "
+                + "ON CONFLICT (room_id) DO UPDATE SET title = EXCLUDED.title, starts_at = now(), ends_at = EXCLUDED.ends_at, theme = EXCLUDED.theme",
+                roomId, userId, title, Timestamp.from(ends), theme);
+        RoomInstance live = registry.get(roomId);
+        if (live != null) live.startParty(theme, ends.toEpochMilli());
         jdbc.update("DELETE FROM party_guests WHERE room_id = ?", roomId);
         registry.broadcastAll(Map.of("type", "party", "phase", "start", "roomId", roomId, "title", title,
-                "host", room.getOwner().getUsername(), "endsAt", ends.toString()));
-        return Map.of("roomId", roomId, "title", title, "endsAt", ends);
+                "host", room.getOwner().getUsername(), "endsAt", ends.toString(), "theme", theme));
+        return Map.of("roomId", roomId, "title", title, "endsAt", ends, "theme", theme);
+    }
+
+    /**
+     * Stanza appena caricata in memoria (nessuno c'era dentro quando la festa e' cominciata):
+     * se la festa e' ancora in corso ripartono tema, luci e musica.
+     */
+    public void resumeParty(UUID roomId) {
+        RoomInstance live = registry.get(roomId);
+        if (live == null) return;
+        jdbc.queryForList("SELECT theme, ends_at FROM room_parties WHERE room_id = ? AND ends_at > now()", roomId)
+                .forEach(row -> live.startParty(row.get("theme") == null ? "classic" : (String) row.get("theme"),
+                        ((Timestamp) row.get("ends_at")).getTime()));
     }
 
     @Transactional
     public void stopParty(UUID userId, UUID roomId) {
-        jdbc.update("DELETE FROM room_parties WHERE room_id = ? AND host_id = ?", roomId, userId);
+        int removed = jdbc.update("DELETE FROM room_parties WHERE room_id = ? AND host_id = ?", roomId, userId);
+        RoomInstance live = registry.get(roomId);
+        if (removed > 0 && live != null) live.stopParty();
     }
 
     /** Feste in corso, per il navigatore (le piu' affollate prima). */

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { hotelApi } from '../../services/hotelApi.js';
+import LuxuryArt from './LuxuryArt.jsx';
 import { formatCardPrice, getRarityColor, resolveCardImage } from '../../utils/cardUtils.js';
 
 const ERRORS = {
@@ -59,12 +60,17 @@ export default function AuctionTab({ me, gold, live, onChange, onViewCard }) {
       {notice && <p className="hotel-panel-hint" role="status">{notice}</p>}
       {lot ? (
         <section className="auction-lot" style={{ '--rarity': getRarityColor(lot.card?.rarity) }}>
-          <button type="button" className="auction-card" onClick={() => lot.card && onViewCard?.(lot.card)} aria-label="Dettagli della carta">
+          <button type="button" className="auction-card" onClick={() => lot.card && onViewCard?.(lot.card)} aria-label="Dettagli del lotto">
             {lot.card && <img src={resolveCardImage(lot.card)} alt={lot.card.name} />}
+            {lot.luxury && <LuxuryArt part={lot.luxury.part} index={lot.luxury.index} look={lot.luxury.part === 'o' ? `s1.h1.hc0.sh0.p0.t0.f0.a0.b0.o${lot.luxury.index}.w0.r0` : null} />}
           </button>
           <div className="auction-info">
-            <strong>{lot.card?.name}</strong>
-            <span>{RARITY[lot.card?.rarity] || lot.card?.rarity}{lot.card ? ` · ${formatCardPrice(lot.card)}` : ''}</span>
+            <strong>{lot.card?.name || (lot.luxury && `${lot.luxury.brand} ${lot.luxury.name}`)}</strong>
+            {lot.luxury ? (
+              <span className="auction-limited"><i className="ph-fill ph-seal-check" /> Edizione limitata #{lot.luxury.serial}/{lot.luxury.copies} · in negozio {lot.luxury.price} gold</span>
+            ) : (
+              <span>{RARITY[lot.card?.rarity] || lot.card?.rarity}{lot.card ? ` · ${formatCardPrice(lot.card)}` : ''}</span>
+            )}
             <div className="auction-price">
               <small>{lot.currentBid ? 'Offerta attuale' : "Base d'asta"}</small>
               <b><i className="ph-fill ph-coin" /> {lot.currentBid ?? lot.startBid}</b>
@@ -105,7 +111,7 @@ export default function AuctionTab({ me, gold, live, onChange, onViewCard }) {
               <li key={r.id}>
                 {r.card && <img className="auction-thumb" src={resolveCardImage(r.card)} alt="" loading="lazy" />}
                 <div>
-                  <strong>{r.card?.name}</strong>
+                  <strong>{r.card?.name || (r.luxury && `${r.luxury.brand} ${r.luxury.name} #${r.luxury.serial}`)}</strong>
                   <span>{r.status === 'SOLD' ? `Vinta da ${r.bidderName} per ${r.currentBid} gold` : 'Nessuna offerta'}</span>
                 </div>
               </li>

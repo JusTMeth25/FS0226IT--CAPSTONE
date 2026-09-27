@@ -6,7 +6,7 @@ const ROUND_NAMES = ['Finale', 'Semifinali', 'Quarti'];
 function roundName(round, total) {
   return ROUND_NAMES[total - round] || `Turno ${round}`;
 }
-const GAME_ICONS = { bowling: 'ph-bowling-ball', pool: 'ph-circle-half' };
+const GAME_ICONS = { bowling: 'ph-bowling-ball', pool: 'ph-circle-half', rock: 'ph-guitar' };
 
 function left(ms) {
   const m = Math.max(0, Math.floor(ms / 60000));

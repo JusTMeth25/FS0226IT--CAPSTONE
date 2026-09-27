@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { basket, bowling, golf } from './sportGames.jsx';
 import { pool } from './billiards.jsx';
-import { fish, sing } from './leisureGames.jsx';
+import { fish } from './leisureGames.jsx';
+import { sing } from './karaokeGame.jsx';
 import { kart } from './kartGame.jsx';
 import { darts, pong } from './arcadeGames.jsx';
 import { disco } from './discoGame.jsx';
 import { hockey } from './hockeyGame.jsx';
-import { rock } from './rockGame.jsx';
+import { drums, rock } from './rockGame.jsx';
+import { street } from './streetRace.jsx';
 
 /**
  * Minigiochi sui mobili dell'hotel. Si gioca qui, nel browser; il server ha fatto partire la
@@ -284,6 +286,9 @@ const GAMES = {
   hockey,
   // Gara rock stile Guitar Hero (rockGame.jsx).
   rock,
+  drums,
+  // Gara in citta' con le auto sportive (streetRace.jsx).
+  street,
   ...Object.fromEntries([1, 2, 3, 4, 5, 6].map((hole) => [`golf${hole}`, golf(hole)]))
 };
 
@@ -325,7 +330,7 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
     const score = game.score(state.current);
     setFinalScore(score);
     setPhase('done');
-    callbacks.current.onFinish(score);
+    callbacks.current.onFinish(score, game.meta?.(state.current) || null);
   }, [game]);
 
   // Dati della partita per init (ora del server, partenza della gara): in un ref, come le callback.

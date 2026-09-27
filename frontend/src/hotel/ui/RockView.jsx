@@ -1,6 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getJukebox } from '../music.js';
-import { DIFFICULTIES, LANE_COLORS, SONGS, multOf } from './rockSongs.js';
+import { GUITARS, GUITAR_STYLES } from '../sprites/avatar.js';
+import { hotelApi } from '../../services/hotelApi.js';
+import { findCardById } from '../../data/cards.js';
+import { resolveCardImage } from '../../utils/cardUtils.js';
+import { ROCK_LEGENDS, rivalLive } from './rockLegends.js';
+import { DIFFICULTIES, SONGS, multOf } from './rockSongs.js';
 
 /**
  * Schermate della gara rock (rockGame.jsx): scelta della canzone, tastiera in prospettiva su
@@ -18,7 +23,27 @@ function starsFor(s) {
   return 1;
 }
 
-export default function RockView({ s, act, grade }) {
+/** I migliori voti della canzone scelta, per difficolta' e strumento. */
+function Leaderboard({ song, diff, instrument }) {
+  const [top, setTop] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    hotelApi.rockScores(SONGS[song].id, DIFFICULTIES[diff].id, instrument)
+      .then((res) => { if (!cancelled) setTop(res.top || []); })
+      .catch(() => { if (!cancelled) setTop([]); });
+    return () => { cancelled = true; };
+  }, [song, diff, instrument]);
+  return (
+    <div className="rock-board">
+      <strong><i className="ph-fill ph-trophy" /> Classifica: {SONGS[song].title} · {DIFFICULTIES[diff].label}</strong>
+      {top === null && <small>Carico…</small>}
+      {top?.length === 0 && <small>Nessuno ancora: sii il primo!</small>}
+      <ol>{(top || []).map((row) => <li key={row.username}><span>{row.username}</span><b>{row.score}</b></li>)}</ol>
+    </div>
+  );
+}
+
+export default function RockView({ s, act, grade, guitar = 0 }) {
   // Mentre si suona la musica della stanza tace; la canzone si ferma chiudendo il gioco.
   const audioRef = useRef(null);
   useEffect(() => {
@@ -40,6 +65,7 @@ export default function RockView({ s, act, grade }) {
             <button key={song.id} type="button" className={`rock-song${s.song === i ? ' active' : ''}`} onClick={() => act(`song:${i}`)}>
               <strong>{song.title}</strong>
               <span>{song.band} · {song.genre}</span>
+              {song.style && <em className="rock-song-style">stile {song.style}</em>}
               <small>{song.bpm} bpm · {Array.from({ length: song.level }, (_, k) => <i key={k} className="ph-fill ph-fire" />)}</small>
             </button>
           ))}
@@ -47,12 +73,38 @@ export default function RockView({ s, act, grade }) {
         <div className="rock-diffs">
           {DIFFICULTIES.map((d, i) => (
             <button key={d.id} type="button" className={`rock-diff${s.diff === i ? ' active' : ''}`} onClick={() => act(`diff:${i}`)}>
-              {d.label}<small>{d.lanes} tasti</small>
+              {d.label}<small>{s.instrument === 'drums' ? ['cassa e rullante', '+ charleston', 'tutto'][i] : `${d.lanes} tasti`}</small>
             </button>
           ))}
         </div>
-        <button type="button" className="btn btn-primary rock-go" onClick={() => act('go')}>
-          <i className="ph-fill ph-lightning" /> Suona!
+        <div className="rock-rivals" role="radiogroup" aria-label="Sfidante">
+          <strong><i className="ph-fill ph-sword" /> Sfida una leggenda del locale</strong>
+          <div className="rock-rival-list">
+            <button type="button" role="radio" aria-checked={s.rival < 0} className={`rock-rival${s.rival < 0 ? ' active' : ''}`} onClick={() => act('rival:-1')}>
+              <span className="rock-rival-none"><i className="ph ph-user" /></span>
+              <small>Da solo</small>
+            </button>
+            {ROCK_LEGENDS.map((legend, i) => {
+              const card = findCardById(legend.card);
+              return (
+                <button key={legend.key} type="button" role="radio" aria-checked={s.rival === i} title={`${legend.name} · ${legend.role} · di solito fa ${legend.skill}`}
+                  className={`rock-rival${s.rival === i ? ' active' : ''}`} onClick={() => act(`rival:${i}`)}>
+                  <img src={resolveCardImage({ ...card, source: 'original', rarity: 'legendary' })} alt="" />
+                  <small>{legend.name}</small>
+                  <b>{legend.skill}</b>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <Leaderboard song={s.song} diff={s.diff} instrument={s.instrument} />
+        {s.instrument === 'guitar' && (
+          <p className="rock-gear">
+            <i className="ph-fill ph-guitar" /> {guitar ? `Suoni con la tua ${GUITARS[guitar]}` : 'Suoni con la chitarra del locale (al Rock Store trovi la tua)'}
+          </p>
+        )}
+        <button type="button" className="btn btn-primary rock-go" onClick={() => act(`go:${guitar}`)}>
+          <i className="ph-fill ph-lightning" /> {s.instrument === 'drums' ? 'Suona la batteria!' : 'Suona!'}
         </button>
       </div>
     );
@@ -68,6 +120,7 @@ export default function RockView({ s, act, grade }) {
           </div>
           <p>{Math.round(s.points).toLocaleString('it-IT')} punti · {s.hits}/{s.chart.length} note · serie migliore {s.best}</p>
           <p className="rock-grade">Voto rock: <strong>{grade}</strong>/1000</p>
+          {s.rival >= 0 && <p className="rock-gear"><i className="ph-fill ph-sword" /> Sfida a {ROCK_LEGENDS[s.rival].name}: consegna il voto e la band annuncia chi ha vinto!</p>}
           <button type="button" className="btn btn-primary" onClick={() => act('finish')}>Consegna il voto</button>
         </div>
       )}
@@ -91,8 +144,11 @@ function persp(u) {
   return { y: HORIZON + (STRIKE - HORIZON) * f, w: TOP_W + (BOTTOM_W - TOP_W) * f, f };
 }
 
+/** Tasti della tastiera: 5 per la chitarra, 4 per la batteria (lo imposta drawScene). */
+let LANES = 5;
+
 function laneX(lane, w) {
-  return W / 2 + (lane - 2) * (w / 5);
+  return W / 2 + (lane - (LANES - 1) / 2) * (w / LANES);
 }
 
 function RockHighway({ s }) {
@@ -113,6 +169,7 @@ function RockHighway({ s }) {
 }
 
 function drawScene(ctx, s) {
+  LANES = s.laneCount || 5;
   const song = SONGS[s.song];
   const diff = DIFFICULTIES[s.diff];
   const t = s.t;
@@ -155,7 +212,7 @@ function drawScene(ctx, s) {
   ctx.fillStyle = board;
   ctx.fill();
   ctx.lineWidth = 3;
-  ctx.strokeStyle = s.starOn ? '#60a5fa' : '#9ca3af';
+  ctx.strokeStyle = s.starOn ? '#60a5fa' : (GUITAR_STYLES[s.guitar]?.body || '#9ca3af');
   ctx.stroke();
 
   // Linee delle battute che scorrono verso chi suona.
@@ -172,9 +229,9 @@ function drawScene(ctx, s) {
     ctx.stroke();
   }
   // Corde: le linee dei cinque tasti (o meno) dall'orizzonte ai tasti.
-  const lanes = diff.lanes;
-  for (let lane = 0; lane < 5; lane += 1) {
-    const used = lane < lanes;
+  const lanes = s.instrument === 'drums' ? LANES : diff.lanes;
+  for (let lane = 0; lane < LANES; lane += 1) {
+    const used = s.instrument === 'drums' || lane < diff.lanes;
     ctx.strokeStyle = used ? 'rgba(229,231,235,0.35)' : 'rgba(229,231,235,0.08)';
     ctx.lineWidth = 1.2;
     ctx.beginPath();
@@ -209,7 +266,7 @@ function drawScene(ctx, s) {
         ctx.lineTo(laneX(lane, p.w) + 7 * p.f + 2, p.y);
       }
       ctx.closePath();
-      ctx.fillStyle = note.star ? 'rgba(147,197,253,0.8)' : LANE_COLORS[lane];
+      ctx.fillStyle = note.star ? 'rgba(147,197,253,0.8)' : s.laneColors[lane];
       ctx.globalAlpha = holding ? 1 : 0.75;
       ctx.fill();
       ctx.globalAlpha = 1;
@@ -226,11 +283,11 @@ function drawScene(ctx, s) {
     ctx.fillStyle = '#0b0b0f';
     ctx.fill();
     ctx.lineWidth = 5;
-    ctx.strokeStyle = LANE_COLORS[lane];
+    ctx.strokeStyle = s.laneColors[lane];
     ctx.stroke();
     ctx.beginPath();
     ctx.ellipse(x, y, 20, 9, 0, 0, Math.PI * 2);
-    ctx.fillStyle = pressed ? LANE_COLORS[lane] : '#27272a';
+    ctx.fillStyle = pressed ? s.laneColors[lane] : '#27272a';
     ctx.fill();
     const since = t - s.flash[lane];
     if (since >= 0 && since < 260) {
@@ -257,7 +314,7 @@ function drawScene(ctx, s) {
       const rx = 24 * p.f + 4;
       const ry = 12 * p.f + 2;
       ctx.globalAlpha = note.missed ? 0.35 : 1;
-      const color = note.star || s.starOn ? '#dbeafe' : LANE_COLORS[lane];
+      const color = note.star || s.starOn ? '#dbeafe' : s.laneColors[lane];
       ctx.beginPath();
       ctx.ellipse(x, p.y + ry * 0.5, rx, ry, 0, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(0,0,0,0.6)';
@@ -290,6 +347,23 @@ function drawScene(ctx, s) {
   ctx.font = '600 12px "Trebuchet MS", sans-serif';
   ctx.fillStyle = '#d4d4d8';
   ctx.fillText(`Serie ${s.streak}`, 18, 54);
+  // Sfida a una leggenda: il tuo voto contro il suo, mentre la canzone va avanti.
+  if (s.rival >= 0 && s.perfect) {
+    const legend = ROCK_LEGENDS[s.rival];
+    const mine = Math.round((s.points / s.perfect) * 1000);
+    const theirs = rivalLive(legend, t, s.length);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    ctx.fillRect(12, 62, 170, 40);
+    ctx.font = '700 11px "Trebuchet MS", sans-serif';
+    [[`Tu ${mine}`, mine, '#22c55e'], [`${legend.name} ${theirs}`, theirs, '#f472b6']].forEach(([label, value, color], row) => {
+      ctx.fillStyle = '#27272a';
+      ctx.fillRect(18, 70 + row * 16, 100, 6);
+      ctx.fillStyle = color;
+      ctx.fillRect(18, 70 + row * 16, Math.min(100, value / 10), 6);
+      ctx.fillStyle = '#fff';
+      ctx.fillText(label, 124, 76 + row * 16);
+    });
+  }
 
   const mx = 50;
   const my = 250;

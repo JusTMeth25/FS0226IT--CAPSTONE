@@ -249,13 +249,16 @@ public final class NpcRoster {
                     walker("assist", "Assist", Role.GUEST, "s2.h1.hc0.sh3.p0.t4.f1.a0", 19, 11, 5),
                     walker("curva_sud", "Curva Sud", Role.GUEST, "s0.h3.hc6.sh1.p3.t1.f3.a5.b1", 14, 16, 3))),
             Map.entry(ROCK_CLUB, List.of(
-                    worker("axel", "Axel", Role.MUSICIAN, "s2.h2.hc7.sh9.p1.t0.f0.a2.b0.o14.w0.r0.n0.e2.g4", 11, 3, 4),
-                    worker("riff", "Riff", Role.MUSICIAN, "s4.h6.hc0.sh8.p1.t0.f0.a0.b1.o15.w0.r0.n0.e2.g7", 16, 3, 4),
-                    worker("tamburo", "Tamburo", Role.MUSICIAN, "s1.h9.hc0.sh9.p1.t4.f0.a6.b0", 13, 1, 4),
+                    worker("riot_avenue", "Riot Avenue", Role.MUSICIAN, "s2.h0.hc0.sh7.p1.t0.f0.a0.b0.o14.w0.r0.n2.e0.g4.k1", 11, 3, 4),
+                    worker("thunder_chord", "Thunder Chord", Role.MUSICIAN, "s2.h0.hc0.sh6.p1.t0.f0.a0.b0.o5.w0.r0.n0.e0.g5.k5", 16, 3, 4),
+                    worker("royal_echo", "Royal Echo", Role.MUSICIAN, "s2.h0.hc0.sh4.p4.t0.f0.a0.b0.o11.w0.r0.n2.e2.g0.k2", 14, 4, 4),
+                    worker("whisker_riot", "Whisker Riot", Role.MUSICIAN, "s2.h0.hc0.sh7.p1.t0.f0.a0.b0.o15.w0.r0.n0.e0.g0.k4", 13, 1, 4),
                     worker("joan", "Joan", Role.BARISTA, "s0.h8.hc7.sh8.p1.t4.f0.a5.b1.o16.w0.r0", 4, 16, 4, "cola", "bubble", "juice"),
-                    walker("metallo", "Metallo", Role.GUEST, "s3.h2.hc0.sh9.p1.t0.f0.a0.b0.o15.w0.r0", 12, 10, 4),
-                    walker("grunge", "Grunge", Role.GUEST, "s1.h8.hc2.sh2.p0.t0.f1.a0.b0.o16.w0.r0", 17, 11, 4),
-                    walker("glam", "Glam", Role.GUEST, "s0.h2.hc4.sh1.p4.t4.f2.a2.b1.o17.w0.r0", 9, 12, 3))),
+                    walker("virtuoso_soul", "Virtuoso's Soul", Role.GUEST, "s2.h0.hc0.sh7.p1.t2.f0.a0.b0.o2.w4.r0.n0.e0.g1.k6", 12, 10, 4),
+                    walker("digital_god", "Digital God", Role.GUEST, "s2.h0.hc0.sh7.p1.t3.f0.a0.b0.o11.w2.r0.n2.e0.g0.k3", 17, 11, 4),
+                    walker("lyric_storm", "Lyric Storm", Role.GUEST, "s2.h0.hc0.sh3.p1.t3.f0.a0.b0.o9.w0.r0.n0.e0.g2.k7", 9, 12, 3),
+                    walker("astral_lullaby", "Astral Lullaby", Role.GUEST, "s2.h0.hc0.sh0.p4.t0.f3.a0.b1.o12.w0.r0.n1.e1.g0.k8", 20, 9, 4),
+                    walker("future_frequency", "Future Frequency", Role.GUEST, "s2.h0.hc0.sh2.p1.t1.f5.a0.b0.o6.w0.r0.n0.e0.g3.k9", 15, 13, 4))),
             Map.entry(ROCK_STORE, List.of(
                     worker("ruggero", "Ruggero", Role.CLERK, "s1.h6.hc0.sh9.p1.t0.f0.a1.b0.o18.w0.r0.n0.e0.g3", 6, 1, 4),
                     worker("stella", "Stella", Role.CLERK, "s0.h2.hc4.sh1.p1.t4.f2.a5.b1.o17.w0.r0", 13, 1, 4),
@@ -263,6 +266,52 @@ public final class NpcRoster {
     );
 
     private NpcRoster() {
+    }
+
+    /**
+     * Le leggende del Locale Rock: i gatti rockstar delle carte leggendarie originali di VinylDex.
+     * Portano la loro carta sopra la testa, parlano da personaggi e si possono sfidare alla gara
+     * rock (skill: il voto su 1000 che fanno di solito).
+     *
+     * @param instrument "guitar", "voice" (canta al microfono) o "drums"
+     */
+    public record Legend(String card, String name, String artistClass, String img, String instrument, int skill,
+                         List<String> lines) {
+
+        public RoomItemView.CardView cardView() {
+            return new RoomItemView.CardView(card, name, "legendary", img, "original", false,
+                    null, null, null, null, null, null);
+        }
+    }
+
+    /** Ordine fisso: l'indice e' quello che il gioco manda al server quando si sceglie lo sfidante. */
+    public static final List<String> LEGEND_KEYS = List.of("riot_avenue", "thunder_chord", "royal_echo", "whisker_riot",
+            "virtuoso_soul", "digital_god", "lyric_storm", "astral_lullaby", "future_frequency");
+
+    private static final Map<String, Legend> LEGENDS = Map.of(
+            "riot_avenue", new Legend("rebel-001", "Riot Avenue", "The Rebel", "/assets/img/RiotAvenue.webp", "guitar", 860,
+                    List.of("Riot Music, Riot Soul!", "La rivoluzione suona come un riff distorto.", "Chi sale sulla pedana contro di me?")),
+            "thunder_chord", new Legend("riff-001", "Thunder Chord", "The King of Riffs", null, "guitar", 920,
+                    List.of("Il tuono ha trovato una chitarra!", "Un accordo e crolla il soffitto.", "Sfidami, se hai le dita veloci.")),
+            "royal_echo", new Legend("showman-001", "Royal Echo", "The Showman", "/assets/img/RoyalEcho.webp", "voice", 780,
+                    List.of("Il re dei palchi saluta il suo pubblico!", "Cantate con me, fino all'ultima fila!", "Una corona non si porta: si guadagna sul palco.")),
+            "whisker_riot", new Legend("rebel-extra-001", "Whisker Riot", "The Rebel", "/assets/img/whisker.webp", "drums", 880,
+                    List.of("MEOW OR DIE!", "Nove vite, nove assoli!", "Picchio sui tamburi finche' trema il palco!")),
+            "virtuoso_soul", new Legend("virtuoso-001", "Virtuoso's Soul", "The Virtuoso", null, "guitar", 960,
+                    List.of("Ogni nota perfetta, ogni pausa divina.", "Un assolo e' una preghiera suonata di corsa.", "Accordate bene: io sento tutto.")),
+            "digital_god", new Legend("synth-001", "Digital God", "The Synth Master", "/assets/img/DigitalGod.webp", "guitar", 900,
+                    List.of("Ogni frequenza obbedisce a me.", "Sintetizzatore acceso, universo in ascolto.", "Il rock? Un'onda quadra con l'anima.")),
+            "lyric_storm", new Legend("poet-001", "Lyric Storm", "The Poet", null, "guitar", 740,
+                    List.of("Le mie parole sono fulmini, i miei versi tuoni.", "Scrivo una strofa tra un tuono e l'altro.", "Ogni canzone comincia da una tempesta.")),
+            "astral_lullaby", new Legend("dreamer-001", "Astral Lullaby", "The Dreamer", null, "guitar", 700,
+                    List.of("Chiudete gli occhi: arriva la musica dei sogni.", "Una ninnananna... ma distorta!", "Le stelle stanotte suonano in La.")),
+            "future_frequency", new Legend("innovator-001", "Future Frequency", "The Innovator", null, "guitar", 820,
+                    List.of("Il futuro ha una frequenza, e io l'ho trovata.", "Questo pezzo uscira' tra dieci anni.", "Chitarra, laser e un pedale inventato ieri."))
+    );
+
+    /** La leggenda con questa chiave (null per gli NPC normali). */
+    public static Legend legend(String key) {
+        return key == null ? null : LEGENDS.get(key);
     }
 
     /** Le stanze pubbliche con del personale. */

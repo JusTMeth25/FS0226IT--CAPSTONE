@@ -1,3 +1,4 @@
+import { resolveCardImage } from '../../utils/cardUtils.js';
 import AvatarPreview from './AvatarPreview.jsx';
 
 /** Cosa si puo' ordinare, con il nome e l'icona da mostrare sul pulsante. */
@@ -52,10 +53,15 @@ export default function NpcCard({ npc, send, inArena, onClose, onWhisper, onChal
       <button type="button" className="hotel-panel-close" onClick={onClose} aria-label="Chiudi"><i className="ph ph-x" /></button>
       <div className="hotel-user-card-top">
         <AvatarPreview look={npc.look} scale={1} />
+        {info.legend && npc.bestCard && (
+          <img className="hotel-npc-legend-card" src={resolveCardImage(npc.bestCard)} alt={`Carta ${npc.bestCard.name}`} />
+        )}
         <div className="hotel-user-card-info">
           <strong>{npc.username}</strong>
           <span className="hotel-npc-role"><i className="ph-fill ph-identification-badge" /> {info.title}</span>
-          <span>{DESCRIPTIONS[info.role]}</span>
+          <span>{info.legend
+            ? 'Leggenda di VinylDex, dalla sua carta leggendaria. Sfidala alla gara rock: sali sulla pedana e sceglila come sfidante.'
+            : DESCRIPTIONS[info.role]}</span>
         </div>
       </div>
 

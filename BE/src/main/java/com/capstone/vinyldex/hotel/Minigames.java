@@ -50,7 +50,7 @@ public final class Minigames {
                 "bowling_lane", new Game("bowling", "Bowling", "punti", 100, 8_000, 180_000, false)));
         // Minigolf: punti per buca = 7 - colpi (6 con la buca in uno, 0 dopo sei colpi).
         // Karaoke: si canta sul palco a tempo con le note, punti = note prese (con bonus combo).
-        games.put("karaoke_stage", new Game("sing", "Karaoke", "punti", 120, 20_000, 120_000, true));
+        games.put("karaoke_stage", new Game("sing", "Karaoke", "punti", 120, 20_000, 300_000, true));
         // Pesca: lancio, abbocca, recupero tenendo la lenza in tensione. Punti = peso del pesce.
         games.put("fishing_post", new Game("fish", "Pesca dal molo", "punti", 100, 6_000, 120_000, false));
         // Go-kart: tre giri di pista, punti = 300 meno i secondi impiegati (piu' veloce, piu' punti).
@@ -65,6 +65,10 @@ public final class Minigames {
         games.put("hockey_target", new Game("hockey", "Tiri in porta", "punti", 50, 4_000, 90_000, false));
         // Gara rock stile Guitar Hero: una canzone intera, voto da 0 a 1000 (percentuale del punteggio perfetto).
         games.put("guitar_duel", new Game("rock", "Gara rock", "punti", 1000, 10_000, 300_000, false));
+        // Gara di batteria: stesse canzoni, si suonano cassa, rullante, charleston e piatti.
+        games.put("drum_duel", new Game("drums", "Gara di batteria", "punti", 1000, 10_000, 300_000, false));
+        // Gara in citta' con le auto sportive: due giri fra i palazzi contro tre avversari.
+        games.put("race_start", new Game("street", "Gara in citta'", "punti", 400, 20_000, 240_000, false));
         for (int hole = 1; hole <= GOLF_HOLES; hole++) {
             games.put("golf_hole_" + hole, new Game("golf" + hole, "Minigolf, buca " + hole, "punti", 6, 2_500, 180_000, false));
         }

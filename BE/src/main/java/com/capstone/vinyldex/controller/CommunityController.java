@@ -32,7 +32,7 @@ public class CommunityController {
     public record ClubDto(String name, String tag, String color, String icon, String motto) {
     }
 
-    public record PartyDto(UUID roomId, String title) {
+    public record PartyDto(UUID roomId, String title, String theme) {
     }
 
     public record StallDto(String card, int price) {
@@ -76,7 +76,7 @@ public class CommunityController {
 
     @PostMapping("/parties")
     public Map<String, Object> startParty(@CurrentUser UserPrincipal principal, @RequestBody PartyDto body) {
-        return community.startParty(principal.getId(), body.roomId(), body.title());
+        return community.startParty(principal.getId(), body.roomId(), body.title(), body.theme());
     }
 
     @DeleteMapping("/parties/{roomId}")

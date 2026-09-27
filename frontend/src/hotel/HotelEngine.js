@@ -1,6 +1,6 @@
 import { DETAIL, HALF_W, STEP_MS, TILE_H, TILE_W, directionBetween, insideDiamond, parseLayout, tileCenter, tileTop, viewForDirection } from './iso.js';
 import { AVATAR_FOOT_X, AVATAR_FOOT_Y, AVATAR_H, AVATAR_SCALE, AVATAR_W, avatarSprite, rideOf } from './sprites/avatar.js';
-import { RIDE_POSE, RIDE_SPEEDS, drawVehicle } from './sprites/vehicles.js';
+import { RIDE_POSE, RIDE_SPEEDS, RIDE_WALLS, drawVehicle } from './sprites/vehicles.js';
 import { hoverTileSprite, kartPoint, kartTrack, renderRoom } from './sprites/room.js';
 import { lapDelta } from './kartTrack.js';
 import { animationState, cardImage, footprintOf, furniSprite, isFlat, wallPoint } from './sprites/furni.js';
@@ -33,9 +33,6 @@ const SIGNS = {
   facade_rock: { text: 'LOCALE ROCK', color: '#f97316', u: 2.5, v: 1.7, z: 101, size: 12 },
   facade_guitars: { text: 'ROCK STORE', color: '#fde68a', u: 2, v: 1.7, z: 93, size: 11 }
 };
-
-/** Stanze all'aperto dove si va in skate, bici o auto: non gli stadi (RoomInstance.RIDE_WALLS). */
-const RIDE_WALLS = new Set(['hedge', 'skyline', 'seaside', 'street']);
 
 const DRINK_COLORS = {
   cola: '#5b2a0e', juice: '#f97316', coffee: '#6b3e1f', bubble: '#ec4899', cocktail: '#22d3ee', tea: '#b45309', gelato: '#f9a8d4',
@@ -272,6 +269,7 @@ export class HotelEngine {
         break;
       }
       case 'jukebox': this.jukeboxOn = message.track >= 0; break;
+      case 'party_theme': this.party = message.theme ? { theme: message.theme, endsAt: message.endsAt } : null; break;
       case 'room_updated': this.updateRoom(message.room); break;
       case 'respect': this.hearts.push({ userId: message.to, born: now }); break;
       case 'ball': this.rollBall(message, now); break;
@@ -320,6 +318,7 @@ export class HotelEngine {
     this.rink = null;
     this.waterTiles = null;
     this.jukeboxOn = (message.jukebox?.track ?? -1) >= 0;
+    this.party = message.party || null;
     this.hearts = [];
     this.sips = [];
     this.recaps = [];
@@ -389,6 +388,8 @@ export class HotelEngine {
     const fx = message.fx || {};
     if (user) {
       user.fx = { kind: fx.kind, born: now, arm: fx.arm };
+      // Gara rock: voto parziale (percentuale di note prese) e serie, sopra la testa.
+      if (fx.kind === 'rock') user.rockLive = { pct: fx.x || 0, streak: fx.power || 0, at: now };
       if (fx.kind === 'hit') user.hits = (user.hits || 0) + 1;
     }
     // Il sacco colpito oscilla.
@@ -1451,11 +1452,15 @@ export class HotelEngine {
       // Gara di ballo: si balla a tempo, piu' veloce che sulla pista.
       pose = 'dance';
       frame = animate ? Math.floor(now / 130) % 4 : 0;
-    } else if (user.game === 'rock' || (user.npc?.title === 'Musicista' && /\.g[1-9]$/.test(user.look))) {
+    } else if (user.npc?.role === 'musician' && user.npc.legend?.instrument === 'voice' && !user.game) {
+      // Il cantante della band: microfono alla bocca, ondeggia a tempo.
+      pose = 'mic';
+      frame = animate ? Math.floor(now / 480) % 2 : 0;
+    } else if (user.game === 'rock' || (user.npc?.role === 'musician' && /\.g[1-9](\.|$)/.test(user.look))) {
       // Gara rock (e la band del locale): chitarra in mano, la mano pennella a tempo.
       pose = 'guitar';
       frame = user.game === 'rock' ? (now - (user.pulseAt || 0) < 150 ? 1 : (animate ? Math.floor(now / 260) % 2 : 0)) : (animate ? Math.floor(now / 230) % 2 : 0);
-    } else if (user.npc?.title === 'Musicista') {
+    } else if (user.game === 'drums' || user.npc?.role === 'musician') {
       // Il batterista: bacchette su e giu'.
       pose = 'play';
       frame = animate ? Math.floor(now / 160) % 2 : 0;
@@ -1526,9 +1531,14 @@ export class HotelEngine {
 
     ctx.drawImage(roomCanvas, this.camera.x, this.camera.y, roomCanvas.width * scale, roomCanvas.height * scale);
 
+    // Fuori dallo schermo (con un margine per insegne, targhe e auto girevoli) non si disegna:
+    // nel quartiere, grande, la maggior parte dei mobili e degli avatar non si vede.
+    const MARGIN = 240;
+    const offscreen = (x, y, w, h) => x > this.cssWidth + MARGIN || y > this.cssHeight + MARGIN || x + w < -MARGIN || y + h < -MARGIN;
     const drawItem = (item) => {
       const { sprite, left, top } = this.itemSprite(item, now);
       const p = toScreen(left, top);
+      if (offscreen(p.x, p.y, sprite.width * scale, sprite.height * scale)) return;
       // Sacco da boxe colpito: dondola e si ferma piano piano.
       const hitAt = item.type === 'punching_bag' ? this.bagHits.get(item.id) : 0;
       if (hitAt && now - hitAt < 900) p.x += Math.sin((now - hitAt) / 70) * 4 * scale * (1 - (now - hitAt) / 900);
@@ -1538,7 +1548,7 @@ export class HotelEngine {
       else if (POOL_CLOTH[item.type]) this.drawPoolBalls(ctx, item, now, toScreen, scale);
       else if (item.type === 'card_case') this.drawCardCase(ctx, item, now, toScreen, scale);
       else if (item.type === 'badge_board') this.drawBadgeBoard(ctx, item, now, toScreen, scale);
-      else if (item.type === 'car_display') this.drawCarDisplay(ctx, item, now, toScreen, scale);
+      else if (item.type === 'car_display' || item.type.startsWith('showcar_')) this.drawCarDisplay(ctx, item, now, toScreen, scale);
       if (SIGNS[item.type]) this.drawSign(ctx, item, SIGNS[item.type], toScreen, scale);
       else if (item.type === 'villa') this.drawVillaPlate(ctx, item, toScreen, scale);
     };
@@ -1550,6 +1560,7 @@ export class HotelEngine {
     const drawDecor = (entry) => {
       const { sprite, left, top } = this.decorSprite(entry);
       const p = toScreen(left, top);
+      if (offscreen(p.x, p.y, sprite.width * scale, sprite.height * scale)) return;
       ctx.drawImage(sprite, p.x, p.y, sprite.width * scale, sprite.height * scale);
     };
     decor.filter((entry) => DECOR_DEFS[entry.type].walkable).forEach(drawDecor);
@@ -1595,6 +1606,14 @@ export class HotelEngine {
       }
       const { user } = entry;
       const { sprite, left, top, center, water, ride, foot } = this.spriteFor(user, now);
+      const corner = toScreen(left, top);
+      if (offscreen(corner.x, corner.y, AVATAR_W * AVATAR_SCALE * scale, AVATAR_H * AVATAR_SCALE * scale)) {
+        // Resta la posizione della testa, per i fumetti e le carte mostrate.
+        const head = toScreen(center.x, top);
+        user.headY = head.y;
+        user.screenX = head.x;
+        return;
+      }
       const swimming = !!water;
       const footScreen = ride ? toScreen(foot.x, foot.y) : null;
       const sink = swimming ? SWIM_SINK : 0;
@@ -1642,6 +1661,7 @@ export class HotelEngine {
         drawVehicle(ctx, ride, footScreen, user.dir ?? 2, scale, 'under', now);
         ctx.drawImage(sprite, p.x, p.y, width, height);
         drawVehicle(ctx, ride, footScreen, user.dir ?? 2, scale, 'over', now);
+        if (ride >= 5 && this.night > 0.2) drawHeadlights(ctx, footScreen, user.dir ?? 2, scale, this.night);
       } else {
         ctx.drawImage(sprite, p.x, p.y, width, height);
       }
@@ -1655,11 +1675,18 @@ export class HotelEngine {
       user.headY = head.y;
       user.screenX = head.x;
       if (user.typing) labels.push({ kind: 'typing', x: head.x, y: head.y - 6 });
+      if ((user.game === 'rock' || user.game === 'drums') && user.rockLive && now - user.rockLive.at < 3000) {
+        labels.push({ kind: 'rock', x: head.x, y: head.y - 34, pct: user.rockLive.pct, streak: user.rockLive.streak });
+      }
       const labelY = head.y - (user.typing ? 22 : 6);
       const hovered = user.id === this.hoverUserId;
       if (user.npc && hovered) {
         // Personale e ospiti dell'hotel: nome e mestiere su una targhetta dorata.
         labels.push({ kind: 'name', x: head.x, y: labelY, text: `${user.username} · ${user.npc.title}`, npc: true });
+        if (user.npc.legend && user.topCards?.length) labels.push({ kind: 'cards', x: head.x, y: labelY - 18, cards: user.topCards, seed: phaseOf(user.id) });
+      } else if (user.npc?.legend && user.topCards?.length) {
+        // Le leggende del Locale Rock: la loro carta leggendaria sopra la testa, come i giocatori.
+        labels.push({ kind: 'cards', x: head.x, y: labelY, cards: user.topCards, seed: phaseOf(user.id) });
       } else if (user.npc) {
         labels.push({ kind: 'staff', x: head.x, y: labelY });
       } else if (hovered || user.id === this.meId || user.away) {
@@ -1688,6 +1715,7 @@ export class HotelEngine {
     this.drawShots(ctx, now, toScreen, scale);
     this.drawLeisure(ctx, now, toScreen, scale);
     this.drawDiscoBall(ctx, now, toScreen, scale);
+    this.drawPartyLights(ctx, now);
     this.drawPlacement(ctx, now, toScreen, scale);
     // Pioggia, neve, vento e luce del sole sopra le stanze all'aperto.
     // Stanze all'aperto: la luce segue l'ora vera, di sera si accendono i lampioni.
@@ -1720,6 +1748,7 @@ export class HotelEngine {
     }
     labels.forEach((label) => {
       if (label.kind === 'typing') drawTyping(ctx, label);
+      else if (label.kind === 'rock') drawRockLive(ctx, label, gemScale);
       else if (label.kind === 'staff') drawStaffTag(ctx, label, gemScale);
       else if (label.kind === 'cards') {
         const bob = animate ? Math.round(Math.sin(now / 450 + label.seed)) * cardScale : 0;
@@ -1907,7 +1936,19 @@ export class HotelEngine {
       sx += item.x; sy += item.y; n += 1;
       x0 = Math.min(x0, item.x); x1 = Math.max(x1, item.x); y0 = Math.min(y0, item.y); y1 = Math.max(y1, item.y);
     });
-    if (n < 4) return;
+    const disco = this.partyTheme() === 'disco';
+    if (n < 4 && !disco) return;
+    if (n < 4) {
+      // Festa disco in una stanza qualsiasi: la palla sta al centro del pavimento.
+      x0 = Infinity; x1 = -Infinity; y0 = Infinity; y1 = -Infinity;
+      for (let y = 0; y < this.layout.height; y += 1) {
+        for (let x = 0; x < this.layout.width; x += 1) {
+          if (!this.layout.isTile(x, y)) continue;
+          x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+        }
+      }
+      sx = (x0 + x1) / 2; sy = (y0 + y1) / 2; n = 1;
+    }
     const cx = sx / n;
     const cy = sy / n;
     const spin = this.reducedMotion ? 0 : now / 1400;
@@ -2032,7 +2073,85 @@ export class HotelEngine {
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.55)';
     ctx.strokeText(sign.text, p.x, p.y);
     ctx.fillStyle = sign.color;
+    if (this.night > 0.2) {
+      ctx.shadowColor = sign.color;
+      ctx.shadowBlur = 14 * this.night * scale;
+    }
     ctx.fillText(sign.text, p.x, p.y);
+    ctx.restore();
+  }
+
+  /** Tema della festa in corso nella stanza (null se non c'e' festa o e' finita). */
+  partyTheme() {
+    return this.party && this.party.endsAt > Date.now() ? this.party.theme : null;
+  }
+
+  /**
+   * Luci della festa a tema sopra la stanza: fasci rossi e flash a tempo per il rock, bagliori
+   * rosa e azzurri per il neon, luci calde sfocate per il lounge, coriandoli per la festa classica.
+   * La disco ha la palla di specchi (drawDiscoBall).
+   */
+  drawPartyLights(ctx, now) {
+    const theme = this.partyTheme();
+    if (!theme || theme === 'disco') return;
+    const W = this.cssWidth;
+    const H = this.cssHeight;
+    const calm = this.reducedMotion;
+    ctx.save();
+    if (theme === 'rock') {
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 5; i += 1) {
+        const a = calm ? 0 : Math.sin(now / 700 + i * 1.3) * 0.6;
+        const x = (W / 5) * (i + 0.5);
+        const beam = ctx.createLinearGradient(x, 0, x + Math.sin(a) * H, H);
+        beam.addColorStop(0, i % 2 ? 'rgba(239,68,68,0.28)' : 'rgba(251,146,60,0.24)');
+        beam.addColorStop(1, 'rgba(239,68,68,0)');
+        ctx.fillStyle = beam;
+        ctx.beginPath();
+        ctx.moveTo(x - 6, 0);
+        ctx.lineTo(x + Math.sin(a) * H - 70, H);
+        ctx.lineTo(x + Math.sin(a) * H + 70, H);
+        ctx.lineTo(x + 6, 0);
+        ctx.fill();
+      }
+      if (!calm && Math.floor(now / 250) % 8 === 0) {
+        ctx.fillStyle = 'rgba(255,255,255,0.07)';
+        ctx.fillRect(0, 0, W, H);
+      }
+    } else if (theme === 'neon') {
+      ctx.globalCompositeOperation = 'lighter';
+      const k = calm ? 0.5 : 0.5 + Math.sin(now / 600) * 0.5;
+      [['rgba(236,72,153,', 0, 0], ['rgba(34,211,238,', W, H], ['rgba(139,92,246,', W, 0], ['rgba(34,211,238,', 0, H]].forEach(([c, x, y], i) => {
+        const g = ctx.createRadialGradient(x, y, 0, x, y, Math.max(W, H) * 0.55);
+        g.addColorStop(0, `${c}${(i % 2 ? 1 - k : k) * 0.3})`);
+        g.addColorStop(1, `${c}0)`);
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+      });
+    } else if (theme === 'lounge') {
+      ctx.fillStyle = 'rgba(60, 30, 10, 0.18)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 14; i += 1) {
+        const x = ((i * 137 + (calm ? 0 : now / 90)) % (W + 80)) - 40;
+        const y = (i * 71) % H;
+        const r = 18 + (i % 4) * 8;
+        const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0, 'rgba(255, 190, 110, 0.22)');
+        g.addColorStop(1, 'rgba(255, 190, 110, 0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(x - r, y - r, r * 2, r * 2);
+      }
+    } else {
+      // Festa classica: coriandoli che scendono.
+      const colors = ['#ec4899', '#facc15', '#22d3ee', '#22c55e', '#f97316', '#8b5cf6'];
+      for (let i = 0; i < 60; i += 1) {
+        const x = (i * 97) % W + Math.sin(now / 600 + i) * 12;
+        const y = ((i * 53 + (calm ? 0 : now / (14 + (i % 5) * 3))) % (H + 20)) - 10;
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fillRect(x, y, 4, 7);
+      }
+    }
     ctx.restore();
   }
 
@@ -2078,7 +2197,8 @@ export class HotelEngine {
     const p = toScreen(c.x, c.y - 6);
     // Ogni pedana ha un'auto diversa, nell'ordine in cui stanno nella stanza.
     const displays = [...this.items.values()].filter((i) => i.type === 'car_display').sort((a, b) => a.y - b.y || a.x - b.x);
-    const ride = 5 + (Math.max(0, displays.indexOf(item)) % 4);
+    const own = /^showcar_(\d)$/.exec(item.type);
+    const ride = own ? Number(own[1]) : 5 + (Math.max(0, displays.indexOf(item)) % 5);
     const dir = this.reducedMotion ? 3 : (now / 1500) % 8;
     const big = scale * 1.6;
     drawVehicle(ctx, ride, p, dir, big, 'under', now);
@@ -2092,6 +2212,7 @@ export class HotelEngine {
     else if (h >= 18.5) night = (h - 18.5) / 3;
     else if (h < 7.5) night = 1 - (h - 5.5) / 2;
     const dusk = (h >= 17.5 && h < 21.5) || (h >= 5 && h < 8) ? Math.sin(Math.PI * Math.min(1, Math.max(0, h >= 17.5 ? (h - 17.5) / 4 : (h - 5) / 3))) : 0;
+    this.night = night;
     if (night <= 0.01 && dusk <= 0.01) return;
     ctx.save();
     if (dusk > 0.01) {
@@ -2284,6 +2405,53 @@ export class HotelEngine {
  * Pallone a pixel: bianco con le macchie nere che girano mentre rotola, ombra sotto che resta a
  * terra quando rimbalza.
  */
+/** Fari dell'auto di sera: due coni di luce calda davanti, nella direzione di marcia. */
+function drawHeadlights(ctx, foot, dir, scale, night) {
+  const a = (dir - 2) * (Math.PI / 4);
+  const fx = (Math.cos(a) - Math.sin(a)) * 32 * scale;
+  const fy = (Math.cos(a) + Math.sin(a)) * 16 * scale;
+  const len = Math.hypot(fx, fy) || 1;
+  const ux = fx / len;
+  const uy = fy / len;
+  const sx = foot.x + ux * 40 * scale;
+  const sy = foot.y + uy * 40 * scale - 6 * scale;
+  const ex = sx + ux * 150 * scale;
+  const ey = sy + uy * 150 * scale;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  const g = ctx.createLinearGradient(sx, sy, ex, ey);
+  g.addColorStop(0, `rgba(255, 244, 200, ${0.45 * night})`);
+  g.addColorStop(1, 'rgba(255, 244, 200, 0)');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.moveTo(sx - uy * 8 * scale, sy + ux * 8 * scale);
+  ctx.lineTo(ex - uy * 45 * scale, ey + ux * 45 * scale);
+  ctx.lineTo(ex + uy * 45 * scale, ey - ux * 45 * scale);
+  ctx.lineTo(sx + uy * 8 * scale, sy - ux * 8 * scale);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+/** Voto live della gara rock sopra la testa: barra della percentuale di note prese e la serie. */
+function drawRockLive(ctx, label, scale) {
+  const w = 56 * scale / 2 + 20;
+  const h = 7;
+  const x = label.x - w / 2;
+  ctx.save();
+  ctx.fillStyle = 'rgba(10, 6, 20, 0.85)';
+  ctx.fillRect(x - 2, label.y - 16, w + 4, h + 18);
+  ctx.fillStyle = '#27272a';
+  ctx.fillRect(x, label.y, w, h);
+  ctx.fillStyle = label.pct >= 80 ? '#22c55e' : label.pct >= 50 ? '#facc15' : '#ef4444';
+  ctx.fillRect(x, label.y, (w * Math.max(0, Math.min(100, label.pct))) / 100, h);
+  ctx.font = '700 10px "Trebuchet MS", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#fde68a';
+  ctx.fillText(`${label.pct}% · serie ${label.streak}`, label.x, label.y - 4);
+  ctx.restore();
+}
+
 /** Disco da hockey: cilindretto nero con il bordo lucido, piatto sul ghiaccio. */
 function drawPuck(ctx, at, r) {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';

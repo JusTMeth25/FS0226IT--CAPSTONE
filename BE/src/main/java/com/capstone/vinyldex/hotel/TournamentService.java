@@ -44,8 +44,8 @@ public class TournamentService {
     static final Duration SIGNUP = Duration.ofMinutes(20);
     static final Duration ROUND = Duration.ofMinutes(15);
     static final int[] PRIZES = {400, 150};
-    static final List<String> GAMES = List.of("bowling", "pool");
-    static final Map<String, String> TITLES = Map.of("bowling", "Torneo di bowling", "pool", "Torneo di biliardo");
+    static final List<String> GAMES = List.of("bowling", "pool", "rock");
+    static final Map<String, String> TITLES = Map.of("bowling", "Torneo di bowling", "pool", "Torneo di biliardo", "rock", "Torneo rock");
 
     /** Torneo vinto: per i punti della stagione sportiva. */
     public record TournamentWon(UUID winner, UUID runnerUp) {
@@ -107,11 +107,17 @@ public class TournamentService {
                 .stream().findFirst().orElse(null);
     }
 
-    /** Se non c'e' un torneo aperto, se ne apre uno (a turno bowling e biliardo). */
+    /**
+     * Se non c'e' un torneo aperto, se ne apre uno: una volta a settimana il torneo rock (gara di
+     * chitarre), per il resto a turno bowling e biliardo.
+     */
     private void ensureOpen() {
         if (current() != null) return;
-        String last = jdbc.query("SELECT game FROM tournaments ORDER BY created_at DESC LIMIT 1", rs -> rs.next() ? rs.getString(1) : null);
-        String game = "bowling".equals(last) ? "pool" : "bowling";
+        Boolean rockThisWeek = jdbc.queryForObject(
+                "SELECT EXISTS (SELECT 1 FROM tournaments WHERE game = 'rock' AND created_at > now() - interval '7 days')", Boolean.class);
+        String last = jdbc.query("SELECT game FROM tournaments WHERE game <> 'rock' ORDER BY created_at DESC LIMIT 1",
+                rs -> rs.next() ? rs.getString(1) : null);
+        String game = !Boolean.TRUE.equals(rockThisWeek) ? "rock" : "bowling".equals(last) ? "pool" : "bowling";
         jdbc.update("INSERT INTO tournaments (game, signup_ends) VALUES (?, ?)", game, Timestamp.from(Instant.now().plus(SIGNUP)));
     }
 

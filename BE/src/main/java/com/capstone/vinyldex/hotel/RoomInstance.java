@@ -208,7 +208,11 @@ public class RoomInstance {
         long now = System.currentTimeMillis();
         for (NpcRoster.NpcSpec spec : NpcRoster.forRoom(data.id())) {
             if (!layout.isTile(spec.x(), spec.y())) continue;
-            HotelUser user = new HotelUser(spec.id(data.id()), spec.name(), spec.look(), 0);
+            // Le leggende del Locale Rock portano la loro carta leggendaria sopra la testa.
+            NpcRoster.Legend legend = NpcRoster.legend(spec.key());
+            HotelUser user = legend == null ? new HotelUser(spec.id(data.id()), spec.name(), spec.look(), 0)
+                    : new HotelUser(spec.id(data.id()), spec.name(), spec.look(), 0, legend.cardView(), List.of(legend.cardView()),
+                    null, null, null);
             Occupant npc = new Occupant(null, user, spec.x(), spec.y(),
                     Math.max(0, layout.heightAt(spec.x(), spec.y())), spec.dir());
             npc.npc = spec;
@@ -820,7 +824,9 @@ public class RoomInstance {
         if (now >= npc.nextChatAt) {
             npc.nextChatAt = now + 60_000 + random.nextInt(60_000);
             // Ogni tanto si parla del tempo che fa fuori.
-            String line = random.nextInt(4) == 0 ? HotelWeather.now().remark() : NpcDialog.idle(spec.role(), random);
+            NpcRoster.Legend legend = NpcRoster.legend(spec.key());
+            String line = legend != null ? legend.lines().get(random.nextInt(legend.lines().size()))
+                    : random.nextInt(4) == 0 ? HotelWeather.now().remark() : NpcDialog.idle(spec.role(), random);
             say(npc, line, null, false, 0);
         }
         if ((spec.role() == NpcRoster.Role.FOOTBALLER || spec.role() == NpcRoster.Role.HOCKEY_PLAYER) && football != null) {
@@ -879,7 +885,7 @@ public class RoomInstance {
     }
 
     /** Minigiochi che gli NPC giocano nelle stanze (quelli che si animano senza un vero giocatore). */
-    static final java.util.Set<String> NPC_GAMES = java.util.Set.of("pong", "box", "sing", "rhythm", "run", "curl", "disco", "hockey", "rock");
+    static final java.util.Set<String> NPC_GAMES = java.util.Set.of("pong", "box", "sing", "rhythm", "run", "curl", "disco", "hockey", "rock", "drums");
 
     /**
      * Gli ospiti ogni tanto vanno a giocare a un minigioco libero vicino (ping pong, sacco, karaoke,
@@ -1657,6 +1663,7 @@ public class RoomInstance {
         message.put("best", best);
         broadcast(message);
         events.accept(new HotelGameEvents.MinigamePlayed(data.id(), userId, occupant.user.username(), game.key(), valid));
+        if ("rock".equals(game.key()) || "drums".equals(game.key())) rockDuel(occupant, game, valid);
         trainerSays(occupant, NpcDialog.workoutDone(game.unit(), occupant.user.username(), valid, record));
         return new Minigames.Outcome(null, game, valid, record);
     }
@@ -1669,6 +1676,145 @@ public class RoomInstance {
                 ranking.stream().map(p -> Map.of("id", p.id(), "name", p.name(), "score", p.score())).toList()));
         events.accept(new HotelGameEvents.KartRaceFinished(data.id(),
                 ranking.stream().filter(p -> p.score() > 0).map(KartRace.Placing::id).toList()));
+    }
+
+    /** Voti rock appena consegnati: chi finisce entro due minuti da un altro lo sfida. */
+    private final Map<UUID, long[]> rockResults = new HashMap<>();
+    static final long ROCK_DUEL_MILLIS = 120_000;
+
+    /**
+     * Sfida rock: due giocatori sulle pedane del locale. Quando il secondo consegna il voto (entro
+     * due minuti dal primo) si annuncia chi ha vinto, e la band lo dice ad alta voce.
+     */
+    private void rockDuel(Occupant occupant, Minigames.Game game, int score) {
+        long now = System.currentTimeMillis();
+        Occupant legend = rockRivals.containsKey(occupant.user.id()) ? occupants.get(rockRivals.remove(occupant.user.id())) : null;
+        if (legend != null && legend.isNpc()) {
+            legendDuel(occupant, legend, game, score);
+            return;
+        }
+        rockResults.entrySet().removeIf(e -> now - e.getValue()[1] > ROCK_DUEL_MILLIS);
+        UUID me = occupant.user.id();
+        Map.Entry<UUID, long[]> rival = rockResults.entrySet().stream()
+                .filter(e -> !e.getKey().equals(me) && occupants.containsKey(e.getKey())).findFirst().orElse(null);
+        if (rival == null) {
+            rockResults.put(me, new long[]{score, now});
+            return;
+        }
+        rockResults.remove(rival.getKey());
+        Occupant other = occupants.get(rival.getKey());
+        int otherScore = (int) rival.getValue()[0];
+        boolean iWin = score >= otherScore;
+        Occupant winner = iWin ? occupant : other;
+        Occupant loser = iWin ? other : occupant;
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put("type", "rock_duel");
+        message.put("game", game.key());
+        message.put("winner", winner.user.username());
+        message.put("loser", loser.user.username());
+        message.put("winnerScore", Math.max(score, otherScore));
+        message.put("loserScore", Math.min(score, otherScore));
+        broadcast(message);
+        occupants.values().stream()
+                .filter(o -> o.isNpc() && o.npc.role() == NpcRoster.Role.MUSICIAN)
+                .findFirst()
+                .ifPresent(band -> say(band, winner.user.username() + " vince la sfida rock contro " + loser.user.username()
+                        + ": " + Math.max(score, otherScore) + " a " + Math.min(score, otherScore) + "!", winner, false, 400));
+    }
+
+    /** Per i test: il minigioco in corso sembra cominciato da un po' (i voti troppo veloci si scartano). */
+    synchronized void backdateGame(UUID userId, long millis) {
+        Occupant occupant = occupants.get(userId);
+        if (occupant != null) occupant.gameStartedAt -= millis;
+    }
+
+    /** Chi ha sfidato una leggenda (id del giocatore, id dell'NPC), fino al voto. */
+    private final Map<UUID, UUID> rockRivals = new HashMap<>();
+
+    /**
+     * Sfida a una leggenda del Locale Rock, scelta nel gioco prima della canzone (indice in
+     * NpcRoster.LEGEND_KEYS): la leggenda accetta ad alta voce e suona anche lei, sul palco.
+     */
+    public synchronized void rockChallenge(UUID userId, int legendIndex) {
+        Occupant player = occupants.get(userId);
+        if (player == null || player.game == null || legendIndex < 0 || legendIndex >= NpcRoster.LEGEND_KEYS.size()) return;
+        if (!"rock".equals(player.game.key()) && !"drums".equals(player.game.key())) return;
+        String key = NpcRoster.LEGEND_KEYS.get(legendIndex);
+        Occupant legend = occupants.values().stream().filter(o -> o.isNpc() && key.equals(o.npc.key())).findFirst().orElse(null);
+        if (legend == null) return;
+        rockRivals.put(userId, legend.user.id());
+        say(legend, pick(List.of("Sfida accettata, " + player.user.username() + "! Fammi sentire cosa sai fare.",
+                player.user.username() + " contro " + legend.user.username() + "? Il pubblico e' pronto!",
+                "Accordo la chitarra... " + player.user.username() + ", preparati a perdere!")), player, false, 300);
+    }
+
+    private String pick(List<String> lines) {
+        return lines.get(random.nextInt(lines.size()));
+    }
+
+    /**
+     * Voto della leggenda: la sua bravura, con una serata piu' o meno ispirata. Poi il verdetto
+     * a tutta la stanza, come nella sfida fra due giocatori, e la leggenda commenta.
+     */
+    private void legendDuel(Occupant player, Occupant legend, Minigames.Game game, int score) {
+        NpcRoster.Legend info = NpcRoster.legend(legend.npc.key());
+        int skill = info == null ? 800 : info.skill();
+        int npcScore = Math.max(0, Math.min(1000, skill - 90 + random.nextInt(140)));
+        boolean playerWins = score > npcScore;
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put("type", "rock_duel");
+        message.put("game", game.key());
+        message.put("winner", playerWins ? player.user.username() : legend.user.username());
+        message.put("loser", playerWins ? legend.user.username() : player.user.username());
+        message.put("winnerScore", Math.max(score, npcScore));
+        message.put("loserScore", Math.min(score, npcScore));
+        message.put("legend", legend.user.username());
+        message.put("playerId", player.user.id());
+        broadcast(message);
+        String name = player.user.username();
+        say(legend, playerWins
+                ? pick(List.of("Incredibile, " + name + "! " + score + " a " + npcScore + ": questa volta hai vinto tu.",
+                        "Mi inchino, " + name + ". Un assolo cosi' non lo sentivo da anni!",
+                        name + " batte " + legend.user.username() + " " + score + " a " + npcScore + "! Rivincita domani?"))
+                : pick(List.of("Bel tentativo, " + name + "! Ma " + npcScore + " a " + score + " per me.",
+                        "La leggenda resta leggenda: " + npcScore + " a " + score + ". Riprova, " + name + "!",
+                        "Ci vuole ancora un po' di pratica, " + name + ": " + npcScore + " a " + score + ".")), player, false, 600);
+    }
+
+    // ------------------------------------------------------------------ feste a tema
+
+    private String partyTheme;
+    private long partyEndsAt;
+
+    /** Brano del jukebox per ogni tema (indici di src/hotel/music.js). */
+    static final Map<String, Integer> PARTY_TRACKS = Map.of("disco", DISCO_TRACK, "rock", 7, "neon", 2, "lounge", 3, "classic", 0);
+
+    /** Festa a tema: parte la sua musica e i client accendono le luci del tema. */
+    public synchronized void startParty(String theme, long endsAt) {
+        partyTheme = theme;
+        partyEndsAt = endsAt;
+        jukeboxTrack = PARTY_TRACKS.getOrDefault(theme, 0);
+        jukeboxStartedAt = System.currentTimeMillis();
+        broadcast(jukeboxMessage());
+        broadcast(partyMessage());
+    }
+
+    public synchronized void stopParty() {
+        partyTheme = null;
+        partyEndsAt = 0;
+        broadcast(partyMessage());
+    }
+
+    private Map<String, Object> partyMessage() {
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put("type", "party_theme");
+        message.put("theme", partyActive() ? partyTheme : null);
+        message.put("endsAt", partyEndsAt);
+        return message;
+    }
+
+    private boolean partyActive() {
+        return partyTheme != null && partyEndsAt > System.currentTimeMillis();
     }
 
     /** Il giocatore chiude il minigioco prima della fine. */
@@ -1954,6 +2100,7 @@ public class RoomInstance {
         state.put("you", you);
         state.put("items", List.copyOf(items.values()));
         state.put("jukebox", Map.of("track", jukeboxTrack, "startedAt", jukeboxStartedAt));
+        if (partyActive()) state.put("party", Map.of("theme", partyTheme, "endsAt", partyEndsAt));
         if (football != null) {
             state.put("ball", Map.of("x", football.ballX(), "y", football.ballY(),
                     "blue", football.score(FootballMatch.Team.BLUE), "red", football.score(FootballMatch.Team.RED)));
@@ -1985,8 +2132,15 @@ public class RoomInstance {
         view.put("handLeft", o.handItem == null ? 0 : o.handItemLeft);
         view.put("away", o.away);
         if (o.isNpc()) {
-            view.put("npc", Map.of("role", o.npc.role().name().toLowerCase(), "title", o.npc.role().title(),
-                    "menu", o.npc.menu()));
+            NpcRoster.Legend legend = NpcRoster.legend(o.npc.key());
+            if (legend == null) {
+                view.put("npc", Map.of("role", o.npc.role().name().toLowerCase(), "title", o.npc.role().title(),
+                        "menu", o.npc.menu()));
+            } else {
+                view.put("npc", Map.of("role", o.npc.role().name().toLowerCase(), "title", "Leggenda · " + legend.artistClass(),
+                        "menu", o.npc.menu(), "legend", Map.of("key", o.npc.key(), "instrument", legend.instrument(),
+                                "skill", legend.skill(), "card", legend.card())));
+            }
         }
         List<int[]> path = new ArrayList<>();
         o.path.forEach(s -> path.add(new int[]{s.x(), s.y(), s.z()}));

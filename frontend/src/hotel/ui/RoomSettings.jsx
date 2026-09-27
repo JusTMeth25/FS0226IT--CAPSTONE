@@ -28,11 +28,12 @@ export default function RoomSettings({ room, onClose }) {
   const [error, setError] = useState(null);
 
   const [partyTitle, setPartyTitle] = useState('');
+  const [partyTheme, setPartyTheme] = useState('classic');
   const [partyNotice, setPartyNotice] = useState(null);
 
   async function party() {
     try {
-      await hotelApi.startParty(room.id, partyTitle.trim());
+      await hotelApi.startParty(room.id, partyTitle.trim(), partyTheme);
       setPartyNotice("Festa lanciata! Per mezz'ora la tua stanza e' in cima al navigatore e chi viene prende XP.");
     } catch {
       setPartyNotice('Festa non lanciata, riprova.');
@@ -89,6 +90,13 @@ export default function RoomSettings({ room, onClose }) {
       <fieldset className="hotel-party-box">
         <legend><i className="ph-fill ph-confetti" /> Festa</legend>
         <input value={partyTitle} onChange={(e) => setPartyTitle(e.target.value)} maxLength={60} placeholder="Titolo della festa" aria-label="Titolo della festa" />
+        <select className="hotel-chat-input" value={partyTheme} onChange={(e) => setPartyTheme(e.target.value)} aria-label="Tema della festa">
+          <option value="classic">Classica: coriandoli</option>
+          <option value="disco">Disco: palla di specchi e disco anni 80</option>
+          <option value="rock">Rock: fasci rossi e chitarre distorte</option>
+          <option value="neon">Neon: bagliori rosa e azzurri</option>
+          <option value="lounge">Lounge: luci calde e musica soft</option>
+        </select>
         <button type="button" className="btn btn-gold btn-small" onClick={party}>Lancia (30 min)</button>
         {partyNotice && <small>{partyNotice}</small>}
       </fieldset>

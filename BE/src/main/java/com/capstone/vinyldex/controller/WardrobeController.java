@@ -34,4 +34,35 @@ public class WardrobeController {
     public Map<String, Object> buy(@CurrentUser UserPrincipal principal, @RequestBody BuyDto body) {
         return wardrobeService.buy(principal.getId(), body.item());
     }
+
+    public record SellDto(String item, int price) {
+    }
+
+    /** Mercato dell'usato: annunci dei giocatori (di un negozio, se indicato). */
+    @GetMapping("/market")
+    public Map<String, Object> market(@CurrentUser UserPrincipal principal,
+                                      @org.springframework.web.bind.annotation.RequestParam(required = false) String shop) {
+        return wardrobeService.market(principal.getId(), shop);
+    }
+
+    @PostMapping("/market")
+    public Map<String, Object> sell(@CurrentUser UserPrincipal principal, @RequestBody SellDto body) {
+        return wardrobeService.sell(principal.getId(), body.item(), body.price());
+    }
+
+    @PostMapping("/market/{id}/buy")
+    public Map<String, Object> buyListing(@CurrentUser UserPrincipal principal, @org.springframework.web.bind.annotation.PathVariable java.util.UUID id) {
+        return wardrobeService.buyListing(principal.getId(), id);
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/market/{id}")
+    public Map<String, Object> withdraw(@CurrentUser UserPrincipal principal, @org.springframework.web.bind.annotation.PathVariable java.util.UUID id) {
+        return wardrobeService.withdraw(principal.getId(), id);
+    }
+
+    /** Auto comprata da esporre in casa (pedana girevole nella borsa dei mobili). */
+    @PostMapping("/showcase")
+    public Map<String, Object> showcase(@CurrentUser UserPrincipal principal, @RequestBody BuyDto body) {
+        return Map.of("item", wardrobeService.showcase(principal.getId(), body.item()));
+    }
 }

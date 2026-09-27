@@ -37,11 +37,32 @@ export const hotelApi = {
     return apiClient.get('/pets');
   },
   /** Negozi del quartiere: catalogo di capi, orologi e veicoli con quelli gia' comprati. */
+  /** Classifica della gara rock per canzone, difficolta' e strumento. */
+  async rockScores(song, difficulty, instrument = 'guitar') {
+    return apiClient.get(`/hotel/rock-scores?song=${encodeURIComponent(song)}&difficulty=${encodeURIComponent(difficulty)}&instrument=${encodeURIComponent(instrument)}`);
+  },
   async wardrobe() {
     return apiClient.get('/wardrobe');
   },
   async buyLuxury(item) {
     return apiClient.post('/wardrobe/buy', { item });
+  },
+  /** Mercato dell'usato dei pezzi dei negozi. */
+  async luxuryMarket(shop) {
+    return apiClient.get(`/wardrobe/market${shop ? `?shop=${encodeURIComponent(shop)}` : ''}`);
+  },
+  async sellLuxury(item, price) {
+    return apiClient.post('/wardrobe/market', { item, price });
+  },
+  async buyListing(id) {
+    return apiClient.post(`/wardrobe/market/${id}/buy`);
+  },
+  async withdrawListing(id) {
+    return apiClient.delete(`/wardrobe/market/${id}`);
+  },
+  /** L'auto comprata sulla pedana girevole, nella borsa dei mobili. */
+  async showcaseCar(item) {
+    return apiClient.post('/wardrobe/showcase', { item });
   },
   async adoptPet(type, name) {
     return apiClient.post('/pets/adopt', { type, name });
@@ -77,8 +98,8 @@ export const hotelApi = {
     return apiClient.post('/hotel/clubs/leave');
   },
   /** Feste nelle stanze. */
-  async startParty(roomId, title) {
-    return apiClient.post('/hotel/parties', { roomId, title });
+  async startParty(roomId, title, theme = 'classic') {
+    return apiClient.post('/hotel/parties', { roomId, title, theme });
   },
   async stopParty(roomId) {
     return apiClient.delete(`/hotel/parties/${roomId}`);

@@ -10,6 +10,9 @@ import { HALF_H, HALF_W } from '../iso.js';
  * (carrozzeria, parabrezza) dopo, cosi' chi guida sembra seduto dentro l'auto.
  */
 
+/** Stanze all'aperto dove si va in skate, bici o auto: non gli stadi (RoomInstance.RIDE_WALLS). */
+export const RIDE_WALLS = new Set(['hedge', 'skyline', 'seaside', 'street']);
+
 /** Caselle per passo (come LuxuryCatalog.speed): a piedi 1. */
 export const RIDE_SPEEDS = [1, 2, 2, 2, 3, 4, 4, 4, 5, 4];
 

@@ -204,6 +204,11 @@ public final class FurniCatalog {
         add(new FurniDef("skate_rack", "Rastrelliera di skate", "negozi", 140, 2, 1, false, false, -1, false, true));
         add(new FurniDef("bike_display", "Bici esposta", "negozi", 200, 2, 1, false, false, -1, false, true));
         add(new FurniDef("car_display", "Auto in esposizione", "negozi", 0, 3, 3, false, false, -1, false, false));
+        // Garage: la propria auto in casa, su una pedana girevole (si ottiene dalla concessionaria).
+        for (int ride = 5; ride <= 9; ride++) {
+            String name = LuxuryCatalog.get("r" + ride).map(i -> i.brand() + " " + i.name()).orElse("Auto");
+            add(new FurniDef("showcar_" + ride, "Pedana con " + name, "garage", 0, 3, 3, false, false, -1, false, false));
+        }
         // Quartiere: facciate dei negozi e delle arene (ci si entra cliccandole), ville, strada.
         add(new FurniDef("facade_atelier", "Atelier di sartoria", "quartiere", 0, 4, 2, false, false, -1, false, false));
         add(new FurniDef("facade_watches", "Gioielleria", "quartiere", 0, 4, 2, false, false, -1, false, false));
@@ -215,6 +220,8 @@ public final class FurniCatalog {
         add(new FurniDef("arena_basket", "Arena del basket", "quartiere", 0, 7, 3, false, false, -1, false, false));
         add(new FurniDef("villa", "Villa", "quartiere", 0, 4, 3, false, false, -1, false, false));
         add(new FurniDef("traffic_light", "Semaforo", "quartiere", 0, 1, 1, false, false, -1, false, false));
+        add(new FurniDef("race_start", "Partenza della gara in citta'", "quartiere", 0, 1, 1, false, false, -1, false, false));
+        add(new FurniDef("taxi_stand", "Posteggio dei taxi", "quartiere", 0, 1, 1, false, false, -1, false, false));
         add(new FurniDef("bus_stop", "Fermata dell'autobus", "quartiere", 0, 2, 1, false, false, 4, false, false));
         add(new FurniDef("hydrant", "Idrante", "giardino", 30, 1, 1, false, false, -1, false, true));
         add(new FurniDef("street_tree", "Albero del viale", "giardino", 80, 1, 1, false, false, -1, false, true));
@@ -232,6 +239,7 @@ public final class FurniCatalog {
         add(new FurniDef("amp_stack", "Testata e cassa", "musica", 300, 1, 1, false, false, -1, false, true));
         add(new FurniDef("mic_stand", "Asta del microfono", "musica", 60, 1, 1, false, false, -1, false, true));
         add(new FurniDef("guitar_duel", "Pedana della gara rock", "musica", 0, 2, 2, false, false, -1, false, false));
+        add(new FurniDef("drum_duel", "Pedana della gara di batteria", "musica", 0, 2, 2, false, false, -1, false, false));
         add(new FurniDef("guitar_wall", "Parete di chitarre", "negozi", 250, 2, 1, false, false, -1, false, true));
         add(new FurniDef("guitar_stand", "Chitarra sul supporto", "musica", 220, 1, 1, false, false, -1, false, true));
         add(new FurniDef("guitar_counter", "Banco delle chitarre", "negozi", 0, 2, 1, false, false, -1, false, false));

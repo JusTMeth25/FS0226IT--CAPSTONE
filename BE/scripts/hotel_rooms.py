@@ -123,8 +123,9 @@ FURNI = {
     # Locale rock e Rock Store.
     'rock_stage': (6, 3, False, True, -1), 'drum_kit': (2, 2, False, False, -1), 'amp_stack': (1, 1, False, False, -1),
     'mic_stand': (1, 1, False, False, -1), 'guitar_duel': (2, 2, False, False, -1), 'guitar_wall': (2, 1, False, False, -1),
-    'guitar_stand': (1, 1, False, False, -1), 'guitar_counter': (2, 1, False, False, -1), 'rock_counter': (2, 1, False, False, -1),
+    'drum_duel': (2, 2, False, False, -1), 'guitar_stand': (1, 1, False, False, -1), 'guitar_counter': (2, 1, False, False, -1), 'rock_counter': (2, 1, False, False, -1),
     'facade_rock': (5, 2, False, False, -1), 'facade_guitars': (4, 2, False, False, -1),
+    'race_start': (1, 1, False, False, -1), 'taxi_stand': (1, 1, False, False, -1),
     # Minigolf
     **{f'golf_hole_{n}': (3, 2, False, False, -1) for n in range(1, 7)},
 }
@@ -997,13 +998,18 @@ r.row('bar_stool', 2, 18, 6, rot=6)
 r.add('sofa_vinyl', 22, 12, 4).add('coffee_table', 22, 13).add('sofa_vinyl', 22, 14, 0)
 r.table_for_two(13, 17).table_for_two(18, 17)
 r.add('plant_big', 1, 1).add('plant_big', 26, 20).add('lamp_neon', 26, 8).add('lamp_neon', 1, 20)
-r.worker('axel', 'Axel', 'MUSICIAN', 's2.h2.hc7.sh9.p1.t0.f0.a2.b0.o14.w0.r0.n0.e2.g4', 11, 3, 4)
-r.worker('riff', 'Riff', 'MUSICIAN', 's4.h6.hc0.sh8.p1.t0.f0.a0.b1.o15.w0.r0.n0.e2.g7', 16, 3, 4)
-r.worker('tamburo', 'Tamburo', 'MUSICIAN', 's1.h9.hc0.sh9.p1.t4.f0.a6.b0', 13, 1, 4)
+# La band e gli ospiti sono le leggende delle carte originali di VinylDex: gatti rockstar (parte k
+# del codice aspetto), con la loro carta sopra la testa (NpcRoster.LEGENDS).
+r.worker('riot_avenue', 'Riot Avenue', 'MUSICIAN', 's2.h0.hc0.sh7.p1.t0.f0.a0.b0.o14.w0.r0.n2.e0.g4.k1', 11, 3, 4)
+r.worker('thunder_chord', 'Thunder Chord', 'MUSICIAN', 's2.h0.hc0.sh6.p1.t0.f0.a0.b0.o5.w0.r0.n0.e0.g5.k5', 16, 3, 4)
+r.worker('royal_echo', 'Royal Echo', 'MUSICIAN', 's2.h0.hc0.sh4.p4.t0.f0.a0.b0.o11.w0.r0.n2.e2.g0.k2', 14, 4, 4)
+r.worker('whisker_riot', 'Whisker Riot', 'MUSICIAN', 's2.h0.hc0.sh7.p1.t0.f0.a0.b0.o15.w0.r0.n0.e0.g0.k4', 13, 1, 4)
 r.worker('joan', 'Joan', 'BARISTA', 's0.h8.hc7.sh8.p1.t4.f0.a5.b1.o16.w0.r0', 4, 16, 4, 'cola', 'bubble', 'juice')
-r.walker('metallo', 'Metallo', 'GUEST', 's3.h2.hc0.sh9.p1.t0.f0.a0.b0.o15.w0.r0', 12, 10, 4)
-r.walker('grunge', 'Grunge', 'GUEST', 's1.h8.hc2.sh2.p0.t0.f1.a0.b0.o16.w0.r0', 17, 11, 4)
-r.walker('glam', 'Glam', 'GUEST', 's0.h2.hc4.sh1.p4.t4.f2.a2.b1.o17.w0.r0', 9, 12, 3)
+r.walker('virtuoso_soul', "Virtuoso's Soul", 'GUEST', 's2.h0.hc0.sh7.p1.t2.f0.a0.b0.o2.w4.r0.n0.e0.g1.k6', 12, 10, 4)
+r.walker('digital_god', 'Digital God', 'GUEST', 's2.h0.hc0.sh7.p1.t3.f0.a0.b0.o11.w2.r0.n2.e0.g0.k3', 17, 11, 4)
+r.walker('lyric_storm', 'Lyric Storm', 'GUEST', 's2.h0.hc0.sh3.p1.t3.f0.a0.b0.o9.w0.r0.n0.e0.g2.k7', 9, 12, 3)
+r.walker('astral_lullaby', 'Astral Lullaby', 'GUEST', 's2.h0.hc0.sh0.p4.t0.f3.a0.b1.o12.w0.r0.n1.e1.g0.k8', 20, 9, 4)
+r.walker('future_frequency', 'Future Frequency', 'GUEST', 's2.h0.hc0.sh2.p1.t1.f5.a0.b0.o6.w0.r0.n0.e0.g3.k9', 15, 13, 4)
 
 r = room(31, 'ROCK_STORE', 'Rock Store',
          'Chitarre classiche, acustiche ed elettriche, bassi e il merchandising rock: prova il suono di ogni chitarra prima di comprarla.',

@@ -1472,3 +1472,76 @@ button.hotel-badge:hover:not(:disabled) { transform: translateY(-2px) scale(1.08
 .guitar-tester-chords .btn { min-width: 0; padding: 6px 4px; font-size: 0.78rem; white-space: nowrap; }
 .guitar-tester kbd { font-size: 0.65rem; padding: 0 4px; border-radius: 4px; background: rgba(255, 255, 255, 0.15); }
 @media (prefers-reduced-motion: reduce) { .guitar-tester-art .guitar-face { animation: none; } }
+.rock-board { padding: 8px 10px; border-radius: 10px; background: rgba(0, 0, 0, 0.35); border: 1px solid #3f3f46; }
+.rock-board strong { display: block; font-size: 0.82rem; margin-bottom: 4px; color: #fde68a; }
+.rock-board small { opacity: 0.7; font-size: 0.75rem; }
+.rock-board ol { margin: 0; padding-left: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px 16px; font-size: 0.8rem; }
+.rock-board li span { opacity: 0.85; }
+.rock-board li b { float: right; color: #f97316; }
+.rock-gear { margin: 0; font-size: 0.8rem; opacity: 0.85; }
+
+/* Negozi: usato ed edizioni limitate. */
+.lux-tabs { display: flex; gap: 6px; }
+.lux-tabs button { flex: 1; padding: 6px; border-radius: 8px; border: 1px solid #3f3f46; background: rgba(0, 0, 0, 0.3); color: inherit; font-weight: 700; cursor: pointer; }
+.lux-tabs button.active { border-color: #fbbf24; color: #fde68a; }
+.lux-serial { margin-left: 6px; padding: 1px 6px; border-radius: 999px; font-size: 0.68rem; color: #1a1030;
+  background: linear-gradient(90deg, #fde68a, #fbbf24); vertical-align: middle; }
+.lux-sell { display: flex; flex-direction: column; gap: 4px; }
+.lux-sell input { width: 100%; padding: 4px 6px; border-radius: 6px; border: 1px solid #52525b; background: #111; color: #fff; }
+.lux-art-icon { font-size: 2rem; opacity: 0.7; }
+.auction-limited { color: #fde68a; font-weight: 700; }
+.auction-card .lux-vehicle, .auction-card .lux-watch, .auction-card .hotel-avatar-preview { width: 100%; height: auto; }
+
+/* Autobus e taxi del quartiere. */
+.hotel-travel { top: var(--space-sm); right: var(--space-sm); width: min(360px, calc(100% - 16px)); max-height: calc(100% - 16px); display: flex; flex-direction: column; }
+.hotel-travel-list { list-style: none; margin: 0; padding: 8px; display: grid; gap: 6px; overflow-y: auto; }
+.hotel-travel-list button { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid #3f3f46; background: rgba(255, 255, 255, 0.05); color: inherit; cursor: pointer; text-align: left; }
+.hotel-travel-list button:hover { border-color: #facc15; }
+.hotel-travel-overlay { position: absolute; inset: 0; z-index: 40; overflow: hidden; display: flex; align-items: flex-end; justify-content: center;
+  background: #1a1030; animation: overlayFadeIn 0.25s ease; }
+.hotel-travel-overlay p { position: absolute; top: 18%; width: 100%; text-align: center; font-size: 1.3rem; font-weight: 800; color: #fff; text-shadow: 0 2px 8px #000; }
+.travel-sky { position: absolute; inset: 0; background: linear-gradient(#f4a261, #e76f51 45%, #6a4c93); }
+.travel-city { position: absolute; left: 0; right: 0; bottom: 28%; height: 34%;
+  background: repeating-linear-gradient(90deg, #3b2a4f 0 60px, #2d1f3d 60px 110px, #46345c 110px 150px);
+  clip-path: polygon(0 40%, 8% 40%, 8% 10%, 16% 10%, 16% 55%, 26% 55%, 26% 0, 34% 0, 34% 35%, 46% 35%, 46% 15%, 55% 15%, 55% 50%, 66% 50%, 66% 5%, 76% 5%, 76% 30%, 88% 30%, 88% 12%, 100% 12%, 100% 100%, 0 100%);
+  animation: travel-scroll 1.6s linear infinite; background-size: 300px 100%; }
+.travel-road { position: absolute; left: 0; right: 0; bottom: 0; height: 28%; background: #34363d; border-top: 6px solid #b9b4aa; }
+.travel-road span { position: absolute; left: 0; right: 0; top: 45%; height: 6px;
+  background: repeating-linear-gradient(90deg, #f2c230 0 50px, transparent 50px 100px); animation: travel-scroll 0.5s linear infinite; background-size: 100px 6px; }
+@keyframes travel-scroll { from { background-position: 0 0; } to { background-position: -300px 0; } }
+.travel-vehicle { position: absolute; bottom: 16%; left: -40%; animation: travel-drive 1.6s ease-in-out forwards; }
+@keyframes travel-drive { from { left: -40%; } to { left: 110%; } }
+.travel-body { position: relative; width: 260px; height: 90px; border-radius: 14px 18px 8px 8px; background: #facc15; display: flex; gap: 10px; padding: 14px 16px; }
+.travel-vehicle.taxi .travel-body { width: 180px; height: 60px; border-radius: 30px 40px 8px 8px; }
+.travel-body i { flex: 1; background: #1e3a5f; border-radius: 6px; max-height: 34px; }
+.travel-body b { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); padding: 1px 8px; border-radius: 6px; background: #111; color: #facc15; font-size: 0.75rem; }
+.travel-bus-line { top: 58px !important; background: transparent !important; color: #7c2d12 !important; font-size: 0.9rem !important; }
+.travel-vehicle em { position: absolute; bottom: -18px; width: 36px; height: 36px; border-radius: 50%; background: #111; border: 6px solid #3f3f46; animation: spin 0.4s linear infinite; }
+.travel-vehicle em:nth-of-type(1) { left: 28px; }
+.travel-vehicle em:nth-of-type(2) { right: 28px; }
+@media (prefers-reduced-motion: reduce) { .travel-vehicle { animation: none; left: 40%; } .travel-city, .travel-road span { animation: none; } }
+
+/* Karaoke con le canzoni: corsie delle altezze, testo a sillabe */
+.karaoke-view { display: grid; gap: 8px; position: relative; }
+.karaoke-lyrics p { font-size: 1.25rem; }
+.karaoke-lyrics p span.now { color: #fff; text-decoration: underline; text-decoration-color: #22d3ee; }
+.karaoke-lyrics p span.sung { color: #fde047; }
+.karaoke-lyrics p span.sung.good { color: #4ade80; text-shadow: 0 0 8px rgba(74, 222, 128, .6); }
+.karaoke-lyrics p.gold { color: rgba(253, 224, 71, .7); }
+.karaoke-song.active { border-color: #ec4899; box-shadow: 0 0 14px rgba(236, 72, 153, .55); }
+.karaoke-song small { color: #f472b6; }
+
+/* Leggende del Locale Rock: la carta accanto all'avatar nella scheda */
+.hotel-npc-legend-card { width: 64px; aspect-ratio: 5 / 7; object-fit: cover; border-radius: 6px; border: 2px solid #facc15; box-shadow: 0 0 12px rgba(250, 204, 21, .45); }
+.rock-song-style { font-size: 0.7rem; font-style: normal; color: #fde047; opacity: 0.9; }
+.rock-rivals { display: grid; gap: 6px; }
+.rock-rivals > strong { font-size: .85rem; color: #f472b6; }
+.rock-rival-list { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+.rock-rival { flex: 0 0 auto; width: 74px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 5px; border-radius: 10px;
+  border: 2px solid #3f3f46; background: #111; color: #fff; cursor: pointer; }
+.rock-rival img, .rock-rival-none { width: 48px; aspect-ratio: 5 / 7; object-fit: cover; border-radius: 5px; }
+.rock-rival-none { display: grid; place-items: center; background: #27272a; font-size: 1.4rem; }
+.rock-rival small { font-size: .62rem; line-height: 1.1; text-align: center; }
+.rock-rival b { font-size: .65rem; color: #fde047; }
+.rock-rival.active { border-color: #ec4899; box-shadow: 0 0 12px rgba(236, 72, 153, .6); }

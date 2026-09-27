@@ -12,6 +12,7 @@ import ChatBar from '../hotel/ui/ChatBar.jsx';
 import Navigator from '../hotel/ui/Navigator.jsx';
 import Wardrobe from '../hotel/ui/Wardrobe.jsx';
 import LuxuryShop from '../hotel/ui/LuxuryShop.jsx';
+import TravelPanel, { TravelOverlay } from '../hotel/ui/TravelPanel.jsx';
 import Shop from '../hotel/ui/Shop.jsx';
 import Inventory from '../hotel/ui/Inventory.jsx';
 import ItemMenu from '../hotel/ui/ItemMenu.jsx';
@@ -44,7 +45,9 @@ import HotelPackOpening from '../hotel/ui/HotelPackOpening.jsx';
 import Minigame from '../hotel/ui/Minigame.jsx';
 import { PACKS } from '../data/packs.js';
 import { footprintOf, nextRotation } from '../hotel/sprites/furni.js';
-import { DEFAULT_LOOK } from '../hotel/sprites/avatar.js';
+import { DEFAULT_LOOK, RIDES, formatLook, parseLook } from '../hotel/sprites/avatar.js';
+import { RIDE_WALLS } from '../hotel/sprites/vehicles.js';
+import { authApi } from '../services/authApi.js';
 import { TRACKS, getJukebox } from '../hotel/music.js';
 import '../hotel/hotel.css';
 
@@ -72,11 +75,22 @@ const USABLE = ['bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart'
   'ping_pong_table', 'dart_board',
   // Pedana della gara di ballo della Disco anni 80, bersaglio dei tiri al palaghiaccio, bancone della caffetteria.
   'dance_contest', 'hockey_target', 'espresso_bar',
-  // Pedane della gara rock del Locale Rock.
-  'guitar_duel'];
+  // Pedane della gara rock e della gara di batteria del Locale Rock.
+  'guitar_duel', 'drum_duel',
+  // Semaforo della gara in citta' nel quartiere.
+  'race_start'];
+
+/** Colore dell'auto nella gara in citta' (le auto 5-9 dei negozi), rossa del noleggio per chi non ne ha. */
+const CAR_COLORS = { 5: '#d91a1a', 6: '#f5c518', 7: '#f4f4f5', 8: '#18181b', 9: '#2563eb' };
 
 /** Il chiosco e l'espositore dell'edicola aprono il banco dei pacchetti. */
 const NEWSSTAND_ITEMS = ['newsstand', 'pack_display'];
+
+/** Nome del lotto all'asta: la carta, o il pezzo di lusso numerato. */
+function lotName(lot) {
+  if (lot?.luxury) return `${lot.luxury.brand} ${lot.luxury.name} (edizione limitata #${lot.luxury.serial})`;
+  return lot?.card?.name || 'un lotto';
+}
 
 /** Quartiere: le facciate portano dentro ai negozi e alle arene (id delle stanze pubbliche). */
 const DISTRICT_ID = '00000000-0000-0000-0000-00000000a015';
@@ -269,6 +283,11 @@ export default function HotelPage() {
   const [fullscreen, setFullscreen] = useState(false);
   const [minigame, setMinigame] = useState(null);
   const [luxuryShop, setLuxuryShop] = useState('atelier');
+  // Veicoli comprati (per il pulsante Sali/Scendi): si rileggono chiudendo un pannello.
+  const [ownedRides, setOwnedRides] = useState([]);
+  const [rideBusy, setRideBusy] = useState(false);
+  const [travelMode, setTravelMode] = useState('bus');
+  const [travel, setTravel] = useState(null);
   const [minigameResult, setMinigameResult] = useState(null);
   // Minigioco aperto: la stanza dietro scende a 20 fotogrammi al secondo, il gioco resta fluido.
   useEffect(() => {
@@ -524,6 +543,9 @@ export default function HotelPage() {
           refreshUser();
         }
         break;
+      case 'rock_duel':
+        showNotice(`Sfida ${message.game === 'drums' ? 'di batteria' : 'rock'}: ${message.winner} batte ${message.loser} ${message.winnerScore} a ${message.loserScore}!`);
+        break;
       case 'minigame_score': {
         if (message.id === meRef.current?.id) setMinigameResult(message);
         if (message.record) {
@@ -557,18 +579,18 @@ export default function HotelPage() {
         break;
       case 'auction':
         setAuctionVersion((v) => v + 1);
-        if (message.phase === 'lot') showNotice(`All'asta: ${message.lot.card?.name}! Apri la Piazza per offrire.`);
+        if (message.phase === 'lot') showNotice(`All'asta: ${lotName(message.lot)}! Apri la Piazza per offrire.`);
         else if (message.phase === 'outbid') {
           showNotice(`${message.by} ha rilanciato a ${message.amount} gold: i tuoi gold sono tornati.`);
           refreshUser();
         } else if (message.phase === 'sold') {
           if (message.lot.bidderId === meRef.current?.id) {
             // Le carte vinte vanno subito nella collezione (i gold erano gia' stati scalati all'offerta).
-            showNotice(`Hai vinto l'asta! ${message.lot.card?.name} è già nella tua collezione.`);
+            showNotice(message.lot.luxury ? `Hai vinto l'asta! ${lotName(message.lot)} e' nel tuo guardaroba.` : `Hai vinto l'asta! ${message.lot.card?.name} è già nella tua collezione.`);
             sound.success();
             refreshCollection();
           } else {
-            showNotice(`Aggiudicata! ${message.lot.card?.name} va a ${message.lot.bidderName} per ${message.lot.currentBid} gold.`);
+            showNotice(`Aggiudicata! ${lotName(message.lot)} va a ${message.lot.bidderName} per ${message.lot.currentBid} gold.`);
           }
         }
         break;
@@ -775,6 +797,39 @@ export default function HotelPage() {
     return () => { cancelled = true; };
   }, [room?.id]);
 
+  useEffect(() => {
+    if (panel) return undefined;
+    let cancelled = false;
+    hotelApi.wardrobe().then((res) => {
+      if (!cancelled) setOwnedRides((res.owned || []).filter((k) => /^r\d+$/.test(k)).map((k) => Number(k.slice(1))));
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [panel]);
+
+  const currentRide = parseLook(myLook).r;
+
+  /** Sali o scendi al volo: si torna sull'ultimo veicolo usato (o sul primo comprato). */
+  async function toggleRide() {
+    let next = 0;
+    if (currentRide) {
+      try { localStorage.setItem('vinyldex_last_ride', String(currentRide)); } catch { /* niente da ricordare */ }
+    } else {
+      let last = 0;
+      try { last = Number(localStorage.getItem('vinyldex_last_ride')) || 0; } catch { /* nessun ricordo */ }
+      next = ownedRides.includes(last) ? last : ownedRides[0];
+    }
+    setRideBusy(true);
+    try {
+      await authApi.updateLook(formatLook({ ...parseLook(myLook), r: next }));
+      send({ type: 'refresh_profile' });
+      refreshUser();
+    } catch {
+      showNotice('Non riesco a cambiare veicolo. Riprova.');
+    } finally {
+      setRideBusy(false);
+    }
+  }
+
   async function toggleLike() {
     try {
       setLikes(await roomApi.like(room.id));
@@ -893,6 +948,12 @@ export default function HotelPage() {
     // cliccando la villa.
     if (DISTRICT_DOORS[item.type]) {
       join(DISTRICT_DOORS[item.type]);
+      return;
+    }
+    // Fermata dell'autobus e posteggio dei taxi: si viaggia verso una stanza pubblica.
+    if (item.type === 'bus_stop' || item.type === 'taxi_stand') {
+      setTravelMode(item.type === 'taxi_stand' ? 'taxi' : 'bus');
+      setPanel('travel');
       return;
     }
     if (item.type === 'villa') {
@@ -1100,15 +1161,16 @@ export default function HotelPage() {
         {minigame && (
           <Minigame
             onFx={(fx) => send({ type: 'minigame_fx', fx })}
-            extra={kartExtra}
+            extra={minigame.game === 'rock' ? { guitar: parseLook(myLook).g }
+              : minigame.game === 'street' ? { carColor: CAR_COLORS[parseLook(myLook).r] || '#e11d48' } : kartExtra}
             clockOffset={clockOffset}
             key={minigame.key}
             start={minigame}
             result={minigameResult}
             onPulse={() => canvasRef.current?.pulse()}
-            onFinish={(score) => {
+            onFinish={(score, meta) => {
               setMinigame((m) => (m ? { ...m, finished: true } : m));
-              send({ type: 'minigame_result', score });
+              send({ type: 'minigame_result', score, ...(meta || {}) });
             }}
             onReplay={() => send({ type: 'use_item', itemId: minigame.itemId })}
             onClose={() => {
@@ -1189,6 +1251,22 @@ export default function HotelPage() {
             onOpenPack={openBagPack}
           />
         )}
+        {panel === 'travel' && (
+          <TravelPanel
+            mode={travelMode}
+            currentRoomId={room?.id}
+            onClose={() => setPanel(null)}
+            onGo={(target) => {
+              setPanel(null);
+              setTravel({ mode: travelMode, to: target.name });
+              setTimeout(() => {
+                join(target.id);
+                setTravel(null);
+              }, 1600);
+            }}
+          />
+        )}
+        {travel && <TravelOverlay mode={travel.mode} to={travel.to} />}
         {panel === 'luxury' && (
           <LuxuryShop
             shop={luxuryShop}
@@ -1283,6 +1361,12 @@ export default function HotelPage() {
           <i className="ph-fill ph-package" /><span>Borsa</span>
           {bagPacks > 0 && <b className="hotel-tool-badge">{bagPacks}</b>}
         </button>
+        {ownedRides.length > 0 && RIDE_WALLS.has(room?.wallStyle) && (
+          <button type="button" className={`hotel-tool${currentRide ? ' active' : ''}`} onClick={toggleRide} disabled={rideBusy}
+            title={currentRide ? `Scendi da: ${RIDES[currentRide]}` : 'Sali sul tuo veicolo'}>
+            <i className={`ph-fill ${currentRide ? 'ph-person-simple-walk' : 'ph-car-profile'}`} /><span>{currentRide ? 'Scendi' : 'Guida'}</span>
+          </button>
+        )}
         <button type="button" className={`hotel-tool${panel === 'wardrobe' ? ' active' : ''}`} onClick={() => setPanel(panel === 'wardrobe' ? null : 'wardrobe')} title="Guardaroba">
           <i className="ph-fill ph-t-shirt" /><span>Look</span>
         </button>
