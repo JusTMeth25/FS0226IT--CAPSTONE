@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { shopApi } from '../../services/shopApi.js';
+import { useCardFilters } from '../../hooks/useCardFilters.js';
+import CardFilterBar from '../../components/card/CardFilterBar.jsx';
 import { formatCardPrice, getRarityColor, resolveCardImage } from '../../utils/cardUtils.js';
 
 const ERRORS = {
@@ -16,7 +18,6 @@ export default function CardBuyback({ onSold }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(null);
-  const [query, setQuery] = useState('');
 
   const load = useCallback(async () => {
     try {
@@ -31,10 +32,9 @@ export default function CardBuyback({ onSold }) {
     load();
   }, [load]);
 
-  const cards = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return (data?.cards || []).filter((offer) => !q || offer.card.name.toLowerCase().includes(q));
-  }, [data, query]);
+  const offerCard = (offer) => offer.card;
+  const filter = useCardFilters(data?.cards, offerCard, { sort: 'price' });
+  const cards = filter.result;
 
   async function sell(offer, quantity) {
     setBusy(offer.card.id);
@@ -55,8 +55,7 @@ export default function CardBuyback({ onSold }) {
       <p className="hotel-panel-hint">
         Si comprano le carte con un prezzo di mercato: vendi tutte quelle che vuoi.
       </p>
-      <input className="hotel-chat-input hotel-buyback-search" value={query} onChange={(e) => setQuery(e.target.value)}
-        placeholder="Cerca fra le tue carte…" aria-label="Cerca carta" />
+      <CardFilterBar compact items={data?.cards} getCard={offerCard} {...filter} count={cards.length} />
       {error && <p className="hotel-panel-error">{error}</p>}
       <ul className="hotel-buyback-list">
         {!data && !error && <li className="hotel-room-empty">Carico le offerte…</li>}

@@ -4,7 +4,53 @@
  * disegnano la copertina e le pagine sia per il libro 3D (texture) sia per la vista 2D (immagini).
  */
 
+import { CARD_BACKS } from '../../utils/cardBacks.js';
+
 const TAU = Math.PI * 2;
+
+/** Giochi il cui raccoglitore ha in copertina il dorso ufficiale delle loro carte. */
+const BACK_COVERS = new Set(['pokemon', 'yugioh', 'scryfall']);
+const backImages = new Map();
+
+/**
+ * Dorso delle carte usato come copertina, caricato una volta sola. Finche' non e' pronto si
+ * disegna la copertina a motivi; `onReady` avvisa chi deve ridisegnarla.
+ */
+export function coverBack(theme, onReady) {
+  if (!BACK_COVERS.has(theme.key) || !CARD_BACKS[theme.key]) return null;
+  let entry = backImages.get(theme.key);
+  if (!entry) {
+    const img = new Image();
+    entry = { img, ready: false, listeners: new Set() };
+    img.onload = () => {
+      entry.ready = true;
+      entry.listeners.forEach((fn) => fn());
+      entry.listeners.clear();
+    };
+    img.src = CARD_BACKS[theme.key];
+    backImages.set(theme.key, entry);
+  }
+  if (entry.ready) return entry.img;
+  if (onReady) entry.listeners.add(onReady);
+  return null;
+}
+
+/** Il dorso riempie la copertina (ritagliato al centro), con una cornice nel colore del gioco. */
+function drawBack(ctx, w, h, img, theme) {
+  const scale = Math.max(w / img.width, h / img.height);
+  const dw = img.width * scale;
+  const dh = img.height * scale;
+  ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  const shade = ctx.createLinearGradient(0, 0, w, h);
+  shade.addColorStop(0, 'rgba(255,255,255,.12)');
+  shade.addColorStop(0.45, 'rgba(255,255,255,0)');
+  shade.addColorStop(1, 'rgba(0,0,0,.25)');
+  ctx.fillStyle = shade;
+  ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = theme.accent;
+  ctx.lineWidth = 18;
+  ctx.strokeRect(9, 9, w - 18, h - 18);
+}
 
 function rand(seed) {
   let s = seed;
@@ -364,6 +410,12 @@ export function themeFor(source) {
 export function drawCover(canvas, theme) {
   const ctx = canvas.getContext('2d');
   const { width: w, height: h } = canvas;
+  const back = coverBack(theme);
+  if (back) {
+    // Il dorso ufficiale dice gia' di che gioco e' il raccoglitore: niente scritta sopra.
+    drawBack(ctx, w, h, back, theme);
+    return canvas;
+  }
   (COVERS[theme.key] || COVERS.original)(ctx, w, h, theme);
   ctx.fillStyle = 'rgba(0,0,0,.45)';
   ctx.fillRect(80, h * 0.78, w - 160, 150);
@@ -395,6 +447,8 @@ const coverCache = new Map();
 
 /** Copertina come immagine (per la vista 2D), una per gioco. */
 export function coverImage(theme) {
+  // Pokemon, Yu-Gi-Oh! e Magic: nella vista 2D basta il dorso ufficiale cosi' com'e'.
+  if (BACK_COVERS.has(theme.key) && CARD_BACKS[theme.key]) return CARD_BACKS[theme.key];
   if (!coverCache.has(theme.key)) {
     const canvas = document.createElement('canvas');
     canvas.width = 512;

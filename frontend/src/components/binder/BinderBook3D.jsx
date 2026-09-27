@@ -4,7 +4,7 @@ import { ContactShadows, Environment, Lightformer } from '@react-three/drei';
 import { BackSide, CanvasTexture, DoubleSide, FrontSide, PlaneGeometry, RepeatWrapping, SRGBColorSpace } from 'three';
 import { BASE_URL } from '../../services/apiClient.js';
 import { resolveCardImage } from '../../utils/cardUtils.js';
-import { drawCover, drawPageBackground } from './binderThemes.js';
+import { coverBack, drawCover, drawPageBackground } from './binderThemes.js';
 import { useDocumentVisible } from '../three/useThreeEnabled.js';
 
 /** Misure del libro (unita' di scena) e della texture di una pagina (pixel). */
@@ -172,10 +172,16 @@ function useCoverTexture(theme) {
     const canvas = document.createElement('canvas');
     canvas.width = 1024;
     canvas.height = 1400;
-    drawCover(canvas, theme);
     const t = new CanvasTexture(canvas);
     t.colorSpace = SRGBColorSpace;
     t.anisotropy = 4;
+    // Quando arriva il dorso ufficiale (Pokemon, Yu-Gi-Oh!, Magic) la copertina si ridisegna.
+    const paint = () => {
+      drawCover(canvas, theme);
+      t.needsUpdate = true;
+    };
+    coverBack(theme, paint);
+    paint();
     return t;
   }, [theme]);
   useEffect(() => () => texture.dispose(), [texture]);

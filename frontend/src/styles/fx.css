@@ -1026,3 +1026,14 @@
 .hotel-toast-close { background: none; border: none; color: #aea3dc; cursor: pointer; }
 @keyframes hotelToastIn { from { opacity: 0; transform: translate(-50%, 12px); } }
 @media (prefers-reduced-motion: reduce) { .hotel-toast { animation: none; } }
+
+/* Titoli a gradiente con le lettere animate: ogni lettera porta il suo pezzo di gradiente,
+   altrimenti gli span trasformati perdono il riempimento e il titolo sparisce. */
+.text-gradient .split-text,
+.text-gradient .split-text-char {
+  background: inherit;
+  background-size: inherit;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

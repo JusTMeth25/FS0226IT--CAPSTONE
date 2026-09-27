@@ -1,7 +1,8 @@
-import { lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { collectionApi } from '../services/collectionApi.js';
 import { apiClient } from '../services/apiClient.js';
+import { useFilterParams } from '../hooks/useFilterParams.js';
 import { SOURCE_LABELS, getRarityColor, resolveCardImage } from '../utils/cardUtils.js';
 import { coverImage, themeFor } from '../components/binder/binderThemes.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
@@ -59,11 +60,17 @@ function FlatBinder({ pages, spread, single, turning }) {
  */
 export default function BinderPage() {
   const navigate = useNavigate();
-  const [source, setSource] = useState('original');
-  const [setKey, setSetKey] = useState('');
+  // Gioco e set stanno nell'indirizzo: tornando indietro dal dettaglio di una carta si riapre
+  // lo stesso raccoglitore invece di quello di VinylDex.
+  const { getParam, setParam } = useFilterParams();
+  const source = getParam('source', 'original');
+  const setKey = getParam('set');
+  const setSource = (value) => setParam('source', value === 'original' ? '' : value);
+  const setSetKey = (value) => setParam('set', value);
+  const spreadParam = Number(getParam('p', '0')) || 0;
+  const setSpread = (value) => setParam('p', value > 0 ? String(value) : '');
   const [sets, setSets] = useState([]);
   const [cards, setCards] = useState(null);
-  const [spread, setSpread] = useState(0);
   const [turning, setTurning] = useState(null);
   const [single, setSingle] = useState(() => window.innerWidth < 900);
   const [flat, setFlat] = useState(false);
@@ -81,7 +88,7 @@ export default function BinderPage() {
     if (setKey) {
       const set = sets.find((s) => s.key === setKey);
       Promise.resolve(set ? set.cards.map(({ card, owned }) => ({ ...card, owned })) : []).then((list) => {
-        if (!cancelled) { setCards(list); setSpread(0); }
+        if (!cancelled) setCards(list);
       });
     } else {
       collectionApi.getCollection({ source }).then((res) => {
@@ -90,7 +97,6 @@ export default function BinderPage() {
           || String(a.number || '').localeCompare(String(b.number || ''), undefined, { numeric: true })
           || a.name.localeCompare(b.name));
         setCards(list);
-        setSpread(0);
       }).catch(() => setCards([]));
     }
     return () => { cancelled = true; };
@@ -109,8 +115,10 @@ export default function BinderPage() {
   const pagesKey = `${setKey || source}:${cards?.length || 0}`;
   const perSpread = flat && single ? 1 : 2;
   const spreads = Math.max(1, Math.ceil(pages.length / perSpread));
+  // Anche la pagina sta nell'indirizzo; se il raccoglitore si e' accorciato si resta nell'ultima.
+  const spread = Math.min(spreadParam, spreads - 1);
 
-  const turn = useCallback((dir) => {
+  const turn = (dir) => {
     if (turning) return;
     const next = spread + dir;
     if (next < 0 || next >= spreads) return;
@@ -122,17 +130,20 @@ export default function BinderPage() {
       setTurning(dir > 0 ? 'next' : 'prev');
       setSpread(next);
     }
-  }, [spread, spreads, turning, flat]);
+  };
 
+  // I tasti chiamano sempre l'ultima versione di turn senza riagganciare l'ascoltatore.
+  const turnRef = useRef(turn);
+  useEffect(() => { turnRef.current = turn; });
   useEffect(() => {
     const onKey = (e) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
-      if (e.key === 'ArrowRight') turn(1);
-      if (e.key === 'ArrowLeft') turn(-1);
+      if (e.key === 'ArrowRight') turnRef.current(1);
+      if (e.key === 'ArrowLeft') turnRef.current(-1);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [turn]);
+  }, []);
 
   // Anche le carte che mancano si aprono: il dettaglio dice dove trovarle.
   const openCard = (card) => navigate(`/card/${encodeURIComponent(card.id)}`);
@@ -145,13 +156,13 @@ export default function BinderPage() {
       <div className="binder-controls">
         <label>
           Gioco
-          <select value={setKey ? '' : source} onChange={(e) => { setSetKey(''); setSource(e.target.value); }}>
+          <select value={setKey ? '' : source} onChange={(e) => { setSetKey(''); setSpread(0); setSource(e.target.value); }}>
             {Object.entries(SOURCE_LABELS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
           </select>
         </label>
         <label>
           oppure set
-          <select value={setKey} onChange={(e) => setSetKey(e.target.value)}>
+          <select value={setKey} onChange={(e) => { setSpread(0); setSetKey(e.target.value); }}>
             <option value="">—</option>
             {sets.map((s) => <option key={s.key} value={s.key}>{s.title}</option>)}
           </select>

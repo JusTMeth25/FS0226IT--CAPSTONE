@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { hotelApi } from '../../services/hotelApi.js';
 import { collectionApi } from '../../services/collectionApi.js';
+import { useCardFilters } from '../../hooks/useCardFilters.js';
+import CardFilterBar from '../../components/card/CardFilterBar.jsx';
 import { formatCardPrice, getRarityColor, resolveCardImage } from '../../utils/cardUtils.js';
 
 const ERRORS = {
@@ -22,7 +24,6 @@ export default function StallPanel({ itemId, me, gold, onBought, onViewCard, onC
   const [owned, setOwned] = useState(null);
   const [pick, setPick] = useState(null);
   const [price, setPrice] = useState('');
-  const [query, setQuery] = useState('');
 
   const load = useCallback(() => {
     hotelApi.stall(itemId).then(setData).catch(() => setNotice('Banchetto non raggiungibile.'));
@@ -35,10 +36,8 @@ export default function StallPanel({ itemId, me, gold, onBought, onViewCard, onC
     collectionApi.getCollection({ owned: 'true' }).then((res) => setOwned(res.collection || [])).catch(() => setOwned([]));
   }, [mine, owned]);
 
-  const choices = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return (owned || []).filter((c) => !q || c.name.toLowerCase().includes(q)).slice(0, 40);
-  }, [owned, query]);
+  const filter = useCardFilters(owned);
+  const choices = filter.result.slice(0, 120);
 
   const run = (promise, ok) => promise.then((res) => { setData(res); if (ok) setNotice(ok); })
     .catch((err) => setNotice(ERRORS[err?.code] || (err?.status === 402 ? ERRORS.insufficient_gold : 'Non riuscito, riprova.')));
@@ -79,7 +78,7 @@ export default function StallPanel({ itemId, me, gold, onBought, onViewCard, onC
             if (pick && Number(price) > 0) run(hotelApi.stallAdd(itemId, pick.id, Number(price)), `${pick.name} in vendita!`).then(() => { setPick(null); setPrice(''); });
           }}>
             <h4 className="events-sub">Metti in vendita</h4>
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cerca fra le tue carte" aria-label="Cerca carta" />
+            <CardFilterBar compact items={owned} {...filter} count={filter.result.length} />
             <div className="stall-picker">
               {!owned && <small>Carico la collezione…</small>}
               {choices.map((c) => (

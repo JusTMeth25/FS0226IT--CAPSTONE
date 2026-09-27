@@ -5,6 +5,8 @@ import { useApiResource } from '../hooks/useApiResource.js';
 import { marketApi } from '../services/marketApi.js';
 import { getRarityColor, resolveCardImage } from '../utils/cardUtils.js';
 import { dedupeCollection } from '../utils/collectionUtils.js';
+import { useCardFilters } from '../hooks/useCardFilters.js';
+import CardFilterBar from '../components/card/CardFilterBar.jsx';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 
@@ -20,6 +22,7 @@ export default function MarketplacePage() {
   const [sellForm, setSellForm] = useState({ cardId: '', quantity: 1, price: 10 });
 
   const ownedCards = useMemo(() => uniqueOwnedCards(game.collection), [game.collection]);
+  const sellFilter = useCardFilters(ownedCards, undefined, { sort: 'name', dir: 'asc' });
   const listings = data?.listings || [];
 
   async function handleBuy(listing) {
@@ -66,24 +69,27 @@ export default function MarketplacePage() {
           {ownedCards.length === 0 ? (
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Non possiedi ancora carte da vendere.</p>
           ) : (
-            <form className="admin-form-row" onSubmit={handleSell}>
-              <div className="filter-group">
-                <label className="filter-label">Carta</label>
-                <select className="filter-select" value={sellForm.cardId} onChange={(e) => setSellForm((f) => ({ ...f, cardId: e.target.value }))}>
-                  <option value="">Seleziona…</option>
-                  {ownedCards.map((c) => <option key={c.id} value={c.id}>{c.name} (x{c.owned})</option>)}
-                </select>
-              </div>
-              <div className="filter-group">
-                <label className="filter-label">Quantità</label>
-                <input className="ai-input" type="number" min="1" value={sellForm.quantity} onChange={(e) => setSellForm((f) => ({ ...f, quantity: e.target.value }))} />
-              </div>
-              <div className="filter-group">
-                <label className="filter-label">Prezzo (gold/unità)</label>
-                <input className="ai-input" type="number" min="1" value={sellForm.price} onChange={(e) => setSellForm((f) => ({ ...f, price: e.target.value }))} />
-              </div>
-              <button type="submit" className="btn btn-primary">Metti in vendita</button>
-            </form>
+            <>
+              <CardFilterBar items={ownedCards} {...sellFilter} count={sellFilter.result.length} />
+              <form className="admin-form-row" onSubmit={handleSell}>
+                <div className="filter-group">
+                  <label className="filter-label">Carta</label>
+                  <select className="filter-select" value={sellForm.cardId} onChange={(e) => setSellForm((f) => ({ ...f, cardId: e.target.value }))}>
+                    <option value="">Seleziona…</option>
+                    {sellFilter.result.map((c) => <option key={c.id} value={c.id}>{c.name} (x{c.owned})</option>)}
+                  </select>
+                </div>
+                <div className="filter-group">
+                  <label className="filter-label">Quantità</label>
+                  <input className="ai-input" type="number" min="1" value={sellForm.quantity} onChange={(e) => setSellForm((f) => ({ ...f, quantity: e.target.value }))} />
+                </div>
+                <div className="filter-group">
+                  <label className="filter-label">Prezzo (gold/unità)</label>
+                  <input className="ai-input" type="number" min="1" value={sellForm.price} onChange={(e) => setSellForm((f) => ({ ...f, price: e.target.value }))} />
+                </div>
+                <button type="submit" className="btn btn-primary">Metti in vendita</button>
+              </form>
+            </>
           )}
         </div>
       )}

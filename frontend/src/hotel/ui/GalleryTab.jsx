@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { apiClient } from '../../services/apiClient.js';
 import { collectionApi } from '../../services/collectionApi.js';
+import { useCardFilters } from '../../hooks/useCardFilters.js';
+import CardFilterBar from '../../components/card/CardFilterBar.jsx';
 import { getRarityColor, resolveCardImage } from '../../utils/cardUtils.js';
 
 const ERRORS = {
@@ -9,7 +11,6 @@ const ERRORS = {
   gallery_too_many: 'Al massimo 5 carte.',
   card_not_owned: 'Puoi esporre solo carte tue.'
 };
-const RARITY_ORDER = { legendary: 0, epic: 1, rare: 2, uncommon: 3, common: 4 };
 
 function daysLeft(endsAt) {
   const ms = new Date(endsAt).getTime() - Date.now();
@@ -41,7 +42,6 @@ export default function GalleryTab({ me, onViewCard }) {
   const [editing, setEditing] = useState(false);
   const [owned, setOwned] = useState(null);
   const [picked, setPicked] = useState([]);
-  const [query, setQuery] = useState('');
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(() => {
@@ -57,13 +57,8 @@ export default function GalleryTab({ me, onViewCard }) {
     }
   };
 
-  const choices = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return (owned || [])
-      .filter((c) => !q || c.name.toLowerCase().includes(q))
-      .sort((a, b) => (RARITY_ORDER[a.rarity] ?? 9) - (RARITY_ORDER[b.rarity] ?? 9) || a.name.localeCompare(b.name))
-      .slice(0, 60);
-  }, [owned, query]);
+  const filter = useCardFilters(owned, undefined, { sort: 'rarity' });
+  const choices = filter.result.slice(0, 120);
 
   const run = (promise, ok) => {
     setBusy(true);
@@ -90,7 +85,7 @@ export default function GalleryTab({ me, onViewCard }) {
       {editing ? (
         <section className="gallery-editor">
           <h4 className="events-sub">La tua mostra ({picked.length}/{data.maxCards})</h4>
-          <input className="gallery-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cerca fra le tue carte" aria-label="Cerca carta" />
+          <CardFilterBar compact items={owned} {...filter} count={filter.result.length} />
           {!owned ? <p className="hotel-panel-hint">Carico la collezione…</p> : (
             <div className="gallery-picker">
               {choices.map((card) => (
