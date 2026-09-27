@@ -6,7 +6,7 @@ import EmptyState from '../components/common/EmptyState.jsx';
 
 const SOURCE_COLORS = {
   original: '#a855f7', pokemon: '#facc15', yugioh: '#b45309', scryfall: '#f97316', onepiece: '#ef4444',
-  digimon: '#3b82f6', dragonball: '#fb923c', lorcana: '#8b5cf6', gundam: '#94a3b8', riftbound: '#14b8a6', fc27: '#22c55e'
+  digimon: '#3b82f6', dragonball: '#fb923c', lorcana: '#8b5cf6', gundam: '#94a3b8', riftbound: '#14b8a6', nikke: '#e11d48', fc27: '#22c55e'
 };
 
 /** Valore della collezione negli ultimi 30 giorni: linea con l'area sotto. */

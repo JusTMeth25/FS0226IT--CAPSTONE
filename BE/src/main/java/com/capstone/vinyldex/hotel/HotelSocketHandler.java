@@ -417,7 +417,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
 
     /** Fonti con immagini vere delle carte: le carte disegnate da noi riportano il nome in chiaro. */
     private static final java.util.Set<String> QUIZ_SOURCES = java.util.Set.of(
-            "pokemon", "yugioh", "scryfall", "onepiece", "digimon", "dragonball", "lorcana", "gundam", "riftbound");
+            "pokemon", "yugioh", "scryfall", "onepiece", "digimon", "dragonball", "lorcana", "gundam", "riftbound", "nikke");
     private static final java.util.Random QUIZ_RANDOM = new java.util.Random();
 
     /** Quiz "Indovina la carta": una carta a caso con immagine, il nome resta sul server. */

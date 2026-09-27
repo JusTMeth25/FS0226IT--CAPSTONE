@@ -11,6 +11,8 @@ export const CARD_BACKS = {
   digimon: '/assets/img/backs/digimon.jpg',
   lorcana: '/assets/img/backs/lorcana.png',
   riftbound: '/assets/img/backs/riftbound.png',
+  // Dorso disegnato da noi, come quello di FC 27: niente logo ufficiale di Union Arena.
+  nikke: '/assets/img/backs/nikke.svg',
   dragonball: '/assets/img/backs/dragonball.png',
   gundam: '/assets/img/backs/gundam.jpg',
   // Dorso in stile Ultimate Team disegnato da noi: le carte UT non hanno un retro ufficiale.

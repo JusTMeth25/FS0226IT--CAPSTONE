@@ -30,7 +30,7 @@ public class GameLeaderboardService {
     public static final int TOP = 10;
     public static final int WEEKLY_PRIZE = 200;
     public static final List<String> SOURCES = List.of("original", "pokemon", "yugioh", "scryfall", "onepiece", "digimon",
-            "dragonball", "lorcana", "gundam", "riftbound", "fc27");
+            "dragonball", "lorcana", "gundam", "riftbound", "nikke", "fc27");
 
     private final JdbcTemplate jdbc;
     private final WalletService walletService;

@@ -60,6 +60,11 @@ public class CardSetService {
                     named("yugioh", "dragon")),
             new SetDef("lorcana-completo", "Lorcana completo", "Tutte le carte di Disney Lorcana", "magic-wand", 400,
                     c -> "lorcana".equals(c.getSource())),
+            new SetDef("nikke-parallele", "Parallele di NIKKE", "Le stampe con le stelle di GODDESS OF VICTORY: NIKKE", "star", 350,
+                    c -> "nikke".equals(c.getSource()) && c.getMetadata() != null
+                            && c.getMetadata().get("stars") instanceof Number stars && stars.intValue() > 0),
+            new SetDef("nikke-rapi", "Squadra Counters", "Rapi, Anis e Neon in tutte le versioni", "crosshair", 250,
+                    named("nikke", "rapi|anis|neon")),
             new SetDef("gundam-assi", "Assi di Gundam", "Le carte epiche e leggendarie di Gundam", "rocket", 250,
                     c -> "gundam".equals(c.getSource()) && Set.of("epic", "legendary").contains(c.getRarity())));
 

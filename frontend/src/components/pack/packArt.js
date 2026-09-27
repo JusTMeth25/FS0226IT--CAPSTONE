@@ -13,6 +13,7 @@ const GAME_PACKS = {
   digimon: ['ph-cpu', '#4fc3f7', '#0d2b5c'],
   lorcana: ['ph-sparkle', '#e9c46a', '#2b1d5c'],
   riftbound: ['ph-sword', '#5eead4', '#0b2530'],
+  nikke: ['ph-crosshair', '#fb7185', '#1b1f2a'],
   gundam: ['ph-robot', '#93c5fd', '#7f1d1d'],
   original: ['ph-vinyl-record', '#e879f9', '#2e0b3a']
 };

@@ -4,6 +4,18 @@
  */
 export const NEWS = [
   {
+    date: '2026-10-05',
+    title: 'Arrivano le carte NIKKE',
+    icon: 'ph-crosshair',
+    items: [
+      ['ph-crosshair', 'GODDESS OF VICTORY: NIKKE', 'Le carte del set NIKKE di Union Arena, con immagini e prezzi di mercato veri: nei pacchetti, in collezione, al mercato, in battaglia e nell’hotel.'],
+      ['ph-gift', 'Pacchetto NIKKE', '5 carte solo NIKKE con 1 Rara garantita. Le parallele a tre stelle sono le leggendarie.'],
+      ['ph-star', 'Nuovi set', 'Parallele di NIKKE (tutte le stampe con le stelle) e Squadra Counters (Rapi, Anis e Neon).'],
+      ['ph-book-open', 'Raccoglitore e dorso NIKKE', 'Un raccoglitore tutto suo e un dorso da campo di battaglia.'],
+      ['ph-newspaper', 'Vetrine dell’edicola', 'Le carte esposte in edicola cambiano ogni 4 ore: leggendarie in prima fila, pescate da tutti i giochi.']
+    ]
+  },
+  {
     date: '2026-10-04',
     title: 'Le leggende suonano al Locale Rock',
     icon: 'ph-guitar',

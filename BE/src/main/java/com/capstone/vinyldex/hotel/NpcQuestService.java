@@ -38,11 +38,11 @@ public class NpcQuestService {
     static final ZoneId ZONE = ZoneId.of("Europe/Rome");
     public static final int QUESTS_PER_DAY = 3;
     static final List<String> SOURCES = List.of("pokemon", "yugioh", "scryfall", "onepiece", "digimon", "dragonball",
-            "lorcana", "gundam", "riftbound", "fc27", "original");
+            "lorcana", "gundam", "riftbound", "nikke", "fc27", "original");
     static final Map<String, String> SOURCE_NAMES = Map.ofEntries(
             Map.entry("pokemon", "Pokémon"), Map.entry("yugioh", "Yu-Gi-Oh!"), Map.entry("scryfall", "Magic"),
             Map.entry("onepiece", "One Piece"), Map.entry("digimon", "Digimon"), Map.entry("dragonball", "Dragon Ball"),
-            Map.entry("lorcana", "Lorcana"), Map.entry("gundam", "Gundam"), Map.entry("riftbound", "Riftbound"),
+            Map.entry("lorcana", "Lorcana"), Map.entry("gundam", "Gundam"), Map.entry("riftbound", "Riftbound"), Map.entry("nikke", "NIKKE"),
             Map.entry("fc27", "EA FC 27"), Map.entry("original", "VinylDex"));
     static final List<String> RARITY_ORDER = List.of("common", "uncommon", "rare", "epic", "legendary");
     static final Map<String, String> RARITY_NAMES = Map.of("uncommon", "non comune", "rare", "rara", "epic", "epica");

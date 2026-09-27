@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
  * - Gundam: AP e HP da 0 a 7.
  * - Lorcana: forza 0-10, volonta' 1-12, leggenda 0-4.
  * - Riftbound: might da 0 a 10.
+ * - NIKKE (Union Arena): BP da 500 a 4000 (piu' i bonus), energia richiesta 0-6, parallele da 1 a 3 stelle.
  */
 @Component
 public class CardStatCalculator {
@@ -102,6 +103,7 @@ public class CardStatCalculator {
             case "gundam" -> gundam(name, meta, popularity, variant);
             case "lorcana" -> lorcana(name, meta, popularity, variant);
             case "riftbound" -> riftbound(name, meta, popularity, variant);
+            case "nikke" -> nikke(name, meta, popularity, variant);
             case "fc27" -> fc27(meta, popularity);
             default -> new Scores(popularity, variant, 0.45, 0.45);
         };
@@ -524,6 +526,47 @@ public class CardStatCalculator {
                 clamp(0.6 * popularity + 0.4 * icon),
                 clamp(0.55 * variant + 0.45 * popularity),
                 influence,
+                energy);
+    }
+
+    // ---------------------------------------------------------------- GODDESS OF VICTORY: NIKKE
+
+    /** Le Nikke piu' amate dai giocatori (e piu' cercate tra le carte). */
+    private static final List<String> NIKKE_ICONS = List.of(
+            "rapi", "red hood", "modernia", "scarlet", "snow white", "rapunzel", "alice", "dorothy", "anis",
+            "neon", "marian", "laplace", "noah", "viper", "privaty", "helm", "crown", "cinderella", "harran");
+
+    /**
+     * Carte di Union Arena NIKKE:
+     * - energy: BP del personaggio (fino a 4000, il "+" delle abilita' vale un po' di piu');
+     * - influence: personaggi per energia richiesta e trigger (Raid, Special), eventi, luoghi;
+     * - style: le parallele con le stelle (fino a 3) e le foil dei box topper.
+     */
+    private Scores nikke(String name, Map<String, Object> meta, double popularity, double variant) {
+        String type = lower(str(meta, "cardType"));
+        Double bp = num(meta, "bp");
+        Double required = num(meta, "requiredEnergy");
+        String trigger = lower(str(meta, "trigger"));
+        double stars = orZero(num(meta, "stars"));
+        double icon = containsWord(name, NIKKE_ICONS) ? 1 : 0;
+
+        double energy = bp != null ? clamp(bp / 4500) : type.contains("event") ? 0.35 : 0.25;
+        double influence;
+        if (type.contains("action point")) influence = 0.15;
+        else if (type.contains("site")) influence = 0.45;
+        else if (type.contains("event")) influence = 0.5;
+        else {
+            influence = 0.35 + 0.07 * orZero(required);
+            if (trigger.contains("[raid]") || trigger.contains("[special]")) influence += 0.15;
+            else if (trigger.contains("[final]") || trigger.contains("[active]")) influence += 0.08;
+        }
+        String print = lower(str(meta, "variant"));
+        double special = stars >= 3 ? 1.0 : stars == 2 ? 0.85 : stars == 1 ? 0.65 : print.contains("foil") ? 0.55 : variant;
+
+        return new Scores(
+                clamp(0.6 * popularity + 0.4 * icon),
+                clamp(0.55 * special + 0.45 * popularity),
+                clamp(influence),
                 energy);
     }
 

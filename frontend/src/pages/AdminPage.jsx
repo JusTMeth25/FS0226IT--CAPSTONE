@@ -198,6 +198,7 @@ function ImportTab() {
     { key: 'digimon', label: SOURCE_LABELS.digimon, fn: () => adminApi.importDigimon({ limit: count }) },
     { key: 'lorcana', label: SOURCE_LABELS.lorcana, fn: () => adminApi.importLorcana({ limit: count }) },
     { key: 'riftbound', label: SOURCE_LABELS.riftbound, fn: () => adminApi.importRiftbound({ limit: count }) },
+    { key: 'nikke', label: SOURCE_LABELS.nikke, fn: () => adminApi.importNikke({ limit: count }) },
     { key: 'gundam', label: SOURCE_LABELS.gundam, fn: () => adminApi.importGundam({ limit: count }) },
     { key: 'dragonball', label: SOURCE_LABELS.dragonball, fn: () => adminApi.importDragonBall({ limit: count }) }
   ];

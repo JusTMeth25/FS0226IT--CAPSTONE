@@ -367,6 +367,53 @@ const COVERS = {
     }
     frame(ctx, w, h, '#cbb26a', 6, 40);
   },
+  nikke(ctx, w, h) {
+    // Superficie in guerra: griglia da radar, fasce di pericolo e il mirino rosso al centro.
+    ctx.fillStyle = '#0c0f16';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(148,163,184,.12)';
+    ctx.lineWidth = 2;
+    for (let x = 0; x < w; x += 50) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
+    }
+    for (let y = 0; y < h; y += 50) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
+    [60, h - 94].forEach((y) => {
+      for (let x = -40; x < w; x += 40) {
+        ctx.fillStyle = (x / 40) % 2 ? '#f59e0b' : '#111827';
+        ctx.beginPath();
+        ctx.moveTo(x, y + 34);
+        ctx.lineTo(x + 20, y);
+        ctx.lineTo(x + 40, y);
+        ctx.lineTo(x + 20, y + 34);
+        ctx.fill();
+      }
+    });
+    const cx = w / 2;
+    const cy = h * 0.46;
+    ctx.strokeStyle = '#e11d48';
+    ctx.lineWidth = 10;
+    [200, 46].forEach((r) => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, TAU);
+      ctx.stroke();
+    });
+    ctx.lineWidth = 12;
+    ctx.beginPath();
+    [[0, -240, 0, -140], [0, 140, 0, 240], [-240, 0, -140, 0], [140, 0, 240, 0]].forEach(([x1, y1, x2, y2]) => {
+      ctx.moveTo(cx + x1, cy + y1);
+      ctx.lineTo(cx + x2, cy + y2);
+    });
+    ctx.stroke();
+    frame(ctx, w, h, '#e11d48', 10, 30);
+  },
   fc27(ctx, w, h) {
     for (let x = 0; x < w; x += 64) {
       ctx.fillStyle = (x / 64) % 2 ? '#15803d' : '#16a34a';
@@ -399,6 +446,7 @@ export const BINDER_THEMES = {
   lorcana: { title: 'Raccoglitore Lorcana', accent: '#facc15', page: '#2a0f4f', pocket: 'rgba(250,204,21,.5)', text: '#fef9c3' },
   gundam: { title: 'Raccoglitore Gundam', accent: '#1d4ed8', page: '#dfe6ef', pocket: 'rgba(30,41,59,.4)', text: '#0f172a' },
   riftbound: { title: 'Raccoglitore Riftbound', accent: '#cbb26a', page: '#0b1733', pocket: 'rgba(203,178,106,.5)', text: '#fef3c7' },
+  nikke: { title: 'Raccoglitore NIKKE', accent: '#fb7185', page: '#141821', pocket: 'rgba(225,29,72,.5)', text: '#ffe4e6' },
   fc27: { title: 'Raccoglitore FC 27 Ultimate Team', accent: '#e3b341', page: '#0f4d2b', pocket: 'rgba(227,179,65,.55)', text: '#fef9c3' }
 };
 

@@ -145,6 +145,17 @@ export const PACKS = [
     source: 'riftbound'
   },
   {
+    id: 'pack-nikke',
+    name: 'Pacchetto NIKKE',
+    description: '5 carte solo GODDESS OF VICTORY: NIKKE con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'nikke'
+  },
+  {
     id: 'pack-gundam',
     name: 'Pacchetto Gundam',
     description: '5 carte solo Gundam con 1 Rara garantita.',

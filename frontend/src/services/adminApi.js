@@ -25,6 +25,7 @@ export const adminApi = {
   async importDigimon(payload) { return apiClient.post('/admin/import/digimon', payload); },
   async importLorcana(payload) { return apiClient.post('/admin/import/lorcana', payload); },
   async importRiftbound(payload) { return apiClient.post('/admin/import/riftbound', payload); },
+  async importNikke(payload) { return apiClient.post('/admin/import/nikke', payload); },
   async importGundam(payload) { return apiClient.post('/admin/import/gundam', payload); },
   async importDragonBall(payload) { return apiClient.post('/admin/import/dragonball', payload); },
 

@@ -26,6 +26,7 @@ export const SOURCE_LABELS = {
   digimon: 'Digimon Card Game',
   lorcana: 'Disney Lorcana',
   riftbound: 'Riftbound (LoL TCG)',
+  nikke: 'NIKKE (Union Arena)',
   gundam: 'Gundam Card Game',
   dragonball: 'Dragon Ball Super CCG',
   fc27: 'EA FC 27 Ultimate Team'
@@ -36,7 +37,7 @@ export function getSourceLabel(source) {
 }
 
 // Prezzo di mercato reale (USD) usato per calibrare la rarità delle carte importate da fonti con
-// dati di prezzo affidabili (Pokémon, Magic, Yu-Gi-Oh!, One Piece, Dragon Ball, Digimon). Le carte
+// dati di prezzo affidabili (Pokémon, Magic, Yu-Gi-Oh!, One Piece, Dragon Ball, Digimon, NIKKE). Le carte
 // originali VinylDex e quelle da fonti senza dati di prezzo (Lorcana/Gundam/Riftbound) non ce l'hanno.
 const marketPriceFormatter = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
 export function formatMarketPrice(marketPrice) {

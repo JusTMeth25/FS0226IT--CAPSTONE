@@ -1,0 +1,426 @@
+{
+ "products": [
+  {
+   "productId": 638095,
+   "name": "GODDESS OF VICTORY: NIKKE - Booster Pack",
+   "cleanName": "GODDESS OF VICTORY NIKKE Booster Pack",
+   "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/638095_200w.jpg",
+   "categoryId": 81,
+   "groupId": 24328,
+   "url": "https://www.tcgplayer.com/product/638095/union-arena-ue14bt-goddess-of-victory-nikke-goddess-of-victory-nikke-booster-pack",
+   "modifiedOn": "2025-11-28T05:10:09.547",
+   "imageCount": 1,
+   "presaleInfo": {
+    "isPresale": false,
+    "releasedOn": "2025-11-28T00:00:00",
+    "note": null
+   },
+   "extendedData": []
+  },
+  {
+   "productId": 656402,
+   "name": "Modernia (019) (SR***)",
+   "cleanName": "Modernia 019 SR",
+   "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/656402_200w.jpg",
+   "categoryId": 81,
+   "groupId": 24328,
+   "url": "https://www.tcgplayer.com/product/656402/union-arena-ue14bt-goddess-of-victory-nikke-modernia-019-sr",
+   "modifiedOn": "2025-11-28T05:10:09.547",
+   "imageCount": 1,
+   "presaleInfo": {
+    "isPresale": false,
+    "releasedOn": "2025-11-28T00:00:00",
+    "note": null
+   },
+   "extendedData": [
+    {
+     "name": "Rarity",
+     "displayName": "Rarity",
+     "value": "Super Rare 3-Star"
+    },
+    {
+     "name": "Number",
+     "displayName": "Number",
+     "value": "UE14BT/NIK-1-019"
+    },
+    {
+     "name": "Description",
+     "displayName": "Description",
+     "value": "[Raid] \"Marian\" <em>Switch to active. May move to the front line.</em>\r\n<br>\r\n[When Played] Add any number of \"Memory\" cards from your sideline to your hand.\r\n<br>\r\n[When Attacking] Choose up to one character with [1000] or less BP on your opponent's front line and sideline it. You may place any number of event cards from your hand into your sideline. If you do, for each event card placed into your sideline with this ability, add 1000 to the BP range of the character you may choose with this ability."
+    },
+    {
+     "name": "SeriesName",
+     "displayName": "Series Name",
+     "value": "GODDESS OF VICTORY: NIKKE"
+    },
+    {
+     "name": "CardType",
+     "displayName": "Card Type",
+     "value": "Character"
+    },
+    {
+     "name": "Affinities",
+     "displayName": "Affinities",
+     "value": "Pilgrim / Heretic"
+    },
+    {
+     "name": "ActivationEnergy",
+     "displayName": "Activation Energy",
+     "value": "Yellow"
+    },
+    {
+     "name": "RequiredEnergy",
+     "displayName": "Required Energy",
+     "value": "5"
+    },
+    {
+     "name": "ActionPointCost",
+     "displayName": "Action Point Cost",
+     "value": "1"
+    },
+    {
+     "name": "BattlePointBP",
+     "displayName": "Battle Point (BP)",
+     "value": "4000"
+    },
+    {
+     "name": "Trigger",
+     "displayName": "Trigger",
+     "value": "[Raid] Add this card to your hand, or if you have the required energy, perform Raid with it."
+    },
+    {
+     "name": "GeneratedEnergy",
+     "displayName": "Generated Energy",
+     "value": "Y"
+    }
+   ]
+  },
+  {
+   "productId": 656408,
+   "name": "Rapi (009) (Box Topper Foil)",
+   "cleanName": "Rapi 009 Box Topper Foil",
+   "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/656408_200w.jpg",
+   "categoryId": 81,
+   "groupId": 24328,
+   "url": "https://www.tcgplayer.com/product/656408/union-arena-ue14bt-goddess-of-victory-nikke-rapi-009-box-topper-foil",
+   "modifiedOn": "2025-11-28T05:10:09.547",
+   "imageCount": 1,
+   "presaleInfo": {
+    "isPresale": false,
+    "releasedOn": "2025-11-28T00:00:00",
+    "note": null
+   },
+   "extendedData": [
+    {
+     "name": "Rarity",
+     "displayName": "Rarity",
+     "value": "Common"
+    },
+    {
+     "name": "Number",
+     "displayName": "Number",
+     "value": "UE14BT/NIK-1-009"
+    },
+    {
+     "name": "SeriesName",
+     "displayName": "Series Name",
+     "value": "GODDESS OF VICTORY: NIKKE"
+    },
+    {
+     "name": "CardType",
+     "displayName": "Card Type",
+     "value": "Character"
+    },
+    {
+     "name": "Affinities",
+     "displayName": "Affinities",
+     "value": "Elysion / Counters"
+    },
+    {
+     "name": "ActivationEnergy",
+     "displayName": "Activation Energy",
+     "value": "Yellow"
+    },
+    {
+     "name": "RequiredEnergy",
+     "displayName": "Required Energy",
+     "value": "0"
+    },
+    {
+     "name": "ActionPointCost",
+     "displayName": "Action Point Cost",
+     "value": "1"
+    },
+    {
+     "name": "BattlePointBP",
+     "displayName": "Battle Point (BP)",
+     "value": "1500"
+    },
+    {
+     "name": "Trigger",
+     "displayName": "Trigger",
+     "value": "[Get] Add this card to your hand."
+    },
+    {
+     "name": "GeneratedEnergy",
+     "displayName": "Generated Energy",
+     "value": "Y"
+    }
+   ]
+  },
+  {
+   "productId": 656419,
+   "name": "Action Point Card (AP01)",
+   "cleanName": "Action Point Card AP01",
+   "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/656419_200w.jpg",
+   "categoryId": 81,
+   "groupId": 24328,
+   "url": "https://www.tcgplayer.com/product/656419/union-arena-ue14bt-goddess-of-victory-nikke-action-point-card-ap01",
+   "modifiedOn": "2025-11-28T05:10:09.547",
+   "imageCount": 1,
+   "presaleInfo": {
+    "isPresale": false,
+    "releasedOn": "2025-11-28T00:00:00",
+    "note": null
+   },
+   "extendedData": [
+    {
+     "name": "Rarity",
+     "displayName": "Rarity",
+     "value": "Action Point"
+    },
+    {
+     "name": "Number",
+     "displayName": "Number",
+     "value": "UE14BT/NIK-1-AP01"
+    },
+    {
+     "name": "SeriesName",
+     "displayName": "Series Name",
+     "value": "GODDESS OF VICTORY: NIKKE"
+    },
+    {
+     "name": "CardType",
+     "displayName": "Card Type",
+     "value": "Action Point"
+    }
+   ]
+  },
+  {
+   "productId": 663873,
+   "name": "Crow (021) (R*)",
+   "cleanName": "Crow 021 R",
+   "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/663873_200w.jpg",
+   "categoryId": 81,
+   "groupId": 24328,
+   "url": "https://www.tcgplayer.com/product/663873/union-arena-ue14bt-goddess-of-victory-nikke-crow-021-r",
+   "modifiedOn": "2025-12-01T16:18:12.807",
+   "imageCount": 1,
+   "presaleInfo": {
+    "isPresale": false,
+    "releasedOn": null,
+    "note": null
+   },
+   "extendedData": [
+    {
+     "name": "Rarity",
+     "displayName": "Rarity",
+     "value": "Rare 1-Star"
+    },
+    {
+     "name": "Number",
+     "displayName": "Number",
+     "value": "UE14BT/NIK-1-021"
+    },
+    {
+     "name": "Description",
+     "displayName": "Description",
+     "value": "[When Played] Look at the top three cards of your deck. Reveal up to one [Exotic] or [Wardress] affinity card among them and add it to your hand. Place the remaining cards on the bottom of your deck in any order. If you added a card to your hand, place one card from your hand into your sideline.\r\n<br>\r\n[Activate: Main] (Switch to Resting) [Once Per Turn] Switch one active character on your front line to resting. If you do, activate this character's [When Played] ability."
+    },
+    {
+     "name": "SeriesName",
+     "displayName": "Series Name",
+     "value": "GODDESS OF VICTORY: NIKKE"
+    },
+    {
+     "name": "CardType",
+     "displayName": "Card Type",
+     "value": "Character"
+    },
+    {
+     "name": "Affinities",
+     "displayName": "Affinities",
+     "value": "Missilis / Exotic"
+    },
+    {
+     "name": "ActivationEnergy",
+     "displayName": "Activation Energy",
+     "value": "Yellow"
+    },
+    {
+     "name": "RequiredEnergy",
+     "displayName": "Required Energy",
+     "value": "2"
+    },
+    {
+     "name": "ActionPointCost",
+     "displayName": "Action Point Cost",
+     "value": "1"
+    },
+    {
+     "name": "BattlePointBP",
+     "displayName": "Battle Point (BP)",
+     "value": "2000"
+    },
+    {
+     "name": "Trigger",
+     "displayName": "Trigger",
+     "value": "[Active] Choose one character on your field and switch it to active. It gains 3000 BP until the end of the turn."
+    },
+    {
+     "name": "GeneratedEnergy",
+     "displayName": "Generated Energy",
+     "value": "Y"
+    }
+   ]
+  },
+  {
+   "productId": 663874,
+   "name": "Jackal (022)",
+   "cleanName": "Jackal 022",
+   "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/663874_200w.jpg",
+   "categoryId": 81,
+   "groupId": 24328,
+   "url": "https://www.tcgplayer.com/product/663874/union-arena-ue14bt-goddess-of-victory-nikke-jackal-022",
+   "modifiedOn": "2025-11-28T05:10:09.547",
+   "imageCount": 1,
+   "presaleInfo": {
+    "isPresale": false,
+    "releasedOn": "2025-11-28T00:00:00",
+    "note": null
+   },
+   "extendedData": [
+    {
+     "name": "Rarity",
+     "displayName": "Rarity",
+     "value": "Common"
+    },
+    {
+     "name": "Number",
+     "displayName": "Number",
+     "value": "UE14BT/NIK-1-022"
+    },
+    {
+     "name": "Description",
+     "displayName": "Description",
+     "value": "[Once Per Turn] When an active character on your front line is switched to resting by one of your abilities, this character gains 1000 BP until the end of the turn."
+    },
+    {
+     "name": "SeriesName",
+     "displayName": "Series Name",
+     "value": "GODDESS OF VICTORY: NIKKE"
+    },
+    {
+     "name": "CardType",
+     "displayName": "Card Type",
+     "value": "Character"
+    },
+    {
+     "name": "Affinities",
+     "displayName": "Affinities",
+     "value": "Missilis / Exotic"
+    },
+    {
+     "name": "ActivationEnergy",
+     "displayName": "Activation Energy",
+     "value": "Yellow"
+    },
+    {
+     "name": "RequiredEnergy",
+     "displayName": "Required Energy",
+     "value": "1"
+    },
+    {
+     "name": "ActionPointCost",
+     "displayName": "Action Point Cost",
+     "value": "1"
+    },
+    {
+     "name": "BattlePointBP",
+     "displayName": "Battle Point (BP)",
+     "value": "2500+"
+    },
+    {
+     "name": "GeneratedEnergy",
+     "displayName": "Generated Energy",
+     "value": "Y"
+    }
+   ]
+  }
+ ],
+ "prices": [
+  {
+   "productId": 638095,
+   "lowPrice": 3.99,
+   "midPrice": 4.79,
+   "highPrice": 9.99,
+   "marketPrice": 5.2,
+   "directLowPrice": null,
+   "subTypeName": "Normal"
+  },
+  {
+   "productId": 656402,
+   "lowPrice": 520.0,
+   "midPrice": 561.6,
+   "highPrice": 599.99,
+   "marketPrice": 493.73,
+   "directLowPrice": null,
+   "subTypeName": "Foil"
+  },
+  {
+   "productId": 656408,
+   "lowPrice": 0.15,
+   "midPrice": 0.63,
+   "highPrice": 2.99,
+   "marketPrice": 0.61,
+   "directLowPrice": null,
+   "subTypeName": "Foil"
+  },
+  {
+   "productId": 656419,
+   "lowPrice": 0.2,
+   "midPrice": 0.76,
+   "highPrice": 7.0,
+   "marketPrice": 0.56,
+   "directLowPrice": null,
+   "subTypeName": "Normal"
+  },
+  {
+   "productId": 656419,
+   "lowPrice": 37.5,
+   "midPrice": 43.24,
+   "highPrice": 99.21,
+   "marketPrice": 29.13,
+   "directLowPrice": null,
+   "subTypeName": "Foil"
+  },
+  {
+   "productId": 663873,
+   "lowPrice": 12.0,
+   "midPrice": 15.88,
+   "highPrice": 40.0,
+   "marketPrice": 16.17,
+   "directLowPrice": null,
+   "subTypeName": "Foil"
+  },
+  {
+   "productId": 663874,
+   "lowPrice": 0.01,
+   "midPrice": 0.15,
+   "highPrice": 1.5,
+   "marketPrice": 0.04,
+   "directLowPrice": null,
+   "subTypeName": "Normal"
+  }
+ ]
+}
