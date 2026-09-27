@@ -59,7 +59,7 @@ public class User {
     private String avatar;
 
     /** Aspetto dell'avatar nell'hotel (vedi HotelLook). Null = aspetto predefinito. */
-    @Column(name = "hotel_look", length = 40)
+    @Column(name = "hotel_look", length = 64)
     private String hotelLook;
 
     /** Account di un NPC dell'hotel (asta, eventi, tornei): niente accesso, fuori dalle classifiche. */

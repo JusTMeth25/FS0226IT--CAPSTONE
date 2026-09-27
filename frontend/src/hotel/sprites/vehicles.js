@@ -11,7 +11,7 @@ import { HALF_H, HALF_W } from '../iso.js';
  */
 
 /** Caselle per passo (come LuxuryCatalog.speed): a piedi 1. */
-export const RIDE_SPEEDS = [1, 2, 2, 2, 3, 4, 4, 4, 5];
+export const RIDE_SPEEDS = [1, 2, 2, 2, 3, 4, 4, 4, 5, 4];
 
 /** Quanto sale l'avatar sopra il veicolo e in che posa sta. */
 export const RIDE_POSE = [
@@ -20,17 +20,39 @@ export const RIDE_POSE = [
   { pose: 'stand', lift: 5 },
   { pose: 'sit', lift: 4 },
   { pose: 'sit', lift: 4 },
-  { pose: 'sit', lift: 2 },
-  { pose: 'sit', lift: 2 },
-  { pose: 'sit', lift: 2 },
-  { pose: 'sit', lift: 2 }
+  // Auto: seduti dentro, un po' piu' in basso (la carrozzeria copre le gambe).
+  { pose: 'sit', lift: -6 },
+  { pose: 'sit', lift: -6 },
+  { pose: 'sit', lift: -6 },
+  { pose: 'sit', lift: -6 },
+  { pose: 'sit', lift: -6 }
 ];
+
+/**
+ * Modelli 3D delle auto (carModels.js): si caricano con three.js solo quando serve la prima auto,
+ * cosi' l'hotel non scarica three.js se nessuno guida.
+ */
+let carModels = null;
+let carModelsLoading = false;
+function models() {
+  if (!carModels && !carModelsLoading) {
+    carModelsLoading = true;
+    import('./carModels.js').then((m) => { carModels = m; }).catch(() => {});
+  }
+  return carModels;
+}
+
+/** Il modello 3D di questa auto e' pronto? (per ridisegnare le anteprime quando arriva) */
+export function whenVehicleReady(ride) {
+  return import('./carModels.js').then((m) => (m.CAR_MODELS.has(ride) ? m.whenCarReady(ride) : null)).catch(() => null);
+}
 
 const CARS = {
   5: { body: '#d91a1a', dark: '#8f0f0f', stripe: '#fde047', spoiler: false },
   6: { body: '#f5c518', dark: '#a8850b', stripe: '#111827', spoiler: true },
   7: { body: '#f4f4f5', dark: '#a1a1aa', stripe: '#dc2626', spoiler: false },
-  8: { body: '#111827', dark: '#1e3a8a', stripe: '#3b82f6', spoiler: true }
+  8: { body: '#111827', dark: '#1e3a8a', stripe: '#3b82f6', spoiler: true },
+  9: { body: '#2563eb', dark: '#1e3a8a', stripe: '#f4f4f5', spoiler: true }
 };
 const BOARDS = { 1: { deck: '#ec4899', wheel: '#22d3ee' }, 2: { deck: '#a16207', wheel: '#fde047' } };
 const BIKES = { 3: { frame: '#16a34a', tire: '#111827' }, 4: { frame: '#e11d48', tire: '#1f2937' } };
@@ -117,6 +139,8 @@ function line(ctx, a, b, color, width) {
  */
 export function drawVehicle(ctx, ride, foot, dir, scale, layer, now = 0) {
   if (!ride) return;
+  // Auto con il modello 3D pronto: le sue immagini; altrimenti quella disegnata qui sotto.
+  if (CARS[ride] && models()?.drawCarModel(ctx, ride, foot, dir, scale, layer)) return;
   // Le auto un po' piu' grandi del vero rispetto agli avatar, come nei giochi: si vedono meglio.
   const P = projector(foot, dir, CARS[ride] ? scale * 1.25 : scale);
   ctx.save();
@@ -184,7 +208,8 @@ export function drawVehicle(ctx, ride, foot, dir, scale, layer, now = 0) {
 export function drawVehiclePreview(canvas, ride, dir = 3) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const scale = canvas.width / 110;
+  // Le auto 3D riempiono l'anteprima: sono piu' lunghe dei veicoli disegnati a mano.
+  const scale = canvas.width / (CARS[ride] && carModels?.CAR_MODELS.has(ride) ? 70 : 110);
   const foot = { x: canvas.width / 2, y: canvas.height * 0.62 };
   drawVehicle(ctx, ride, foot, dir, scale, 'under');
   drawVehicle(ctx, ride, foot, dir, scale, 'over');

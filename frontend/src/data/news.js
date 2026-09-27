@@ -14,6 +14,8 @@ export const NEWS = [
       ['ph-car-profile', 'Skate, bici e auto sportive', 'Compra lo skate, la bici o una supercar e guidala nel quartiere: vai piu’ veloce!'],
       ['ph-coffee', 'Caffetteria del viale', 'Caffellatte e frappe’ con la panna, poltrone verdi e dolci in vetrina.'],
       ['ph-hockey', 'Palaghiaccio', 'Partita di hockey Blu contro Rossi con casco, mazza e divisa, e i tiri al bersaglio (gara ogni sera alle 19).'],
+      ['ph-car-profile', 'Auto in 3D', 'Le auto della concessionaria sono modelli 3D veri (da Sketchfab): girano sulle pedane e le guidi nel quartiere.'],
+      ['ph-diamond', 'Gioielli e nuovi capi', 'Collane, orecchini, cinque orologi nuovi e cinque capi: trench, smoking bianco, velluto, kimono e tailleur.'],
       ['ph-house-line', 'Ville dei giocatori', 'Le stanze piu’ amate diventano ville sul viale: clicca per entrare.'],
       ['ph-sparkle', 'Olografiche piu’ belle', 'L’arcobaleno delle carte olografiche si vede pieno anche nel cofanetto 3D e nel raccoglitore.']
     ]

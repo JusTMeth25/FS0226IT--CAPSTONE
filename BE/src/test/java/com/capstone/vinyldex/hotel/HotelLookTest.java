@@ -38,7 +38,7 @@ class HotelLookTest {
         String look = "s1.h1.hc0.sh0.p0.t0.f0.a0.b0.o2.w3.r5";
         assertTrue(HotelLook.isValid(look));
         assertFalse(HotelLook.isValid("s1.h1.hc0.sh0.p0.t0.f0.a0.b0.o2"), "le parti del quartiere vanno insieme");
-        assertFalse(HotelLook.isValid("s1.h1.hc0.sh0.p0.t0.f0.a0.b0.o9.w0.r0"), "capo che non esiste");
+        assertFalse(HotelLook.isValid("s1.h1.hc0.sh0.p0.t0.f0.a0.b0.o14.w0.r0"), "capo che non esiste");
         assertEquals(2, HotelLook.part(look, "o"));
         assertEquals(0, HotelLook.part(look, "x"));
         assertEquals(java.util.List.of("o2", "w3", "r5"), HotelLook.luxuryItems(look));
@@ -49,5 +49,12 @@ class HotelLookTest {
         assertEquals(LuxuryCatalog.OUTFITS - 1, LuxuryCatalog.ITEMS.stream().filter(i -> i.part().equals("o")).count());
         assertEquals(LuxuryCatalog.WATCH_COUNT - 1, LuxuryCatalog.ITEMS.stream().filter(i -> i.part().equals("w")).count());
         assertEquals(LuxuryCatalog.RIDES - 1, LuxuryCatalog.ITEMS.stream().filter(i -> i.part().equals("r")).count());
+        // Collana e orecchini in fondo, facoltativi.
+        String jewels = "s1.h1.hc0.sh0.p0.t0.f0.a0.b1.o12.w11.r0.n3.e6";
+        assertTrue(HotelLook.isValid(jewels));
+        assertEquals(java.util.List.of("o12", "w11", "n3", "e6"), HotelLook.luxuryItems(jewels));
+        assertFalse(HotelLook.isValid("s1.h1.hc0.sh0.p0.t0.f0.a0.b1.o0.w0.r0.n7.e0"), "collana che non esiste");
+        assertEquals(LuxuryCatalog.NECKLACES - 1, LuxuryCatalog.ITEMS.stream().filter(i -> i.part().equals("n")).count());
+        assertEquals(LuxuryCatalog.EARRINGS - 1, LuxuryCatalog.ITEMS.stream().filter(i -> i.part().equals("e")).count());
     }
 }

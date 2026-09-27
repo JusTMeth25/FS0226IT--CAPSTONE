@@ -51,11 +51,16 @@ export const ACCESSORIES = ['Nessuno', 'Occhiali', 'Occhiali da sole', 'Cuffie',
  * veicoli. Zero e' "niente". Si indossano solo se comprati: il guardaroba mostra solo quelli.
  */
 export const OUTFITS = ['Nessuno', 'Completo gessato', 'Smoking', 'Abito da sera', 'Cappotto cammello', 'Giacca di pelle',
-  'Tuta firmata', 'Blazer bianco', 'Abito di paillettes'];
+  'Tuta firmata', 'Blazer bianco', 'Abito di paillettes', 'Trench', 'Smoking bianco', 'Giacca di velluto', 'Kimono di seta',
+  'Tailleur rosa'];
 export const WATCHES = ['Nessuno', 'Rolaix Submarino', 'Rolaix Daytona d\'oro', 'Patec Philippa Nautilo', 'Patec Philippa Calatrava',
-  'Audemar Piguay Quercia Reale', 'Audemar Piguay Offshore Nero'];
+  'Audemar Piguay Quercia Reale', 'Audemar Piguay Offshore Nero', 'Rolaix GMT Pepsi', 'Rolaix Day-Date Platino',
+  'Patec Philippa Aquanaut Verde', 'Audemar Piguay Codice 11.59', 'Richard Milla RM Scheletrato'];
+export const NECKLACES = ['Nessuna', 'Collana di perle', 'Catena d\'oro', 'Riviera di diamanti', 'Pendente smeraldo',
+  'Collier di rubini', 'Medaglione d\'oro'];
+export const EARRINGS = ['Nessuno', 'Punti luce', 'Cerchi d\'oro', 'Perle pendenti', 'Gocce di smeraldo', 'Rubini', 'Zaffiri'];
 export const RIDES = ['A piedi', 'Skateboard street', 'Longboard', 'BMX', 'Bici da corsa', 'Ferraro Spider rossa',
-  'Lamborgo Toro giallo', 'Porsa Novecento undici', 'Bugatto Hypercar nera'];
+  'Lamborgo Toro giallo', 'Porsa Novecento undici', 'Bugatto Hypercar nera', 'Lotto Coupe\' blu'];
 
 /** Come si disegna ogni capo: giacca e pantaloni (completi), abito lungo o corto, cappotto... */
 const OUTFIT_STYLES = [
@@ -67,7 +72,12 @@ const OUTFIT_STYLES = [
   { kind: 'leather', color: '#1c1c21', zip: '#d4d4d8' },
   { kind: 'track', color: '#6d28d9', pants: '#6d28d9', stripe: '#f5f5f5' },
   { kind: 'suit', jacket: '#f5f3ea', pants: '#1e3a8a', shirt: '#dbeafe', buttons: '#d4a017' },
-  { kind: 'gown', color: '#d4a017', long: false, sequins: true }
+  { kind: 'gown', color: '#d4a017', long: false, sequins: true },
+  { kind: 'coat', color: '#c8b08a', belt: '#8a6d45' },
+  { kind: 'suit', jacket: '#f8f8f4', pants: '#111114', shirt: '#ffffff', bow: '#0a0a0a', satin: '#e5e5dc' },
+  { kind: 'suit', jacket: '#6d1a2c', pants: '#111114', shirt: '#f8fafc', open: true },
+  { kind: 'gown', color: '#1e2f6b', long: true, sleeves: true, blossoms: '#f9a8d4', obi: '#b91c1c' },
+  { kind: 'suit', jacket: '#f4b6c8', pants: '#f4b6c8', shirt: '#fff1f2', buttons: '#d4a017', open: true }
 ];
 
 /** Orologi: cinturino, cassa, quadrante e ghiera. */
@@ -78,7 +88,34 @@ export const WATCH_STYLES = [
   { strap: '#c0c4cc', steel: '#e5e7eb', dial: '#1e3a8a', bezel: '#c0c4cc' },
   { strap: '#5b3a29', steel: '#e8a488', dial: '#faf7f2', bezel: '#e8a488' },
   { strap: '#cfd3d9', steel: '#eef0f3', dial: '#27408b', bezel: '#9ca3af' },
-  { strap: '#1f1f22', steel: '#3f3f46', dial: '#0a0a0a', bezel: '#52525b' }
+  { strap: '#1f1f22', steel: '#3f3f46', dial: '#0a0a0a', bezel: '#52525b' },
+  { strap: '#d1d5db', steel: '#e5e7eb', dial: '#111827', bezel: '#1d4ed8', bezel2: '#dc2626' },
+  { strap: '#e5e7eb', steel: '#f1f5f9', dial: '#a5d8ff', bezel: '#e5e7eb' },
+  { strap: '#14532d', steel: '#d1d5db', dial: '#166534', bezel: '#d1d5db' },
+  { strap: '#1f1f1f', steel: '#e8b48c', dial: '#1e1b4b', bezel: '#e8b48c' },
+  { strap: '#dc2626', steel: '#d4d4d8', dial: '#27272a', bezel: '#a1a1aa', skeleton: true }
+];
+
+/** Collane: colore del filo, delle pietre e forma del pendente. */
+const NECKLACE_STYLES = [
+  null,
+  { chain: '#f8fafc', stones: '#ffffff', beads: true },
+  { chain: '#e0a82e', thick: true },
+  { chain: '#e5e7eb', stones: '#dbeafe', beads: true, sparkle: true },
+  { chain: '#e0a82e', pendant: '#16a34a' },
+  { chain: '#e5e7eb', stones: '#dc2626', beads: true },
+  { chain: '#e0a82e', pendant: '#e0a82e', medal: true }
+];
+
+/** Orecchini: colore e forma (punto, cerchio, goccia). */
+const EARRING_STYLES = [
+  null,
+  { color: '#e0f2fe', shape: 'dot', sparkle: true },
+  { color: '#e0a82e', shape: 'hoop' },
+  { color: '#f8fafc', shape: 'drop' },
+  { color: '#16a34a', shape: 'drop' },
+  { color: '#dc2626', shape: 'dot' },
+  { color: '#1d4ed8', shape: 'dot', sparkle: true }
 ];
 
 export const LOOK_PARTS = [
@@ -97,11 +134,13 @@ export const LOOK_PARTS = [
 export const LUXURY_PARTS = [
   { key: 'o', label: 'Capo firmato', names: OUTFITS },
   { key: 'w', label: 'Orologio', names: WATCHES },
-  { key: 'r', label: 'Veicolo', names: RIDES }
+  { key: 'r', label: 'Veicolo', names: RIDES },
+  { key: 'n', label: 'Collana', names: NECKLACES },
+  { key: 'e', label: 'Orecchini', names: EARRINGS }
 ];
 
 /** Ordine delle parti nel codice salvato: le prime cinque sono quelle della prima versione. */
-const CODE_ORDER = ['s', 'h', 'hc', 'sh', 'p', 't', 'f', 'a', 'b', 'o', 'w', 'r'];
+const CODE_ORDER = ['s', 'h', 'hc', 'sh', 'p', 't', 'f', 'a', 'b', 'o', 'w', 'r', 'n', 'e'];
 
 export const DEFAULT_LOOK = 's1.h1.hc0.sh0.p0.t0.f0.a0.b0';
 
@@ -111,7 +150,7 @@ export function fixLook(parts) {
 }
 
 export function parseLook(look) {
-  const parts = { s: 1, h: 1, hc: 0, sh: 0, p: 0, t: 0, f: 0, a: 0, b: 0, o: 0, w: 0, r: 0 };
+  const parts = { s: 1, h: 1, hc: 0, sh: 0, p: 0, t: 0, f: 0, a: 0, b: 0, o: 0, w: 0, r: 0, n: 0, e: 0 };
   (look || DEFAULT_LOOK).split('.').forEach((part) => {
     const match = /^([a-z]+)(\d+)$/.exec(part);
     if (match && match[1] in parts) parts[match[1]] = Number(match[2]);
@@ -127,8 +166,11 @@ export function parseLook(look) {
 
 export function formatLook(parts) {
   // I pezzi dei negozi si scrivono solo se ce n'e' almeno uno: i codici di sempre restano uguali.
-  const luxury = parts.o || parts.w || parts.r;
-  return CODE_ORDER.filter((key) => luxury || !['o', 'w', 'r'].includes(key)).map((key) => `${key}${parts[key] || 0}`).join('.');
+  // Collana e orecchini vengono per ultimi e solo se ce n'e' uno dei due.
+  const jewels = parts.n || parts.e;
+  const luxury = jewels || parts.o || parts.w || parts.r;
+  return CODE_ORDER.filter((key) => (['n', 'e'].includes(key) ? jewels : luxury || !['o', 'w', 'r'].includes(key)))
+    .map((key) => `${key}${parts[key] || 0}`).join('.');
 }
 
 /** Indice del veicolo nel codice aspetto (0 a piedi). */
@@ -695,6 +737,17 @@ function drawOutfitTorso(ctx, y0, style, { skin, back }) {
         for (let x = 15 + (y % 2); x < 34; x += 3) px(ctx, x, y, 1, 1, shade(style.color, 0.45));
       }
     }
+    if (style.sleeves) {
+      // Kimono: scollo a V incrociato, fiori sulla seta e l'obi in vita.
+      block(ctx, 14, top, 21, 25, style.color);
+      if (!back) {
+        for (let i = 0; i < 9; i += 1) px(ctx, 20 + i, top + i, 2, 1, shade(style.color, 0.35));
+        px(ctx, 21, top, 7, 2, skin);
+      }
+      for (let i = 0; i < 6; i += 1) px(ctx, 16 + ((i * 7) % 16), top + 4 + ((i * 5) % 16), 2, 2, style.blossoms);
+      px(ctx, 14, top + 17, 21, 5, style.obi);
+      px(ctx, 14, top + 17, 21, 1, shade(style.obi, 0.3));
+    }
     return;
   }
   const jacket = style.jacket || style.color;
@@ -731,6 +784,10 @@ function drawOutfitTorso(ctx, y0, style, { skin, back }) {
       px(ctx, 19 - Math.floor(i / 3) + Math.floor(i / 2), top + i, 2, 1, lapel);
       px(ctx, 29 + Math.floor(i / 3) - Math.floor(i / 2), top + i, 2, 1, lapel);
     }
+    if (style.open) {
+      // Giacca aperta sulla camicia: niente cravatta, colletto aperto.
+      px(ctx, 22, top, 5, 3, skin);
+    }
     const button = style.buttons || shade(jacket, -0.45);
     px(ctx, 23, top + 17, 1, 1, button);
     px(ctx, 23, top + 21, 1, 1, button);
@@ -747,7 +804,8 @@ function drawOutfitTorso(ctx, y0, style, { skin, back }) {
       px(ctx, 21, y, 2, 2, '#4a3222');
       px(ctx, 27, y, 2, 2, '#4a3222');
     }
-    px(ctx, 13, top + 22, 23, 2, dark);
+    px(ctx, 13, top + 22, 23, 2, style.belt || dark);
+    if (style.belt) px(ctx, 23, top + 21, 3, 4, '#d4a017');
     px(ctx, 24, top + 5, 1, 34, dark);
   } else if (style.kind === 'leather') {
     // Chiodo: colletto, zip in diagonale, riflessi lucidi.
@@ -792,8 +850,62 @@ function drawWatch(ctx, y0, style, swing) {
   const y = top + row;
   px(ctx, x - 1, y, 8, 3, style.strap);
   px(ctx, x + 1, y - 1, 4, 5, style.bezel);
+  if (style.bezel2) px(ctx, x + 1, y + 2, 4, 2, style.bezel2);
   px(ctx, x + 2, y, 2, 3, style.dial);
+  if (style.skeleton) px(ctx, x + 2, y + 1, 2, 1, '#d4a017');
   px(ctx, x + 2, y, 1, 1, '#ffffff');
+}
+
+/** Collana sul collo: filo a V, perle o pietre, o un pendente in fondo. Di spalle solo il filo. */
+function drawNecklace(ctx, y0, style, back) {
+  const top = y0 + 40;
+  if (back) {
+    px(ctx, 19, top, 11, 1, style.chain);
+    return;
+  }
+  const w = style.thick ? 2 : 1;
+  for (let i = 0; i < 6; i += 1) {
+    px(ctx, 19 + i, top + i, w, w, style.chain);
+    px(ctx, 30 - i, top + i, w, w, style.chain);
+    if (style.beads && i % 2 === 0) {
+      px(ctx, 19 + i, top + i, 2, 2, style.stones);
+      px(ctx, 29 - i, top + i, 2, 2, style.stones);
+    }
+  }
+  if (style.pendant) {
+    if (style.medal) {
+      blob(ctx, 24.5, top + 8, 2.4, 2.4, style.pendant);
+      px(ctx, 24, top + 7, 1, 1, '#fff7c2');
+    } else {
+      px(ctx, 24, top + 6, 2, 2, style.chain);
+      blob(ctx, 24.5, top + 9, 1.8, 2.6, style.pendant);
+      px(ctx, 24, top + 8, 1, 1, '#bbf7d0');
+    }
+  }
+  if (style.sparkle) {
+    px(ctx, 21, top + 1, 1, 1, '#ffffff');
+    px(ctx, 28, top + 3, 1, 1, '#ffffff');
+  }
+}
+
+/** Orecchini sotto il lobo: di fronte si vede un orecchio (a sinistra), di spalle tutti e due. */
+function drawEarrings(ctx, y0, style, back) {
+  const cy = y0 + 24;
+  const one = (x) => {
+    if (style.shape === 'hoop') {
+      px(ctx, x - 1, cy + 5, 1, 4, style.color);
+      px(ctx, x + 2, cy + 5, 1, 4, style.color);
+      px(ctx, x, cy + 8, 2, 1, style.color);
+    } else if (style.shape === 'drop') {
+      px(ctx, x, cy + 5, 1, 2, '#e0a82e');
+      blob(ctx, x + 0.5, cy + 8.5, 1.4, 2, style.color);
+    } else {
+      px(ctx, x, cy + 5, 2, 2, style.color);
+    }
+    if (style.sparkle) px(ctx, x + 1, cy + 5, 1, 1, '#ffffff');
+  };
+  one(11);
+  if (back) one(36);
 }
 
 /**
@@ -916,7 +1028,7 @@ function drawAvatar(look, { back, pose, frame, outfit, gear }) {
   const y0 = o.bodyY + (o.sit ? 10 : 0);
   // Maniche: corte per T-shirt, assenti per la canotta, lunghe per il resto.
   let sleeveLength = swim || parts.t === BARE_CHEST ? 0 : parts.t === 0 ? 7 : parts.t === 4 ? 0 : 17;
-  if (style) sleeveLength = style.kind === 'gown' ? 0 : 17;
+  if (style) sleeveLength = style.kind === 'gown' && !style.sleeves ? 0 : 17;
 
   // Gambe: sedute si piegano in avanti, in piedi oscillano con il passo.
   if (o.sit) {
@@ -964,6 +1076,9 @@ function drawAvatar(look, { back, pose, frame, outfit, gear }) {
   // In acqua si tolgono solo le cuffie della musica e la bandana; occhiali, occhiali da sole,
   // collana e orecchino restano addosso.
   if (!swim || ![3, 6].includes(parts.a)) drawAccessory(ctx, y0, parts.a, back);
+  // Gioielli della gioielleria: si tengono anche in acqua.
+  if (NECKLACE_STYLES[parts.n]) drawNecklace(ctx, y0, NECKLACE_STYLES[parts.n], back);
+  if (EARRING_STYLES[parts.e]) drawEarrings(ctx, y0, EARRING_STYLES[parts.e], back);
   drawSportProp(ctx, pose, frame, y0, o);
   if (gear === 'hockey' && !swim) drawHockeyGear(ctx, y0, { shirt, back, frontArm: o.frontArm });
   if (pose === 'lift') {

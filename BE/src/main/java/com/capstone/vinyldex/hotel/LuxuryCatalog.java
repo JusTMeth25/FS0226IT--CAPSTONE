@@ -7,12 +7,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Merci dei negozi del quartiere: capi firmati (parte "o" del codice aspetto), orologi ("w") e
- * veicoli ("r"). La chiave e' la parte seguita dall'indice: "o3" e' il terzo capo.
+ * Merci dei negozi del quartiere: capi firmati (parte "o" del codice aspetto), orologi ("w"),
+ * veicoli ("r"), collane ("n") e orecchini ("e"). La chiave e' la parte seguita dall'indice:
+ * "o3" e' il terzo capo.
  *
  * I nomi dei marchi sono inventati (con un occhio alle case vere): orologi e auto non sono
- * prodotti ufficiali. I disegni stanno nel frontend (src/hotel/sprites/avatar.js e vehicles.js)
- * con gli stessi indici; HotelLook controlla quanti ce ne sono.
+ * prodotti ufficiali. I disegni stanno nel frontend (src/hotel/sprites/avatar.js e vehicles.js;
+ * le auto usano i modelli 3D di Sketchfab, vedi BE/scripts/sketchfab_cars.py) con gli stessi
+ * indici; HotelLook controlla quanti ce ne sono.
  */
 public final class LuxuryCatalog {
 
@@ -38,6 +40,11 @@ public final class LuxuryCatalog {
             outfit(6, "Tuta firmata", "Strada Nera", 500, "Tuta di velluto con le bande laterali."),
             outfit(7, "Blazer bianco", "Riviera", 1200, "Doppio petto bianco e pantaloni blu, da yacht."),
             outfit(8, "Abito di paillettes", "Maison Aurora", 2000, "Tutto oro, brilla sotto le luci."),
+            outfit(9, "Trench", "Riviera", 950, "Beige con la cintura in vita, per la pioggia elegante."),
+            outfit(10, "Smoking bianco", "Sartoria Vinile", 1700, "Giacca bianca, pantaloni neri e papillon: gran gala."),
+            outfit(11, "Giacca di velluto", "Sartoria Vinile", 1100, "Velluto bordeaux, camicia aperta, niente cravatta."),
+            outfit(12, "Kimono di seta", "Maison Aurora", 1600, "Seta blu notte con i fiori di ciliegio e l'obi rosso."),
+            outfit(13, "Tailleur rosa", "Maison Aurora", 1300, "Giacca e pantaloni rosa cipria con i bottoni d'oro."),
             // Gioielleria: orologi al polso.
             watch(1, "Submarino", "Rolaix", 2500, "Acciaio con la ghiera verde, subacqueo."),
             watch(2, "Daytona d'oro", "Rolaix", 4500, "Cronografo in oro giallo, quadrante champagne."),
@@ -45,6 +52,24 @@ public final class LuxuryCatalog {
             watch(4, "Calatrava", "Patec Philippa", 4000, "Oro rosa, sottile e classico, cinturino in pelle."),
             watch(5, "Quercia Reale", "Audemar Piguay", 5500, "Cassa ottagonale in acciaio, otto viti a vista."),
             watch(6, "Offshore Nero", "Audemar Piguay", 6000, "Ceramica nera e gomma, per chi va di fretta."),
+            watch(7, "GMT Pepsi", "Rolaix", 3500, "Ghiera rossa e blu per due fusi orari, bracciale jubilee."),
+            watch(8, "Day-Date Platino", "Rolaix", 7500, "Platino con il quadrante azzurro ghiaccio."),
+            watch(9, "Aquanaut Verde", "Patec Philippa", 5200, "Cinturino in gomma e quadrante verde a scacchi."),
+            watch(10, "Codice 11.59", "Audemar Piguay", 6800, "Oro rosa, cassa rotonda, quadrante blu profondo."),
+            watch(11, "RM Scheletrato", "Richard Milla", 9500, "Cassa a botte e movimento a vista, cinturino rosso."),
+            // Gioielleria: collane e orecchini.
+            jewel("n", 1, "Collana di perle", "Maison Aurora", 1200, "Un filo di perle bianche, classico da sera."),
+            jewel("n", 2, "Catena d'oro", "Strada Nera", 1800, "Catena cubana spessa in oro giallo."),
+            jewel("n", 3, "Riviera di diamanti", "Maison Aurora", 5000, "Diamanti in fila che brillano a ogni passo."),
+            jewel("n", 4, "Pendente smeraldo", "Riviera", 3200, "Una goccia di smeraldo su una catenina d'oro."),
+            jewel("n", 5, "Collier di rubini", "Maison Aurora", 4200, "Rubini incastonati in oro bianco."),
+            jewel("n", 6, "Medaglione d'oro", "Sartoria Vinile", 900, "Medaglione tondo con il disco inciso."),
+            jewel("e", 1, "Punti luce", "Maison Aurora", 1500, "Due diamanti, piccoli e brillanti."),
+            jewel("e", 2, "Cerchi d'oro", "Strada Nera", 700, "Cerchi grandi in oro giallo."),
+            jewel("e", 3, "Perle pendenti", "Maison Aurora", 900, "Perle che scendono da un gancetto d'oro."),
+            jewel("e", 4, "Gocce di smeraldo", "Riviera", 2200, "Smeraldi a goccia, verde intenso."),
+            jewel("e", 5, "Rubini", "Maison Aurora", 1900, "Due rubini rotondi montati in oro."),
+            jewel("e", 6, "Zaffiri", "Maison Aurora", 2400, "Zaffiri blu con il contorno di brillanti."),
             // Skate shop, negozio di bici e concessionaria: si guidano nelle stanze all'aperto.
             ride(1, "Skateboard street", "Skate Vinile", SKATE, 150, 2, "Tavola corta con le ruote al neon."),
             ride(2, "Longboard", "Skate Vinile", SKATE, 250, 2, "Lungo e morbido, per le discese."),
@@ -53,14 +78,17 @@ public final class LuxuryCatalog {
             ride(5, "Spider rossa", "Ferraro", CARS, 6000, 4, "V8 rosso corsa, cabriolet."),
             ride(6, "Toro giallo", "Lamborgo", CARS, 8000, 4, "Linee a spigolo, porte ad ali."),
             ride(7, "Novecento undici", "Porsa", CARS, 5000, 4, "Coupe' bianca, motore dietro."),
-            ride(8, "Hypercar nera", "Bugatto", CARS, 12000, 5, "Nera e blu, la piu' veloce del quartiere."));
+            ride(8, "Hypercar nera", "Bugatto", CARS, 12000, 5, "Nera e bianca, linee da astronave: la piu' veloce del quartiere."),
+            ride(9, "Coupe' blu", "Lotto", CARS, 7000, 4, "Coupe' sportiva bassa e leggera, blu elettrico."));
 
     private static final Map<String, Item> BY_KEY = ITEMS.stream().collect(Collectors.toMap(Item::key, Function.identity()));
 
     /** Quante varianti ha ogni parte (compreso lo zero, "niente"). */
-    public static final int OUTFITS = 9;
-    public static final int WATCH_COUNT = 7;
-    public static final int RIDES = 9;
+    public static final int OUTFITS = 14;
+    public static final int WATCH_COUNT = 12;
+    public static final int RIDES = 10;
+    public static final int NECKLACES = 7;
+    public static final int EARRINGS = 7;
 
     private LuxuryCatalog() {
     }
@@ -71,6 +99,10 @@ public final class LuxuryCatalog {
 
     private static Item watch(int index, String name, String brand, int price, String description) {
         return new Item("w" + index, "w", index, name, brand, WATCHES, price, 1, description);
+    }
+
+    private static Item jewel(String part, int index, String name, String brand, int price, String description) {
+        return new Item(part + index, part, index, name, brand, WATCHES, price, 1, description);
     }
 
     private static Item ride(int index, String name, String brand, String shop, int price, int speed, String description) {
