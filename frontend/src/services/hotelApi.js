@@ -36,6 +36,13 @@ export const hotelApi = {
   async pets() {
     return apiClient.get('/pets');
   },
+  /** Negozi del quartiere: catalogo di capi, orologi e veicoli con quelli gia' comprati. */
+  async wardrobe() {
+    return apiClient.get('/wardrobe');
+  },
+  async buyLuxury(item) {
+    return apiClient.post('/wardrobe/buy', { item });
+  },
   async adoptPet(type, name) {
     return apiClient.post('/pets/adopt', { type, name });
   },

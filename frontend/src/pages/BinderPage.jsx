@@ -7,6 +7,7 @@ import { SOURCE_LABELS, getRarityColor, resolveCardImage } from '../utils/cardUt
 import { coverImage, themeFor } from '../components/binder/binderThemes.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import ThreeGate from '../components/three/ThreeGate.jsx';
+import GradedSlab from '../components/card/GradedSlab.jsx';
 
 // Il libro 3D porta con se' three.js: si scarica solo quando si apre il raccoglitore.
 const BinderBook3D = lazy(() => import('../components/binder/BinderBook3D.jsx'));
@@ -23,8 +24,12 @@ function BinderSheet({ cards, number }) {
           const card = cards[i];
           if (!card) return <div key={i} className="binder-pocket empty-slot" />;
           return (
-            <div key={card.id} className={`binder-pocket${card.owned ? ' owned' : ' missing'}${card.foil > 0 ? ' is-foil' : ''}`} style={{ '--rarity-color': getRarityColor(card.rarity) }}>
-              {card.owned ? (
+            <div key={card.id} className={`binder-pocket${card.owned ? ' owned' : ' missing'}${card.foil > 0 && !(card.grade > 0) ? ' is-foil' : ''}${card.owned && card.grade > 0 ? ' graded' : ''}`} style={{ '--rarity-color': getRarityColor(card.rarity) }}>
+              {card.owned && card.grade > 0 ? (
+                <Link to={`/card/${encodeURIComponent(card.id)}`} title={card.name} className="binder-slab-link">
+                  <GradedSlab card={card} size="small" />
+                </Link>
+              ) : card.owned ? (
                 <Link to={`/card/${encodeURIComponent(card.id)}`} title={card.name}>
                   <img src={resolveCardImage(card)} alt={card.name} loading="lazy" />
                 </Link>
@@ -74,7 +79,6 @@ export default function BinderPage() {
   const [turning, setTurning] = useState(null);
   const [single, setSingle] = useState(() => window.innerWidth < 900);
   const [flat, setFlat] = useState(false);
-  const swipe = useRef(null);
 
   useEffect(() => {
     apiClient.get('/sets').then((res) => setSets(res.sets)).catch(() => setSets([]));
@@ -175,18 +179,11 @@ export default function BinderPage() {
       <p className="binder-title"><img src={coverImage(theme)} alt="" /> {theme.title}</p>
 
       {!cards ? <LoadingSpinner /> : flat ? flatView : (
-        <div
-          className="binder-3d-wrap"
-          onPointerDown={(e) => { swipe.current = e.clientX; }}
-          onPointerUp={(e) => {
-            if (swipe.current === null) return;
-            const dx = e.clientX - swipe.current;
-            swipe.current = null;
-            if (Math.abs(dx) > 60) turn(dx < 0 ? 1 : -1);
-          }}
-        >
+        // Nel libro 3D il trascinamento gira il libro e sfoglia dagli angoli (vedi BinderBook3D).
+        <div className="binder-3d-wrap">
           <ThreeGate fallback={flatView}>
-            <BinderBook3D pages={pages} theme={theme} spread={spread} pagesKey={pagesKey} onCard={openCard} onSettled={() => setTurning(null)} />
+            <BinderBook3D pages={pages} theme={theme} spread={spread} pagesKey={pagesKey} onCard={openCard} onSettled={() => setTurning(null)}
+              onTurned={(next) => setSpread(next)} />
           </ThreeGate>
         </div>
       )}

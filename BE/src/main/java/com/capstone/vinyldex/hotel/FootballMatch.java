@@ -20,6 +20,10 @@ import java.util.List;
 final class FootballMatch {
 
     static final String GOAL_TYPE = "football_goal";
+    /** Porte da hockey: stessa partita, ma sul ghiaccio il disco scivola molto di piu'. */
+    static final String HOCKEY_GOAL_TYPE = "hockey_goal";
+    static final int ICE_RUN_POWER = 10;
+    static final int ICE_TAP_POWER = 5;
     static final int WINNING_SCORE = 5;
     /** Caselle percorse dal pallone calciato di corsa e da fermi. */
     static final int RUN_POWER = 6;
@@ -86,6 +90,8 @@ final class FootballMatch {
     private int blue;
     private int red;
     private boolean inNet;
+    /** Partita di hockey sul ghiaccio (porte hockey_goal): tiri piu' lunghi. */
+    private boolean ice;
 
     private FootballMatch(Goal west, Goal east, int[] pitch) {
         this.west = west;
@@ -125,15 +131,31 @@ final class FootballMatch {
     /** La partita con il campo dato (minX, minY, maxX, maxY), se ci sono due porte una di fronte all'altra. */
     static FootballMatch create(Collection<RoomItemView> items, int[] pitch) {
         List<Goal> goals = new ArrayList<>();
+        boolean ice = false;
         for (RoomItemView item : items) {
-            if (!GOAL_TYPE.equals(item.type())) continue;
+            if (!GOAL_TYPE.equals(item.type()) && !HOCKEY_GOAL_TYPE.equals(item.type())) continue;
+            ice |= HOCKEY_GOAL_TYPE.equals(item.type());
             FurniCatalog.FurniDef def = item.def();
             goals.add(new Goal(item.x(), item.y(), item.y() + def.footprintY(item.rot()) - 1));
         }
         if (goals.size() != 2) return null;
         goals.sort(Comparator.comparingInt(Goal::x));
         if (goals.get(0).x() == goals.get(1).x()) return null;
-        return new FootballMatch(goals.get(0), goals.get(1), pitch);
+        FootballMatch match = new FootballMatch(goals.get(0), goals.get(1), pitch);
+        match.ice = ice;
+        return match;
+    }
+
+    boolean ice() {
+        return ice;
+    }
+
+    int runPower() {
+        return ice ? ICE_RUN_POWER : RUN_POWER;
+    }
+
+    int tapPower() {
+        return ice ? ICE_TAP_POWER : TAP_POWER;
     }
 
     int ballX() {

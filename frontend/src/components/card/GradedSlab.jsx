@@ -1,5 +1,7 @@
 import { getRarityColor, getSourceLabel, resolveCardImage } from '../../utils/cardUtils.js';
 import { gradeInfo, gradeTone, gradedValue } from '../../utils/gradeUtils.js';
+import CardHoloFrame from './CardHoloFrame.jsx';
+import HoloLayers from './HoloLayers.jsx';
 
 /**
  * Cofanetto del perito, come quelli delle agenzie di gradazione vere: la carta sigillata in una
@@ -34,9 +36,14 @@ export default function GradedSlab({ card, size = 'large', onClick }) {
           </div>
         )}
       </div>
-      <div className="slab-window">
+      {/* La carta nel cofanetto tiene gli stessi effetti di quando era sfusa: riflesso che segue il
+          puntatore e, se olografica, l'arcobaleno che scorre. */}
+      <CardHoloFrame rarity={card.rarity} maxTilt={size === 'large' ? 6 : 4}
+        className={`slab-window card-rarity-${card.rarity}${card.foil > 0 ? ' is-foil' : ''}`}>
         <img src={resolveCardImage(card)} alt={card.name} loading="lazy" />
-      </div>
+        <HoloLayers />
+        {card.foil > 0 && <span className="slab-foil-chip">Olo</span>}
+      </CardHoloFrame>
       <span className="slab-sheen" aria-hidden="true" />
     </figure>
   );

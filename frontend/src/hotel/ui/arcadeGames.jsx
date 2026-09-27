@@ -32,7 +32,17 @@ export const pong = {
     serve(s, true);
     return s;
   },
+  // La fisica avanza a passi di al massimo 4 ms: anche se un fotogramma arriva in ritardo la
+  // pallina non "salta" oltre la racchetta e il movimento resta regolare.
   tick(s, dt, emit) {
+    let left = dt;
+    while (left > 0) {
+      const step = Math.min(4, left);
+      pong.step(s, step, emit);
+      left -= step;
+    }
+  },
+  step(s, dt, emit) {
     s.flash = Math.max(0, s.flash - dt);
     s.aiFlash = Math.max(0, s.aiFlash - dt);
     const dir = (s.held.right ? 1 : 0) - (s.held.left ? 1 : 0);

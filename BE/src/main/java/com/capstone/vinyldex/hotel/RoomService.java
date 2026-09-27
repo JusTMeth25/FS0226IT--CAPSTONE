@@ -54,9 +54,18 @@ public class RoomService {
         this.socialService = socialService;
     }
 
+    private FurniService furniService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setFurniService(@org.springframework.context.annotation.Lazy FurniService furniService) {
+        this.furniService = furniService;
+    }
+
     @Transactional(readOnly = true)
     public List<RoomItemView> loadItems(UUID roomId) {
-        return itemRepository.findInRoom(roomId).stream().map(RoomItemView::from).toList();
+        // Vetrine, quadri e teca mostrano anche il voto del perito della copia esposta.
+        return itemRepository.findInRoom(roomId).stream().map(RoomItemView::from)
+                .map(view -> furniService == null || view.card() == null ? view : furniService.graded(view)).toList();
     }
 
     /** La stanza personale dell'utente, creata alla prima richiesta. */
@@ -81,9 +90,11 @@ public class RoomService {
 
     /** Pavimenti e pareti disponibili: i nomi coincidono con gli stili di src/hotel/sprites/room.js. */
     public static final Set<String> FLOOR_STYLES = Set.of("neon", "parquet", "carpet", "checker", "marble", "arena",
-            "grass", "pooldeck", "terracotta", "wooddeck", "sand", "cobble", "cinema", "rubber", "pitch", "court", "kart");
+            "grass", "pooldeck", "terracotta", "wooddeck", "sand", "cobble", "cinema", "rubber", "pitch", "court", "kart", "disco",
+            "street", "ice", "boutique", "showroom", "coffeehouse");
     public static final Set<String> WALL_STYLES = Set.of("neon", "brick", "teal", "wood", "windows", "arena",
-            "hedge", "pooltile", "skyline", "seaside", "shops", "curtain", "mirror", "stadium", "comics");
+            "hedge", "pooltile", "skyline", "seaside", "shops", "curtain", "mirror", "stadium", "comics", "disco",
+            "street", "boutique", "showroom", "coffeehouse");
 
     /** Nome, descrizione, porta, capienza e stile: solo il proprietario. Le modifiche arrivano subito ai presenti. */
     @Transactional

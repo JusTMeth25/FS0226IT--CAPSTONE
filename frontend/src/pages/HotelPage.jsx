@@ -11,6 +11,7 @@ import HotelCanvas from '../hotel/ui/HotelCanvas.jsx';
 import ChatBar from '../hotel/ui/ChatBar.jsx';
 import Navigator from '../hotel/ui/Navigator.jsx';
 import Wardrobe from '../hotel/ui/Wardrobe.jsx';
+import LuxuryShop from '../hotel/ui/LuxuryShop.jsx';
 import Shop from '../hotel/ui/Shop.jsx';
 import Inventory from '../hotel/ui/Inventory.jsx';
 import ItemMenu from '../hotel/ui/ItemMenu.jsx';
@@ -68,10 +69,32 @@ const USABLE = ['bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart'
   // Palco del karaoke, paletti da pesca e go-kart.
   'karaoke_stage', 'fishing_post', 'go_kart',
   // Ping pong e freccette in sala giochi.
-  'ping_pong_table', 'dart_board'];
+  'ping_pong_table', 'dart_board',
+  // Pedana della gara di ballo della Disco anni 80, bersaglio dei tiri al palaghiaccio, bancone della caffetteria.
+  'dance_contest', 'hockey_target', 'espresso_bar'];
 
 /** Il chiosco e l'espositore dell'edicola aprono il banco dei pacchetti. */
 const NEWSSTAND_ITEMS = ['newsstand', 'pack_display'];
+
+/** Quartiere: le facciate portano dentro ai negozi e alle arene (id delle stanze pubbliche). */
+const DISTRICT_ID = '00000000-0000-0000-0000-00000000a015';
+const DISTRICT_DOORS = {
+  facade_atelier: '00000000-0000-0000-0000-00000000a016',
+  facade_watches: '00000000-0000-0000-0000-00000000a017',
+  facade_skate: '00000000-0000-0000-0000-00000000a018',
+  facade_bikes: '00000000-0000-0000-0000-00000000a019',
+  facade_cars: '00000000-0000-0000-0000-00000000a01a',
+  facade_cafe: '00000000-0000-0000-0000-00000000a01b',
+  arena_hockey: '00000000-0000-0000-0000-00000000a01c',
+  arena_basket: '00000000-0000-0000-0000-00000000a01d'
+};
+/** Stanze che si affacciano sul quartiere: da li' un pulsante riporta in strada. */
+const DISTRICT_ROOMS = new Set(Object.values(DISTRICT_DOORS));
+
+/** Banconi dei negozi del quartiere: aprono il negozio (capi, orologi, skate, bici, auto). */
+const LUXURY_COUNTERS = {
+  atelier_counter: 'atelier', watch_counter: 'orologi', skate_counter: 'skate', bike_counter: 'bici', car_counter: 'auto'
+};
 
 /** Schermo intero vero dove il browser lo permette; altrimenti (iPhone) la pagina copre tutto. */
 const canFullscreen = typeof document !== 'undefined' && !!document.documentElement.requestFullscreen;
@@ -240,7 +263,12 @@ export default function HotelPage() {
   const [openingBusy, setOpeningBusy] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [minigame, setMinigame] = useState(null);
+  const [luxuryShop, setLuxuryShop] = useState('atelier');
   const [minigameResult, setMinigameResult] = useState(null);
+  // Minigioco aperto: la stanza dietro scende a 20 fotogrammi al secondo, il gioco resta fluido.
+  useEffect(() => {
+    canvasRef.current?.setMaxFps(minigame ? 20 : null);
+  }, [minigame]);
   /** Punteggio della partita nello stadio: { blue, red }, null nelle stanze senza pallone. */
   const [football, setFootball] = useState(null);
   /** Partita a squadre dello stadio: squadre, fase e fine (ora del server). */
@@ -732,6 +760,16 @@ export default function HotelPage() {
     return () => { cancelled = true; };
   }, [room?.id]);
 
+  // Quartiere: le ville mostrano le stanze dei giocatori piu' frequentate (e piu' amate).
+  useEffect(() => {
+    if (room?.id !== DISTRICT_ID) return undefined;
+    let cancelled = false;
+    roomApi.navigator().then((res) => {
+      if (!cancelled) canvasRef.current?.setVillas((res.userRooms || []).filter((r) => r.ownerName));
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [room?.id]);
+
   async function toggleLike() {
     try {
       setLikes(await roomApi.like(room.id));
@@ -846,6 +884,22 @@ export default function HotelPage() {
       setPanel('newsstand');
       return;
     }
+    // Quartiere: si entra nei negozi e nelle arene cliccando la facciata, nelle ville dei giocatori
+    // cliccando la villa.
+    if (DISTRICT_DOORS[item.type]) {
+      join(DISTRICT_DOORS[item.type]);
+      return;
+    }
+    if (item.type === 'villa') {
+      if (item.villa) join(item.villa.id);
+      else showNotice('Questa villa e\' ancora in vendita: arreda la tua stanza e i giocatori la vedranno qui!');
+      return;
+    }
+    if (LUXURY_COUNTERS[item.type]) {
+      setLuxuryShop(LUXURY_COUNTERS[item.type]);
+      setPanel('luxury');
+      return;
+    }
     if (item.type === 'card_stall') {
       setStallItem(item.id);
       setPanel('stall');
@@ -864,8 +918,13 @@ export default function HotelPage() {
       send({ type: 'move', x: onItem ? tile.x : item.x, y: onItem ? tile.y : item.y });
       return;
     }
+    // Vetrina, quadro o teca 3D nella propria stanza ancora vuoti: si sceglie subito la carta.
+    if (isOwner && def?.cardDisplay && !item.card) {
+      setPickingCardFor(item);
+      return;
+    }
     if (item.card) {
-      setViewingCard(item.card);
+      setViewingCard(isOwner && def?.cardDisplay ? { ...item.card, displayItemId: item.id } : item.card);
       return;
     }
     // Fuori dalla modalita' arredo gli altri mobili non fanno nulla: si cammina li' accanto.
@@ -931,6 +990,11 @@ export default function HotelPage() {
               </span>
             )}
             <div className="hotel-room-info-actions">
+              {DISTRICT_ROOMS.has(room.id) && (
+                <button type="button" className="hotel-like" onClick={() => join(DISTRICT_ID)} title="Esci in strada">
+                  <i className="ph-fill ph-road-horizon" /> Quartiere
+                </button>
+              )}
               {likes && (
                 <button type="button" className={`hotel-like${likes.liked ? ' liked' : ''}`} onClick={toggleLike} disabled={isOwner}
                   title={isOwner ? 'I "mi piace" degli altri alla tua stanza' : 'Mi piace questa stanza'}>
@@ -1020,7 +1084,7 @@ export default function HotelPage() {
           <QuizOverlay quiz={quiz} result={quizResult} clockOffset={clockOffset} onClose={() => setQuizResult(null)} />
         )}
         {showingCard && (
-          <CardPicker
+          <CardPicker title="Mostra una carta"
             onClose={() => setShowingCard(false)}
             onPick={(card) => { send({ type: 'show_card', cardId: card.id }); setShowingCard(false); }}
           />
@@ -1066,7 +1130,7 @@ export default function HotelPage() {
         )}
 
         {pickingCardFor && (
-          <CardPicker
+          <CardPicker title={pickingCardFor.type === 'card_case' ? 'Carta per la Teca 3D' : 'Carta da esporre'}
             current={items[pickingCardFor.id]?.card}
             onClose={() => setPickingCardFor(null)}
             onClear={() => { send({ type: 'set_display', itemId: pickingCardFor.id, cardId: null }); setPickingCardFor(null); }}
@@ -1120,6 +1184,22 @@ export default function HotelPage() {
             onOpenPack={openBagPack}
           />
         )}
+        {panel === 'luxury' && (
+          <LuxuryShop
+            shop={luxuryShop}
+            look={myLook}
+            gold={gold}
+            onBought={(item) => {
+              refreshUser();
+              showNotice(`Hai comprato ${item.brand} ${item.name}!`);
+            }}
+            onWear={() => {
+              send({ type: 'refresh_profile' });
+              refreshUser();
+            }}
+            onClose={() => setPanel(null)}
+          />
+        )}
         {panel === 'newsstand' && (
           <Newsstand
             gold={gold}
@@ -1169,7 +1249,11 @@ export default function HotelPage() {
         )}
       </div>
 
-      {viewingCard && <CardViewer card={viewingCard} onClose={() => setViewingCard(null)} />}
+      {viewingCard && (
+        <CardViewer card={viewingCard} onClose={() => setViewingCard(null)}
+          onChange={viewingCard.displayItemId && items[viewingCard.displayItemId]
+            ? () => { setPickingCardFor(items[viewingCard.displayItemId]); setViewingCard(null); } : null} />
+      )}
 
 
       {packOpening && (

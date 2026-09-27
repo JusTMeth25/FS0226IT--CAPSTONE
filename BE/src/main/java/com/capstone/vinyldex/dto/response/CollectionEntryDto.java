@@ -68,7 +68,7 @@ public record CollectionEntryDto(
     }
 
     /** Numero di certificato del cofanetto: stabile, ricavato dalla copia gradata. */
-    static String certificate(UserCard userCard) {
+    public static String certificate(UserCard userCard) {
         String hex = userCard.getId() == null ? "00000000" : userCard.getId().toString().replace("-", "");
         return "VDX-" + hex.substring(0, 4).toUpperCase() + "-" + hex.substring(hex.length() - 4).toUpperCase();
     }

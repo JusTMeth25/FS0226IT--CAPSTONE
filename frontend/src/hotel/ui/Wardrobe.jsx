@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { authApi } from '../../services/authApi.js';
+import { hotelApi } from '../../services/hotelApi.js';
 import {
-  ACCESSORIES, BARE_CHEST, BODIES, HAIR_COLORS, HAIR_COLOR_NAMES, HAIR_STYLES, LOOK_PARTS, PANTS, PANTS_NAMES, SHIRTS,
+  ACCESSORIES, BARE_CHEST, BODIES, HAIR_COLORS, HAIR_COLOR_NAMES, HAIR_STYLES, LOOK_PARTS, LUXURY_PARTS, PANTS, PANTS_NAMES, SHIRTS,
   SHIRT_NAMES, SHIRT_TYPES, SHOES, SHOE_NAMES, SKINS, fixLook, formatLook, parseLook
 } from '../sprites/avatar.js';
 import AvatarPreview from './AvatarPreview.jsx';
@@ -19,6 +20,22 @@ export default function Wardrobe({ look, onClose, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const draft = formatLook(parts);
+  // Pezzi dei negozi del quartiere: si scorrono solo quelli comprati (piu' "niente").
+  const [owned, setOwned] = useState([]);
+  useEffect(() => {
+    let cancelled = false;
+    hotelApi.wardrobe().then((res) => { if (!cancelled) setOwned(res.owned || []); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+  const luxuryChoices = (key) => [0, ...owned.filter((item) => item.startsWith(key) && /^\d+$/.test(item.slice(key.length)))
+    .map((item) => Number(item.slice(key.length))).sort((a, b) => a - b)];
+  const cycleLuxury = (key, delta) => {
+    const choices = luxuryChoices(key);
+    setParts((p) => {
+      const at = Math.max(0, choices.indexOf(p[key]));
+      return { ...p, [key]: choices[(at + delta + choices.length) % choices.length] };
+    });
+  };
 
   // Con la corporatura da donna il tipo di maglia salta il petto nudo.
   const countOf = (key, count, p) => (key === 't' && p.b === 1 ? BARE_CHEST : count);
@@ -30,7 +47,7 @@ export default function Wardrobe({ look, onClose, onSaved }) {
   };
 
   const randomize = () => {
-    setParts(fixLook(Object.fromEntries(LOOK_PARTS.map(({ key, count }) => [key, Math.floor(Math.random() * count)]))));
+    setParts((p) => fixLook({ ...p, ...Object.fromEntries(LOOK_PARTS.map(({ key, count }) => [key, Math.floor(Math.random() * count)])) }));
   };
 
   async function save() {
@@ -75,6 +92,19 @@ export default function Wardrobe({ look, onClose, onSaved }) {
               </button>
             </div>
           ))}
+          {LUXURY_PARTS.map(({ key, label, names }) => luxuryChoices(key).length > 1 && (
+            <div className="hotel-wardrobe-row lux-row" key={key}>
+              <span className="hotel-wardrobe-label">{label}</span>
+              <button type="button" className="hotel-arrow" onClick={() => cycleLuxury(key, -1)} aria-label={`${label} precedente`}>
+                <i className="ph-fill ph-caret-left" />
+              </button>
+              <span className="hotel-wardrobe-value">{names[parts[key]]}</span>
+              <button type="button" className="hotel-arrow" onClick={() => cycleLuxury(key, 1)} aria-label={`${label} successivo`}>
+                <i className="ph-fill ph-caret-right" />
+              </button>
+            </div>
+          ))}
+          {!owned.length && <p className="hotel-panel-hint">Capi firmati, orologi e veicoli si comprano nei negozi del Quartiere.</p>}
           <button type="button" className="btn btn-secondary btn-small" onClick={randomize}>
             <i className="ph-fill ph-shuffle" /> A caso
           </button>

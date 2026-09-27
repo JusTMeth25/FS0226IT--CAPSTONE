@@ -46,6 +46,41 @@ export const SHOES = ['#1d1d27', '#f4f4f5', '#dc2626', '#7c3aed', '#6b3e1f', '#0
 export const SHOE_NAMES = ['Nere', 'Sneakers bianche', 'Rosse', 'Viola', 'Stivaletti', 'Ciano'];
 export const ACCESSORIES = ['Nessuno', 'Occhiali', 'Occhiali da sole', 'Cuffie', 'Collana vinile', 'Orecchino', 'Bandana'];
 
+/**
+ * Pezzi dei negozi del quartiere (LuxuryCatalog.java, stessi indici): capi firmati, orologi e
+ * veicoli. Zero e' "niente". Si indossano solo se comprati: il guardaroba mostra solo quelli.
+ */
+export const OUTFITS = ['Nessuno', 'Completo gessato', 'Smoking', 'Abito da sera', 'Cappotto cammello', 'Giacca di pelle',
+  'Tuta firmata', 'Blazer bianco', 'Abito di paillettes'];
+export const WATCHES = ['Nessuno', 'Rolaix Submarino', 'Rolaix Daytona d\'oro', 'Patec Philippa Nautilo', 'Patec Philippa Calatrava',
+  'Audemar Piguay Quercia Reale', 'Audemar Piguay Offshore Nero'];
+export const RIDES = ['A piedi', 'Skateboard street', 'Longboard', 'BMX', 'Bici da corsa', 'Ferraro Spider rossa',
+  'Lamborgo Toro giallo', 'Porsa Novecento undici', 'Bugatto Hypercar nera'];
+
+/** Come si disegna ogni capo: giacca e pantaloni (completi), abito lungo o corto, cappotto... */
+const OUTFIT_STYLES = [
+  null,
+  { kind: 'suit', jacket: '#1e2a4a', pants: '#1e2a4a', shirt: '#f8fafc', tie: '#b91c1c', stripes: '#44557f' },
+  { kind: 'suit', jacket: '#111114', pants: '#111114', shirt: '#ffffff', bow: '#0a0a0a', satin: '#3a3a44' },
+  { kind: 'gown', color: '#b3122e', long: true },
+  { kind: 'coat', color: '#c19a6b' },
+  { kind: 'leather', color: '#1c1c21', zip: '#d4d4d8' },
+  { kind: 'track', color: '#6d28d9', pants: '#6d28d9', stripe: '#f5f5f5' },
+  { kind: 'suit', jacket: '#f5f3ea', pants: '#1e3a8a', shirt: '#dbeafe', buttons: '#d4a017' },
+  { kind: 'gown', color: '#d4a017', long: false, sequins: true }
+];
+
+/** Orologi: cinturino, cassa, quadrante e ghiera. */
+export const WATCH_STYLES = [
+  null,
+  { strap: '#c0c4cc', steel: '#e5e7eb', dial: '#111827', bezel: '#15803d' },
+  { strap: '#d4a017', steel: '#f5d06a', dial: '#f5e6b8', bezel: '#d4a017' },
+  { strap: '#c0c4cc', steel: '#e5e7eb', dial: '#1e3a8a', bezel: '#c0c4cc' },
+  { strap: '#5b3a29', steel: '#e8a488', dial: '#faf7f2', bezel: '#e8a488' },
+  { strap: '#cfd3d9', steel: '#eef0f3', dial: '#27408b', bezel: '#9ca3af' },
+  { strap: '#1f1f22', steel: '#3f3f46', dial: '#0a0a0a', bezel: '#52525b' }
+];
+
 export const LOOK_PARTS = [
   { key: 'b', label: 'Corporatura', count: BODIES.length },
   { key: 's', label: 'Carnagione', count: SKINS.length },
@@ -58,8 +93,15 @@ export const LOOK_PARTS = [
   { key: 'a', label: 'Accessorio', count: ACCESSORIES.length }
 ];
 
+/** Parti dei negozi: nel guardaroba si scorrono solo i pezzi posseduti. */
+export const LUXURY_PARTS = [
+  { key: 'o', label: 'Capo firmato', names: OUTFITS },
+  { key: 'w', label: 'Orologio', names: WATCHES },
+  { key: 'r', label: 'Veicolo', names: RIDES }
+];
+
 /** Ordine delle parti nel codice salvato: le prime cinque sono quelle della prima versione. */
-const CODE_ORDER = ['s', 'h', 'hc', 'sh', 'p', 't', 'f', 'a', 'b'];
+const CODE_ORDER = ['s', 'h', 'hc', 'sh', 'p', 't', 'f', 'a', 'b', 'o', 'w', 'r'];
 
 export const DEFAULT_LOOK = 's1.h1.hc0.sh0.p0.t0.f0.a0.b0';
 
@@ -69,7 +111,7 @@ export function fixLook(parts) {
 }
 
 export function parseLook(look) {
-  const parts = { s: 1, h: 1, hc: 0, sh: 0, p: 0, t: 0, f: 0, a: 0, b: 0 };
+  const parts = { s: 1, h: 1, hc: 0, sh: 0, p: 0, t: 0, f: 0, a: 0, b: 0, o: 0, w: 0, r: 0 };
   (look || DEFAULT_LOOK).split('.').forEach((part) => {
     const match = /^([a-z]+)(\d+)$/.exec(part);
     if (match && match[1] in parts) parts[match[1]] = Number(match[2]);
@@ -77,11 +119,21 @@ export function parseLook(look) {
   LOOK_PARTS.forEach(({ key, count }) => {
     if (!(parts[key] >= 0 && parts[key] < count)) parts[key] = 0;
   });
+  LUXURY_PARTS.forEach(({ key, names }) => {
+    if (!(parts[key] >= 0 && parts[key] < names.length)) parts[key] = 0;
+  });
   return fixLook(parts);
 }
 
 export function formatLook(parts) {
-  return CODE_ORDER.map((key) => `${key}${parts[key] || 0}`).join('.');
+  // I pezzi dei negozi si scrivono solo se ce n'e' almeno uno: i codici di sempre restano uguali.
+  const luxury = parts.o || parts.w || parts.r;
+  return CODE_ORDER.filter((key) => luxury || !['o', 'w', 'r'].includes(key)).map((key) => `${key}${parts[key] || 0}`).join('.');
+}
+
+/** Indice del veicolo nel codice aspetto (0 a piedi). */
+export function rideOf(look) {
+  return parseLook(look).r;
 }
 
 // ------------------------------------------------------------------ strumenti di disegno
@@ -624,6 +676,126 @@ function drawAccessory(ctx, y0, a, back) {
   }
 }
 
+/** Giacca, cappotto o busto dell'abito al posto della maglia (capi dei negozi del quartiere). */
+function drawOutfitTorso(ctx, y0, style, { skin, back }) {
+  const top = y0 + 40;
+  if (style.kind === 'gown') {
+    // Busto senza maniche con le spalline sottili; la gonna si disegna con drawOutfitSkirt.
+    block(ctx, 14, top + 4, 21, 21, style.color);
+    px(ctx, 17, top, 3, 5, style.color);
+    px(ctx, 29, top, 3, 5, style.color);
+    px(ctx, 13, top, 4, 4, skin);
+    px(ctx, 32, top, 4, 4, skin);
+    if (!back) {
+      px(ctx, 20, top, 9, 4, skin);
+      px(ctx, 21, top + 4, 7, 1, skin);
+    }
+    if (style.sequins) {
+      for (let y = top + 5; y < top + 25; y += 3) {
+        for (let x = 15 + (y % 2); x < 34; x += 3) px(ctx, x, y, 1, 1, shade(style.color, 0.45));
+      }
+    }
+    return;
+  }
+  const jacket = style.jacket || style.color;
+  const dark = shade(jacket, -0.3);
+  const light = shade(jacket, 0.3);
+  const long = style.kind === 'coat';
+  block(ctx, 13, top, 23, long ? 40 : 26, jacket);
+  ctx.clearRect(13, top, 2, 1);
+  ctx.clearRect(34, top, 2, 1);
+  if (style.stripes) for (let x = 15; x < 35; x += 3) px(ctx, x, top + 1, 1, 24, style.stripes);
+  if (back) {
+    px(ctx, 24, top + 12, 1, long ? 27 : 13, dark);
+    px(ctx, 18, top, 13, 2, shade(jacket, -0.12));
+    return;
+  }
+  if (style.kind === 'suit') {
+    // Camicia a V con la cravatta (o il papillon) e i revers della giacca.
+    for (let i = 0; i < 10; i += 1) {
+      const inset = Math.floor(i / 2);
+      px(ctx, 20 + inset, top + i, 9 - inset * 2, 1, style.shirt);
+    }
+    if (style.tie) {
+      px(ctx, 24, top + 1, 2, 2, shade(style.tie, -0.2));
+      px(ctx, 24, top + 3, 2, 13, style.tie);
+      px(ctx, 23, top + 14, 4, 2, style.tie);
+    }
+    if (style.bow) {
+      px(ctx, 21, top + 1, 3, 3, style.bow);
+      px(ctx, 26, top + 1, 3, 3, style.bow);
+      px(ctx, 24, top + 2, 2, 2, style.bow);
+    }
+    const lapel = style.satin || dark;
+    for (let i = 0; i < 11; i += 1) {
+      px(ctx, 19 - Math.floor(i / 3) + Math.floor(i / 2), top + i, 2, 1, lapel);
+      px(ctx, 29 + Math.floor(i / 3) - Math.floor(i / 2), top + i, 2, 1, lapel);
+    }
+    const button = style.buttons || shade(jacket, -0.45);
+    px(ctx, 23, top + 17, 1, 1, button);
+    px(ctx, 23, top + 21, 1, 1, button);
+    if (style.buttons) {
+      px(ctx, 27, top + 17, 1, 1, button);
+      px(ctx, 27, top + 21, 1, 1, button);
+    }
+    px(ctx, 15, top + 6, 4, 1, light); // taschino
+  } else if (style.kind === 'coat') {
+    // Cappotto doppiopetto: colletto largo, due file di bottoni, cintura in vita.
+    px(ctx, 19, top, 11, 5, shade(jacket, 0.12));
+    px(ctx, 21, top + 1, 7, 3, skin);
+    for (let y = top + 8; y < top + 34; y += 6) {
+      px(ctx, 21, y, 2, 2, '#4a3222');
+      px(ctx, 27, y, 2, 2, '#4a3222');
+    }
+    px(ctx, 13, top + 22, 23, 2, dark);
+    px(ctx, 24, top + 5, 1, 34, dark);
+  } else if (style.kind === 'leather') {
+    // Chiodo: colletto, zip in diagonale, riflessi lucidi.
+    px(ctx, 16, top, 6, 4, light);
+    px(ctx, 27, top, 6, 4, light);
+    for (let i = 0; i < 22; i += 1) px(ctx, 22 + Math.floor(i / 5), top + 2 + i, 1, 1, style.zip);
+    px(ctx, 15, top + 4, 1, 16, shade(jacket, 0.5));
+    px(ctx, 29, top + 12, 5, 1, style.zip);
+  } else if (style.kind === 'track') {
+    // Tuta: zip dritta, colletto alto, bande bianche.
+    px(ctx, 19, top, 11, 3, shade(jacket, 0.15));
+    px(ctx, 24, top + 2, 1, 23, style.stripe);
+    px(ctx, 13, top + 2, 2, 23, style.stripe);
+  }
+  px(ctx, 14, top + (long ? 39 : 25), 21, 1, dark);
+}
+
+/** Gonna dell'abito sopra le gambe: lunga fino alle caviglie o corta sopra il ginocchio. */
+function drawOutfitSkirt(ctx, y0, style) {
+  if (style.kind !== 'gown') return;
+  const from = y0 + 62;
+  const to = style.long ? y0 + 86 : y0 + 76;
+  for (let y = from; y < to; y += 1) {
+    const t = (y - from) / (to - from);
+    const half = Math.round(11 + t * 5);
+    px(ctx, 25 - half, y, half * 2, 1, style.color);
+    px(ctx, 25 + half - 3, y, 3, 1, shade(style.color, -0.22));
+    px(ctx, 25 - half, y, 1, 1, shade(style.color, 0.25));
+    if (style.sequins && (y + Math.floor(t * 7)) % 3 === 0) {
+      for (let x = 25 - half + 2; x < 25 + half - 2; x += 3) px(ctx, x, y, 1, 1, shade(style.color, 0.5));
+    }
+  }
+  // Spacco dell'abito lungo.
+  if (style.long) px(ctx, 29, y0 + 74, 1, 12, shade(style.color, -0.4));
+}
+
+/** Orologio al polso del braccio davanti (se il braccio e' giu' e si vede di fronte). */
+function drawWatch(ctx, y0, style, swing) {
+  const top = y0 + 42;
+  const row = 14;
+  const x = 35 + Math.round((swing * row) / 18);
+  const y = top + row;
+  px(ctx, x - 1, y, 8, 3, style.strap);
+  px(ctx, x + 1, y - 1, 4, 5, style.bezel);
+  px(ctx, x + 2, y, 2, 3, style.dial);
+  px(ctx, x + 2, y, 1, 1, '#ffffff');
+}
+
 /**
  * @param outfit null, 'sea' (costume in mare) o 'pool' (costume e cuffia in piscina)
  */
@@ -704,22 +876,47 @@ function drawSportProp(ctx, pose, frame, y0, o) {
   }
 }
 
-function drawAvatar(look, { back, pose, frame, outfit }) {
+/**
+ * Attrezzatura da hockey sul ghiaccio: casco del colore della maglia con la griglia davanti e
+ * la mazza di legno nella mano davanti, con la paletta appoggiata sul ghiaccio.
+ */
+function drawHockeyGear(ctx, y0, { shirt, back, frontArm }) {
+  const cy = y0 + 24;
+  blob(ctx, 24, cy - 7, 15, 9, shade(shirt, -0.15), 2.3);
+  px(ctx, 10, cy - 4, 28, 2, shade(shirt, -0.35));
+  px(ctx, 17, cy - 13, 8, 2, shade(shirt, 0.3));
+  if (!back) {
+    for (let x = 22; x <= 37; x += 3) px(ctx, x, cy - 3, 1, 12, '#d4d4d8');
+    px(ctx, 22, cy + 3, 16, 1, '#d4d4d8');
+  }
+  const hand = frontHand(y0, frontArm);
+  for (let y = hand.y - 4; y < 90; y += 1) {
+    const x = Math.round(hand.x + ((y - hand.y + 4) * 7) / (90 - hand.y + 4));
+    px(ctx, x, y, 2, 1, '#b07a45');
+  }
+  px(ctx, hand.x + 7, 88, 9, 3, '#1f2937');
+  px(ctx, hand.x + 7, 88, 9, 1, '#f5f5f5');
+}
+
+function drawAvatar(look, { back, pose, frame, outfit, gear }) {
   const { canvas, ctx } = createCanvas(AVATAR_W, AVATAR_H, { readable: true });
   const parts = parseLook(look);
   const skin = SKINS[parts.s];
   const swim = !!outfit;
   const man = parts.b !== 1;
   const shirt = SHIRTS[parts.sh];
+  // Capo firmato (non in acqua): cambia pantaloni e maniche; gli abiti scoprono le gambe.
+  const style = swim ? null : OUTFIT_STYLES[parts.o];
   // In acqua: costume del colore della maglia, gambe e piedi nudi.
-  const pants = swim ? shirt : PANTS[parts.p];
+  const pants = swim ? shirt : (style?.pants || (style?.kind === 'gown' ? skin : PANTS[parts.p]));
   const shoe = swim ? skin : SHOES[parts.f];
-  const legColor = swim ? skin : null;
+  const legColor = swim || style?.kind === 'gown' ? skin : null;
   const hairColor = HAIR_COLORS[parts.hc];
   const o = poseOffsets(pose, frame);
   const y0 = o.bodyY + (o.sit ? 10 : 0);
   // Maniche: corte per T-shirt, assenti per la canotta, lunghe per il resto.
-  const sleeveLength = swim || parts.t === BARE_CHEST ? 0 : parts.t === 0 ? 7 : parts.t === 4 ? 0 : 17;
+  let sleeveLength = swim || parts.t === BARE_CHEST ? 0 : parts.t === 0 ? 7 : parts.t === 4 ? 0 : 17;
+  if (style) sleeveLength = style.kind === 'gown' ? 0 : 17;
 
   // Gambe: sedute si piegano in avanti, in piedi oscillano con il passo.
   if (o.sit) {
@@ -734,7 +931,7 @@ function drawAvatar(look, { back, pose, frame, outfit }) {
     leg(ctx, 25, y0 + 68, o.frontLeg, legColor || pants, shoe, back);
   }
 
-  const sleeve = shirt;
+  const sleeve = style ? (style.jacket || style.color) : shirt;
   // Sulla panca le mani stanno sopra la testa (piu' in alto a braccia tese); nel tiro a canestro si allungano.
   const reach = pose === 'lift' ? o.liftReach : pose === 'curl' ? -12 : (o.shootReach || 0);
   arm(ctx, 8, y0, { up: o.backUp, swing: o.backArm, sleeve: shade(sleeve, -0.12), skin: shade(skin, -0.08), sleeveLength, reach, jab: o.backJab });
@@ -743,9 +940,13 @@ function drawAvatar(look, { back, pose, frame, outfit }) {
   // In acqua gli uomini stanno a petto nudo (con il pantaloncino), le donne con il costume intero.
   if (swim && man) drawBareChest(ctx, y0, { skin, back });
   else if (swim) drawSwimsuit(ctx, y0, { color: shirt, skin, back });
+  else if (style) drawOutfitTorso(ctx, y0, style, { skin, back });
   else drawTorso(ctx, y0, parts, { shirt, skin, back });
-  if (!o.sit && (swim ? man : parts.t !== 4)) px(ctx, 14, y0 + 63, 21, 2, shade(pants, -0.25)); // cintura / elastico
+  if (!o.sit && !style && (swim ? man : parts.t !== 4)) px(ctx, 14, y0 + 63, 21, 2, shade(pants, -0.25)); // cintura / elastico
+  if (style && !o.sit) drawOutfitSkirt(ctx, y0, style);
   arm(ctx, 35, y0, { up: o.frontUp, swing: o.frontArm, sleeve, skin, sleeveLength, reach, jab: o.frontJab });
+  const watch = swim ? null : WATCH_STYLES[parts.w];
+  if (watch && !o.frontUp && !o.frontJab) drawWatch(ctx, y0, watch, o.frontArm);
 
   drawHead(ctx, y0, { skin, back });
   const capped = outfit === 'pool';
@@ -764,6 +965,7 @@ function drawAvatar(look, { back, pose, frame, outfit }) {
   // collana e orecchino restano addosso.
   if (!swim || ![3, 6].includes(parts.a)) drawAccessory(ctx, y0, parts.a, back);
   drawSportProp(ctx, pose, frame, y0, o);
+  if (gear === 'hockey' && !swim) drawHockeyGear(ctx, y0, { shirt, back, frontArm: o.frontArm });
   if (pose === 'lift') {
     // Bilanciere tenuto sopra la testa (per ultimo, davanti alla testa): sbarra e due dischi per parte.
     const barY = y0 + 11 - reach;
@@ -784,11 +986,11 @@ const cache = new Map();
  * Sprite pronto da disegnare, in cache: lo stesso avatar nella stessa posa viene generato
  * una volta sola, non a ogni fotogramma.
  */
-export function avatarSprite(look, { back = false, flip = false, pose = 'stand', frame = 0, outfit = null } = {}) {
-  const key = `${look}|${back}|${flip}|${pose}|${frame}|${outfit || ''}`;
+export function avatarSprite(look, { back = false, flip = false, pose = 'stand', frame = 0, outfit = null, gear = null } = {}) {
+  const key = `${look}|${back}|${flip}|${pose}|${frame}|${outfit || ''}|${gear || ''}`;
   let sprite = cache.get(key);
   if (!sprite) {
-    const base = drawAvatar(look, { back, pose, frame, outfit });
+    const base = drawAvatar(look, { back, pose, frame, outfit, gear });
     sprite = flip ? mirror(base) : base;
     if (cache.size > 2000) cache.clear();
     cache.set(key, sprite);

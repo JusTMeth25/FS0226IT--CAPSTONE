@@ -187,6 +187,45 @@ public final class FurniCatalog {
         add(new FurniDef("dart_board", "Bersaglio delle freccette", "giochi", 0, 1, 1, false, false, -1, false, false));
         add(new FurniDef("card_stall", "Banchetto delle carte", "carte", 150, 2, 1, false, false, -1, false, true));
         add(new FurniDef("race_lights", "Semaforo di partenza", "kart", 0, 1, 1, false, false, -1, false, false));
+        // Disco anni 80: piastrelle luminose della pista (si calpestano) e pedana della gara di ballo (Minigames).
+        add(new FurniDef("fever_tile", "Piastrella luminosa anni 80", "musica", 70, 1, 1, false, true, -1, false, true));
+        add(new FurniDef("dance_contest", "Pedana della gara di ballo", "musica", 0, 2, 2, false, false, -1, false, false));
+        // Negozi del quartiere: il bancone apre il negozio (LuxuryCatalog), il resto e' merce esposta.
+        add(new FurniDef("atelier_counter", "Banco dell'atelier", "negozi", 0, 2, 1, false, false, -1, false, false));
+        add(new FurniDef("watch_counter", "Banco della gioielleria", "negozi", 0, 2, 1, false, false, -1, false, false));
+        add(new FurniDef("skate_counter", "Banco dello skate shop", "negozi", 0, 2, 1, false, false, -1, false, false));
+        add(new FurniDef("bike_counter", "Banco delle bici", "negozi", 0, 2, 1, false, false, -1, false, false));
+        add(new FurniDef("car_counter", "Scrivania del concessionario", "negozi", 0, 2, 1, false, false, -1, false, false));
+        add(new FurniDef("mannequin_suit", "Manichino con completo", "negozi", 180, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("mannequin_gown", "Manichino con abito", "negozi", 180, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("clothes_rack", "Stender di abiti", "negozi", 150, 2, 1, false, false, -1, false, true));
+        add(new FurniDef("tailor_mirror", "Specchio del sarto", "negozi", 120, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("watch_vitrine", "Vetrina di orologi", "negozi", 300, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("skate_rack", "Rastrelliera di skate", "negozi", 140, 2, 1, false, false, -1, false, true));
+        add(new FurniDef("bike_display", "Bici esposta", "negozi", 200, 2, 1, false, false, -1, false, true));
+        add(new FurniDef("car_display", "Auto in esposizione", "negozi", 0, 3, 3, false, false, -1, false, false));
+        // Quartiere: facciate dei negozi e delle arene (ci si entra cliccandole), ville, strada.
+        add(new FurniDef("facade_atelier", "Atelier di sartoria", "quartiere", 0, 4, 2, false, false, -1, false, false));
+        add(new FurniDef("facade_watches", "Gioielleria", "quartiere", 0, 4, 2, false, false, -1, false, false));
+        add(new FurniDef("facade_skate", "Skate shop", "quartiere", 0, 3, 2, false, false, -1, false, false));
+        add(new FurniDef("facade_bikes", "Negozio di bici", "quartiere", 0, 3, 2, false, false, -1, false, false));
+        add(new FurniDef("facade_cars", "Concessionaria", "quartiere", 0, 5, 2, false, false, -1, false, false));
+        add(new FurniDef("facade_cafe", "Caffetteria", "quartiere", 0, 4, 2, false, false, -1, false, false));
+        add(new FurniDef("arena_hockey", "Palaghiaccio", "quartiere", 0, 7, 3, false, false, -1, false, false));
+        add(new FurniDef("arena_basket", "Arena del basket", "quartiere", 0, 7, 3, false, false, -1, false, false));
+        add(new FurniDef("villa", "Villa", "quartiere", 0, 4, 3, false, false, -1, false, false));
+        add(new FurniDef("traffic_light", "Semaforo", "quartiere", 0, 1, 1, false, false, -1, false, false));
+        add(new FurniDef("bus_stop", "Fermata dell'autobus", "quartiere", 0, 2, 1, false, false, 4, false, false));
+        add(new FurniDef("hydrant", "Idrante", "giardino", 30, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("street_tree", "Albero del viale", "giardino", 80, 1, 1, false, false, -1, false, true));
+        // Caffetteria del quartiere: bancone dei baristi, vetrina dei dolci, poltrone verdi.
+        add(new FurniDef("espresso_bar", "Bancone della caffetteria", "caffe", 0, 3, 1, false, false, -1, false, false));
+        add(new FurniDef("pastry_case", "Vetrina dei dolci", "caffe", 160, 2, 1, false, false, -1, false, true));
+        add(new FurniDef("armchair_green", "Poltrona verde", "sedute", 100, 1, 1, false, false, 2, false, true));
+        // Palaghiaccio: porte da hockey (partita a squadre come il calcio) e bersaglio dei tiri.
+        add(new FurniDef("hockey_goal", "Porta da hockey", "stadio", 0, 1, 2, false, false, -1, false, false));
+        add(new FurniDef("hockey_target", "Bersaglio dei tiri", "stadio", 0, 2, 1, false, false, -1, false, false));
+        add(new FurniDef("team_bench", "Panchina delle squadre", "stadio", 0, 3, 1, false, false, 4, false, false));
     }
 
     private FurniCatalog() {

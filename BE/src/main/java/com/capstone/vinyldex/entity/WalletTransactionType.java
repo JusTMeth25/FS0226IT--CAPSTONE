@@ -48,5 +48,7 @@ public enum WalletTransactionType {
     /** Premio di un torneo a eliminazione. */
     TOURNAMENT,
     /** Premio di fine stagione sportiva. */
-    SEASON_REWARD
+    SEASON_REWARD,
+    /** Capi, orologi e veicoli comprati nei negozi del quartiere. */
+    LUXURY
 }

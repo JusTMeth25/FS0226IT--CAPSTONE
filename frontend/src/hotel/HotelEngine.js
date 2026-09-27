@@ -1,5 +1,6 @@
 import { DETAIL, HALF_W, STEP_MS, TILE_H, TILE_W, directionBetween, insideDiamond, parseLayout, tileCenter, tileTop, viewForDirection } from './iso.js';
-import { AVATAR_FOOT_X, AVATAR_FOOT_Y, AVATAR_H, AVATAR_SCALE, AVATAR_W, avatarSprite } from './sprites/avatar.js';
+import { AVATAR_FOOT_X, AVATAR_FOOT_Y, AVATAR_H, AVATAR_SCALE, AVATAR_W, avatarSprite, rideOf } from './sprites/avatar.js';
+import { RIDE_POSE, RIDE_SPEEDS, drawVehicle } from './sprites/vehicles.js';
 import { hoverTileSprite, kartPoint, kartTrack, renderRoom } from './sprites/room.js';
 import { lapDelta } from './kartTrack.js';
 import { animationState, cardImage, footprintOf, furniSprite, isFlat, wallPoint } from './sprites/furni.js';
@@ -16,9 +17,27 @@ import { BADGE_H, BADGE_W, drawBadge } from './sprites/badge.js';
 const SEAT_LIFT = 7 * DETAIL;
 
 /** Colori delle bibite del bancone (nomi come in RoomInstance.DRINKS). */
+/**
+ * Insegne delle facciate del quartiere: testo, colore e dove sta la tavola dell'insegna sul
+ * davanti del mobile (u lungo la facciata, v del davanti, z in pixel da terra).
+ */
+const SIGNS = {
+  facade_atelier: { text: 'ATELIER', color: '#f3ead8', u: 2, v: 1.7, z: 106, size: 11 },
+  facade_watches: { text: 'OROLOGI', color: '#fcd34d', u: 2, v: 1.7, z: 110, size: 11 },
+  facade_skate: { text: 'SKATE', color: '#ffffff', u: 1.5, v: 1.7, z: 86, size: 11 },
+  facade_bikes: { text: 'BICI', color: '#ffffff', u: 1.5, v: 1.7, z: 88, size: 11 },
+  facade_cars: { text: 'AUTO SPORTIVE', color: '#ffffff', u: 2.5, v: 1.7, z: 98, size: 11 },
+  facade_cafe: { text: 'CAFFE\' DEL VIALE', color: '#f5f1e6', u: 2, v: 1.7, z: 94, size: 10 },
+  arena_hockey: { text: 'PALAGHIACCIO', color: '#ffffff', u: 3.5, v: 2.75, z: 57, size: 14 },
+  arena_basket: { text: 'ARENA BASKET', color: '#ffffff', u: 3.5, v: 2.75, z: 57, size: 14 }
+};
+
+/** Stanze all'aperto dove si va in skate, bici o auto: non gli stadi (RoomInstance.RIDE_WALLS). */
+const RIDE_WALLS = new Set(['hedge', 'skyline', 'seaside', 'street']);
+
 const DRINK_COLORS = {
   cola: '#5b2a0e', juice: '#f97316', coffee: '#6b3e1f', bubble: '#ec4899', cocktail: '#22d3ee', tea: '#b45309', gelato: '#f9a8d4',
-  pizza: '#fbbf24', book: '#8b5cf6', popcorn: '#fde68a', water: '#7dd3fc'
+  pizza: '#fbbf24', book: '#8b5cf6', popcorn: '#fde68a', water: '#7dd3fc', latte: '#e9d8bd', frappe: '#c08457'
 };
 
 /**
@@ -295,6 +314,8 @@ export class HotelEngine {
     this.users.clear();
     this.bubbles = [];
     this.items = new Map((message.items || []).map((item) => [item.id, item]));
+    this.assignVillas();
+    this.rink = null;
     this.waterTiles = null;
     this.jukeboxOn = (message.jukebox?.track ?? -1) >= 0;
     this.hearts = [];
@@ -1086,12 +1107,29 @@ export class HotelEngine {
     return null;
   }
 
+  /** L'avatar e' sulla pista del palaghiaccio (o gioca la partita di hockey)? */
+  onIce(at, user) {
+    if (this.room?.floorStyle !== 'ice') return false;
+    if (this.teams?.has(user.id) || user.npc?.title === 'Giocatore di hockey') return true;
+    if (!this.rink) {
+      let x1 = 0; let y1 = 0;
+      for (let y = 0; y < this.layout.height; y += 1) {
+        for (let x = 0; x < this.layout.width; x += 1) {
+          if (this.layout.isTile(x, y)) { x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+        }
+      }
+      this.rink = { x0: 3, y0: 3, x1: x1 - 1, y1: y1 - 1 };
+    }
+    const r = this.rink;
+    return at.x >= r.x0 && at.x <= r.x1 && at.y >= r.y0 && at.y <= r.y1;
+  }
+
   /** L'avatar e' su una piastrella della pista? */
   onDanceFloor(at) {
     const x = Math.round(at.x);
     const y = Math.round(at.y);
     for (const item of this.items.values()) {
-      if (item.type === 'dance_tile' && item.x === x && item.y === y) return true;
+      if ((item.type === 'dance_tile' || item.type === 'fever_tile') && item.x === x && item.y === y) return true;
     }
     return false;
   }
@@ -1152,13 +1190,13 @@ export class HotelEngine {
    */
   itemSprite(item, now) {
     const def = this.catalog.get(item.type);
-    const playing = item.type === 'dance_tile' ? this.jukeboxOn : !!item.playing;
+    const playing = item.type === 'dance_tile' || item.type === 'fever_tile' ? this.jukeboxOn : !!item.playing;
     const anim = animationState(item, now, { playing, still: this.reducedMotion });
     // Chiave per aspetto, non per mobile: stesse sedie o stesse piastrelle condividono lo sprite.
-    const key = `${item.type}|${item.rot}|${item.card?.id || ''}|${playing ? 1 : 0}|${anim.key}`;
+    const key = `${item.type}|${item.rot}|${item.card?.id || ''}|${item.card?.grade || 0}|${playing ? 1 : 0}|${anim.key}`;
     let cached = this.spriteCache.get(key);
     if (!cached) {
-      cached = furniSprite({ ...item, playing, colorIndex: anim.colorIndex }, def, {
+      cached = furniSprite({ ...item, playing, colorIndex: anim.colorIndex, lit: anim.lit }, def, {
         now: anim.now,
         // Quando arriva l'immagine della carta, lo sprite in cache non la contiene: via.
         onImageLoad: () => this.clearCardCache(item.card?.id)
@@ -1213,20 +1251,36 @@ export class HotelEngine {
 
   // ------------------------------------------------------------------ disegno
 
-  /** Avanza lungo il percorso: una casella ogni STEP_MS, come il tick del server. */
+  /**
+   * Veicolo con cui l'avatar va in giro in questo momento: solo nelle stanze all'aperto (non negli stadi), e non
+   * mentre e' seduto o gioca a un minigioco (come RoomInstance.rideSpeed sul server).
+   */
+  rideFor(user) {
+    if (!RIDE_WALLS.has(this.room?.wallStyle) || user.status === 'sit' || user.game) return 0;
+    let cached = this.rideCache?.get(user.look);
+    if (cached === undefined) {
+      this.rideCache ??= new Map();
+      cached = rideOf(user.look);
+      this.rideCache.set(user.look, cached);
+    }
+    return cached;
+  }
+
+  /** Avanza lungo il percorso: una casella ogni STEP_MS, come il tick del server (piu' veloce sui veicoli). */
   advance(user, now) {
-    while (user.steps.length && now - user.stepStart >= STEP_MS) {
+    const stepMs = STEP_MS / (RIDE_SPEEDS[this.rideFor(user)] || 1);
+    while (user.steps.length && now - user.stepStart >= stepMs) {
       const next = user.steps.shift();
       user.dir = directionBetween(user.pos.x, user.pos.y, next.x, next.y, user.dir);
       user.pos = next;
-      user.stepStart += STEP_MS;
+      user.stepStart += stepMs;
     }
     if (!user.steps.length) {
       user.stepStart = now;
       return { ...user.pos, walking: false };
     }
     const next = user.steps[0];
-    const t = (now - user.stepStart) / STEP_MS;
+    const t = (now - user.stepStart) / stepMs;
     user.dir = directionBetween(user.pos.x, user.pos.y, next.x, next.y, user.dir);
     return {
       x: user.pos.x + (next.x - user.pos.x) * t,
@@ -1391,6 +1445,10 @@ export class HotelEngine {
       // Chino sul tavolo con la stecca; al tiro la stecca va avanti.
       pose = 'cue';
       frame = fx?.kind === 'cue' && fxAge < 300 ? 1 : 0;
+    } else if (user.game === 'disco') {
+      // Gara di ballo: si balla a tempo, piu' veloce che sulla pista.
+      pose = 'dance';
+      frame = animate ? Math.floor(now / 130) % 4 : 0;
     } else if (user.status === 'sit') {
       pose = 'sit';
     } else if (user.status === 'dance' || (this.jukeboxOn && user.status !== 'sit' && this.onDanceFloor(at))) {
@@ -1402,18 +1460,42 @@ export class HotelEngine {
     }
     // In acqua si nuota in costume (e con la cuffia in piscina); seduti a bordo vasca no.
     const water = user.status !== 'sit' ? this.waterAt(at) : null;
-    const sprite = avatarSprite(user.look, { ...view, pose, frame, outfit: water });
+    // Su skate, bici o auto: niente passo, si sta in piedi sulla tavola o seduti alla guida.
+    const ride = water ? 0 : this.rideFor(user);
+    if (ride && (pose === 'walk' || pose === 'stand')) {
+      pose = RIDE_POSE[ride].pose;
+      frame = 0;
+    }
+    // Palaghiaccio: in pista casco e mazza; chi gioca la partita ha la maglia della squadra.
+    const hockey = !water && this.onIce(at, user);
+    let look = user.look;
+    if (hockey && this.teams?.has(user.id)) {
+      look = look.replace(/\bsh\d+/, `sh${this.teams.get(user.id) === '#3b82f6' ? 3 : 6}`).replace(/\bt\d+/, 't1');
+    }
+    const sprite = avatarSprite(look, { ...view, pose, frame, outfit: water, gear: hockey ? 'hockey' : null });
     const center = tileCenter(at.x, at.y, at.z);
+    const foot = { x: center.x, y: center.y };
+    if (ride && RIDE_POSE[ride]) center.y -= RIDE_POSE[ride].lift;
     if ((pose === 'sit' || pose === 'lift') && this.seatUnder(user)) center.y -= SEAT_LIFT;
     // Sul tapis roulant si corre sopra il nastro, non sul pavimento.
     if (user.game === 'run' && !at.walking) center.y -= 11;
-    return { sprite, left: center.x - AVATAR_FOOT_X * AVATAR_SCALE, top: center.y - AVATAR_FOOT_Y * AVATAR_SCALE, center, water };
+    return { sprite, left: center.x - AVATAR_FOOT_X * AVATAR_SCALE, top: center.y - AVATAR_FOOT_Y * AVATAR_SCALE, center, water, ride, foot };
   }
 
   loop(now) {
     if (!this.running) return;
-    this.draw(now);
+    // Con un minigioco a schermo (ping pong, biliardo...) la stanza dietro si ridisegna meno spesso:
+    // il fotogramma del gioco ha tutto il tempo e resta fluido.
+    if (!this.maxFps || now - (this.lastDrawAt || 0) >= 1000 / this.maxFps) {
+      this.lastDrawAt = now;
+      this.draw(now);
+    }
     this.frame = requestAnimationFrame(this.loop);
+  }
+
+  /** Limite ai fotogrammi della stanza (null = tutti). */
+  setMaxFps(fps) {
+    this.maxFps = fps || null;
   }
 
   draw(now) {
@@ -1446,6 +1528,9 @@ export class HotelEngine {
       else if (POOL_CLOTH[item.type]) this.drawPoolBalls(ctx, item, now, toScreen, scale);
       else if (item.type === 'card_case') this.drawCardCase(ctx, item, now, toScreen, scale);
       else if (item.type === 'badge_board') this.drawBadgeBoard(ctx, item, now, toScreen, scale);
+      else if (item.type === 'car_display') this.drawCarDisplay(ctx, item, now, toScreen, scale);
+      if (SIGNS[item.type]) this.drawSign(ctx, item, SIGNS[item.type], toScreen, scale);
+      else if (item.type === 'villa') this.drawVillaPlate(ctx, item, toScreen, scale);
     };
     const items = [...this.items.values()].filter((item) => this.catalog.has(item.type));
     const backItems = items.filter((item) => this.itemDepth(item) < -100).sort((a, b) => this.itemDepth(a) - this.itemDepth(b));
@@ -1494,12 +1579,14 @@ export class HotelEngine {
       if (entry.kind === 'ball') {
         const z = Math.max(0, this.layout?.heightAt(Math.round(ballAt.x), Math.round(ballAt.y)) ?? 0);
         const c = tileCenter(ballAt.x, ballAt.y, z);
-        drawBall(ctx, toScreen(c.x, c.y), ballAt.lift * scale, 5.5 * DETAIL * scale / 2, this.ball.spin + (ballAt.rolling ? 0.5 : 0));
+        if (this.room?.floorStyle === 'ice') drawPuck(ctx, toScreen(c.x, c.y), 5 * DETAIL * scale / 2);
+        else drawBall(ctx, toScreen(c.x, c.y), ballAt.lift * scale, 5.5 * DETAIL * scale / 2, this.ball.spin + (ballAt.rolling ? 0.5 : 0));
         return;
       }
       const { user } = entry;
-      const { sprite, left, top, center, water } = this.spriteFor(user, now);
+      const { sprite, left, top, center, water, ride, foot } = this.spriteFor(user, now);
       const swimming = !!water;
+      const footScreen = ride ? toScreen(foot.x, foot.y) : null;
       const sink = swimming ? SWIM_SINK : 0;
       const shadow = toScreen(center.x, center.y);
       if (!swimming) {
@@ -1541,6 +1628,10 @@ export class HotelEngine {
         ctx.beginPath();
         ctx.ellipse(shadow.x, surface, (14 + Math.abs(wave)) * scale, 5 * scale, 0, 0, Math.PI * 2);
         ctx.stroke();
+      } else if (ride) {
+        drawVehicle(ctx, ride, footScreen, user.dir ?? 2, scale, 'under', now);
+        ctx.drawImage(sprite, p.x, p.y, width, height);
+        drawVehicle(ctx, ride, footScreen, user.dir ?? 2, scale, 'over', now);
       } else {
         ctx.drawImage(sprite, p.x, p.y, width, height);
       }
@@ -1586,6 +1677,7 @@ export class HotelEngine {
 
     this.drawShots(ctx, now, toScreen, scale);
     this.drawLeisure(ctx, now, toScreen, scale);
+    this.drawDiscoBall(ctx, now, toScreen, scale);
     this.drawPlacement(ctx, now, toScreen, scale);
     // Pioggia, neve, vento e luce del sole sopra le stanze all'aperto.
     // Stanze all'aperto: la luce segue l'ora vera, di sera si accendono i lampioni.
@@ -1691,27 +1783,62 @@ export class HotelEngine {
     const base = toScreen(c.x, c.y - 30);
     const angle = this.reducedMotion ? 0 : now / 900;
     const cos = Math.cos(angle);
-    const cw = 20 * scale;
-    const ch = 28 * scale;
     const bob = this.reducedMotion ? 0 : Math.sin(now / 600) * 1.5 * scale;
-    const top = base.y - ch - 6 * scale + bob;
-    const w = Math.max(1, Math.abs(cos) * cw);
-    if (item.card) {
-      const color = getRarityColor(item.card.rarity);
+    const card = item.card;
+    if (card) {
+      const color = getRarityColor(card.rarity);
+      const graded = card.grade > 0;
+      // Carta gradata: gira dentro il suo cofanetto, con l'etichetta del voto in alto.
+      const cw = (graded ? 17 : 20) * scale;
+      const ch = (graded ? 24 : 28) * scale;
+      const labelH = graded ? 7 * scale : 0;
+      const slabW = 23 * scale;
+      const slabH = ch + labelH + 5 * scale;
+      const k = Math.max(0.04, Math.abs(cos));
+      const w = cw * k;
+      const top = base.y - (graded ? slabH : ch) - 6 * scale + bob;
+      const cardTop = top + (graded ? labelH + 3 * scale : 0);
+      if (graded) {
+        const sw = slabW * k;
+        ctx.fillStyle = 'rgba(225, 236, 255, 0.35)';
+        ctx.strokeStyle = 'rgba(240, 248, 255, 0.85)';
+        ctx.lineWidth = Math.max(1, 0.8 * scale);
+        roundRect(ctx, base.x - sw / 2, top, sw, slabH, 2 * scale);
+        ctx.fill();
+        ctx.stroke();
+        // Etichetta: oro dal 9, argento per 7-8, bronzo sotto; sul retro resta bianca.
+        const tone = card.grade >= 9 ? '#f5c542' : card.grade >= 7 ? '#cbd5e1' : '#c08457';
+        ctx.fillStyle = cos > 0 ? '#fdfbf5' : '#f5f5f0';
+        ctx.fillRect(base.x - sw / 2 + scale, top + scale, sw - 2 * scale, labelH);
+        if (cos > 0) {
+          ctx.fillStyle = tone;
+          ctx.fillRect(base.x + sw / 2 - 7 * scale * k - scale, top + scale, 7 * scale * k, labelH);
+          if (k > 0.45) {
+            ctx.fillStyle = '#1f1300';
+            ctx.font = `bold ${Math.max(6, Math.round(5.5 * scale))}px "Segoe UI", sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(card.grade), base.x + sw / 2 - 3.5 * scale * k - scale, top + scale + labelH / 2 + 0.5);
+            ctx.fillStyle = '#6b21a8';
+            ctx.font = `bold ${Math.max(5, Math.round(3.6 * scale))}px "Segoe UI", sans-serif`;
+            ctx.fillText('VDX', base.x - sw / 2 + 5 * scale * k + scale, top + scale + labelH / 2 + 0.5);
+          }
+        }
+      }
       ctx.fillStyle = color;
-      ctx.fillRect(base.x - w / 2 - scale, top - scale, w + 2 * scale, ch + 2 * scale);
+      ctx.fillRect(base.x - w / 2 - scale, cardTop - scale, w + 2 * scale, ch + 2 * scale);
       if (cos > 0) {
-        const img = cardImage(item.card, () => {});
+        const img = cardImage(card, () => {});
         if (img) {
           ctx.imageSmoothingEnabled = true;
-          ctx.drawImage(img, base.x - w / 2, top, w, ch);
+          ctx.drawImage(img, base.x - w / 2, cardTop, w, ch);
           ctx.imageSmoothingEnabled = false;
         }
       } else {
         ctx.fillStyle = '#1a1030';
-        ctx.fillRect(base.x - w / 2, top, w, ch);
+        ctx.fillRect(base.x - w / 2, cardTop, w, ch);
         ctx.fillStyle = color;
-        ctx.fillRect(base.x - w / 4, top + ch * 0.35, w / 2, ch * 0.3);
+        ctx.fillRect(base.x - w / 4, cardTop + ch * 0.35, w / 2, ch * 0.3);
       }
     }
     // Campana di vetro: riflesso che scorre e bordo chiaro.
@@ -1759,6 +1886,195 @@ export class HotelEngine {
    * Luce delle stanze all'aperto: notte blu dalle 21:30 alle 5:30, tramonto arancio prima e alba
    * dopo. Di notte lampade e lampioni fanno un alone di luce calda.
    */
+  /**
+   * Palla di specchi appesa sopra il centro della pista luminosa (piastrelle fever_tile): gira,
+   * luccica e con la musica accesa fa girare macchie di luce colorate sul pavimento.
+   */
+  drawDiscoBall(ctx, now, toScreen, scale) {
+    let sx = 0; let sy = 0; let n = 0; let x0 = Infinity; let x1 = -Infinity; let y0 = Infinity; let y1 = -Infinity;
+    this.items.forEach((item) => {
+      if (item.type !== 'fever_tile') return;
+      sx += item.x; sy += item.y; n += 1;
+      x0 = Math.min(x0, item.x); x1 = Math.max(x1, item.x); y0 = Math.min(y0, item.y); y1 = Math.max(y1, item.y);
+    });
+    if (n < 4) return;
+    const cx = sx / n;
+    const cy = sy / n;
+    const spin = this.reducedMotion ? 0 : now / 1400;
+    const music = this.jukeboxOn;
+    ctx.save();
+    if (music) {
+      // Macchie di luce che girano sulla pista, dentro il rettangolo delle piastrelle.
+      ctx.globalCompositeOperation = 'lighter';
+      const colors = ['255, 80, 200', '80, 220, 255', '255, 225, 90', '255, 255, 255'];
+      const rx = (x1 - x0) / 2 + 0.5;
+      const ry = (y1 - y0) / 2 + 0.5;
+      for (let i = 0; i < 18; i += 1) {
+        const a = spin * (i % 2 ? 1 : -0.7) + i * 2.4;
+        const r = 0.25 + ((i * 37) % 10) / 12;
+        const t = tileCenter(cx + Math.cos(a) * rx * r, cy + Math.sin(a) * ry * r, 0);
+        const p = toScreen(t.x, t.y);
+        const w = (9 + (i % 3) * 3) * scale;
+        const color = colors[i % colors.length];
+        const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, w);
+        glow.addColorStop(0, `rgba(${color}, 0.55)`);
+        glow.addColorStop(1, `rgba(${color}, 0)`);
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, w, w / 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    // La palla: in alto sopra il centro della pista, appesa a una catenella.
+    const floor = tileCenter(cx, cy, 0);
+    const ball = toScreen(floor.x, floor.y - 170);
+    const top = toScreen(floor.x, floor.y - 260);
+    const R = 24 * scale;
+    ctx.strokeStyle = '#6b6880';
+    ctx.lineWidth = Math.max(1, scale);
+    ctx.beginPath();
+    ctx.moveTo(top.x, Math.max(0, top.y));
+    ctx.lineTo(ball.x, ball.y - R);
+    ctx.stroke();
+    if (music) {
+      // Raggi di luce che partono dalla palla verso il pavimento.
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 6; i += 1) {
+        const a = spin * 1.6 + i * (Math.PI / 3);
+        const len = 90 * scale;
+        const ex = ball.x + Math.cos(a) * len;
+        const ey = ball.y + Math.abs(Math.sin(a)) * len;
+        const beam = ctx.createLinearGradient(ball.x, ball.y, ex, ey);
+        beam.addColorStop(0, 'rgba(255, 255, 255, 0.28)');
+        beam.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.strokeStyle = beam;
+        ctx.lineWidth = 3 * scale;
+        ctx.beginPath();
+        ctx.moveTo(ball.x, ball.y);
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
+      }
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, R, 0, Math.PI * 2);
+    ctx.clip();
+    const body = ctx.createRadialGradient(ball.x - R * 0.35, ball.y - R * 0.35, R * 0.1, ball.x, ball.y, R);
+    body.addColorStop(0, '#f4f4ff');
+    body.addColorStop(1, '#55536b');
+    ctx.fillStyle = body;
+    ctx.fillRect(ball.x - R, ball.y - R, R * 2, R * 2);
+    // Tesserine a specchio: file orizzontali che luccicano a turno con la rotazione.
+    const rows = 10;
+    const cell = (R * 2) / rows;
+    for (let row = 0; row < rows; row += 1) {
+      const y = ball.y - R + row * cell;
+      const half = Math.sqrt(Math.max(0, R * R - (y + cell / 2 - ball.y) ** 2));
+      const cols = Math.max(2, Math.round((half * 2) / cell));
+      const w = (half * 2) / cols;
+      for (let col = 0; col < cols; col += 1) {
+        const k = Math.sin(col * 1.9 + row * 1.3 + spin * 6);
+        if (k > 0.55) ctx.fillStyle = `rgba(255, 255, 255, ${0.35 + (k - 0.55) * 1.4})`;
+        else if (k < -0.6) ctx.fillStyle = 'rgba(20, 18, 40, 0.35)';
+        else continue;
+        ctx.fillRect(ball.x - half + col * w + 0.5, y + 0.5, w - 1, cell - 1);
+      }
+    }
+    ctx.strokeStyle = 'rgba(30, 28, 50, 0.35)';
+    ctx.lineWidth = 0.6;
+    for (let row = 1; row < rows; row += 1) {
+      ctx.beginPath();
+      ctx.moveTo(ball.x - R, ball.y - R + row * cell);
+      ctx.lineTo(ball.x + R, ball.y - R + row * cell);
+      ctx.stroke();
+    }
+    ctx.restore();
+    // Scintilla che si accende a tratti.
+    if (!this.reducedMotion && Math.floor(now / 350) % 3 === 0) drawSparkle(ctx, ball.x + R * 0.4, ball.y - R * 0.45, Math.max(1, Math.round(scale * 1.5)));
+    ctx.restore();
+  }
+
+  /** Punto del mondo su un mobile: (u, v) nelle sue caselle a rot 0, z in pixel da terra (insegne, targhe). */
+  frontPoint(item, u, v, z) {
+    const def = this.catalog.get(item.type);
+    const W = def?.width || 1;
+    const L = def?.length || 1;
+    let pu = u;
+    let pv = v;
+    if (item.rot === 2) [pu, pv] = [v, u];
+    else if (item.rot === 4) [pu, pv] = [W - u, L - v];
+    else if (item.rot === 6) [pu, pv] = [L - v, W - u];
+    const t = tileTop(item.x + pu, item.y + pv, item.z);
+    return { x: t.x, y: t.y - z };
+  }
+
+  /** Insegna di un negozio o di un'arena del quartiere, scritta sulla tavola della facciata. */
+  drawSign(ctx, item, sign, toScreen, scale) {
+    const at = this.frontPoint(item, sign.u, sign.v, sign.z);
+    const p = toScreen(at.x, at.y);
+    ctx.save();
+    ctx.font = `800 ${Math.max(7, Math.round(sign.size * scale))}px "Trebuchet MS", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineWidth = Math.max(2, 3 * scale);
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.55)';
+    ctx.strokeText(sign.text, p.x, p.y);
+    ctx.fillStyle = sign.color;
+    ctx.fillText(sign.text, p.x, p.y);
+    ctx.restore();
+  }
+
+  /** Ville del quartiere: a chi appartengono (le stanze dei giocatori piu' frequentate e amate). */
+  setVillas(rooms) {
+    // Una villa per giocatore: di chi ha piu' stanze si tiene la prima (la piu' frequentata).
+    const seen = new Set();
+    this.villaRooms = (rooms || []).filter((r) => !seen.has(r.ownerName) && seen.add(r.ownerName));
+    this.assignVillas();
+  }
+
+  assignVillas() {
+    const villas = [...this.items.values()].filter((i) => i.type === 'villa').sort((a, b) => a.y - b.y || a.x - b.x);
+    villas.forEach((villa, i) => { villa.villa = this.villaRooms?.[i] || null; });
+  }
+
+  drawVillaPlate(ctx, item, toScreen, scale) {
+    if (!item.villa) return;
+    const at = this.frontPoint(item, 2, 1.6, 118);
+    const p = toScreen(at.x, at.y);
+    const text = `Villa di ${item.villa.ownerName}`;
+    ctx.save();
+    ctx.font = `700 ${Math.max(8, Math.round(10 * scale))}px "Trebuchet MS", sans-serif`;
+    const w = ctx.measureText(text).width + 14 * scale;
+    const h = 16 * scale;
+    ctx.fillStyle = 'rgba(20, 16, 40, 0.8)';
+    ctx.beginPath();
+    ctx.roundRect(p.x - w / 2, p.y - h / 2, w, h, 6 * scale);
+    ctx.fill();
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = Math.max(1, scale);
+    ctx.stroke();
+    ctx.fillStyle = '#fde68a';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, p.x, p.y + scale);
+    ctx.restore();
+  }
+
+  /** Auto in esposizione: gira piano sulla pedana della concessionaria. */
+  drawCarDisplay(ctx, item, now, toScreen, scale) {
+    const c = tileCenter(item.x + 1, item.y + 1, item.z);
+    const p = toScreen(c.x, c.y - 6);
+    // Ogni pedana ha un'auto diversa, nell'ordine in cui stanno nella stanza.
+    const displays = [...this.items.values()].filter((i) => i.type === 'car_display').sort((a, b) => a.y - b.y || a.x - b.x);
+    const ride = 5 + (Math.max(0, displays.indexOf(item)) % 4);
+    const dir = this.reducedMotion ? 3 : (now / 1500) % 8;
+    const big = scale * 1.6;
+    drawVehicle(ctx, ride, p, dir, big, 'under', now);
+    drawVehicle(ctx, ride, p, dir, big, 'over', now);
+  }
+
   drawDaylight(ctx, now, toScreen, scale) {
     const h = this.hourOfDay();
     let night = 0;
@@ -1958,6 +2274,26 @@ export class HotelEngine {
  * Pallone a pixel: bianco con le macchie nere che girano mentre rotola, ombra sotto che resta a
  * terra quando rimbalza.
  */
+/** Disco da hockey: cilindretto nero con il bordo lucido, piatto sul ghiaccio. */
+function drawPuck(ctx, at, r) {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+  ctx.beginPath();
+  ctx.ellipse(at.x, at.y + 1, r * 1.3, r * 0.6, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(at.x - r, at.y - r * 0.9, r * 2, r * 0.5);
+  ctx.beginPath();
+  ctx.ellipse(at.x, at.y - r * 0.4, r, r * 0.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(at.x, at.y - r * 0.9, r, r * 0.5, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#27272a';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
 function drawBall(ctx, at, lift, r, spin) {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
   ctx.beginPath();
@@ -2075,6 +2411,23 @@ function drawDrink(ctx, user, p, scale, view, sipping) {
       rect(0, -2 + (3 - left), 8, 3, color);
       rect(1, -3 + (3 - left), 2, 1, '#fffbeb');
       if (left > 1) rect(5, -3, 2, 1, '#fffbeb');
+      break;
+    case 'latte':
+      // Bicchiere di carta grande con il coperchio e la fascetta di cartone.
+      rect(-1, -3, 10, 15, '#1a1030');
+      rect(0, -2, 8, 2, '#f5f5f5');
+      rect(0, 0, 8, 11, '#f8f6f0');
+      rect(0, 4, 8, 4, '#a0764e');
+      rect(3, 1, 2, 2, '#1f4b3a');
+      break;
+    case 'frappe':
+      // Bicchiere trasparente con la panna, il caramello e la cannuccia verde.
+      rect(-1, -4, 10, 16, '#1a1030');
+      rect(0, 1, 8, 10, 'rgba(224, 242, 254, 0.8)');
+      rect(1, 11 - left * 3, 6, left * 3, color);
+      rect(0, -3, 8, 4, '#fffbeb');
+      rect(2, -3, 4, 1, '#d97706');
+      rect(5, -8, 1, 6, '#16a34a');
       break;
     case 'water':
       // Borraccia trasparente con il tappo blu.

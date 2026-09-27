@@ -1,6 +1,7 @@
 import { getRarityCSSClass, getRarityColor, getRarityIcon, getRarityName, getStars, resolveCardImage } from '../../utils/cardUtils.js';
 import CardHoloFrame from './CardHoloFrame.jsx';
 import GradedSlab from './GradedSlab.jsx';
+import HoloLayers from './HoloLayers.jsx';
 
 /** Gemma SVG piccola (no testo): la rarità estesa resta disponibile via title/tooltip. */
 export function RarityBadge({ rarity, style }) {
@@ -23,20 +24,6 @@ function Stars({ count, color }) {
   );
 }
 
-/** Riflesso olografico + sparkle (solo rarità alte, gestito via CSS) che segue il puntatore. */
-function HoloLayers() {
-  return (
-    <>
-      <div className="card-holo-glare" />
-      <div className="card-holo-rainbow" />
-      <div className="card-holo-sparkles">
-        {Array.from({ length: 8 }, (_, i) => (
-          <div key={i} className={`card-sparkle card-sparkle-${i + 1}`} />
-        ))}
-      </div>
-    </>
-  );
-}
 
 /** Mini-card riusata in Home / Collection / Battaglia. */
 export default function CardTile({ card, quantity, onClick }) {

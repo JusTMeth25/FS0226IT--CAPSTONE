@@ -95,8 +95,9 @@ function SlabCase({ card }) {
   return (
     <group>
       <RoundedBox args={[SLAB_W, SLAB_H, SLAB_DEPTH]} radius={0.12} smoothness={4} position={[0, SLAB_LABEL_H / 2, 0]}>
-        <meshPhysicalMaterial color="#e8f0ff" transparent opacity={0.16} roughness={0.04} metalness={0} clearcoat={1}
-          clearcoatRoughness={0.03} reflectivity={0.9} side={DoubleSide} depthWrite={false} />
+        {/* Plastica quasi invisibile: il cofanetto non deve spegnere il riflesso olografico della carta. */}
+        <meshPhysicalMaterial color="#ffffff" transparent opacity={0.06} roughness={0.02} metalness={0} clearcoat={0.6}
+          clearcoatRoughness={0.02} reflectivity={0.4} side={DoubleSide} depthWrite={false} />
       </RoundedBox>
       {/* Etichetta davanti e retro bianco con la marca. */}
       <mesh position={[0, labelY + SLAB_LABEL_H / 2, SLAB_DEPTH / 2 - 0.05]}>
@@ -122,6 +123,8 @@ function CardModel({ card, flipped, onFlip }) {
   const front = useSafeTexture(textureUrl(card), card.name, color);
   const officialBack = useSafeTexture(CARD_BACKS[card.source] || null, card.name, color);
   const back = useMemo(() => officialBack || getCardBackTexture(), [officialBack]);
+  // Copia olografica: l'arcobaleno e' piu' forte, anche dentro il cofanetto del perito.
+  const holo = card.foil > 0 ? Math.min(1, tier.holo * 1.6 + 0.25) : tier.holo;
   // Il foil pieno sta bene sul dorso VinylDex; su quelli ufficiali resta appena accennato.
   const backHolo = officialBack ? 0.12 : 0.3;
 
@@ -186,7 +189,8 @@ function CardModel({ card, flipped, onFlip }) {
               uSize={[CARD_W, CARD_H]}
               uRadius={CARD_RADIUS}
               uUvScale={frontScale}
-              uIntensity={tier.holo}
+              uIntensity={holo}
+              uFoil={card.foil > 0 ? 1 : 0}
             />
           </mesh>
         )}

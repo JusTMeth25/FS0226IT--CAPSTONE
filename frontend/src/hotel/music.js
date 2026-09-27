@@ -1,14 +1,17 @@
 import { soundService } from '../services/soundService.js';
 
 /**
- * Jukebox dell'hotel: quattro brani generati con WebAudio, nessun file audio da scaricare.
+ * Jukebox dell'hotel: sei brani generati con WebAudio, nessun file audio da scaricare.
  *
  * Ogni brano e' un giro di 4 battute a sedicesimi: batteria (cassa, rullante, charleston),
  * basso e arpeggio sugli accordi. Il server dice solo quale brano suona e quando e' partito;
  * ogni client calcola a che punto del giro siamo, cosi' tutti nella stanza sentono la stessa
  * battuta nello stesso momento (a meno della latenza di rete).
  *
- * I brani devono restare 4, come RoomInstance.JUKEBOX_TRACKS sul server.
+ * Gli ultimi due sono disco anni 80 (la Disco li fa suonare da sola): cassa in quattro, charleston
+ * aperto in levare (`open`) e basso che salta d'ottava (`octave`).
+ *
+ * I brani devono restare 6, come RoomInstance.JUKEBOX_TRACKS sul server.
  */
 
 const midiToHz = (note) => 440 * 2 ** ((note - 69) / 12);
@@ -58,6 +61,32 @@ export const TRACKS = [
     bass: 'x.......x.......',
     arp: 'x...x...x...x...',
     lead: 'triangle'
+  },
+  {
+    name: 'Saturday Fever',
+    bpm: 108,
+    chords: [[53, 'm'], [53, 'm'], [51, 'M'], [56, 'M']],
+    kick: 'x...x...x...x...',
+    snare: '....x.......x...',
+    hat: 'x...x...x...x...',
+    open: '..x...x...x...x.',
+    bass: 'x.x.x.x.x.x.x.x.',
+    octave: true,
+    arp: 'x..x..x...x.x...',
+    lead: 'sawtooth'
+  },
+  {
+    name: 'Mirror Ball',
+    bpm: 120,
+    chords: [[57, 'm'], [50, 'm'], [55, 'M'], [48, 'M']],
+    kick: 'x...x...x...x...',
+    snare: '....x.......x..x',
+    hat: 'x.x.x.x.x.x.x.x.',
+    open: '..x...x...x...x.',
+    bass: 'x.xxx.x.x.xxx.x.',
+    octave: true,
+    arp: 'x.x.x.xxx.x.x.xx',
+    lead: 'square'
   }
 ];
 
@@ -161,7 +190,12 @@ class JukeboxPlayer {
     if (song.kick[inBar] === 'x') this.kick(time);
     if (song.snare[inBar] === 'x') this.snare(time);
     if (song.hat[inBar] === 'x') this.hat(time);
-    if (song.bass[inBar] === 'x') this.tone(midiToHz(chord[0] - 12), time, stepDur * 1.6, 'sawtooth', 0.22, 700);
+    if (song.open?.[inBar] === 'x') this.noiseHit(time, 0.14, 6000, 0.1);
+    if (song.bass[inBar] === 'x') {
+      // Basso disco: un ottavo giu', un ottavo su.
+      const up = song.octave && Math.floor(inBar / 2) % 2 === 1;
+      this.tone(midiToHz(chord[0] - (up ? 0 : 12)), time, stepDur * 1.6, 'sawtooth', 0.22, 700);
+    }
     if (song.arp[inBar] === 'x') {
       const note = chord[inBar % chord.length] + 12;
       this.tone(midiToHz(note), time, stepDur * 0.9, song.lead, 0.07, 3000);

@@ -59,6 +59,10 @@ public final class Minigames {
         // Freccette: tre volate da tre freccette, 50 il centro.
         games.put("dart_board", new Game("darts", "Freccette", "punti", 450, 10_000, 150_000, false));
         games.put("go_kart", new Game("kart", "Go-kart", "punti", 260, 20_000, 240_000, true));
+        // Gara di ballo della Disco anni 80: frecce a tempo di musica, punti = passi presi (con bonus combo).
+        games.put("dance_contest", new Game("disco", "Gara di ballo", "punti", 100, 15_000, 120_000, false));
+        // Palaghiaccio: cinque tiri al bersaglio con il disco, punti secondo l'angolo preso.
+        games.put("hockey_target", new Game("hockey", "Tiri in porta", "punti", 50, 4_000, 90_000, false));
         for (int hole = 1; hole <= GOLF_HOLES; hole++) {
             games.put("golf_hole_" + hole, new Game("golf" + hole, "Minigolf, buca " + hole, "punti", 6, 2_500, 180_000, false));
         }

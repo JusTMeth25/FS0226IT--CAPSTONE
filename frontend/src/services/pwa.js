@@ -63,3 +63,40 @@ export async function showFreePackNotification() {
   if (registration) registration.showNotification('VinylDex: pacchetto gratis pronto', options);
   else new Notification('VinylDex: pacchetto gratis pronto', options);
 }
+
+// ------------------------------------------------------------------ installazione
+
+let deferredPrompt = null;
+if (typeof window !== 'undefined') {
+  // Chrome ed Edge avvisano quando l'app si puo' installare: l'avviso si tiene per il bottone.
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredPrompt = event;
+    window.dispatchEvent(new Event('vinyldex-install-ready'));
+  });
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    window.dispatchEvent(new Event('vinyldex-install-ready'));
+  });
+}
+
+/** L'app e' gia' aperta come app installata (schermo intero, senza barra del browser)? */
+export function isInstalled() {
+  return typeof window !== 'undefined'
+    && (window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true);
+}
+
+export function canPromptInstall() {
+  return deferredPrompt != null;
+}
+
+/** Mostra la finestra di installazione del browser. Restituisce true se l'utente accetta. */
+export async function promptInstall() {
+  if (!deferredPrompt) return false;
+  const prompt = deferredPrompt;
+  deferredPrompt = null;
+  prompt.prompt();
+  const choice = await prompt.userChoice;
+  window.dispatchEvent(new Event('vinyldex-install-ready'));
+  return choice?.outcome === 'accepted';
+}

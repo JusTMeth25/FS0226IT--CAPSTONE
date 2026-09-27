@@ -31,4 +31,23 @@ class HotelLookTest {
         assertFalse(HotelLook.isValid("s1.h1.hc0.sh0.p0.t0.f0.a0.b2"), "corporatura che non esiste");
         assertTrue(HotelLook.isValid(HotelLook.DEFAULT));
     }
+
+    @Test
+    @DisplayName("Capo firmato, orologio e veicolo dei negozi del quartiere: in coda, tutti e tre insieme")
+    void luxuryParts() {
+        String look = "s1.h1.hc0.sh0.p0.t0.f0.a0.b0.o2.w3.r5";
+        assertTrue(HotelLook.isValid(look));
+        assertFalse(HotelLook.isValid("s1.h1.hc0.sh0.p0.t0.f0.a0.b0.o2"), "le parti del quartiere vanno insieme");
+        assertFalse(HotelLook.isValid("s1.h1.hc0.sh0.p0.t0.f0.a0.b0.o9.w0.r0"), "capo che non esiste");
+        assertEquals(2, HotelLook.part(look, "o"));
+        assertEquals(0, HotelLook.part(look, "x"));
+        assertEquals(java.util.List.of("o2", "w3", "r5"), HotelLook.luxuryItems(look));
+        assertEquals(java.util.List.of(), HotelLook.luxuryItems(HotelLook.DEFAULT));
+        // A piedi si fa una casella per passo; con l'auto quattro.
+        assertEquals(1, LuxuryCatalog.speedOf(HotelLook.DEFAULT));
+        assertEquals(4, LuxuryCatalog.speedOf(look));
+        assertEquals(LuxuryCatalog.OUTFITS - 1, LuxuryCatalog.ITEMS.stream().filter(i -> i.part().equals("o")).count());
+        assertEquals(LuxuryCatalog.WATCH_COUNT - 1, LuxuryCatalog.ITEMS.stream().filter(i -> i.part().equals("w")).count());
+        assertEquals(LuxuryCatalog.RIDES - 1, LuxuryCatalog.ITEMS.stream().filter(i -> i.part().equals("r")).count());
+    }
 }

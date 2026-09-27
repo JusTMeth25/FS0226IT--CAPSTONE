@@ -68,7 +68,11 @@ public class HotelEventService {
             new EventDef("bowling-sabato", "Sabato al bowling", "bowling-ball", "Bowling", "bowling", false, DayOfWeek.SATURDAY,
                     LocalTime.of(18, 0), Duration.ofHours(1), "Miglior partita di bowling della serata."),
             new EventDef("basket-domenica", "Finale di basket", "trophy", "Palazzetto", "basket", false, DayOfWeek.SUNDAY,
-                    LocalTime.of(18, 0), Duration.ofHours(1), "Miglior punteggio ai tiri liberi: la sfida della domenica."));
+                    LocalTime.of(18, 0), Duration.ofHours(1), "Miglior punteggio ai tiri liberi: la sfida della domenica."),
+            new EventDef("gara-ballo", "Gara di ballo", "music-notes", "Disco anni 80", "disco", false, null,
+                    LocalTime.of(22, 0), Duration.ofMinutes(30), "Sali sulla pedana della Disco anni 80: miglior punteggio alla gara di ballo."),
+            new EventDef("tiri-hockey", "Tiri al palaghiaccio", "target", "Palaghiaccio", "hockey", false, null,
+                    LocalTime.of(19, 0), Duration.ofMinutes(30), "Cinque tiri al bersaglio del palaghiaccio: vince il punteggio piu' alto."));
 
     /** Edizione di un evento: il giorno, l'inizio e la fine. */
     public record Edition(EventDef def, LocalDate date, Instant startsAt, Instant endsAt) {

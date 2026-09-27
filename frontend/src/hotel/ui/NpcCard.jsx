@@ -12,7 +12,9 @@ const ITEMS = {
   pizza: { label: 'Pizza', icon: 'ph-pizza' },
   book: { label: 'Un libro', icon: 'ph-book-open' },
   popcorn: { label: 'Popcorn', icon: 'ph-popcorn' },
-  water: { label: 'Acqua', icon: 'ph-drop' }
+  water: { label: 'Acqua', icon: 'ph-drop' },
+  latte: { label: 'Caffellatte', icon: 'ph-coffee' },
+  frappe: { label: 'Frappè', icon: 'ph-brandy' }
 };
 
 const DESCRIPTIONS = {

@@ -99,10 +99,20 @@ public class AuthService {
         return AuthUserDto.from(userRepository.save(user));
     }
 
+    /** Guardaroba di lusso: facoltativo, cosi' i test che costruiscono il servizio a mano non cambiano. */
+    private com.capstone.vinyldex.hotel.WardrobeService wardrobeService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setWardrobeService(com.capstone.vinyldex.hotel.WardrobeService wardrobeService) {
+        this.wardrobeService = wardrobeService;
+    }
+
     public AuthUserDto updateLook(UUID userId, String look) {
         if (!HotelLook.isValid(look)) {
             throw ApiException.badRequest("invalid_look");
         }
+        // Capi, orologi e veicoli dei negozi si indossano solo se comprati.
+        if (wardrobeService != null) wardrobeService.requireOwned(userId, look);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> ApiException.notFound("not_found"));
         user.setHotelLook(look);

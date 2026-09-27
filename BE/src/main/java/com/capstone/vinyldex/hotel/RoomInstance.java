@@ -34,6 +34,8 @@ public class RoomInstance {
 
     /** Bibite del bancone: il nome e' anche lo sprite che il client disegna in mano. */
     private static final List<String> DRINKS = List.of("cola", "juice", "coffee", "bubble");
+    /** Bancone della caffetteria del quartiere. */
+    private static final List<String> COFFEE_HOUSE = List.of("latte", "frappe", "coffee");
     /** Quanto aspetta un NPC prima di rispondere, per sembrare una persona che legge e scrive. */
     private static final long NPC_REPLY_MILLIS = 1_200;
     private static final long NPC_GREET_COOLDOWN_MILLIS = 20_000;
@@ -46,7 +48,9 @@ public class RoomInstance {
     private static final long SIP_PAUSE_MILLIS = 900;
 
     /** Brani del jukebox: il client li genera con WebAudio (src/hotel/music.js). */
-    public static final int JUKEBOX_TRACKS = 4;
+    public static final int JUKEBOX_TRACKS = 6;
+    /** Primo brano disco anni 80 (4 e 5): la Disco lo fa partire da sola. */
+    static final int DISCO_TRACK = 4;
     private static final long JUKEBOX_COOLDOWN_MILLIS = 3_000;
     private static final Set<String> STATUSES = Set.of("idle", "dance", "sit");
 
@@ -188,6 +192,11 @@ public class RoomInstance {
         this.mind = mind;
         initialItems.forEach(item -> items.put(item.id(), item));
         this.football = FootballMatch.create(items.values(), layout, data.doorX(), data.doorY());
+        // In discoteca la musica c'e' sempre appena si entra: suona la disco anni 80.
+        if ("disco".equals(data.floorStyle()) && data.publicRoom()) {
+            jukeboxTrack = DISCO_TRACK;
+            jukeboxStartedAt = System.currentTimeMillis();
+        }
         spawnNpcs();
     }
 
@@ -358,6 +367,15 @@ public class RoomInstance {
         for (Occupant occupant : occupants.values()) {
             Pathfinder.Step next = occupant.path.peekFirst();
             if (next == null) continue;
+            // Su skate, bici o auto (solo all'aperto) si fanno piu' caselle per tick.
+            for (int extra = 1; extra < rideSpeed(occupant) && occupant.path.size() > 1; extra++) {
+                occupant.path.pollFirst();
+                occupant.dir = directionBetween(occupant.x, occupant.y, next.x(), next.y(), occupant.dir);
+                occupant.x = next.x();
+                occupant.y = next.y();
+                occupant.z = next.z();
+                next = occupant.path.peekFirst();
+            }
 
             // Qualcuno si e' fermato sulla casella d'arrivo: ci si ferma dove si e'.
             if (occupant.path.size() == 1 && isOccupiedByOther(occupant.user.id(), next.x(), next.y())) {
@@ -802,7 +820,7 @@ public class RoomInstance {
             String line = random.nextInt(4) == 0 ? HotelWeather.now().remark() : NpcDialog.idle(spec.role(), random);
             say(npc, line, null, false, 0);
         }
-        if (spec.role() == NpcRoster.Role.FOOTBALLER && football != null) {
+        if ((spec.role() == NpcRoster.Role.FOOTBALLER || spec.role() == NpcRoster.Role.HOCKEY_PLAYER) && football != null) {
             playFootball(npc, now);
             return;
         }
@@ -858,7 +876,7 @@ public class RoomInstance {
     }
 
     /** Minigiochi che gli NPC giocano nelle stanze (quelli che si animano senza un vero giocatore). */
-    static final java.util.Set<String> NPC_GAMES = java.util.Set.of("pong", "box", "sing", "rhythm", "run", "curl");
+    static final java.util.Set<String> NPC_GAMES = java.util.Set.of("pong", "box", "sing", "rhythm", "run", "curl", "disco", "hockey");
 
     /**
      * Gli ospiti ogni tanto vanno a giocare a un minigioco libero vicino (ping pong, sacco, karaoke,
@@ -915,7 +933,7 @@ public class RoomInstance {
         if (football.inNet() || occupant.x != football.ballX() || occupant.y != football.ballY()) return;
         // Durante una partita a squadre calciano solo i giocatori in campo.
         if (match.playing() && !match.isPlayer(occupant.user.id())) return;
-        int power = occupant.path.isEmpty() ? FootballMatch.TAP_POWER : FootballMatch.RUN_POWER;
+        int power = occupant.path.isEmpty() ? football.tapPower() : football.runPower();
         FootballMatch.Kick kick = football.kick(occupant.dir, power, ballField(occupant.user.id()));
         broadcast(ballMessage(kick.path(), occupant.user.username(), occupant.user.id()));
         if (kick.scored() == null) return;
@@ -1059,7 +1077,8 @@ public class RoomInstance {
     private boolean chasesBall(Occupant npc, FootballMatch.Team team, int bx, int by) {
         int mine = Math.max(Math.abs(npc.x - bx), Math.abs(npc.y - by));
         for (Occupant other : occupants.values()) {
-            if (other == npc || !other.isNpc() || other.npc.role() != NpcRoster.Role.FOOTBALLER) continue;
+            if (other == npc || !other.isNpc()
+                    || (other.npc.role() != NpcRoster.Role.FOOTBALLER && other.npc.role() != NpcRoster.Role.HOCKEY_PLAYER)) continue;
             if (football.teamStartingAt(other.npc.x()) != team) continue;
             int theirs = Math.max(Math.abs(other.x - bx), Math.abs(other.y - by));
             if (theirs < mine || (theirs == mine && other.user.id().compareTo(npc.user.id()) < 0)) return false;
@@ -1378,7 +1397,7 @@ public class RoomInstance {
         if (game != null) return useGame(occupant, item, game);
 
         switch (item.type()) {
-            case "bar_counter", "cafe_counter", "coffee_machine", "icecream_cart", "pizza_oven", "beach_bar",
+            case "bar_counter", "cafe_counter", "coffee_machine", "icecream_cart", "pizza_oven", "beach_bar", "espresso_bar",
                  "popcorn_machine", "water_cooler" -> {
                 if (isNextTo(occupant, item)) {
                     serveDrink(occupant, item.type());
@@ -1671,6 +1690,19 @@ public class RoomInstance {
         return message;
     }
 
+    /** Stanze all'aperto dove si va in skate, bici o auto (non negli stadi): come RIDE_WALLS in src/hotel/HotelEngine.js. */
+    static final java.util.Set<String> RIDE_WALLS = java.util.Set.of("hedge", "skyline", "seaside", "street");
+
+    boolean rideable() {
+        return RIDE_WALLS.contains(data.wallStyle());
+    }
+
+    /** Caselle per tick: il veicolo del codice aspetto, solo all'aperto e mentre non si gioca. */
+    private int rideSpeed(Occupant occupant) {
+        if (!rideable() || occupant.game != null) return 1;
+        return LuxuryCatalog.speedOf(occupant.user.look());
+    }
+
     /** Spegne il jukebox o passa al brano successivo, con una breve pausa fra un cambio e l'altro. */
     public synchronized String setJukebox(UUID userId, boolean on) {
         if (!data.publicRoom() && !data.isOwner(userId)) return "not_your_room";
@@ -1687,7 +1719,10 @@ public class RoomInstance {
         if (now - jukeboxChangedAt < JUKEBOX_COOLDOWN_MILLIS) return "jukebox_cooldown";
         boolean hasJukebox = items.values().stream().anyMatch(i -> "jukebox".equals(i.type()));
         if (!hasJukebox) return "no_jukebox";
-        jukeboxTrack = (jukeboxTrack + 1) % JUKEBOX_TRACKS;
+        // In discoteca si alternano solo i due brani disco anni 80.
+        jukeboxTrack = "disco".equals(data.floorStyle()) && data.publicRoom()
+                ? (jukeboxTrack == DISCO_TRACK ? DISCO_TRACK + 1 : DISCO_TRACK)
+                : (jukeboxTrack + 1) % JUKEBOX_TRACKS;
         jukeboxStartedAt = now;
         jukeboxChangedAt = now;
         broadcast(jukeboxMessage());
@@ -1788,6 +1823,7 @@ public class RoomInstance {
     private void serveDrink(Occupant occupant, String from) {
         occupant.handItem = switch (from) {
             case "coffee_machine" -> "coffee";
+            case "espresso_bar" -> COFFEE_HOUSE.get(Math.floorMod((int) System.nanoTime(), COFFEE_HOUSE.size()));
             case "icecream_cart" -> "gelato";
             case "pizza_oven" -> "pizza";
             case "popcorn_machine" -> "popcorn";

@@ -308,6 +308,26 @@ public class CollectionExtrasService {
     // ------------------------------------------------------------------ prima edizione
 
     /**
+     * Probabilita' che una carta appena trovata sia una delle dieci copie numerate di prima edizione.
+     * Bassa di proposito: con pochi giocatori quasi ogni carta ha meno di dieci proprietari, e senza
+     * estrazione sarebbero prime edizioni quasi tutte.
+     */
+    static final Map<String, Double> FIRST_EDITION_CHANCE = Map.of(
+            "common", 0.01, "uncommon", 0.02, "rare", 0.04, "epic", 0.06, "legendary", 0.10);
+    private final java.util.Random random = new java.util.Random();
+
+    public static double firstEditionChance(String rarity) {
+        return FIRST_EDITION_CHANCE.getOrDefault(rarity, 0.01);
+    }
+
+    /** Estrazione della prima edizione per una carta appena trovata (vedi claimFirstEdition). */
+    @Transactional
+    public Integer maybeClaimFirstEdition(UUID userId, Card card) {
+        if (random.nextDouble() >= firstEditionChance(card.getRarity())) return null;
+        return claimFirstEdition(userId, card.getId());
+    }
+
+    /**
      * Chi trova una carta fra i primi dieci riceve il numero seguente. Se due giocatori la
      * trovano nello stesso istante uno dei due resta senza: meglio che due numeri uguali.
      *

@@ -29,7 +29,8 @@ const HoloMaterial = shaderMaterial(
     uSide: 0,
     uTear: 0,
     uSeamColor: new Color('#ffffff'),
-    uOpacity: 1
+    uOpacity: 1,
+    uFoil: 0
   },
   /* glsl */ `
     varying vec2 vUv;
@@ -56,6 +57,7 @@ const HoloMaterial = shaderMaterial(
     uniform float uTear;
     uniform vec3 uSeamColor;
     uniform float uOpacity;
+    uniform float uFoil;
 
     varying vec2 vUv;
     varying vec3 vNormal;
@@ -111,6 +113,18 @@ const HoloMaterial = shaderMaterial(
       float h = hash(cell);
       float twinkle = pow(sin(uTime * 1.2 + h * 60.0) * 0.5 + 0.5, 8.0);
       col += step(0.992, h) * twinkle * uIntensity * 0.8;
+
+      // Copia olografica (uFoil): arcobaleno pieno come nella collezione, una banda diagonale che
+      // scorre da sola e segue l'inclinazione, schiarendo i colori (color-dodge) invece di coprirli.
+      if (uFoil > 0.0) {
+        float diag = vUv.x * 0.8 + (1.0 - vUv.y) * 0.6 + uTilt.x * 1.2 - uTilt.y * 0.8 - uTime * 0.18;
+        vec3 prism = 0.5 + 0.5 * cos(6.28318 * (diag * 1.6 + vec3(0.0, 0.33, 0.67)));
+        float sweep = pow(0.5 + 0.5 * sin(diag * 6.28318), 3.0);
+        vec3 blend = prism * uFoil * (0.18 + 0.4 * sweep);
+        col = min(vec3(1.0), col / max(vec3(0.25), 1.0 - blend));
+        col += prism * uFoil * 0.06;
+        col += step(0.985, h) * pow(sin(uTime * 2.3 + h * 90.0) * 0.5 + 0.5, 6.0) * uFoil * 0.45;
+      }
 
       vec2 glarePos = vec2(0.5) - uTilt * 0.7;
       col += smoothstep(0.5, 0.0, distance(vUv, glarePos)) * 0.15 * uIntensity * tiltAmount;

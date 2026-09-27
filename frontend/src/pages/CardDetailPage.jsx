@@ -106,7 +106,7 @@ export default function CardDetailPage() {
       <span className="card-detail-rarity-chip">{getRarityName(card.rarity)}</span>
       <GradeBadge grade={card.grade} />
       {card.firstEdition && (
-        <span className="first-edition-badge" title="Fra i primi dieci giocatori ad averla trovata: vale una volta e mezza">
+        <span className="first-edition-badge" title="Una delle sole dieci copie numerate di questa carta: esce di rado (1% le comuni, 10% le leggendarie) e vale una volta e mezza">
           <i className="ph-fill ph-medal" /> Prima edizione #{card.firstEdition}/10
         </span>
       )}

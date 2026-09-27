@@ -7,7 +7,7 @@ import CardHero from '../../components/card/CardHero.jsx';
 const Card3D = lazy(() => import('../../components/three/Card3D.jsx'));
 
 /** Carta esposta in una vetrina, ispezionabile in 3D da chiunque sia nella stanza. */
-export default function CardViewer({ card, onClose }) {
+export default function CardViewer({ card, onClose, onChange }) {
   return (
     <div className="pack-overlay hotel-card-viewer" onClick={onClose}>
       <div className="pack-inspect-modal" onClick={(e) => e.stopPropagation()}>
@@ -17,6 +17,11 @@ export default function CardViewer({ card, onClose }) {
         <ThreeGate fallback={<CardHero card={card} />}>
           <Card3D card={card} />
         </ThreeGate>
+        {onChange && (
+          <button type="button" className="btn btn-gold hotel-card-viewer-link" onClick={onChange}>
+            <i className="ph-fill ph-swap" /> Cambia la carta esposta
+          </button>
+        )}
         <Link className="btn btn-primary hotel-card-viewer-link" to={`/card/${card.id}`}>
           <i className="ph-fill ph-info" /> Scheda completa
         </Link>

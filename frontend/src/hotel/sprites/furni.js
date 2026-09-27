@@ -289,6 +289,99 @@ function filmPixel(x, z, step, scene) {
   return Math.floor(radius) % 3 === 0 ? '#211c33' : '#111018';
 }
 
+
+// ---------------------------------------------------------------- quartiere: parti comuni
+
+/** Mobili piu' alti del solito (palazzi del quartiere): spazio in piu' sopra lo sprite. */
+const TALL = {
+  facade_atelier: 170, facade_watches: 170, facade_skate: 150, facade_bikes: 150, facade_cars: 160, facade_cafe: 160,
+  arena_hockey: 200, arena_basket: 200, villa: 150
+};
+
+/** Bancone di un negozio (2x1): mobile, piano e una fascia colorata davanti. */
+function shopCounter(b, { body, top, accent }) {
+  b({ u0: 0.05, v0: 0.2, u1: 1.95, v1: 0.9, z1: 30, color: body, tex: 'wood' });
+  b({ u0: 0.02, v0: 0.16, u1: 1.98, v1: 0.94, z0: 30, z1: 33, color: top });
+  b({ u0: 0.05, v0: 0.9, u1: 1.95, v1: 0.92, z0: 12, z1: 16, color: accent, left: accent, glow: true });
+}
+
+/**
+ * Facciata di un negozio: muro, cornicione, insegna (il nome lo scrive il motore), vetrina con
+ * la merce, porta e tenda a righe. Il davanti guarda verso +v, come tutti i mobili.
+ */
+function shopFront(b, d, front, o) {
+  const { W, L, h } = o;
+  const face = L - 0.3;
+  b({ u0: 0.05, v0: 0.05, u1: W - 0.05, v1: face, z1: h, color: o.wall, tex: o.tex });
+  b({ u0: 0, v0: 0, u1: W, v1: face + 0.06, z0: h, z1: h + 8, color: o.trim });
+  front(() => {
+    b({ u0: 0.3, v0: face, u1: W - 0.3, v1: face + 0.05, z0: h - 34, z1: h - 12, color: o.sign, left: o.sign });
+    const doorU = W - 1.05;
+    const winU1 = doorU - 0.15;
+    b({ u0: 0.2, v0: face, u1: winU1 + 0.05, v1: face + 0.06, z0: 2, z1: 8, color: o.trim });
+    b({ u0: 0.25, v0: face, u1: winU1, v1: face + 0.04, z0: 8, z1: h - 44, color: o.glass, left: o.glass });
+    // Luce calda dentro la vetrina e la merce esposta.
+    if (o.warm) for (let z = 14; z < h - 50; z += 10) d(0.35, face + 0.04, z, 'rgba(255, 214, 140, 0.25)', Math.round((winU1 - 0.45) * 32), 5);
+    o.goods?.(0.45, 22);
+    // Riflesso diagonale sul vetro.
+    for (let i = 0; i < 12; i += 1) d(0.35 + i * 0.05, face + 0.04, h - 50 - i * 3, 'rgba(255, 255, 255, 0.35)', 2, 1);
+    b({ u0: doorU, v0: face, u1: doorU + 0.6, v1: face + 0.05, z0: 0, z1: 54, color: o.door, left: o.door });
+    b({ u0: doorU + 0.08, v0: face + 0.05, u1: doorU + 0.52, v1: face + 0.06, z0: 6, z1: 48, color: 'rgba(191, 227, 255, 0.35)', left: 'rgba(191, 227, 255, 0.35)' });
+    d(doorU + 0.46, face + 0.06, 28, '#fbbf24', 2, 3);
+    if (o.awning) {
+      const n = Math.round((W - 0.4) / 0.25);
+      for (let i = 0; i < n; i += 1) {
+        b({ u0: 0.2 + i * 0.25, v0: face, u1: 0.2 + (i + 1) * 0.25, v1: face + 0.34, z0: h - 42, z1: h - 37, color: o.awning[i % 2] });
+      }
+    }
+  });
+}
+
+/** Facciata di un'arena (7x3): muro, fascia di vetro, tetto a gradoni, insegna, ingressi, logo. */
+function arenaFront(b, c, d, front, o) {
+  const { W, L } = o;
+  const face = L - 0.25;
+  b({ u0: 0.05, v0: 0.05, u1: W - 0.05, v1: face, z1: 72, color: o.wall, tex: 'stone' });
+  b({ u0: 0.3, v0: 0.2, u1: W - 0.3, v1: face - 0.15, z0: 72, z1: 120, color: o.glass, left: shade(o.glass, 0.12), right: shade(o.glass, -0.2) });
+  b({ u0: 0.2, v0: 0.1, u1: W - 0.2, v1: face - 0.05, z0: 120, z1: 128, color: o.trim });
+  b({ u0: 0.7, v0: 0.4, u1: W - 0.7, v1: face - 0.5, z0: 128, z1: 140, color: o.roof, tex: 'metal' });
+  b({ u0: 1.4, v0: 0.8, u1: W - 1.4, v1: face - 0.9, z0: 140, z1: 150, color: shade(o.roof, 0.12), tex: 'metal' });
+  // Bandiere sul tetto.
+  [1.0, W / 2, W - 1.0].forEach((u, i) => {
+    c({ u, v: 0.3, r: 0.02, z0: 128, z1: 172, color: '#e5e7eb' });
+    for (let k = 0; k < 8; k += 1) d(u + 0.02, 0.3, 170 - k, i % 2 ? o.sign : o.trim, 14 - k, 1);
+  });
+  front(() => {
+    // Montanti della vetrata.
+    for (let u = 0.6; u < W - 0.4; u += 0.5) b({ u0: u, v0: face - 0.15, u1: u + 0.04, v1: face - 0.12, z0: 72, z1: 120, color: shade(o.trim, 0.1) });
+    // Insegna lunga (il nome lo scrive il motore) e ingressi a vetri.
+    b({ u0: 0.6, v0: face, u1: W - 0.6, v1: face + 0.05, z0: 44, z1: 66, color: o.sign, left: o.sign });
+    for (let i = 0; i < 4; i += 1) {
+      const u = 1.2 + i * 1.3;
+      b({ u0: u, v0: face, u1: u + 0.8, v1: face + 0.05, z0: 0, z1: 38, color: 'rgba(191, 227, 255, 0.55)', left: 'rgba(191, 227, 255, 0.5)' });
+      b({ u0: u + 0.39, v0: face + 0.05, u1: u + 0.41, v1: face + 0.06, z0: 0, z1: 38, color: '#27272a' });
+    }
+    // Logo sopra l'insegna.
+    const lu = W / 2 - 0.2;
+    if (o.logo === 'hockey') {
+      for (let k = 0; k < 16; k += 1) {
+        d(lu - 0.4 + k * 0.05, face + 0.05, 100 - k * 1.4, '#8a5a3b', 2, 2);
+        d(lu + 0.4 - k * 0.05, face + 0.05, 100 - k * 1.4, '#8a5a3b', 2, 2);
+      }
+      d(lu - 0.1, face + 0.05, 78, '#0a0a0a', 8, 3);
+    } else {
+      for (let k = 0; k < 40; k += 1) {
+        const a = (k / 40) * Math.PI * 2;
+        for (let r = 0; r < 10; r += 2) d(lu + Math.cos(a) * r * 0.028, face + 0.05, 90 + Math.sin(a) * r, '#ea580c', 2, 2);
+      }
+      for (let k = -10; k <= 10; k += 1) {
+        d(lu + k * 0.028, face + 0.05, 90, '#431407', 1, 1);
+        d(lu, face + 0.05, 90 + k, '#431407', 1, 1);
+      }
+    }
+  });
+}
+
 const WOOD = '#8a5a3b';
 const WOOD_DARK = '#5b3a26';
 
@@ -405,6 +498,321 @@ const DRAW = {
     const color = playing ? colors[item.colorIndex % colors.length] : '#2d2a55';
     b({ u0: 0.04, v0: 0.04, u1: 0.96, v1: 0.96, z1: 2, color, glow: playing });
     b({ u0: 0.3, v0: 0.3, u1: 0.7, v1: 0.7, z0: 2, z1: 2, color: shade(color, 0.3) });
+  },
+  // ---------------------------------------------------------------- quartiere: negozi
+
+  // Banconi dei negozi (2x1): il clic apre il negozio. Colore e merce cambiano con il negozio.
+  atelier_counter(b, { c, d, front }) {
+    shopCounter(b, { body: '#2b2118', top: '#f3ead8', accent: '#c9a24a' });
+    // Registratore dorato, metro da sarto e rotoli di stoffa.
+    b({ u0: 1.4, v0: 0.3, u1: 1.8, v1: 0.6, z0: 33, z1: 42, color: '#c9a24a', tex: 'metal' });
+    [['#1e2a4a', 0.2], ['#b3122e', 0.45], ['#c19a6b', 0.7]].forEach(([color, u]) => c({ u, v: 0.5, r: 0.09, z0: 33, z1: 37, color, tex: 'fabric' }));
+    front(() => { for (let i = 0; i < 14; i += 1) d(0.1 + i * 0.13, 0.9, 20, i % 2 ? '#f5f5f5' : '#fbbf24', 3, 1); });
+  },
+  watch_counter(b, { d }) {
+    shopCounter(b, { body: '#111114', top: '#bfe3ff', accent: '#c9a24a' });
+    // Orologi sotto il vetro del bancone.
+    ['#15803d', '#d4a017', '#1e3a8a', '#e8a488', '#9ca3af', '#27272a'].forEach((color, i) => {
+      d(0.18 + i * 0.28, 0.55, 33, '#e5e7eb', 5, 3);
+      d(0.2 + i * 0.28, 0.55, 33, color, 3, 2);
+    });
+  },
+  skate_counter(b, { d, front }) {
+    shopCounter(b, { body: '#1f2937', top: '#f97316', accent: '#22d3ee' });
+    b({ u0: 1.3, v0: 0.3, u1: 1.85, v1: 0.5, z0: 33, z1: 35, color: '#ec4899' });
+    front(() => { ['#ec4899', '#22d3ee', '#fde047', '#22c55e'].forEach((c, i) => d(0.2 + i * 0.4, 0.9, 22, c, 6, 5)); });
+  },
+  bike_counter(b, { c }) {
+    shopCounter(b, { body: '#14532d', top: '#e5e7eb', accent: '#e11d48' });
+    // Casco sul bancone.
+    c({ u: 1.5, v: 0.5, r: 0.18, z0: 33, z1: 42, color: '#e11d48', top: '#fb7185' });
+  },
+  car_counter(b, { front, d }) {
+    // Scrivania del concessionario: piano bianco, monitor e le chiavi.
+    shopCounter(b, { body: '#18181b', top: '#f4f4f5', accent: '#e11d48' });
+    b({ u0: 0.3, v0: 0.3, u1: 0.35, v1: 0.8, z0: 33, z1: 52, color: '#27272a' });
+    b({ u0: 0.3, v0: 0.3, u1: 0.33, v1: 0.8, z0: 38, z1: 52, color: '#38bdf8', left: '#0ea5e9' });
+    b({ u0: 1.4, v0: 0.5, u1: 1.5, v1: 0.56, z0: 33, z1: 34, color: '#fbbf24' });
+    front(() => d(0.9, 0.9, 20, '#e11d48', 6, 3));
+  },
+
+  mannequin_suit(b, { c }) {
+    c({ u: 0.5, v: 0.5, r: 0.24, z0: 0, z1: 3, color: '#27272a' });
+    c({ u: 0.5, v: 0.5, r: 0.03, z0: 3, z1: 30, color: '#9ca3af', tex: 'metal' });
+    b({ u0: 0.32, v0: 0.36, u1: 0.68, v1: 0.64, z0: 30, z1: 44, color: '#1e2a4a' });
+    b({ u0: 0.3, v0: 0.34, u1: 0.7, v1: 0.66, z0: 44, z1: 66, color: '#1e2a4a', tex: 'fabric' });
+    b({ u0: 0.45, v0: 0.62, u1: 0.55, v1: 0.67, z0: 52, z1: 66, color: '#f8fafc' });
+    b({ u0: 0.48, v0: 0.66, u1: 0.52, v1: 0.68, z0: 50, z1: 64, color: '#b91c1c' });
+    c({ u: 0.5, v: 0.5, r: 0.05, z0: 66, z1: 70, color: '#e7d7c1' });
+    c({ u: 0.5, v: 0.5, r: 0.12, z0: 70, z1: 82, color: '#e7d7c1', top: '#f1e6d6' });
+  },
+  mannequin_gown(b, { c }) {
+    c({ u: 0.5, v: 0.5, r: 0.24, z0: 0, z1: 3, color: '#27272a' });
+    c({ u: 0.5, v: 0.5, r: 0.3, z0: 3, z1: 18, color: '#b3122e', tex: 'fabric' });
+    c({ u: 0.5, v: 0.5, r: 0.24, z0: 18, z1: 40, color: '#b3122e', tex: 'fabric' });
+    c({ u: 0.5, v: 0.5, r: 0.16, z0: 40, z1: 64, color: '#c81e3a', tex: 'fabric' });
+    c({ u: 0.5, v: 0.5, r: 0.05, z0: 64, z1: 68, color: '#e7d7c1' });
+    c({ u: 0.5, v: 0.5, r: 0.12, z0: 68, z1: 80, color: '#e7d7c1', top: '#f1e6d6' });
+  },
+  clothes_rack(b, { c }) {
+    [0.12, 1.88].forEach((u) => {
+      c({ u, v: 0.5, r: 0.08, z0: 0, z1: 3, color: '#27272a' });
+      c({ u, v: 0.5, r: 0.025, z0: 3, z1: 70, color: '#c9a24a', tex: 'metal' });
+    });
+    b({ u0: 0.1, v0: 0.48, u1: 1.9, v1: 0.52, z0: 68, z1: 71, color: '#c9a24a', tex: 'metal' });
+    ['#1e2a4a', '#f5f3ea', '#b3122e', '#c19a6b', '#111114', '#6d28d9', '#d4a017'].forEach((color, i) => {
+      const u = 0.22 + i * 0.23;
+      b({ u0: u, v0: 0.3, u1: u + 0.16, v1: 0.7, z0: 30 + (i % 2) * 6, z1: 66, color, tex: 'fabric' });
+    });
+  },
+  tailor_mirror(b) {
+    b({ u0: 0.2, v0: 0.3, u1: 0.8, v1: 0.42, z0: 0, z1: 4, color: '#6b5638' });
+    b({ u0: 0.22, v0: 0.34, u1: 0.78, v1: 0.4, z0: 4, z1: 96, color: '#c9a24a', tex: 'metal' });
+    b({ u0: 0.27, v0: 0.4, u1: 0.73, v1: 0.42, z0: 10, z1: 90, color: '#cbd5e1', left: '#dbe4ee' });
+    b({ u0: 0.3, v0: 0.42, u1: 0.36, v1: 0.43, z0: 30, z1: 80, color: '#ffffff', left: '#ffffff' });
+  },
+  watch_vitrine(b, { d }) {
+    b({ u0: 0.14, v0: 0.14, u1: 0.86, v1: 0.86, z1: 30, color: '#2b2118', tex: 'wood' });
+    b({ u0: 0.14, v0: 0.14, u1: 0.86, v1: 0.86, z0: 30, z1: 32, color: '#c9a24a' });
+    // Campana di vetro e tre orologi sul cuscino.
+    b({ u0: 0.2, v0: 0.2, u1: 0.8, v1: 0.8, z0: 32, z1: 60, color: 'rgba(191, 227, 255, 0.35)', left: 'rgba(191, 227, 255, 0.3)', right: 'rgba(150, 190, 220, 0.35)', top: 'rgba(230, 245, 255, 0.4)' });
+    b({ u0: 0.3, v0: 0.3, u1: 0.7, v1: 0.7, z0: 32, z1: 36, color: '#7f1d1d', tex: 'fabric' });
+    [['#d4a017', 0.34], ['#1e3a8a', 0.5], ['#15803d', 0.66]].forEach(([color, u]) => {
+      d(u, 0.5, 38, '#e5e7eb', 4, 3);
+      d(u + 0.02, 0.5, 38, color, 2, 2);
+    });
+  },
+  skate_rack(b) {
+    b({ u0: 0.05, v0: 0.1, u1: 1.95, v1: 0.24, z1: 80, color: '#8a5a3b', tex: 'wood' });
+    ['#ec4899', '#22d3ee', '#fde047', '#22c55e', '#f97316', '#8b5cf6', '#ef4444'].forEach((color, i) => {
+      const u = 0.12 + i * 0.26;
+      b({ u0: u, v0: 0.24, u1: u + 0.18, v1: 0.3, z0: 10, z1: 72, color, left: shade(color, -0.1) });
+      b({ u0: u + 0.04, v0: 0.3, u1: u + 0.14, v1: 0.34, z0: 16, z1: 20, color: '#e5e7eb' });
+      b({ u0: u + 0.04, v0: 0.3, u1: u + 0.14, v1: 0.34, z0: 62, z1: 66, color: '#e5e7eb' });
+    });
+  },
+  bike_display(b, { d }) {
+    b({ u0: 0.05, v0: 0.2, u1: 1.95, v1: 0.8, z1: 4, color: '#3f3f46' });
+    // Bici di profilo: due ruote, telaio rosso, sella e manubrio.
+    const ring = (uc) => {
+      for (let i = 0; i < 28; i += 1) {
+        const a = (i / 28) * Math.PI * 2;
+        d(uc + Math.cos(a) * 0.3, 0.5, 20 + Math.sin(a) * 14, '#111827', 2, 2);
+      }
+    };
+    ring(0.5);
+    ring(1.5);
+    for (let i = 0; i <= 10; i += 1) {
+      d(0.5 + i * 0.05, 0.5, 20 + i * 1.6, '#e11d48', 2, 2);
+      d(1.0 + i * 0.05, 0.5, 20 + i * 1.6, '#e11d48', 2, 2);
+      d(0.8 + i * 0.07, 0.5, 36, '#e11d48', 2, 2);
+    }
+    d(0.72, 0.5, 40, '#111827', 6, 2);
+    d(1.42, 0.5, 42, '#111827', 5, 2);
+  },
+  // Pedana girevole: l'auto sopra la disegna il motore (e gira piano).
+  car_display(b, { c }) {
+    c({ u: 1.5, v: 1.5, r: 1.35, z0: 0, z1: 5, color: '#27272a', top: '#3f3f46', tex: 'metal' });
+    c({ u: 1.5, v: 1.5, r: 1.2, z0: 5, z1: 6, color: '#52525b', top: '#e4e4e7' });
+  },
+
+  // ---------------------------------------------------------------- quartiere: facciate
+
+  facade_atelier(b, { d, front }) {
+    shopFront(b, d, front, {
+      W: 4, L: 2, h: 128, wall: '#efe6d4', tex: 'stone', trim: '#c9a24a', sign: '#111114', glass: '#2b3a4a',
+      awning: ['#111114', '#f3ead8'], door: '#111114',
+      goods: (u, z) => ['#1e2a4a', '#b3122e', '#c19a6b'].forEach((color, i) => d(u + i * 0.35, 1.72, z, color, 5, 18))
+    });
+  },
+  facade_watches(b, { d, front }) {
+    shopFront(b, d, front, {
+      W: 4, L: 2, h: 132, wall: '#1f2937', tex: 'stone', trim: '#d4a017', sign: '#0b3d2e', glass: '#1c2733',
+      awning: ['#0b3d2e', '#d4a017'], door: '#d4a017',
+      goods: (u, z) => ['#d4a017', '#1e3a8a', '#15803d', '#e8a488'].forEach((color, i) => {
+        d(u + i * 0.28, 1.72, z, '#e5e7eb', 4, 4);
+        d(u + i * 0.28 + 0.02, 1.72, z + 1, color, 2, 2);
+      })
+    });
+  },
+  facade_skate(b, { d, front }) {
+    shopFront(b, d, front, {
+      W: 3, L: 2, h: 108, wall: '#374151', tex: 'stone', trim: '#f97316', sign: '#ec4899', glass: '#1f2937',
+      awning: ['#22d3ee', '#1f2937'], door: '#f97316',
+      goods: (u, z) => ['#ec4899', '#22d3ee', '#fde047'].forEach((color, i) => d(u + i * 0.28, 1.72, z - 6, color, 4, 22))
+    });
+    // Graffiti sul muro.
+    front(() => ['#ec4899', '#22d3ee', '#fde047', '#22c55e'].forEach((c, i) => d(2.3 + i * 0.1, 1.72, 30 + (i % 2) * 8, c, 6, 4)));
+  },
+  facade_bikes(b, { d, front }) {
+    shopFront(b, d, front, {
+      W: 3, L: 2, h: 110, wall: '#dfe7df', tex: 'stone', trim: '#14532d', sign: '#14532d', glass: '#23343a',
+      awning: ['#14532d', '#f5f5f5'], door: '#14532d',
+      goods: (u, z) => {
+        for (let i = 0; i < 16; i += 1) {
+          const a = (i / 16) * Math.PI * 2;
+          d(u + 0.2 + Math.cos(a) * 0.14, 1.72, z + 6 + Math.sin(a) * 7, '#111827', 1, 1);
+          d(u + 0.6 + Math.cos(a) * 0.14, 1.72, z + 6 + Math.sin(a) * 7, '#111827', 1, 1);
+        }
+        d(u + 0.24, 1.72, z + 12, '#e11d48', 12, 2);
+      }
+    });
+  },
+  facade_cars(b, { d, front }) {
+    // Concessionaria: vetrata a tutta altezza, l'auto esposta dietro, il marchio rosso.
+    shopFront(b, d, front, {
+      W: 5, L: 2, h: 120, wall: '#e4e4e7', tex: 'stone', trim: '#111114', sign: '#e11d48', glass: '#2a4a5c',
+      door: '#111114', wideWindow: true,
+      goods: (u, z) => {
+        d(u + 0.2, 1.72, z + 2, '#d91a1a', 30, 9);
+        d(u + 0.4, 1.72, z + 9, '#8f0f0f', 16, 5);
+        d(u + 0.25, 1.72, z - 1, '#111827', 5, 4);
+        d(u + 0.95, 1.72, z - 1, '#111827', 5, 4);
+      }
+    });
+  },
+  facade_cafe(b, { d, front }) {
+    shopFront(b, d, front, {
+      W: 4, L: 2, h: 116, wall: '#8a5a3b', tex: 'wood', trim: '#1f4b3a', sign: '#1f4b3a', glass: '#3a2a1c',
+      awning: ['#1f4b3a', '#f5f1e6'], door: '#1f4b3a', warm: true,
+      goods: (u, z) => ['#f5f1e6', '#6b3e1f', '#f5f1e6'].forEach((color, i) => d(u + i * 0.3, 1.72, z, color, 4, 6))
+    });
+    // Tavolini fuori, sul marciapiede.
+    front(() => d(0.4, 1.95, 18, '#1f4b3a', 8, 2));
+  },
+
+  arena_hockey(b, { c, d, front }) {
+    arenaFront(b, c, d, front, { W: 7, L: 3, wall: '#dbe7f3', glass: '#5aa9e6', roof: '#9fb7cc', trim: '#1f5fbf', sign: '#d62839', logo: 'hockey' });
+  },
+  arena_basket(b, { c, d, front }) {
+    arenaFront(b, c, d, front, { W: 7, L: 3, wall: '#f3e1cf', glass: '#e9823a', roof: '#c9ab8c', trim: '#7c2d12', sign: '#ea580c', logo: 'basket' });
+  },
+
+  villa(b, { d, front, leaves }) {
+    // Villa moderna: due volumi bianchi, vetrate, tetto piano con il bordo di legno, garage.
+    b({ u0: 0.1, v0: 0.1, u1: 3.9, v1: 2.4, z1: 52, color: '#f4f2ec', tex: 'stone' });
+    b({ u0: 0.1, v0: 0.1, u1: 3.9, v1: 2.4, z0: 52, z1: 56, color: '#8a5a3b', tex: 'wood' });
+    b({ u0: 0.8, v0: 0.2, u1: 3.4, v1: 1.9, z0: 56, z1: 96, color: '#ffffff', tex: 'stone' });
+    b({ u0: 0.7, v0: 0.1, u1: 3.5, v1: 2.0, z0: 96, z1: 101, color: '#5b3a26', tex: 'wood' });
+    front(() => {
+      // Vetrate del piano terra e del primo piano, porta e garage.
+      b({ u0: 0.3, v0: 2.4, u1: 1.9, v1: 2.44, z0: 6, z1: 44, color: '#7fb6d9', left: '#8cc3e3' });
+      b({ u0: 1.0, v0: 1.9, u1: 3.2, v1: 1.94, z0: 62, z1: 90, color: '#7fb6d9', left: '#8cc3e3' });
+      b({ u0: 2.1, v0: 2.4, u1: 2.6, v1: 2.44, z0: 0, z1: 44, color: '#5b3a26', left: '#6b4631' });
+      b({ u0: 2.8, v0: 2.4, u1: 3.8, v1: 2.44, z0: 0, z1: 36, color: '#d4d4d8', left: '#c4c4c8' });
+      for (let z = 6; z < 36; z += 6) d(2.82, 2.44, z, '#a1a1aa', 30, 1);
+      d(2.3, 2.44, 24, '#fbbf24', 2, 2);
+    });
+    leaves({ u: 0.25, v: 2.7, z: 18, r: 0.5, color: '#2f7d32', seed: 4 });
+    leaves({ u: 3.8, v: 0.3, z: 60, r: 0.35, color: '#3a8f3c', seed: 9 });
+  },
+  traffic_light(b, { c, now }) {
+    c({ u: 0.5, v: 0.5, r: 0.04, z0: 0, z1: 80, color: '#27272a', tex: 'metal' });
+    b({ u0: 0.4, v0: 0.44, u1: 0.6, v1: 0.6, z0: 80, z1: 116, color: '#18181b' });
+    const phase = Math.floor((now || 0) / 1500) % 3;
+    [['#ef4444', 108], ['#fbbf24', 98], ['#22c55e', 88]].forEach(([color, z], i) => {
+      b({ u0: 0.44, v0: 0.6, u1: 0.56, v1: 0.62, z0: z - 4, z1: z + 4, color: i === phase ? color : shade(color, -0.65), glow: i === phase });
+    });
+  },
+  bus_stop(b) {
+    b({ u0: 0.1, v0: 0.12, u1: 1.9, v1: 0.2, z1: 70, color: 'rgba(191, 227, 255, 0.45)', left: 'rgba(191, 227, 255, 0.4)' });
+    [0.1, 1.84].forEach((u) => b({ u0: u, v0: 0.12, u1: u + 0.06, v1: 0.9, z1: 74, color: '#374151', tex: 'metal' }));
+    b({ u0: 0.05, v0: 0.08, u1: 1.95, v1: 0.95, z0: 74, z1: 78, color: '#374151' });
+    b({ u0: 0.3, v0: 0.3, u1: 1.7, v1: 0.6, z0: 14, z1: 18, color: '#e11d48' });
+    b({ u0: 1.2, v0: 0.2, u1: 1.7, v1: 0.24, z0: 30, z1: 64, color: '#fef3c7', left: '#fde68a' });
+  },
+  hydrant(b, { c }) {
+    c({ u: 0.5, v: 0.5, r: 0.14, z0: 0, z1: 22, color: '#dc2626' });
+    c({ u: 0.5, v: 0.5, r: 0.11, z0: 22, z1: 28, color: '#b91c1c', top: '#f87171' });
+    b({ u0: 0.3, v0: 0.44, u1: 0.7, v1: 0.56, z0: 12, z1: 16, color: '#dc2626' });
+  },
+  street_tree(b, { c, leaves }) {
+    c({ u: 0.5, v: 0.5, r: 0.3, z0: 0, z1: 2, color: '#57534e' });
+    c({ u: 0.5, v: 0.5, r: 0.07, z0: 2, z1: 60, color: '#6b4631', tex: 'wood' });
+    leaves({ u: 0.5, v: 0.5, z: 76, r: 0.9, color: '#3a8f3c', seed: 12 });
+    leaves({ u: 0.5, v: 0.5, z: 96, r: 0.6, color: '#46a047', seed: 13 });
+  },
+
+  // ---------------------------------------------------------------- caffetteria
+
+  espresso_bar(b, { c, d, front }) {
+    // Bancone lungo: legno scuro, piano chiaro, due macchine dell'espresso, i bicchieri verdi.
+    b({ u0: 0.05, v0: 0.2, u1: 2.95, v1: 0.9, z1: 34, color: '#5b3a26', tex: 'wood' });
+    b({ u0: 0.02, v0: 0.16, u1: 2.98, v1: 0.94, z0: 34, z1: 37, color: '#ece6da' });
+    [0.4, 1.4].forEach((u) => {
+      b({ u0: u, v0: 0.26, u1: u + 0.5, v1: 0.6, z0: 37, z1: 58, color: '#c0c4cc', tex: 'metal' });
+      b({ u0: u + 0.05, v0: 0.6, u1: u + 0.12, v1: 0.66, z0: 42, z1: 48, color: '#27272a' });
+      b({ u0: u + 0.3, v0: 0.6, u1: u + 0.37, v1: 0.66, z0: 42, z1: 48, color: '#27272a' });
+    });
+    [2.2, 2.4, 2.6].forEach((u, i) => c({ u, v: 0.55, r: 0.06, z0: 37, z1: 46, color: i % 2 ? '#f5f5f5' : '#1f4b3a', top: '#f5f1e6' }));
+    front(() => {
+      d(0.2, 0.94, 28, '#1f4b3a', 90, 4);
+      for (let i = 0; i < 6; i += 1) d(0.3 + i * 0.45, 0.94, 18, '#c9a24a', 2, 2);
+    });
+  },
+  pastry_case(b, { d }) {
+    b({ u0: 0.05, v0: 0.2, u1: 1.95, v1: 0.9, z1: 26, color: '#1f4b3a', tex: 'wood' });
+    b({ u0: 0.08, v0: 0.24, u1: 1.92, v1: 0.86, z0: 26, z1: 50, color: 'rgba(214, 238, 255, 0.35)', left: 'rgba(214, 238, 255, 0.3)', top: 'rgba(240, 250, 255, 0.35)' });
+    ['#e8b45a', '#7c3f1d', '#f9a8d4', '#e8b45a', '#fde68a', '#7c3f1d'].forEach((color, i) => {
+      d(0.2 + i * 0.28, 0.55, 30, color, 5, 3);
+      d(0.2 + i * 0.28, 0.55, 40, i % 2 ? '#e8b45a' : '#f5f1e6', 5, 3);
+    });
+  },
+  armchair_green(b) {
+    b({ u0: 0.1, v0: 0.1, u1: 0.9, v1: 0.9, z1: 12, color: '#3e2718' });
+    b({ u0: 0.26, v0: 0.18, u1: 0.84, v1: 0.84, z0: 12, z1: 22, color: '#2f6b4f', tex: 'fabric' });
+    b({ u0: 0.1, v0: 0.1, u1: 0.28, v1: 0.9, z0: 12, z1: 50, color: '#245a41', tex: 'fabric' });
+    b({ u0: 0.1, v0: 0.1, u1: 0.9, v1: 0.24, z0: 12, z1: 34, color: '#245a41', tex: 'fabric' });
+    b({ u0: 0.1, v0: 0.76, u1: 0.9, v1: 0.9, z0: 12, z1: 34, color: '#245a41', tex: 'fabric' });
+  },
+
+  // ---------------------------------------------------------------- palaghiaccio
+
+  hockey_goal(b, { d }) {
+    const net = 'rgba(241, 245, 249, 0.25)';
+    b({ u0: 0.15, v0: 0.1, u1: 0.85, v1: 1.9, z1: 36, color: net, left: net, right: 'rgba(203, 213, 225, 0.3)', top: 'rgba(241, 245, 249, 0.18)' });
+    for (let v = 0.14; v < 1.88; v += 0.14) for (let z = 4; z < 36; z += 5) d(0.85, v, z, 'rgba(255, 255, 255, 0.7)', 1, 1);
+    [[0.44, 0.06], [0.44, 1.84]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.1, v1: v + 0.1, z1: 40, color: '#d62839', tex: 'metal' }));
+    b({ u0: 0.44, v0: 0.06, u1: 0.54, v1: 1.94, z0: 36, z1: 40, color: '#d62839', tex: 'metal' });
+  },
+  hockey_target(b, { c, d }) {
+    // Pannello con quattro buchi negli angoli: si tira il disco dentro.
+    b({ u0: 0.05, v0: 0.4, u1: 1.95, v1: 0.55, z1: 46, color: '#1f5fbf' });
+    [[0.3, 36], [1.62, 36], [0.3, 10], [1.62, 10]].forEach(([u, z]) => d(u, 0.55, z, '#0a0a0a', 9, 7));
+    d(0.9, 0.55, 24, '#f5f5f5', 14, 3);
+    c({ u: 1.0, v: 0.9, r: 0.08, z0: 0, z1: 2, color: '#0a0a0a' });
+  },
+  team_bench(b) {
+    b({ u0: 0.05, v0: 0.1, u1: 2.95, v1: 0.2, z1: 60, color: 'rgba(214, 238, 255, 0.35)', left: 'rgba(214, 238, 255, 0.3)' });
+    b({ u0: 0.05, v0: 0.3, u1: 2.95, v1: 0.8, z0: 16, z1: 20, color: '#1f5fbf' });
+    [0.2, 1.4, 2.7].forEach((u) => b({ u0: u, v0: 0.4, u1: u + 0.1, v1: 0.7, z1: 16, color: '#27272a' }));
+  },
+
+  // Piastrella della Disco anni 80: vetro colorato illuminato da sotto, come in Saturday Night Fever.
+  fever_tile(b, { item }) {
+    const colors = ['#ff3b6b', '#ffd23f', '#3bc9ff', '#7cff6b', '#ff7bd5', '#b26bff'];
+    const color = colors[Math.max(0, item?.colorIndex ?? 0) % colors.length];
+    const lit = !!item?.lit;
+    const glass = lit ? color : shade(color, -0.55);
+    b({ u0: 0.02, v0: 0.02, u1: 0.98, v1: 0.98, z1: 2, color: '#0b0910' });
+    b({ u0: 0.08, v0: 0.08, u1: 0.92, v1: 0.92, z0: 2, z1: 2, color: glass, glow: lit });
+    // Riflesso chiaro al centro del vetro: da acceso sembra la lampadina sotto.
+    b({ u0: 0.32, v0: 0.32, u1: 0.68, v1: 0.68, z0: 2, z1: 2, color: lit ? shade(color, 0.55) : shade(glass, 0.15) });
+  },
+  // Pedana della gara di ballo (2x2): gradino cromato, piano a quadri luminosi e lampadine sul bordo.
+  dance_contest(b, { d, now, front }) {
+    const step = Math.floor((now || 0) / 300) % 4;
+    const colors = ['#ff3b6b', '#ffd23f', '#3bc9ff', '#ff7bd5'];
+    b({ u0: 0.02, v0: 0.02, u1: 1.98, v1: 1.98, z1: 12, color: '#c9c6d8', left: '#8f8ba8', right: '#6a6682', tex: 'metal' });
+    for (let i = 0; i < 4; i += 1) {
+      for (let j = 0; j < 4; j += 1) {
+        const color = colors[(i + j + step) % colors.length];
+        b({ u0: 0.06 + i * 0.48, v0: 0.06 + j * 0.48, u1: 0.5 + i * 0.48, v1: 0.5 + j * 0.48, z0: 12, z1: 13, color, glow: (i + j + step) % 2 === 0 });
+      }
+    }
+    front(() => {
+      for (let i = 0; i < 12; i += 1) d(0.08 + i * 0.16, 1.98, 8, (i + step) % 3 === 0 ? '#fff7c2' : '#ffd23f', 3, 3);
+    });
   },
   trophy(b, { c }) {
     b({ u0: 0.24, v0: 0.24, u1: 0.76, v1: 0.76, z1: 16, color: '#1f1f2e', tex: 'stone' });
@@ -1345,10 +1753,11 @@ export function cardImage(card, onLoad) {
 export function furniSprite(item, def, { now = 0, onImageLoad } = {}) {
   const { fx, fy } = footprintOf(def, item.rot);
   const width = (fx + fy) * HALF_W + PAD;
-  const height = (fx + fy) * HALF_H + TOP_ROOM + 24;
+  const top = TALL[item.type] || TOP_ROOM;
+  const height = (fx + fy) * HALF_H + top + 24;
   const { canvas, ctx } = createCanvas(width, height, { readable: true });
   const ox = fy * HALF_W + PAD / 2;
-  const oy = TOP_ROOM;
+  const oy = top;
 
   if (def.wall) {
     const img = def.cardDisplay ? cardImage(item.card, onImageLoad) : null;
@@ -1418,6 +1827,21 @@ export function furniSprite(item, def, { now = 0, onImageLoad } = {}) {
     const p = P(0.5, 0.5, 36);
     const cx = Math.round(p.x) - 10;
     const cy = Math.round(p.y) - 30;
+    if (item.card.grade > 0) {
+      // Carta gradata: dentro il cofanetto trasparente, con l'etichetta del voto sopra.
+      const tone = item.card.grade >= 9 ? '#f5c542' : item.card.grade >= 7 ? '#cbd5e1' : '#c08457';
+      ctx.fillStyle = 'rgba(225, 236, 255, 0.55)';
+      ctx.fillRect(cx - 3, cy - 10, 26, 41);
+      ctx.fillStyle = '#fdfbf5';
+      ctx.fillRect(cx - 2, cy - 9, 24, 6);
+      ctx.fillStyle = tone;
+      ctx.fillRect(cx + 14, cy - 9, 8, 6);
+      ctx.fillStyle = '#1f1300';
+      ctx.font = 'bold 6px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(item.card.grade), cx + 18, cy - 6);
+    }
     ctx.fillStyle = color;
     ctx.fillRect(cx - 2, cy - 2, 24, 32);
     ctx.fillStyle = '#ffffff';
@@ -1457,7 +1881,9 @@ const ANIMATIONS = {
   fire_pit: { period: 150, steps: 4 },
   golf_hole_3: { period: 250, steps: 8 },
   karaoke_stage: { period: 300, steps: 4 },
-  race_lights: { period: 700, steps: 7 }
+  race_lights: { period: 700, steps: 7 },
+  traffic_light: { period: 1500, steps: 3 },
+  dance_contest: { period: 300, steps: 4 }
 };
 const DANCE_COLORS = 6;
 
@@ -1472,6 +1898,14 @@ export function animationState(item, now, { playing = false, still = false } = {
     const step = still ? 0 : Math.floor(now / 400);
     const colorIndex = (item.x * 3 + item.y * 5 + step) % DANCE_COLORS;
     return { key: `c${colorIndex}`, now: 0, colorIndex };
+  }
+  if (item.type === 'fever_tile') {
+    // Colore fisso per casella; con la musica le piastrelle si accendono a onde diagonali.
+    const colorIndex = (item.x * 2 + item.y * 3) % DANCE_COLORS;
+    if (!playing) return { key: `d${colorIndex}`, now: 0, colorIndex, lit: false };
+    const step = still ? 0 : Math.floor(now / 460);
+    const lit = (item.x + item.y + step) % 3 !== 0;
+    return { key: `${lit ? 'l' : 'd'}${colorIndex}`, now: 0, colorIndex, lit };
   }
   const anim = ANIMATIONS[item.type];
   if (!anim || still) return { key: '0', now: 0 };

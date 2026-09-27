@@ -145,7 +145,16 @@ public class FurniService {
         }
 
         item.setCard(card);
-        return RoomItemView.from(itemRepository.save(item));
+        return graded(RoomItemView.from(itemRepository.save(item)));
+    }
+
+    /** Aggiunge il voto del perito se la copia esposta dal padrone e' gradata. */
+    RoomItemView graded(RoomItemView view) {
+        if (view.card() == null || view.ownerId() == null) return view;
+        return cardRepository.findByCode(view.card().id())
+                .flatMap(card -> userCardRepository.findByUserIdAndCardId(view.ownerId(), card.getId()))
+                .map(view::withGrade)
+                .orElse(view);
     }
 
     private RoomItem ownedEntity(UUID userId, UUID itemId) {

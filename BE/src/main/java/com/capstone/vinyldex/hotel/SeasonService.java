@@ -36,7 +36,7 @@ public class SeasonService {
     static final Map<String, Integer> SPORTS = Map.ofEntries(
             Map.entry("basket", 60), Map.entry("bowling", 100), Map.entry("pool", 15), Map.entry("kart", 260),
             Map.entry("pong", 11), Map.entry("darts", 450), Map.entry("bench", 30), Map.entry("run", 200),
-            Map.entry("box", 80), Map.entry("curl", 40));
+            Map.entry("box", 80), Map.entry("curl", 40), Map.entry("hockey", 50));
 
     private final JdbcTemplate jdbc;
     private final WalletService walletService;

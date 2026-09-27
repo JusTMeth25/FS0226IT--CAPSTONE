@@ -4,6 +4,31 @@
  */
 export const NEWS = [
   {
+    date: '2026-10-01',
+    title: 'Il Quartiere: negozi di lusso, auto, hockey e ville',
+    icon: 'ph-road-horizon',
+    items: [
+      ['ph-road-horizon', 'Il Quartiere', 'Un viale con i negozi, il parco, il palaghiaccio, l’arena del basket e le ville dei giocatori. Clicca una facciata per entrare.'],
+      ['ph-coat-hanger', 'Atelier di sartoria', 'Completi, smoking, abiti da sera e cappotti. Il sarto Vittorio ti consiglia l’abbinamento giusto.'],
+      ['ph-watch', 'Gioielleria', 'Orologi di lusso al polso: subacquei, cronografi d’oro, casse ottagonali.'],
+      ['ph-car-profile', 'Skate, bici e auto sportive', 'Compra lo skate, la bici o una supercar e guidala nel quartiere: vai piu’ veloce!'],
+      ['ph-coffee', 'Caffetteria del viale', 'Caffellatte e frappe’ con la panna, poltrone verdi e dolci in vetrina.'],
+      ['ph-hockey', 'Palaghiaccio', 'Partita di hockey Blu contro Rossi con casco, mazza e divisa, e i tiri al bersaglio (gara ogni sera alle 19).'],
+      ['ph-house-line', 'Ville dei giocatori', 'Le stanze piu’ amate diventano ville sul viale: clicca per entrare.'],
+      ['ph-sparkle', 'Olografiche piu’ belle', 'L’arcobaleno delle carte olografiche si vede pieno anche nel cofanetto 3D e nel raccoglitore.']
+    ]
+  },
+  {
+    date: '2026-09-30',
+    title: 'Disco anni 80',
+    icon: 'ph-music-notes',
+    items: [
+      ['ph-music-notes', 'Nuova stanza: Disco anni 80', 'Pista a quadri che si illumina, palla di specchi che gira e DJ Tony alla consolle con la disco anni 80.'],
+      ['ph-sneaker-move', 'Gara di ballo', 'Sali sulla pedana e premi le frecce a tempo: perfetti, combo e record della stanza. Ogni sera alle 22 c\'è la gara a premi.'],
+      ['ph-squares-four', 'Piastrella luminosa', 'La piastrella anni 80 si compra anche per la tua stanza: si accende quando suona il jukebox.']
+    ]
+  },
+  {
     date: '2026-09-29',
     title: 'Desideri, statistiche, quiz, incarichi e app installabile',
     icon: 'ph-heart',
@@ -12,7 +37,7 @@ export const NEWS = [
       ['ph-users-three', 'Squadre salvate', 'Salva fino a tre squadre da battaglia con un nome e richiamale con un clic, anche nella sfida dell\'hotel.'],
       ['ph-git-diff', 'Confronto collezioni', 'Dalla scheda di un giocatore: le carte che ha lui e ti mancano, e il contrario. Da lì parte lo scambio.'],
       ['ph-chart-line', 'Statistiche', 'Valore della collezione nel tempo, carte per gioco e rarità, pacchetti aperti e fortuna rispetto agli altri.'],
-      ['ph-medal', 'Prima edizione', 'I primi dieci che trovano una carta hanno la copia numerata #1/10 … #10/10, che vale una volta e mezza.'],
+      ['ph-medal', 'Prima edizione', 'Ogni carta ha solo dieci copie numerate (#1/10 … #10/10): quando ne trovi una, a volte è proprio una di quelle. Vale una volta e mezza.'],
       ['ph-crown', 'Leggendaria garantita', 'Pacchetti di fila senza leggendaria: dal 20° la probabilità sale, al 40° è sicura.'],
       ['ph-calendar-star', 'Pacchetto del Weekend', 'Solo sabato e domenica, con due carte del set della settimana.'],
       ['ph-scales', 'Borsa del mercato', 'Il prezzo medio fra giocatori di ogni carta, per capire se un annuncio è un affare.'],

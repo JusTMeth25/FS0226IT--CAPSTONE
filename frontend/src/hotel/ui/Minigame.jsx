@@ -4,6 +4,8 @@ import { pool } from './billiards.jsx';
 import { fish, sing } from './leisureGames.jsx';
 import { kart } from './kartGame.jsx';
 import { darts, pong } from './arcadeGames.jsx';
+import { disco } from './discoGame.jsx';
+import { hockey } from './hockeyGame.jsx';
 
 /**
  * Minigiochi sui mobili dell'hotel. Si gioca qui, nel browser; il server ha fatto partire la
@@ -275,6 +277,10 @@ const GAMES = {
   // Ping pong e freccette (arcadeGames.jsx).
   pong,
   darts,
+  // Gara di ballo della Disco anni 80 (discoGame.jsx).
+  disco,
+  // Tiri in porta del palaghiaccio (hockeyGame.jsx).
+  hockey,
   ...Object.fromEntries([1, 2, 3, 4, 5, 6].map((hole) => [`golf${hole}`, golf(hole)]))
 };
 

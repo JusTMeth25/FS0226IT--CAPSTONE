@@ -936,6 +936,37 @@ button.hotel-trade-card:hover { background: var(--hp-surface-hover); }
 .mg-lanes { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; height: 150px; }
 .mg-lane { position: relative; border-radius: 8px; background: rgba(255, 255, 255, 0.05); overflow: hidden; }
 .mg-lane.hit { background: rgba(34, 211, 238, 0.3); }
+/* Gara di ballo della Disco anni 80: pedana a quadri luminosi e frecce che salgono a tempo. */
+.mg-disco { display: grid; gap: 8px; }
+.mg-disco-floor { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; height: 22px; }
+.mg-disco-floor span { border-radius: 2px; background: #1b1526; transition: background 0.12s; }
+.mg-disco-floor span.on { background: hsl(calc(var(--c) * 60 + 320) 95% 62%); box-shadow: 0 0 8px hsl(calc(var(--c) * 60 + 320) 95% 62% / 0.7); }
+.mg-disco-lanes {
+  position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; height: 280px; padding: 6px;
+  border-radius: 10px; background: radial-gradient(circle at 50% 0%, #3a1257 0%, #120a1d 70%); overflow: hidden;
+}
+.mg-disco-lane { position: relative; border-radius: 8px; background: rgba(255, 255, 255, 0.04); transition: background 0.1s; }
+.mg-disco-lane.lane-0 { --lane: #ff4fd8; }
+.mg-disco-lane.lane-1 { --lane: #3bc9ff; }
+.mg-disco-lane.lane-2 { --lane: #7cff6b; }
+.mg-disco-lane.lane-3 { --lane: #ffd23f; }
+.mg-disco-lane.hit { background: color-mix(in srgb, var(--lane) 30%, transparent); }
+.mg-disco-target, .mg-disco-note {
+  position: absolute; left: 50%; font-size: 34px; line-height: 1; transform: translate(-50%, -50%);
+}
+.mg-disco-target { color: transparent; -webkit-text-stroke: 2px color-mix(in srgb, var(--lane) 70%, white); opacity: 0.8; }
+.mg-disco-lane.hit .mg-disco-target { color: var(--lane); filter: drop-shadow(0 0 10px var(--lane)); }
+.mg-disco-note { color: var(--lane); filter: drop-shadow(0 0 6px var(--lane)); }
+.mg-disco-judge {
+  position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); font-weight: 900; font-size: 1.6rem;
+  letter-spacing: 0.06em; font-style: italic; pointer-events: none; animation: mg-disco-pop 0.5s ease-out forwards;
+}
+.mg-disco-judge.perfect { color: #ffe27a; text-shadow: 0 0 12px #ff4fd8, 2px 2px 0 #ff4fd8; }
+.mg-disco-judge.good { color: #7cff6b; text-shadow: 2px 2px 0 #1b5e20; }
+.mg-disco-judge.miss { color: #a1a1aa; }
+.mg-disco-combo { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); color: #fff; font-weight: 800; text-shadow: 0 0 8px #3bc9ff; }
+@keyframes mg-disco-pop { from { transform: translate(-50%, -50%) scale(1.4); opacity: 1; } to { transform: translate(-50%, -80%) scale(1); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .mg-disco-judge { animation: none; } }
 .mg-note { position: absolute; left: 15%; width: 70%; height: 10px; border-radius: 99px; background: #ec4899; transform: translateY(-50%); box-shadow: 0 0 8px #ec4899; }
 .mg-line { position: absolute; left: 0; right: 0; top: 89%; height: 2px; background: #fbbf24; }
 .mg-power { height: 22px; }
@@ -1334,3 +1365,65 @@ button.hotel-badge:hover:not(:disabled) { transform: translateY(-2px) scale(1.08
 .quest-card-qty { position: absolute; right: 2px; bottom: 2px; padding: 0 4px; border-radius: 4px; background: rgba(5, 3, 13, 0.85); color: #fff; font-size: 0.6rem; font-weight: 800; }
 .quest-card-qty.spare { background: #16a34a; }
 .mg-pong-canvas { display: block; margin: 0 auto; border-radius: 10px; image-rendering: auto; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45); }
+
+/* Scelta della carta: tre viste e la griglia che scorre da sola dentro il pannello. */
+.hotel-card-picker .hotel-card-grid { flex: 0 1 auto; min-height: 160px; }
+.hotel-card-picker-bar { align-items: center; justify-content: space-between; }
+.picker-views { display: flex; gap: 4px; }
+.picker-view { width: 30px; height: 28px; border-radius: 6px; border: 1px solid var(--hp-line); background: rgba(5, 3, 13, 0.45); color: var(--hp-muted); cursor: pointer; display: grid; place-items: center; }
+.picker-view.active { color: #fff; border-color: #ec4899; background: rgba(236, 72, 153, 0.25); }
+.hotel-card-grid.view-big { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
+.hotel-card-grid.view-small { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 4px; }
+.hotel-card-grid.view-small .thumb-name { display: none; }
+.hotel-card-grid.view-list { grid-template-columns: 1fr; gap: 4px; }
+.hotel-card-grid.view-list .hotel-card-thumb { flex-direction: row; align-items: center; gap: 8px; }
+.hotel-card-grid.view-list .hotel-card-thumb img { width: 34px; flex: 0 0 34px; }
+.hotel-card-grid.view-list .thumb-name { font-size: 0.75rem; flex: 1; text-align: left; }
+.hotel-card-grid.view-list .thumb-meta { font-size: 0.65rem; color: var(--hp-muted); white-space: nowrap; }
+
+/* Negozi del quartiere: atelier, gioielleria, skate, bici e auto. */
+.hotel-luxury { top: var(--space-sm); right: var(--space-sm); width: min(640px, calc(100% - 16px)); max-height: calc(100% - 16px); display: flex; flex-direction: column; }
+.lux-body { display: grid; grid-template-columns: 150px 1fr; gap: 10px; padding: 8px; min-height: 0; overflow: hidden; }
+.lux-mirror { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px; border-radius: 10px;
+  background: radial-gradient(circle at 50% 30%, rgba(251, 191, 36, 0.18), rgba(0, 0, 0, 0.2)); }
+.lux-mirror small { opacity: 0.7; font-size: 0.72rem; }
+.lux-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 62vh; padding-right: 4px; }
+.lux-item { display: grid; grid-template-columns: 96px 1fr auto; gap: 10px; align-items: center; padding: 8px; border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); }
+.lux-item.owned { border-color: rgba(34, 197, 94, 0.45); }
+.lux-item.worn { box-shadow: 0 0 0 2px #fbbf24 inset; }
+.lux-item-art { display: flex; align-items: center; justify-content: center; min-height: 72px; }
+.lux-item-art .hotel-avatar-preview { image-rendering: pixelated; }
+.lux-vehicle { width: 96px; height: 64px; }
+.lux-watch { width: 72px; height: 58px; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)); }
+.lux-item-info small { display: block; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.65rem; color: #fbbf24; }
+.lux-item-info strong { display: block; font-size: 0.95rem; }
+.lux-item-info p { margin: 2px 0 0; font-size: 0.75rem; opacity: 0.75; }
+.lux-speed { display: inline-flex; gap: 4px; align-items: center; margin-top: 4px; font-size: 0.72rem; color: #22d3ee; }
+.lux-item-actions { display: flex; flex-direction: column; gap: 4px; align-items: stretch; min-width: 86px; }
+.lux-price { display: inline-flex; gap: 4px; align-items: center; justify-content: center; font-weight: 800; color: #fde68a; }
+.lux-advice { padding: 10px; border-radius: 10px; background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.4); }
+.lux-advice p { margin: 4px 0 8px; font-size: 0.85rem; }
+.lux-advice-actions { display: flex; gap: 6px; }
+@media (max-width: 640px) {
+  .lux-body { grid-template-columns: 1fr; }
+  .lux-mirror { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+  .lux-item { grid-template-columns: 72px 1fr; }
+  .lux-item-actions { grid-column: 1 / -1; flex-direction: row; justify-content: flex-end; }
+}
+
+/* Tiri in porta del palaghiaccio. */
+.mg-hockey-rink { position: relative; height: 260px; border-radius: 10px; overflow: hidden;
+  background: linear-gradient(180deg, #dbeaf5 0%, #f4f9fc 60%, #e6f0f7 100%); }
+.mg-hockey-rink::after { content: ''; position: absolute; left: 0; right: 0; bottom: 18%; height: 3px; background: #d62839; opacity: .7; }
+.mg-hockey-net { position: absolute; left: 22%; right: 22%; top: 8%; height: 50%; border: 5px solid #d62839; border-bottom: none;
+  background: repeating-linear-gradient(45deg, rgba(0,0,0,.06) 0 2px, transparent 2px 9px), repeating-linear-gradient(-45deg, rgba(0,0,0,.06) 0 2px, transparent 2px 9px), #f8fafc; }
+.mg-hockey-hole { position: absolute; width: 14%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%);
+  background: radial-gradient(circle, #0a0a0a 55%, #1f5fbf 57%, #1f5fbf 70%, transparent 72%); }
+.mg-hockey-mark { position: absolute; width: 10px; height: 10px; border-radius: 50%; transform: translate(-50%, -50%); background: #111; border: 2px solid #fbbf24; }
+.mg-hockey-mark.top { border-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
+.mg-hockey-mark.miss { border-color: #ef4444; }
+.mg-hockey-aim-x { position: absolute; top: -6px; bottom: -6px; width: 3px; background: #22d3ee; transform: translateX(-50%); box-shadow: 0 0 8px #22d3ee; }
+.mg-hockey-aim-y { position: absolute; left: -6px; right: -6px; height: 3px; background: #22d3ee; transform: translateY(-50%); box-shadow: 0 0 8px #22d3ee; }
+.mg-hockey-puck { position: absolute; width: 22px; height: 10px; border-radius: 50%; background: #0a0a0a; box-shadow: 0 3px 0 #27272a; }
+.mg-hockey-puck.idle { left: 50%; top: 92%; transform: translate(-50%, -50%) scale(1.4); }

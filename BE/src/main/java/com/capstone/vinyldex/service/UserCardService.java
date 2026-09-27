@@ -26,7 +26,7 @@ public class UserCardService {
         this.userCardRepository = userCardRepository;
     }
 
-    /** Prima edizione: chi trova una carta fra i primi dieci riceve la copia numerata. */
+    /** Prima edizione: una carta appena trovata a volte e' una delle dieci copie numerate. */
     private CollectionExtrasService extras;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -43,7 +43,8 @@ public class UserCardService {
         userCard.setQuantity(userCard.getQuantity() + quantity);
         userCard.setObtainedAt(Instant.now());
         UserCard saved = userCardRepository.save(userCard);
-        if (firstCopy && extras != null && card.getId() != null) extras.claimFirstEdition(user.getId(), card.getId());
+        // Ogni carta nuova ha una piccola probabilita' di essere una copia numerata di prima edizione.
+        if (firstCopy && extras != null && card.getId() != null) extras.maybeClaimFirstEdition(user.getId(), card);
         return saved;
     }
 

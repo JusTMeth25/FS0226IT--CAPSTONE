@@ -25,11 +25,13 @@ V19 = os.path.join(MIGRATIONS_DIR, 'V19__hotel_basket_court_bowling.sql')
 V20 = os.path.join(MIGRATIONS_DIR, 'V20__hotel_comic_shop_billiards.sql')
 V30 = os.path.join(MIGRATIONS_DIR, 'V30__hotel_karaoke_fishing_kart.sql')
 V35 = os.path.join(MIGRATIONS_DIR, 'V35__hotel_ping_pong_darts.sql')
-LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18, 18: V19, 19: V30}
+V44 = os.path.join(MIGRATIONS_DIR, 'V44__hotel_disco_80.sql')
+V46 = os.path.join(MIGRATIONS_DIR, 'V46__hotel_district.sql')
+LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18, 18: V19, 19: V30, 20: V44, **{n: V46 for n in range(21, 30)}}
 # Migrazione in lavorazione: le altre, gia' pubblicate, non si riscrivono piu' (Flyway ne controlla
 # il contenuto). Le stanze cambiate dopo la pubblicazione si rifanno qui (REBUILT) e gli arredi da
 # togliere si elencano in REMOVED.
-CURRENT = V35
+CURRENT = V46
 REBUILT = {16: V19, 8: V20, 12: V20}
 REMOVED = {V19: [('00000000-0000-0000-0000-00000000a00f', 'basket_hoop')]}
 # Arredi aggiunti a stanze gia' pubblicate: finiscono nella migrazione indicata (vedi Room.migration).
@@ -40,6 +42,9 @@ MIGRATION_TITLES = {
     V20: 'Edicola come un negozio di fumetti e carte con il museo VinylDex, biliardi grandi in sala giochi.',
     V30: 'Palco del karaoke al Neon Bar, paletti da pesca sulla spiaggia e la pista dei go-kart.',
     V35: 'Ping pong e freccette in sala giochi.',
+    V44: 'Nuova stanza pubblica: Disco anni 80, con la pista illuminata, il DJ e la gara di ballo.',
+    V46: 'Il Quartiere: viale con i negozi di lusso (atelier, gioielleria, skate, bici, auto), la caffetteria, '
+         'il palaghiaccio, l\'arena del basket e le ville dei giocatori.',
 }
 
 # ------------------------------------------------------------------ catalogo (come FurniCatalog.java)
@@ -98,12 +103,28 @@ FURNI = {
     # Ping pong e freccette
     'ping_pong_table': (3, 2, False, False, -1), 'dart_board': (1, 1, False, False, -1), 'card_stall': (2, 1, False, False, -1),
     'shoe_counter': (2, 1, False, False, -1),
+    # Disco anni 80: piastrelle luminose della pista e pedana della gara di ballo
+    'fever_tile': (1, 1, False, True, -1), 'dance_contest': (2, 2, False, False, -1),
+    # Quartiere: banconi e merce dei negozi, facciate, arene, ville, strada.
+    'atelier_counter': (2, 1, False, False, -1), 'watch_counter': (2, 1, False, False, -1),
+    'skate_counter': (2, 1, False, False, -1), 'bike_counter': (2, 1, False, False, -1), 'car_counter': (2, 1, False, False, -1),
+    'mannequin_suit': (1, 1, False, False, -1), 'mannequin_gown': (1, 1, False, False, -1), 'clothes_rack': (2, 1, False, False, -1),
+    'tailor_mirror': (1, 1, False, False, -1), 'watch_vitrine': (1, 1, False, False, -1), 'skate_rack': (2, 1, False, False, -1),
+    'bike_display': (2, 1, False, False, -1), 'car_display': (3, 3, False, False, -1),
+    'facade_atelier': (4, 2, False, False, -1), 'facade_watches': (4, 2, False, False, -1), 'facade_skate': (3, 2, False, False, -1),
+    'facade_bikes': (3, 2, False, False, -1), 'facade_cars': (5, 2, False, False, -1), 'facade_cafe': (4, 2, False, False, -1),
+    'arena_hockey': (7, 3, False, False, -1), 'arena_basket': (7, 3, False, False, -1), 'villa': (4, 3, False, False, -1),
+    'traffic_light': (1, 1, False, False, -1), 'bus_stop': (2, 1, False, False, 4), 'hydrant': (1, 1, False, False, -1),
+    'street_tree': (1, 1, False, False, -1),
+    'espresso_bar': (3, 1, False, False, -1), 'pastry_case': (2, 1, False, False, -1), 'armchair_green': (1, 1, False, False, 2),
+    'hockey_goal': (1, 2, False, False, -1), 'hockey_target': (2, 1, False, False, -1), 'team_bench': (3, 1, False, False, 4),
     # Minigolf
     **{f'golf_hole_{n}': (3, 2, False, False, -1) for n in range(1, 7)},
 }
 
 # Mobili che si usano cliccandoli: serve una casella libera accanto.
-SERVING = {'billiard_table', 'bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'pizza_oven', 'beach_bar',
+SERVING = {'atelier_counter', 'watch_counter', 'skate_counter', 'bike_counter', 'car_counter', 'espresso_bar',
+           'hockey_target', 'dance_contest', 'billiard_table', 'bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'pizza_oven', 'beach_bar',
            'popcorn_machine', 'water_cooler', 'newsstand', 'basket_hoop', 'bowling_lane', 'shoe_counter',
            *[f'golf_hole_{n}' for n in range(1, 7)]}
 
@@ -758,6 +779,194 @@ r.add('scoreboard', 14, 1, 0).add('scoreboard', 16, 1, 0).add('water_cooler', 29
 r.add('plant_big', 1, 20).add('plant_big', 30, 20).add('plant_big', 30, 1)
 r.walker('pistone', 'Pistone', 'GUEST', 's2.h1.hc0.sh7.p0.t4.f1.a0', 26, 17, 3)
 r.walker('curva', 'Curva', 'GUEST', 's0.h6.hc3.sh1.p3.t1.f3.a2.b1', 6, 4, 3)
+
+
+# ------------------------------------------------------------------ Disco 80
+
+r = room(20, 'DISCO', 'Disco anni 80',
+         'Pista a quadri che si illumina, palla di specchi, il DJ che mette la disco anni 80: '
+         'balla e sfida gli altri alla gara di ballo sulla pedana!',
+         24, 20, 10, 'disco', 'disco', 20)
+# La pista: dieci per nove piastrelle luminose in mezzo alla sala (la palla di specchi sta sopra).
+for y in range(6, 15):
+    r.row('fever_tile', 8, y, 10)
+# Consolle del DJ sul fondo, con le casse e il jukebox.
+r.add('dj_booth', 12, 2).add('speaker', 10, 1).add('speaker', 15, 1).add('speaker', 7, 5).add('speaker', 18, 5)
+r.add('jukebox', 19, 1).add('record_shelf', 5, 1).add('turntable', 6, 1)
+r.add('neon_sign', 9, 1, 0).add('neon_sign', 17, 1, 0).add('poster_neon', 13, 1, 0).add('neon_sign', 1, 6, 2).add('neon_sign', 1, 14, 2)
+# Pedana della gara di ballo a destra della pista.
+r.add('dance_contest', 20, 9).add('lamp_neon', 20, 8).add('lamp_neon', 22, 12).add('trophy', 23, 8)
+# Bar in fondo a sinistra: bancone, sgabelli e il barista.
+r.add('bar_counter', 2, 18).add('bar_counter', 5, 18)
+r.row('bar_stool', 2, 19, 6, rot=6)
+# Divanetti anni 80 lungo le pareti.
+r.add('sofa_vinyl', 21, 16, 4).add('coffee_table', 21, 17).add('sofa_vinyl', 21, 18, 0)
+r.add('sofa_vinyl', 2, 3, 2).add('sofa_vinyl', 2, 13, 2)
+r.table_for_two(11, 18).table_for_two(15, 18)
+r.add('plant_big', 1, 1).add('plant_big', 24, 1).add('plant_big', 24, 20).add('lamp_floor', 1, 20)
+r.worker('tony', 'DJ Tony', 'DJ', 's2.h1.hc0.sh7.p1.t0.f0.a0', 12, 1, 4)
+r.worker('rosy', 'Rosy', 'BARISTA', 's1.h8.hc5.sh4.p3.t2.f1.a1.b1', 4, 17, 4, 'cola', 'juice', 'bubble')
+r.walker('donna', 'Donna', 'GUEST', 's0.h7.hc3.sh9.p3.t4.f3.a3.b1', 11, 9, 3)
+r.walker('bobby', 'Bobby', 'GUEST', 's3.h4.hc6.sh6.p1.t3.f2.a0', 14, 11, 3)
+r.walker('frankie', 'Frankie', 'GUEST', 's2.h9.hc0.sh1.p0.t4.f1.a2', 10, 12, 3)
+r.walker('annette', 'Annette', 'GUEST', 's1.h2.hc4.sh11.p3.t1.f3.a1.b1', 16, 8, 3)
+
+
+# ------------------------------------------------------------------ Quartiere
+
+# Viale e via come li disegna il pavimento "street" (src/hotel/sprites/room.js, streetPlan): il
+# viale occupa le righe AY0..AY0+3, la via le colonne SX0..SX0+3, con i marciapiedi intorno.
+DW, DH = 36, 34
+AY0, SX0 = DH // 2 - 1, DW // 2 - 1
+r = room(21, 'DISTRICT', 'Quartiere',
+         'Il viale dei negozi di lusso: atelier, gioielleria, skate, bici e auto sportive, la caffetteria, '
+         'il palaghiaccio, l\'arena del basket e le ville dei giocatori. Si gira anche in skate, in bici e in auto!',
+         DW, DH, AY0 + 1, 'street', 'street', 21)
+# In alto a sinistra: atelier, gioielleria e caffetteria; il palaghiaccio lungo il muro sinistro.
+r.add('facade_atelier', 2, 1).add('facade_watches', 7, 1).add('facade_cafe', 12, 1)
+r.add('arena_hockey', 1, 4, 2)
+# In alto a destra: skate shop, bici e concessionaria.
+r.add('facade_skate', 22, 1).add('facade_bikes', 26, 1).add('facade_cars', 30, 1)
+# Piazze: alberi, panchine, lampioni, idranti.
+for x, y in [(8, 6), (13, 6), (25, 7), (31, 7), (8, 11), (29, 11)]:
+    r.add('street_tree', x, y)
+r.add('bench', 10, 8, 0).add('bench', 27, 9, 0).add('fountain', 34, 8)
+for x in (6, 11, 15, 24, 30, 35):
+    r.add('street_lamp', x, AY0 - 2)
+r.add('hydrant', 14, AY0 - 2).add('hydrant', 23, AY0 + 5)
+r.add('traffic_light', SX0 - 1, AY0 - 1).add('traffic_light', SX0 + 4, AY0 + 4)
+# In basso a sinistra il parco con l'arena del basket e la fermata dell'autobus.
+r.add('arena_basket', 1, AY0 + 7, 2)
+r.add('bus_stop', 9, AY0 + 5).add('fountain', 9, AY0 + 10).add('flower_bed', 7, AY0 + 9).add('flower_bed', 12, AY0 + 9)
+for x, y in [(6, AY0 + 6), (13, AY0 + 6), (6, AY0 + 14), (13, AY0 + 14), (15, AY0 + 17)]:
+    r.add('street_tree', x, y)
+r.add('bench', 10, AY0 + 14, 0).add('street_lamp', 15, AY0 + 5)
+# In basso a destra le ville dei giocatori: tre file da due, ognuna nel suo lotto con la siepe.
+for y in (AY0 + 6, AY0 + 11, AY0 + 16):
+    for x in (SX0 + 6, SX0 + 12):
+        r.add('villa', x, y)
+for y in (AY0 + 8, AY0 + 13):
+    r.add('street_lamp', SX0 + 11, y)
+# Personaggi: chi va in auto sul viale, chi in skate o in bici, chi passeggia vestito elegante.
+r.walker('enzo', 'Enzo', 'GUEST', 's2.h9.hc0.sh8.p1.t2.f0.a2.b0.o1.w3.r5', 8, AY0 + 2, 7)
+r.walker('lola', 'Lola', 'GUEST', 's1.h2.hc2.sh1.p1.t4.f2.a2.b1.o3.w2.r6', 28, AY0 + 1, 7)
+r.walker('kiko', 'Kiko', 'GUEST', 's3.h5.hc6.sh2.p0.t1.f1.a3.b0.o0.w0.r1', 10, 9, 5)
+r.walker('bea', 'Bea', 'GUEST', 's0.h7.hc4.sh5.p6.t0.f1.a0.b1.o0.w0.r4', SX0 + 1, AY0 + 10, 6)
+r.walker('gigio', 'Gigio', 'GUEST', 's4.h4.hc0.sh10.p0.t1.f5.a6.b0.o0.w0.r3', 28, 8, 5)
+r.walker('contessa', 'Contessa', 'GUEST', 's1.h3.hc3.sh7.p1.t2.f0.a5.b1.o8.w4.r0', 11, AY0 + 12, 4)
+r.walker('max', 'Max', 'GUEST', 's2.h0.hc1.sh9.p1.t3.f0.a2.b0.o7.w1.r7', 30, AY0 + 2, 6)
+
+
+# ------------------------------------------------------------------ Negozi del quartiere
+
+r = room(22, 'ATELIER', 'Atelier di sartoria',
+         'Completi su misura, abiti da sera e cappotti: provali allo specchio e chiedi un consiglio al sarto.',
+         20, 17, 8, 'boutique', 'boutique', 22)
+r.add('atelier_counter', 9, 2)
+for i, x in enumerate((2, 3, 4, 15, 16, 17)):
+    r.add('mannequin_suit' if i % 2 == 0 else 'mannequin_gown', x, 2)
+for y in (6, 10, 14):
+    r.add('clothes_rack', 2, y, 2).add('clothes_rack', 19, y, 2)
+r.add('tailor_mirror', 6, 1).add('tailor_mirror', 13, 1).add('rug_round', 9, 7)
+r.add('armchair', 8, 13, 0).add('armchair', 11, 13, 0).add('coffee_table', 9, 14)
+r.add('plant_big', 1, 1).add('plant_big', 20, 1).add('plant_big', 20, 17).add('plant_big', 1, 17).add('lamp_floor', 13, 16)
+r.worker('vittorio', 'Vittorio', 'TAILOR', 's1.h9.hc9.sh7.p1.t2.f0.a1.b0.o1.w4.r0', 9, 1, 4)
+r.worker('chiara', 'Chiara', 'CLERK', 's0.h8.hc0.sh7.p1.t2.f0.a5.b1.o4.w4.r0', 14, 5, 4)
+r.walker('giulia', 'Giulia', 'GUEST', 's0.h2.hc0.sh1.p1.t2.f2.a5.b1.o3.w0.r0', 12, 10, 4)
+
+r = room(23, 'JEWELER', 'Gioielleria',
+         'Orologi di lusso nelle vetrine: subacquei, cronografi d\'oro e casse ottagonali. Il commesso ti fa provare quello che vuoi.',
+         20, 17, 8, 'boutique', 'boutique', 23)
+r.add('watch_counter', 9, 2)
+for x, y in [(3, 4), (3, 7), (3, 10), (3, 13), (17, 4), (17, 7), (17, 10), (17, 13), (8, 8), (12, 8), (8, 12), (12, 12)]:
+    r.add('watch_vitrine', x, y)
+r.add('rug_round', 9, 5).add('armchair', 14, 16, 0).add('armchair', 16, 16, 0)
+r.add('plant_big', 1, 1).add('plant_big', 20, 1).add('plant_big', 20, 17).add('lamp_floor', 1, 17)
+r.worker('aurelio', 'Aurelio', 'CLERK', 's3.h1.hc9.sh8.p1.t3.f0.a1.b0.o2.w3.r0', 9, 1, 4)
+r.walker('conte', 'Conte', 'GUEST', 's1.h9.hc9.sh7.p1.t3.f0.a2.b0.o7.w5.r0', 10, 14, 3)
+
+r = room(24, 'SKATE_SHOP', 'Skate shop',
+         'Tavole, ruote al neon e graffiti: scegli lo skate e vai a fare un giro nel quartiere.',
+         20, 17, 8, 'rubber', 'brick', 24)
+r.add('skate_counter', 9, 2)
+for x in (2, 5, 13, 16):
+    r.add('skate_rack', x, 1)
+r.add('rug_vinyl', 7, 7).add('rug_vinyl', 11, 7).add('rug_vinyl', 9, 11)
+r.add('speaker', 1, 16).add('speaker', 20, 16).add('beanbag', 15, 13).add('beanbag', 16, 14).add('beanbag', 17, 13)
+r.add('arcade', 20, 5).add('arcade', 20, 6).add('poster_neon', 11, 1, 0).add('poster_neon', 1, 4, 2)
+r.worker('dario', 'Dario', 'CLERK', 's2.h5.hc6.sh2.p0.t1.f1.a3.b0.o0.w0.r0', 9, 1, 4)
+r.walker('rolla', 'Rolla', 'GUEST', 's3.h4.hc5.sh11.p0.t1.f1.a3.b0', 10, 12, 4)
+
+r = room(25, 'BIKE_SHOP', 'Negozio di bici',
+         'BMX per i salti e bici da corsa in carbonio: tutte pronte da guidare fuori.',
+         20, 17, 8, 'parquet', 'wood', 25)
+r.add('bike_counter', 9, 2)
+for y in (5, 9, 13):
+    r.add('bike_display', 2, y).add('bike_display', 17, y)
+r.add('water_cooler', 20, 1).add('bench', 9, 14, 0).add('plant_big', 1, 1).add('plant_big', 20, 17).add('lamp_floor', 1, 17)
+r.worker('marta', 'Marta', 'CLERK', 's0.h7.hc2.sh5.p6.t0.f1.a0.b1.o0.w0.r0', 9, 1, 4)
+r.walker('pedale', 'Pedale', 'GUEST', 's2.h0.hc0.sh5.p0.t0.f1.a0', 10, 9, 4)
+
+r = room(26, 'CAR_DEALER', 'Concessionaria',
+         'Auto sportive sulle pedane girevoli: spider, coupe\' e l\'hypercar. Firma il contratto e guidala nel quartiere.',
+         22, 18, 9, 'showroom', 'showroom', 26)
+r.add('car_counter', 10, 2)
+for x, y in [(2, 4), (17, 4), (9, 7), (3, 13), (16, 13)]:
+    r.add('car_display', x, y)
+r.add('armchair', 9, 15, 0).add('armchair', 12, 15, 0).add('coffee_table', 10, 16)
+r.add('plant_big', 1, 1).add('plant_big', 22, 1).add('plant_big', 22, 18).add('plant_big', 1, 18).add('lamp_floor', 14, 17)
+r.worker('ettore', 'Ettore', 'CLERK', 's1.h1.hc9.sh7.p1.t3.f0.a2.b0.o1.w2.r0', 10, 1, 4)
+r.walker('pilota', 'Pilota', 'GUEST', 's2.h9.hc0.sh6.p1.t3.f0.a2.b0.o5.w6.r0', 11, 12, 4)
+
+
+# ------------------------------------------------------------------ Caffetteria
+
+r = room(27, 'COFFEE', 'Caffetteria del viale',
+         'Caffellatte grandi, frappe\' con la panna e i dolci in vetrina: poltrone verdi e musica soft.',
+         20, 17, 8, 'coffeehouse', 'coffeehouse', 27)
+r.add('espresso_bar', 7, 2).add('pastry_case', 11, 2).add('coffee_machine', 14, 1)
+for y in (7, 11, 15):
+    r.table_for_two(3, y, chair='armchair_green').table_for_two(17, y, chair='armchair_green')
+r.add('sofa_vinyl', 9, 15, 0).add('coffee_table', 9, 16).add('bookshelf', 20, 4).add('bookshelf', 20, 5)
+r.add('rug_round', 9, 8).add('plant_big', 1, 1).add('plant_big', 20, 17).add('lamp_floor', 1, 17).add('lamp_floor', 20, 9)
+r.worker('giada', 'Giada', 'BARISTA', 's1.h8.hc1.sh5.p1.t0.f1.a0.b1', 8, 1, 4, 'latte', 'frappe', 'coffee')
+r.walker('tom', 'Tom', 'WAITER', 's3.h0.hc0.sh5.p1.t2.f0.a1', 10, 11, 5, 'latte', 'frappe', 'coffee')
+r.walker('nora', 'Nora', 'GUEST', 's0.h2.hc2.sh1.p3.t2.f2.a1.b1.o4.w4.r0', 13, 12, 3)
+
+
+# ------------------------------------------------------------------ Palaghiaccio
+
+r = room(28, 'HOCKEY', 'Palaghiaccio',
+         'Pista di hockey con le porte e le panchine: scegli Blu o Rossi e fischia l\'inizio. '
+         'Sul ghiaccio il disco scivola lontano! A bordo pista i tiri al bersaglio.',
+         30, 17, 2, 'ice', 'stadium', 28)
+# Pista dalla colonna 3 alla 28 e dalla riga 3 alla 15 (la disegna il pavimento "ice"); porte fuori
+# dalle linee di fondo, al centro, come allo stadio.
+r.add('hockey_goal', 2, 8).add('hockey_goal', 29, 8)
+r.add('hockey_target', 6, 1).add('team_bench', 10, 1, 0).add('team_bench', 18, 1, 0).add('water_cooler', 15, 1)
+r.add('scoreboard', 14, 1, 0).add('scoreboard', 16, 1, 0)
+for x, y in [(1, 1), (30, 1), (1, 17), (30, 17)]:
+    r.add('floodlight', x, y)
+r.walker('puck', 'Puck', 'HOCKEY_PLAYER', 's1.h9.hc0.sh3.p1.t1.f0.a0', 10, 6, 8)
+r.walker('ghiaccio', 'Ghiaccio', 'HOCKEY_PLAYER', 's3.h1.hc7.sh3.p1.t1.f0.a0', 10, 12, 8)
+r.walker('lama', 'Lama', 'HOCKEY_PLAYER', 's2.h5.hc2.sh6.p1.t1.f0.a0', 21, 6, 8)
+r.walker('bufera', 'Bufera', 'HOCKEY_PLAYER', 's0.h9.hc9.sh6.p1.t1.f0.a0', 21, 12, 8)
+r.walker('tifoso', 'Tifoso', 'GUEST', 's2.h0.hc0.sh3.p0.t1.f1.a6', 23, 2, 3)
+
+
+# ------------------------------------------------------------------ Arena del basket
+
+r = room(29, 'BASKET_ARENA', 'Arena del basket',
+         'Il palazzo del basket con le tribune piene: due canestri, le panchine delle squadre e la gara di tiri.',
+         28, 18, 9, 'court', 'stadium', 29)
+r.add('basket_hoop', 2, 9, 2).add('basket_hoop', 27, 9, 6)
+r.add('team_bench', 7, 1, 0).add('team_bench', 18, 1, 0).add('water_cooler', 13, 1)
+r.add('scoreboard', 12, 1, 0).add('scoreboard', 15, 1, 0)
+for x, y in [(1, 1), (28, 1), (1, 18), (28, 18)]:
+    r.add('floodlight', x, y)
+r.walker('canestro', 'Canestro', 'GUEST', 's4.h9.hc0.sh10.p0.t4.f1.a0', 9, 11, 5)
+r.walker('assist', 'Assist', 'GUEST', 's2.h1.hc0.sh3.p0.t4.f1.a0', 19, 11, 5)
+r.walker('curva_sud', 'Curva Sud', 'GUEST', 's0.h3.hc6.sh1.p3.t1.f3.a5.b1', 14, 16, 3)
 
 
 # ------------------------------------------------------------------ output

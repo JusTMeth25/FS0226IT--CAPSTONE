@@ -67,6 +67,67 @@ function fbm(x, y, seed = 0) {
  * caselle (con i decimali), sx e sy il pixel sullo schermo per il rumore fine.
  */
 const FLOORS = {
+  // Boutique di lusso: marmo crema lucido a grandi lastre, con l'intarsio d'oro nelle fughe.
+  boutique: (() => {
+    const cream = rgb('#efe6d4');
+    const vein = rgb('#cdbf9f');
+    const gold = rgb('#c9a24a');
+    return (X, Y, sx, sy) => {
+      const u = frac(X / 2);
+      const v = frac(Y / 2);
+      if (u < 0.012 || v < 0.012) return gold;
+      const veinK = Math.abs(Math.sin(X * 1.7 + Math.sin(Y * 2.3) * 1.4 + Math.floor(X / 2) * 3)) < 0.05 ? 1 : 0;
+      const base = veinK ? vein : cream;
+      return tint(base, (u + v < 0.5 ? 0.05 : 0) + (noise(sx, sy) - 0.5) * 0.03);
+    };
+  })(),
+
+  // Showroom delle auto: resina grigia lucida, riflessi lunghi delle luci del soffitto.
+  showroom: (() => {
+    const base = rgb('#3a3f4a');
+    const light = rgb('#8a93a6');
+    return (X, Y, sx, sy) => {
+      const reflect = Math.abs(frac((X + Y) / 3) - 0.5) < 0.04 ? 0.18 : 0;
+      const grid = frac(X / 3) < 0.01 || frac(Y / 3) < 0.01;
+      if (grid) return tint(base, -0.2);
+      return reflect ? mix(base, light, 0.35) : tint(base, (noise(sx, sy) - 0.5) * 0.05);
+    };
+  })(),
+
+  // Caffetteria: parquet a spina di pesce caldo.
+  coffeehouse: (() => {
+    const woods = ['#8a5a3b', '#7a4e33', '#936244', '#6e452d'].map(rgb);
+    const seam = rgb('#3e2718');
+    return (X, Y, sx, sy) => {
+      const a = X * 4;
+      const b = Y * 4;
+      const zig = Math.floor(a) % 2 === 0;
+      const along = zig ? a + b : a - b;
+      const plank = Math.floor(along / 3);
+      if (frac(a) < 0.08 || frac(along / 3) < 0.03) return seam;
+      const base = woods[Math.floor(noise(plank, Math.floor(a)) * woods.length)];
+      return tint(base, (noise(sx, sy) - 0.5) * 0.06);
+    };
+  })(),
+
+  // Discoteca anni 80: marmo nero lucido con le fughe viola e qualche riflesso delle luci.
+  disco: (() => {
+    const a = rgb('#131019');
+    const b = rgb('#1a1524');
+    const grout = rgb('#3b1f5c');
+    const spark = [rgb('#ff4fd8'), rgb('#38e8ff'), rgb('#ffd24a')];
+    return (X, Y, sx, sy) => {
+      const u = frac(X);
+      const v = frac(Y);
+      if (u < 0.03 || v < 0.03) return grout;
+      const base = (Math.floor(X) + Math.floor(Y)) % 2 ? a : b;
+      // Riflessi colorati sparsi, come le luci della palla di specchi sul pavimento lucido.
+      if (noise(sx * 3, sy * 5) > 0.992) return spark[Math.floor(noise(sx, sy, 4) * spark.length)];
+      const shine = u + v < 0.4 ? 0.08 : 0;
+      return tint(base, shine + (noise(sx, sy) - 0.5) * 0.05);
+    };
+  })(),
+
   // Piastrelle scure con le fughe al neon: lo stile VinylDex di sempre, con piu' dettaglio.
   neon: (() => {
     const a = rgb('#262a4d');
@@ -438,6 +499,135 @@ const baseboard = (h, colors) => {
 };
 
 const WALLS = {
+  // Quartiere all'aperto: dietro la recinzione di mattoni si vedono i palazzi con le finestre
+  // accese, i tetti e il cielo della sera.
+  street: (() => {
+    const brick = ['#8a4b38', '#7c4232', '#94533e'].map(rgb);
+    const mortar = rgb('#5a3428');
+    const cap = rgb('#b9b4aa');
+    const blocks = ['#6b5b7a', '#7a6a58', '#5b6b7a', '#7a5b5b'].map(rgb);
+    const win = rgb('#ffd98a');
+    const winOff = rgb('#2c3346');
+    const sky = [rgb('#f4a261'), rgb('#e76f51'), rgb('#6a4c93'), rgb('#2a2350')];
+    return (col, h, height, side, sy) => {
+      if (h < 3) return rgb('#4a4a4a');
+      // Muretto di mattoni con la copertina di pietra.
+      if (h < 26) {
+        if (h > 22) return cap;
+        const row = Math.floor(h / 5);
+        const shift = row % 2 ? 6 : 0;
+        if (h % 5 === 0 || (col + shift) % 12 === 0) return mortar;
+        return tint(brick[Math.floor(noise(Math.floor((col + shift) / 12), row) * 3)], (noise(col, sy) - 0.5) * 0.08);
+      }
+      // Palazzi di altezze diverse, con le finestre (alcune accese).
+      const bx = Math.floor(col / 30);
+      const top = 70 + Math.floor(noise(bx, 9) * 70);
+      if (h < top) {
+        const base = blocks[Math.floor(noise(bx, 2) * blocks.length)];
+        if (h > top - 4) return tint(base, 0.2);
+        const inWin = col % 6 >= 2 && col % 6 <= 4 && h % 10 >= 3 && h % 10 <= 7;
+        if (inWin) return noise(Math.floor(col / 6), Math.floor(h / 10) + bx) > 0.45 ? win : winOff;
+        return tint(base, (noise(col, sy) - 0.5) * 0.06);
+      }
+      const t = Math.min(1, (h - 70) / Math.max(1, height - 70));
+      return sky[Math.min(sky.length - 1, Math.floor(t * sky.length))];
+    };
+  })(),
+
+  // Boutique: boiserie crema con le cornici dorate e gli specchi.
+  boutique: (() => {
+    const panel = rgb('#f3ead8');
+    const trim = rgb('#c9a24a');
+    const mirror = rgb('#bcc6d4');
+    const board = { shadow: rgb('#2a2218'), board: rgb('#6b5638'), trim: rgb('#c9a24a') };
+    return (col, h, height, side, sy) => {
+      const bb = baseboard(h, board);
+      if (bb) return bb;
+      if (h > height - 8) return h > height - 3 ? tint(trim, 0.2) : trim;
+      const p = col % 36;
+      if (p === 0 || p === 35) return trim;
+      if (p > 8 && p < 28 && h > 30 && h < height - 22) {
+        if (p === 9 || p === 27 || h === 31 || h === height - 23) return trim;
+        return (col + h) % 30 < 2 ? rgb('#f8fbff') : tint(mirror, (noise(col, sy) - 0.5) * 0.06);
+      }
+      return tint(panel, (noise(col, sy) - 0.5) * 0.04);
+    };
+  })(),
+
+  // Concessionaria: vetrate grandi sulla strada con i montanti neri, zoccolo in cemento.
+  showroom: (() => {
+    const concrete = rgb('#9aa0a8');
+    const frame = rgb('#16181d');
+    const glassTop = rgb('#9fd3ec');
+    const glassLow = rgb('#4a7f99');
+    const board = { shadow: rgb('#0e0f12'), board: rgb('#2a2d33'), trim: rgb('#e11d48') };
+    return (col, h, height, side, sy) => {
+      const bb = baseboard(h, board);
+      if (bb) return bb;
+      if (h < 18) return tint(concrete, (noise(col, sy) - 0.5) * 0.08);
+      if (h > height - 10) return frame;
+      if (col % 48 < 3 || h === 18 || h === 19) return frame;
+      const t = (h - 18) / (height - 28);
+      const c = mix(glassLow, glassTop, t);
+      return (col + h * 1.2) % 70 < 4 ? mix(c, rgb('#ffffff'), 0.5) : c;
+    };
+  })(),
+
+  // Caffetteria: pannelli verde bosco, mensola di legno a meta' e la lavagna del menu.
+  coffeehouse: (() => {
+    const green = rgb('#1f4b3a');
+    const greenDark = rgb('#163a2c');
+    const wood = rgb('#8a5a3b');
+    const chalk = rgb('#1c211f');
+    const board = { shadow: rgb('#120c08'), board: rgb('#5b3a26'), trim: rgb('#8a5a3b') };
+    return (col, h, height, side, sy) => {
+      const bb = baseboard(h, board);
+      if (bb) return bb;
+      if (h >= 44 && h < 48) return h === 47 ? tint(wood, 0.2) : wood;
+      if (h < 44) return (col % 10 === 0) ? greenDark : tint(green, (noise(col, sy) - 0.5) * 0.05);
+      const p = col % 80;
+      if (p > 12 && p < 60 && h > 60 && h < height - 16) {
+        if (p === 13 || p === 59 || h === 61 || h === height - 17) return wood;
+        const writing = (h % 8 === 3) && ((col * 7 + h) % 11 < 7);
+        return writing ? rgb('#e8e2d0') : tint(chalk, (noise(col, sy) - 0.5) * 0.08);
+      }
+      return tint(green, (noise(col, sy) - 0.5) * 0.05);
+    };
+  })(),
+
+  // Discoteca anni 80: velluto viola, pannelli a specchio, due strisce al neon rosa e azzurro
+  // e una fila di lampadine in cima, come le insegne dei locali di Saturday Night Fever.
+  disco: (() => {
+    const velvet = rgb('#2a0f3d');
+    const velvetDark = rgb('#1d0a2b');
+    const mirror = rgb('#8f8aa8');
+    const mirrorHi = rgb('#e8e6f5');
+    const pink = rgb('#ff4fd8');
+    const cyan = rgb('#38e8ff');
+    const bulb = rgb('#ffe27a');
+    const board = { shadow: rgb('#07030b'), board: rgb('#140820'), trim: rgb('#ff4fd8') };
+    return (col, h, height, side, sy) => {
+      const bb = baseboard(h, board);
+      if (bb) return bb;
+      // Lampadine in cima alla parete.
+      if (h > height - 7) {
+        const onBulb = col % 10 < 3 && h > height - 6 && h < height - 2;
+        return onBulb ? bulb : velvetDark;
+      }
+      if (h > height - 12 && h <= height - 9) return pink;
+      if (h > height - 16 && h <= height - 13) return cyan;
+      // Pannelli a specchio fra le lesene di velluto, con il riflesso in diagonale.
+      const panel = col % 40;
+      if (h > 16 && h < height - 22 && panel > 8 && panel < 32) {
+        if (panel === 9 || panel === 31) return tint(mirror, -0.3);
+        const diag = (col + h) % 36;
+        return diag < 3 ? mirrorHi : tint(mirror, (noise(col, sy) - 0.5) * 0.08 - (h % 12 === 0 ? 0.15 : 0));
+      }
+      const fold = Math.sin(col * 0.9) * 0.05;
+      return tint(Math.floor(col / 4) % 2 ? velvet : velvetDark, fold + (noise(col, sy) - 0.5) * 0.05);
+    };
+  })(),
+
   neon: (() => {
     const paper = rgb('#2a1f55');
     const stripe = rgb('#31255f');
@@ -910,6 +1100,155 @@ FLOOR_FACTORIES.kart = (layout, door) => {
 function hashDot(x, y) {
   return noise(x * 7, y * 13) > 0.93;
 }
+
+/**
+ * Quartiere: il viale (orizzontale) e la via (verticale) si incrociano al centro della stanza,
+ * con i marciapiedi, le strisce pedonali e le linee di mezzeria. Le quattro zone fra le strade:
+ * piazze lastricate in alto (i negozi), il parco a sinistra in basso, i prati delle ville a destra.
+ * Le stesse misure le usa BE/scripts/hotel_rooms.py per mettere negozi e ville.
+ */
+export function streetPlan(layout) {
+  let x1 = 0; let y1 = 0;
+  for (let y = 0; y < layout.height; y += 1) {
+    for (let x = 0; x < layout.width; x += 1) {
+      if (!layout.isTile(x, y)) continue;
+      x1 = Math.max(x1, x);
+      y1 = Math.max(y1, y);
+    }
+  }
+  const ay0 = Math.floor(y1 / 2) - 1;
+  const sx0 = Math.floor(x1 / 2) - 1;
+  return { ay0, ay1: ay0 + 3, sx0, sx1: sx0 + 3, x1, y1 };
+}
+
+FLOOR_FACTORIES.street = (layout) => {
+  const { ay0, ay1, sx0, sx1 } = streetPlan(layout);
+  const asphalt = rgb('#34363d');
+  const walk = ['#b9b4aa', '#c4bfb4'].map(rgb);
+  const curb = rgb('#8d8a84');
+  const white = rgb('#eef0f2');
+  const yellow = rgb('#f2c230');
+  const paver = ['#d8c9ad', '#cdbb9b', '#e1d4ba'].map(rgb);
+  const grass = ['#4f9a3f', '#58a547'].map(rgb);
+  const path = rgb('#d9c9a3');
+  const hedge = rgb('#2f6f2a');
+  return (X, Y, sx, sy) => {
+    const n = noise(sx, sy);
+    const tx = Math.floor(X);
+    const ty = Math.floor(Y);
+    const onAvenue = ty >= ay0 && ty <= ay1;
+    const onStreet = tx >= sx0 && tx <= sx1;
+    if (onAvenue || onStreet) {
+      // Strisce pedonali dove i marciapiedi attraversano la strada.
+      const zebraAv = onAvenue && (tx === sx0 - 1 || tx === sx1 + 1);
+      const zebraSt = onStreet && (ty === ay0 - 1 || ty === ay1 + 1);
+      if (zebraAv && frac(Y * 2) < 0.55) return tint(white, (n - 0.5) * 0.06);
+      if (zebraSt && frac(X * 2) < 0.55) return tint(white, (n - 0.5) * 0.06);
+      const inCross = onAvenue && onStreet;
+      // Mezzeria gialla doppia e linee tratteggiate delle corsie.
+      if (onAvenue && !onStreet && !zebraAv) {
+        const mid = (ay0 + ay1 + 1) / 2;
+        if (Math.abs(Y - mid + 0.06) < 0.025 || Math.abs(Y - mid - 0.06) < 0.025) return yellow;
+        if ((Math.abs(Y - (ay0 + 1)) < 0.03 || Math.abs(Y - (ay1)) < 0.03) && frac(X / 2) < 0.5) return white;
+      }
+      if (onStreet && !onAvenue && !zebraSt) {
+        const mid = (sx0 + sx1 + 1) / 2;
+        if (Math.abs(X - mid + 0.06) < 0.025 || Math.abs(X - mid - 0.06) < 0.025) return yellow;
+      }
+      if (inCross && (frac(X) < 0.02 || frac(Y) < 0.02) && n > 0.7) return tint(asphalt, 0.05);
+      return tint(asphalt, (n - 0.5) * 0.09 + (hashDot(sx, sy) ? 0.1 : 0));
+    }
+    // Marciapiedi lungo le strade, con il cordolo verso l'asfalto.
+    const sideAv = ty === ay0 - 1 || ty === ay1 + 1;
+    const sideSt = tx === sx0 - 1 || tx === sx1 + 1;
+    if (sideAv || sideSt) {
+      if ((ty === ay0 - 1 && frac(Y) > 0.9) || (ty === ay1 + 1 && frac(Y) < 0.1)) return curb;
+      if ((tx === sx0 - 1 && frac(X) > 0.9) || (tx === sx1 + 1 && frac(X) < 0.1)) return curb;
+      const tile = (Math.floor(X * 2) + Math.floor(Y * 2)) % 2;
+      if (frac(X * 2) < 0.04 || frac(Y * 2) < 0.04) return tint(walk[0], -0.12);
+      return tint(walk[tile], (n - 0.5) * 0.05);
+    }
+    const top = ty < ay0;
+    const left = tx < sx0;
+    if (top) {
+      // Piazze dei negozi: pavimento a cubetti chiari a spina.
+      const bx = Math.floor(X * 3);
+      const by = Math.floor(Y * 3);
+      if (frac(X * 3) < 0.08 || frac(Y * 3) < 0.08) return tint(paver[0], -0.2);
+      return tint(paver[(bx * 7 + by * 3) % 3], (n - 0.5) * 0.06);
+    }
+    if (left) {
+      // Parco: prato con i vialetti a croce.
+      if (Math.abs(X - sx0 / 2) < 0.5 || Math.abs(Y - (ay1 + 6.5)) < 0.5) return tint(path, (n - 0.5) * 0.08);
+      return tint(grass[(Math.floor(X) + Math.floor(Y)) % 2], (n - 0.5) * 0.08 + ((sx + sy) % 5 === 0 ? 0.05 : 0));
+    }
+    // Ville: prati curati divisi da siepi basse, con il vialetto d'ingresso.
+    const lot = Math.floor((X - (sx1 + 2)) / 6);
+    const inLotX = (X - (sx1 + 2)) - lot * 6;
+    if (inLotX < 0.12) return tint(hedge, (n - 0.5) * 0.1);
+    if (Math.abs(inLotX - 2.5) < 0.45) return tint(path, (n - 0.5) * 0.08);
+    return tint(grass[(Math.floor(X * 2) + Math.floor(Y * 2)) % 2], (n - 0.5) * 0.07);
+  };
+};
+
+/**
+ * Palaghiaccio: la pista sta due caselle dentro i bordi (come il campo da calcio), ghiaccio
+ * bianco con i graffi dei pattini, linea rossa a meta', linee blu, cerchi d'ingaggio e aree
+ * delle porte. Fuori dalla balaustra un pavimento di gomma scura.
+ */
+FLOOR_FACTORIES.ice = (layout, door) => {
+  let x0 = Infinity; let x1 = -Infinity; let y0 = Infinity; let y1 = -Infinity;
+  for (let y = 0; y < layout.height; y += 1) {
+    for (let x = 0; x < layout.width; x += 1) {
+      if (!layout.isTile(x, y) || (door && door.x === x && door.y === y)) continue;
+      x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+    }
+  }
+  const fx0 = x0 + 2;
+  const fx1 = x1 - 1;
+  const fy0 = y0 + 2;
+  const fy1 = y1 - 1;
+  const mx = (fx0 + fx1) / 2;
+  const my = (fy0 + fy1) / 2;
+  const blue = [fx0 + (fx1 - fx0) / 3, fx0 + ((fx1 - fx0) * 2) / 3];
+  const ice = rgb('#eef6fb');
+  const iceShade = rgb('#d9e9f3');
+  const red = rgb('#d62839');
+  const blueLine = rgb('#1f5fbf');
+  const crease = rgb('#8ecdf7');
+  const board = rgb('#f7f7f2');
+  const kick = rgb('#f2c230');
+  const rubber = rgb('#2b2d33');
+  const W = 0.08;
+  return (X, Y, sx, sy) => {
+    const n = noise(sx, sy);
+    const inRink = X >= fx0 && X <= fx1 && Y >= fy0 && Y <= fy1;
+    const nearEdge = X >= fx0 - 0.25 && X <= fx1 + 0.25 && Y >= fy0 - 0.25 && Y <= fy1 + 0.25;
+    if (!inRink) {
+      if (nearEdge) return X < fx0 - 0.12 || X > fx1 + 0.12 || Y < fy0 - 0.12 || Y > fy1 + 0.12 ? kick : board;
+      return tint(rubber, (n - 0.5) * 0.08 + ((sx + sy) % 3 === 0 ? 0.03 : 0));
+    }
+    if (Math.abs(X - mx) < W) return red;
+    if (blue.some((b) => Math.abs(X - b) < W * 1.4)) return blueLine;
+    const d = Math.hypot(X - mx, Y - my);
+    if (Math.abs(d - Math.min(2.2, (fy1 - fy0) / 4)) < W * 0.7 || d < 0.15) return d < 0.15 ? blueLine : red;
+    for (const [gx, dir] of [[fx0 + 1, 1], [fx1 - 1, -1]]) {
+      // Linea di porta e area semicircolare azzurra.
+      if (Math.abs(X - gx) < W * 0.6) return red;
+      const dg = Math.hypot(X - gx, Y - my);
+      if ((X - gx) * dir > 0 && dg < 1.2) return dg > 1.14 ? red : crease;
+      // Cerchi d'ingaggio nelle due zone.
+      for (const fy of [my - (fy1 - fy0) / 4, my + (fy1 - fy0) / 4]) {
+        const cx = gx + dir * 2.6;
+        const dc = Math.hypot(X - cx, Y - fy);
+        if (Math.abs(dc - 1.2) < W * 0.7 || dc < 0.13) return red;
+      }
+    }
+    // Graffi dei pattini: tratti chiari e scuri in diagonale.
+    const scratch = Math.abs(Math.sin(X * 9 + Y * 3 + noise(Math.floor(X * 3), Math.floor(Y * 3)) * 6)) < 0.03;
+    return scratch ? iceShade : tint(ice, (n - 0.5) * 0.04);
+  };
+};
 
 export const FLOOR_STYLES = [...Object.keys(FLOORS), ...Object.keys(FLOOR_FACTORIES)];
 export const WALL_STYLES = Object.keys(WALLS);

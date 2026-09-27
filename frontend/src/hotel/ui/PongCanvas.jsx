@@ -175,32 +175,49 @@ function drawBall(ctx, ball, now) {
 
 export default function PongCanvas({ s }) {
   const ref = useRef(null);
+  // Lo stato arriva a ogni fotogramma del gioco; il disegno ha un suo ciclo legato allo schermo,
+  // cosi' resta fluido anche quando React salta un aggiornamento.
+  const latest = useRef(s);
+  useEffect(() => {
+    latest.current = s;
+  });
 
   useEffect(() => {
     const canvas = ref.current;
-    if (!canvas) return;
+    if (!canvas) return undefined;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
-    if (canvas.width !== W * dpr) {
-      canvas.width = W * dpr;
-      canvas.height = H * dpr;
-    }
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
     const ctx = canvas.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const now = performance.now();
-    drawFloor(ctx);
-    drawTable(ctx);
-    drawPlayer(ctx, { side: 1, py: toY(s.ai), walking: s.aiMove !== 0, swing: Math.max(0, (s.aiFlash || 0) / 180), robot: true, now });
-    drawBall(ctx, s.ball, now);
-    drawPlayer(ctx, { side: -1, py: toY(s.me), walking: s.meMove !== 0, swing: Math.max(0, (s.flash || 0) / 150), robot: false, now });
-    // Nome dei giocatori sotto al campo.
-    ctx.font = 'bold 11px "Segoe UI", sans-serif';
-    ctx.fillStyle = '#fde68a';
-    ctx.textAlign = 'center';
-    ctx.fillText('Tu', 40, H - 8);
-    ctx.fillText('Paddle', W - 40, H - 8);
-  });
+    // Fondo e tavolo non cambiano mai: si disegnano una volta in un canvas a parte.
+    const backdrop = document.createElement('canvas');
+    backdrop.width = W * dpr;
+    backdrop.height = H * dpr;
+    const bctx = backdrop.getContext('2d');
+    bctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawFloor(bctx);
+    drawTable(bctx);
+    bctx.font = 'bold 11px "Segoe UI", sans-serif';
+    bctx.fillStyle = '#fde68a';
+    bctx.textAlign = 'center';
+    bctx.fillText('Tu', 40, H - 8);
+    bctx.fillText('Paddle', W - 40, H - 8);
+
+    let raf = 0;
+    const draw = () => {
+      const st = latest.current;
+      const now = performance.now();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(backdrop, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawPlayer(ctx, { side: 1, py: toY(st.ai), walking: st.aiMove !== 0, swing: Math.max(0, (st.aiFlash || 0) / 180), robot: true, now });
+      drawBall(ctx, st.ball, now);
+      drawPlayer(ctx, { side: -1, py: toY(st.me), walking: st.meMove !== 0, swing: Math.max(0, (st.flash || 0) / 150), robot: false, now });
+      raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   return <canvas ref={ref} className="mg-pong-canvas" style={{ width: '100%', maxWidth: W, aspectRatio: `${W} / ${H}` }} aria-label="Tavolo da ping pong" />;
 }
-
-

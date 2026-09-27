@@ -22,6 +22,13 @@ public final class NpcDialog {
     private static final Map<String, String> ITEM_WORDS = new LinkedHashMap<>();
 
     static {
+        // Caffetteria del quartiere: prima le parole piu' lunghe ("caffellatte" prima di "caffe").
+        ITEM_WORDS.put("caffellatte", "latte");
+        ITEM_WORDS.put("latte macchiato", "latte");
+        ITEM_WORDS.put("latte", "latte");
+        ITEM_WORDS.put("frappuccino", "frappe");
+        ITEM_WORDS.put("frappe", "frappe");
+        ITEM_WORDS.put("frullato", "frappe");
         ITEM_WORDS.put("caffe", "coffee");
         ITEM_WORDS.put("espresso", "coffee");
         ITEM_WORDS.put("cappuccino", "coffee");
@@ -73,7 +80,8 @@ public final class NpcDialog {
             Map.entry("bubble", "una bibita frizzante"), Map.entry("cocktail", "un cocktail al neon"),
             Map.entry("tea", "una tazza di te'"), Map.entry("gelato", "un gelato"), Map.entry("pizza", "un trancio di pizza"),
             Map.entry("book", "un bel libro"), Map.entry("popcorn", "un secchiello di popcorn"),
-            Map.entry("water", "una borraccia d'acqua fresca"));
+            Map.entry("water", "una borraccia d'acqua fresca"), Map.entry("latte", "un caffellatte grande"),
+            Map.entry("frappe", "un frappe' al caramello con la panna"));
 
     private NpcDialog() {
     }
@@ -142,6 +150,12 @@ public final class NpcDialog {
                     "Benvenuto in edicola, " + user + "! Cliccami per comprare i pacchetti."));
             case USHER -> "Buona visione, " + user + "! Popcorn e cola li porto io.";
             case TRAINER -> pick(random, List.of("Forza " + user + ", dieci giri di tapis roulant!", "Ciao " + user + "! Ti serve acqua?"));
+            case HOCKEY_PLAYER -> pick(random, List.of("Ciao " + user + "! Prendi una mazza e scendi in pista!",
+                    "Ehi " + user + ", il ghiaccio e' velocissimo oggi."));
+            case TAILOR -> pick(random, List.of("Benvenuto in atelier, " + user + "! Clicca il banco: ti consiglio io come vestirti.",
+                    "Ciao " + user + "! Un completo su misura? Prova e ti dico come sta."));
+            case CLERK -> pick(random, List.of("Ciao " + user + "! Dai un'occhiata alla merce, il banco e' qui.",
+                    "Benvenuto " + user + "! Se qualcosa ti piace, clicca il banco per comprarlo."));
             case FOOTBALLER -> pick(random, List.of("Ciao " + user + "! Passami la palla!",
                     "Ehi " + user + ", giochi con noi? Blu contro Rossi, si arriva a 5!"));
             case FIGHTER -> pick(random, List.of("Ehi " + user + ", hai il coraggio di sfidarmi?",
@@ -313,6 +327,10 @@ public final class NpcDialog {
             case USHER -> List.of("Il film sta per iniziare!", "Popcorn caldi, chi li vuole?", "Spegnete i telefoni, per favore.");
             case TRAINER -> List.of("Uno, due, tre, respira!", "Chi fa una serie di addominali con me?", "Bevete acqua, e' importante!");
             case FOOTBALLER -> List.of("Palla al centro!", "Passala, sono smarcato!", "Che tiro!", "Chi segna vince!");
+            case HOCKEY_PLAYER -> List.of("Disco al centro!", "Che velocita' sul ghiaccio!", "Tiro in porta!", "Occhio al bastone!");
+            case TAILOR -> List.of("Una giacca deve cadere perfetta sulle spalle.", "Il gessato non passa mai di moda.",
+                    "Con lo smoking ci vuole un orologio sottile.", "Chi vuole un consiglio di stile?");
+            case CLERK -> List.of("Arrivata merce nuova!", "Chiedete pure, sono qui per voi.", "Oggi e' il giorno giusto per un regalo.");
             case FIGHTER -> List.of("Chi ha il coraggio di sfidarmi?", "La mia squadra oggi e' imbattibile.",
                     "Scambio carte doppie, chi ci sta?");
             case GUEST -> List.of("Che bella giornata!", "Qualcuno vuole scambiare carte?", "Adoro questo posto.",

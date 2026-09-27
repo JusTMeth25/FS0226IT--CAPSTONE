@@ -35,6 +35,16 @@ public final class NpcRoster {
     public static final UUID MINIGOLF = UUID.fromString("00000000-0000-0000-0000-00000000a011");
     public static final UUID BASKET = UUID.fromString("00000000-0000-0000-0000-00000000a012");
     public static final UUID KART = UUID.fromString("00000000-0000-0000-0000-00000000a013");
+    public static final UUID DISCO = UUID.fromString("00000000-0000-0000-0000-00000000a014");
+    public static final UUID DISTRICT = UUID.fromString("00000000-0000-0000-0000-00000000a015");
+    public static final UUID ATELIER = UUID.fromString("00000000-0000-0000-0000-00000000a016");
+    public static final UUID JEWELER = UUID.fromString("00000000-0000-0000-0000-00000000a017");
+    public static final UUID SKATE_SHOP = UUID.fromString("00000000-0000-0000-0000-00000000a018");
+    public static final UUID BIKE_SHOP = UUID.fromString("00000000-0000-0000-0000-00000000a019");
+    public static final UUID CAR_DEALER = UUID.fromString("00000000-0000-0000-0000-00000000a01a");
+    public static final UUID COFFEE = UUID.fromString("00000000-0000-0000-0000-00000000a01b");
+    public static final UUID HOCKEY = UUID.fromString("00000000-0000-0000-0000-00000000a01c");
+    public static final UUID BASKET_ARENA = UUID.fromString("00000000-0000-0000-0000-00000000a01d");
 
     /** Cosa fa il personaggio: da qui dipendono movimento, azioni possibili e battute. */
     public enum Role {
@@ -53,6 +63,9 @@ public final class NpcRoster {
         TRAINER("Istruttore", true),
         FIGHTER("Sfidante", true),
         FOOTBALLER("Calciatore", true),
+        HOCKEY_PLAYER("Giocatore di hockey", true),
+        TAILOR("Sarto", false),
+        CLERK("Commesso", false),
         GUEST("Ospite", true);
 
         private final String title;
@@ -186,7 +199,52 @@ public final class NpcRoster {
                     walker("tifosa", "Tifosa", Role.GUEST, "s0.h3.hc6.sh1.p3.t1.f3.a5.b1", 15, 3, 3))),
             Map.entry(KART, List.of(
                     walker("pistone", "Pistone", Role.GUEST, "s2.h1.hc0.sh7.p0.t4.f1.a0", 26, 17, 3),
-                    walker("curva", "Curva", Role.GUEST, "s0.h6.hc3.sh1.p3.t1.f3.a2.b1", 6, 4, 3)))
+                    walker("curva", "Curva", Role.GUEST, "s0.h6.hc3.sh1.p3.t1.f3.a2.b1", 6, 4, 3))),
+            Map.entry(DISCO, List.of(
+                    worker("tony", "DJ Tony", Role.DJ, "s2.h1.hc0.sh7.p1.t0.f0.a0", 12, 1, 4),
+                    worker("rosy", "Rosy", Role.BARISTA, "s1.h8.hc5.sh4.p3.t2.f1.a1.b1", 4, 17, 4, "cola", "juice", "bubble"),
+                    walker("donna", "Donna", Role.GUEST, "s0.h7.hc3.sh9.p3.t4.f3.a3.b1", 11, 9, 3),
+                    walker("bobby", "Bobby", Role.GUEST, "s3.h4.hc6.sh6.p1.t3.f2.a0", 14, 11, 3),
+                    walker("frankie", "Frankie", Role.GUEST, "s2.h9.hc0.sh1.p0.t4.f1.a2", 10, 12, 3),
+                    walker("annette", "Annette", Role.GUEST, "s1.h2.hc4.sh11.p3.t1.f3.a1.b1", 16, 8, 3))),
+            Map.entry(DISTRICT, List.of(
+                    walker("enzo", "Enzo", Role.GUEST, "s2.h9.hc0.sh8.p1.t2.f0.a2.b0.o1.w3.r5", 8, 18, 7),
+                    walker("lola", "Lola", Role.GUEST, "s1.h2.hc2.sh1.p1.t4.f2.a2.b1.o3.w2.r6", 28, 17, 7),
+                    walker("kiko", "Kiko", Role.GUEST, "s3.h5.hc6.sh2.p0.t1.f1.a3.b0.o0.w0.r1", 10, 9, 5),
+                    walker("bea", "Bea", Role.GUEST, "s0.h7.hc4.sh5.p6.t0.f1.a0.b1.o0.w0.r4", 18, 26, 6),
+                    walker("gigio", "Gigio", Role.GUEST, "s4.h4.hc0.sh10.p0.t1.f5.a6.b0.o0.w0.r3", 28, 8, 5),
+                    walker("contessa", "Contessa", Role.GUEST, "s1.h3.hc3.sh7.p1.t2.f0.a5.b1.o8.w4.r0", 11, 28, 4),
+                    walker("max", "Max", Role.GUEST, "s2.h0.hc1.sh9.p1.t3.f0.a2.b0.o7.w1.r7", 30, 18, 6))),
+            Map.entry(ATELIER, List.of(
+                    worker("vittorio", "Vittorio", Role.TAILOR, "s1.h9.hc9.sh7.p1.t2.f0.a1.b0.o1.w4.r0", 9, 1, 4),
+                    worker("chiara", "Chiara", Role.CLERK, "s0.h8.hc0.sh7.p1.t2.f0.a5.b1.o4.w4.r0", 14, 5, 4),
+                    walker("giulia", "Giulia", Role.GUEST, "s0.h2.hc0.sh1.p1.t2.f2.a5.b1.o3.w0.r0", 12, 10, 4))),
+            Map.entry(JEWELER, List.of(
+                    worker("aurelio", "Aurelio", Role.CLERK, "s3.h1.hc9.sh8.p1.t3.f0.a1.b0.o2.w3.r0", 9, 1, 4),
+                    walker("conte", "Conte", Role.GUEST, "s1.h9.hc9.sh7.p1.t3.f0.a2.b0.o7.w5.r0", 10, 14, 3))),
+            Map.entry(SKATE_SHOP, List.of(
+                    worker("dario", "Dario", Role.CLERK, "s2.h5.hc6.sh2.p0.t1.f1.a3.b0.o0.w0.r0", 9, 1, 4),
+                    walker("rolla", "Rolla", Role.GUEST, "s3.h4.hc5.sh11.p0.t1.f1.a3.b0", 10, 12, 4))),
+            Map.entry(BIKE_SHOP, List.of(
+                    worker("marta", "Marta", Role.CLERK, "s0.h7.hc2.sh5.p6.t0.f1.a0.b1.o0.w0.r0", 9, 1, 4),
+                    walker("pedale", "Pedale", Role.GUEST, "s2.h0.hc0.sh5.p0.t0.f1.a0", 10, 9, 4))),
+            Map.entry(CAR_DEALER, List.of(
+                    worker("ettore", "Ettore", Role.CLERK, "s1.h1.hc9.sh7.p1.t3.f0.a2.b0.o1.w2.r0", 10, 1, 4),
+                    walker("pilota", "Pilota", Role.GUEST, "s2.h9.hc0.sh6.p1.t3.f0.a2.b0.o5.w6.r0", 11, 12, 4))),
+            Map.entry(COFFEE, List.of(
+                    worker("giada", "Giada", Role.BARISTA, "s1.h8.hc1.sh5.p1.t0.f1.a0.b1", 8, 1, 4, "latte", "frappe", "coffee"),
+                    walker("tom", "Tom", Role.WAITER, "s3.h0.hc0.sh5.p1.t2.f0.a1", 10, 11, 5, "latte", "frappe", "coffee"),
+                    walker("nora", "Nora", Role.GUEST, "s0.h2.hc2.sh1.p3.t2.f2.a1.b1.o4.w4.r0", 13, 12, 3))),
+            Map.entry(HOCKEY, List.of(
+                    walker("puck", "Puck", Role.HOCKEY_PLAYER, "s1.h9.hc0.sh3.p1.t1.f0.a0", 10, 6, 8),
+                    walker("ghiaccio", "Ghiaccio", Role.HOCKEY_PLAYER, "s3.h1.hc7.sh3.p1.t1.f0.a0", 10, 12, 8),
+                    walker("lama", "Lama", Role.HOCKEY_PLAYER, "s2.h5.hc2.sh6.p1.t1.f0.a0", 21, 6, 8),
+                    walker("bufera", "Bufera", Role.HOCKEY_PLAYER, "s0.h9.hc9.sh6.p1.t1.f0.a0", 21, 12, 8),
+                    walker("tifoso", "Tifoso", Role.GUEST, "s2.h0.hc0.sh3.p0.t1.f1.a6", 23, 2, 3))),
+            Map.entry(BASKET_ARENA, List.of(
+                    walker("canestro", "Canestro", Role.GUEST, "s4.h9.hc0.sh10.p0.t4.f1.a0", 9, 11, 5),
+                    walker("assist", "Assist", Role.GUEST, "s2.h1.hc0.sh3.p0.t4.f1.a0", 19, 11, 5),
+                    walker("curva_sud", "Curva Sud", Role.GUEST, "s0.h3.hc6.sh1.p3.t1.f3.a5.b1", 14, 16, 3)))
     );
 
     private NpcRoster() {

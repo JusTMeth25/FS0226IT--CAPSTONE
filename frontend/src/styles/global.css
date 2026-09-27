@@ -1411,6 +1411,10 @@ input.filter-select { cursor: text; }
 .binder-pocket.owned { box-shadow: 0 0 0 2px var(--rarity-color), 0 0 12px color-mix(in srgb, var(--rarity-color) 50%, transparent); }
 .binder-pocket.missing img { filter: grayscale(1) brightness(.25); }
 .binder-pocket.missing small { position: absolute; inset: auto 0 6px; text-align: center; font-size: .7rem; opacity: .7; }
+.binder-pocket.graded { overflow: visible; background: none; box-shadow: none; }
+.binder-slab-link { display: block; height: 100%; }
+.binder-slab-link .graded-slab-small { height: 100%; }
+.binder-pocket.graded .slab-window img { height: 100%; width: auto; max-width: 100%; object-fit: contain; }
 .binder-page-number { position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); font-size: .72rem; opacity: .6; }
 .binder-nav { display: flex; gap: 14px; align-items: center; justify-content: center; }
 @media (prefers-reduced-motion: reduce) { .binder-sheet { transition: none; } }
@@ -1695,3 +1699,27 @@ input.filter-select { cursor: text; }
 /* Carte da scegliere in Battaglie: tile un po' piu' piccole e colonne larghe quanto una tile,
    cosi' non si sovrappongono sugli schermi grandi. */
 .battle-available-grid { --card-width: 130px; --card-height: 190px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); justify-items: center; }
+
+/* Raccoglitore 3D: bottone per rimettere dritto il libro e istruzioni per toccarlo */
+.binder-3d { position: relative; touch-action: none; }
+.binder-3d-tools { position: absolute; top: 8px; left: 8px; right: 8px; z-index: 2; display: flex; gap: 8px; align-items: center; pointer-events: none; }
+.binder-3d-tool { pointer-events: auto; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-color); background: rgba(10, 8, 30, 0.75); color: var(--text-primary); cursor: pointer; display: grid; place-items: center; }
+.binder-3d-tool:hover { border-color: var(--binder-accent, var(--neon-purple)); }
+.binder-3d-hint { font-size: 0.72rem; color: var(--text-secondary); background: rgba(10, 8, 30, 0.6); padding: 4px 10px; border-radius: 999px; }
+
+/* Installazione dell'app (Profilo) */
+.install-app { display: flex; flex-direction: column; gap: var(--space-sm); }
+.install-app p { margin: 0; font-size: 0.85rem; color: var(--text-secondary); }
+.install-app .btn { align-self: flex-start; }
+.install-steps { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; }
+.install-steps li.current { color: var(--neon-cyan, #22d3ee); }
+.install-note { font-size: 0.75rem !important; color: var(--text-muted) !important; }
+
+/* Carta nel cofanetto: riflessi e arcobaleno solo sulla carta, non sulla cornice di plastica. */
+.slab-window.card-holo { transform-style: preserve-3d; }
+.slab-window .card-holo-glare, .slab-window .card-holo-rainbow, .slab-window .card-holo-sparkles { inset: 6px; border-radius: 8px; }
+.graded-slab-small .slab-window .card-holo-glare, .graded-slab-small .slab-window .card-holo-rainbow, .graded-slab-small .slab-window .card-holo-sparkles { inset: 3px; }
+.slab-window.is-foil::after { inset: 6px; border-radius: 8px; }
+.graded-slab-small .slab-window.is-foil::after { inset: 3px; }
+.slab-foil-chip { position: absolute; left: 10px; bottom: 10px; z-index: 5; padding: 1px 7px; border-radius: 999px; font-size: .6rem; font-weight: 900; letter-spacing: .04em; color: #1a1030; text-transform: uppercase; background: linear-gradient(90deg, #ff9ad5, #ffe27a, #8dffd9, #8fd3ff, #d9a2ff); box-shadow: 0 0 8px rgba(255, 255, 255, .5); }
+.graded-slab-small .slab-foil-chip { left: 5px; bottom: 5px; font-size: .5rem; padding: 0 5px; }

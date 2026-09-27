@@ -12,7 +12,8 @@
  */
 
 /** Pareti delle stanze all'aperto. */
-const OUTDOOR_WALLS = new Set(['hedge', 'skyline', 'seaside', 'stadium']);
+// Stanze all'aperto: meteo e luce del giorno.
+const OUTDOOR_WALLS = new Set(['hedge', 'skyline', 'seaside', 'stadium', 'street']);
 
 export function isOutdoor(room) {
   return !!room && OUTDOOR_WALLS.has(room.wallStyle);
