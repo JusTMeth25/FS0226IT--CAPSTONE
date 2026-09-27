@@ -156,6 +156,94 @@ export const PACKS = [
     source: 'nikke'
   },
   {
+    id: 'pack-cyberpunk',
+    name: 'Pacchetto Cyberpunk',
+    description: '5 carte solo Cyberpunk TCG con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'cyberpunk'
+  },
+  {
+    id: 'pack-hololive',
+    name: 'Pacchetto hololive',
+    description: '5 carte solo hololive OFFICIAL CARD GAME con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'hololive'
+  },
+  {
+    id: 'pack-unionarena',
+    name: 'Pacchetto Union Arena',
+    description: '5 carte solo Union Arena (anime) con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'unionarena'
+  },
+  {
+    id: 'pack-shadowverse',
+    name: 'Pacchetto Shadowverse',
+    description: '5 carte solo Shadowverse: Evolve con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'shadowverse'
+  },
+  {
+    id: 'pack-wixoss',
+    name: 'Pacchetto WIXOSS',
+    description: '5 carte solo WIXOSS con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'wixoss'
+  },
+  {
+    id: 'pack-grandarchive',
+    name: 'Pacchetto Grand Archive',
+    description: '5 carte solo Grand Archive con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'grandarchive'
+  },
+  {
+    id: 'pack-weiss',
+    name: 'Pacchetto Weiss Schwarz',
+    description: '5 carte solo Weiss Schwarz con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'weiss'
+  },
+  {
+    id: 'pack-vanguard',
+    name: 'Pacchetto Vanguard',
+    description: '5 carte solo Cardfight!! Vanguard con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'vanguard'
+  },
+  {
     id: 'pack-gundam',
     name: 'Pacchetto Gundam',
     description: '5 carte solo Gundam con 1 Rara garantita.',

@@ -1,0 +1,328 @@
+{
+ "cyberpunk": {
+  "products": [
+   {
+    "productId": 714168,
+    "name": "6th Street Recruits",
+    "cleanName": "6th Street Recruits",
+    "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/714168_200w.jpg",
+    "categoryId": 92,
+    "groupId": 24845,
+    "url": "https://www.tcgplayer.com/product/714168/cyberpunk-tcg-welcome-to-night-city-beta-6th-street-recruits",
+    "modifiedOn": "2026-09-10T04:10:13.33",
+    "imageCount": 1,
+    "presaleInfo": {
+     "isPresale": false,
+     "releasedOn": "2026-09-10T00:00:00",
+     "note": null
+    },
+    "extendedData": [
+     {
+      "name": "Rarity",
+      "displayName": "Rarity",
+      "value": "Common"
+     },
+     {
+      "name": "Number",
+      "displayName": "Number",
+      "value": "B006"
+     },
+     {
+      "name": "Description",
+      "displayName": "Description",
+      "value": "When a friendly Unit steals a d6, increase a Gig by up to 6."
+     },
+     {
+      "name": "Color",
+      "displayName": "Color",
+      "value": "Red"
+     },
+     {
+      "name": "CardType",
+      "displayName": "Card Type",
+      "value": "Unit"
+     },
+     {
+      "name": "Tags",
+      "displayName": "Tags",
+      "value": "6th Street;Ganger"
+     },
+     {
+      "name": "Cost",
+      "displayName": "Cost",
+      "value": "4"
+     },
+     {
+      "name": "Power",
+      "displayName": "Power",
+      "value": "6"
+     },
+     {
+      "name": "RAM",
+      "displayName": "RAM",
+      "value": "x1"
+     },
+     {
+      "name": "Eddies",
+      "displayName": "Eddies",
+      "value": "FALSE"
+     }
+    ]
+   },
+   {
+    "productId": 714330,
+    "name": "Johnny Silverhand - Rocking Renegade (ISecret)",
+    "cleanName": "Johnny Silverhand Rocking Renegade ISecret",
+    "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/714330_200w.jpg",
+    "categoryId": 92,
+    "groupId": 24845,
+    "url": "https://www.tcgplayer.com/product/714330/cyberpunk-tcg-welcome-to-night-city-beta-johnny-silverhand-rocking-renegade-isecret",
+    "modifiedOn": "2026-09-10T04:10:13.33",
+    "imageCount": 1,
+    "presaleInfo": {
+     "isPresale": false,
+     "releasedOn": "2026-09-10T00:00:00",
+     "note": null
+    },
+    "extendedData": [
+     {
+      "name": "Rarity",
+      "displayName": "Rarity",
+      "value": "Iconic Secret"
+     },
+     {
+      "name": "Number",
+      "displayName": "Number",
+      "value": "B168"
+     },
+     {
+      "name": "Description",
+      "displayName": "Description",
+      "value": "2 Eddies [Spend Icon:] A friendly Unit can attack spent rival Units the turn it's played. If it's a ROCKER Unit, also give it +2 power this turn. This effect costs -1 Eddies for each friendly Gig with 8+ value."
+     },
+     {
+      "name": "Color",
+      "displayName": "Color",
+      "value": "Red"
+     },
+     {
+      "name": "CardType",
+      "displayName": "Card Type",
+      "value": "Legend"
+     },
+     {
+      "name": "Tags",
+      "displayName": "Tags",
+      "value": "Merc;Rocker;Samurai"
+     },
+     {
+      "name": "Cost",
+      "displayName": "Cost",
+      "value": "0"
+     },
+     {
+      "name": "Power",
+      "displayName": "Power",
+      "value": "0"
+     },
+     {
+      "name": "RAM",
+      "displayName": "RAM",
+      "value": "x2"
+     },
+     {
+      "name": "Eddies",
+      "displayName": "Eddies",
+      "value": "TRUE"
+     }
+    ]
+   },
+   {
+    "productId": 714346,
+    "name": "Welcome to Night City - Beta Booster Box",
+    "cleanName": "Welcome to Night City Beta Booster Box",
+    "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/714346_200w.jpg",
+    "categoryId": 92,
+    "groupId": 24845,
+    "url": "https://www.tcgplayer.com/product/714346/cyberpunk-tcg-welcome-to-night-city-beta-welcome-to-night-city-beta-booster-box",
+    "modifiedOn": "2026-09-10T04:10:13.33",
+    "imageCount": 1,
+    "presaleInfo": {
+     "isPresale": false,
+     "releasedOn": "2026-09-10T00:00:00",
+     "note": null
+    },
+    "extendedData": []
+   }
+  ],
+  "prices": [
+   {
+    "productId": 714168,
+    "lowPrice": 0.03,
+    "midPrice": 0.2,
+    "highPrice": 1.63,
+    "marketPrice": 0.13,
+    "directLowPrice": null,
+    "subTypeName": "Normal"
+   },
+   {
+    "productId": 714330,
+    "lowPrice": 1100.0,
+    "midPrice": 1300.0,
+    "highPrice": 1500.0,
+    "marketPrice": 794.3,
+    "directLowPrice": null,
+    "subTypeName": "Foil"
+   },
+   {
+    "productId": 714346,
+    "lowPrice": 239.99,
+    "midPrice": 297.98,
+    "highPrice": 364.65,
+    "marketPrice": 246.1,
+    "directLowPrice": null,
+    "subTypeName": "Normal"
+   }
+  ]
+ },
+ "hololive": {
+  "products": [
+   {
+    "productId": 645575,
+    "name": "Amane Kanata (OSR)",
+    "cleanName": "Amane Kanata OSR",
+    "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/645575_200w.jpg",
+    "categoryId": 87,
+    "groupId": 24345,
+    "url": "https://www.tcgplayer.com/product/645575/hololive-official-card-game-blooming-radiance-amane-kanata-osr",
+    "modifiedOn": "2025-07-28T17:33:28.867",
+    "imageCount": 1,
+    "presaleInfo": {
+     "isPresale": false,
+     "releasedOn": null,
+     "note": null
+    },
+    "extendedData": [
+     {
+      "name": "Rarity",
+      "displayName": "Rarity",
+      "value": "Oshi Super Rare"
+     },
+     {
+      "name": "Number",
+      "displayName": "Number",
+      "value": "hBP01-001"
+     },
+     {
+      "name": "Color",
+      "displayName": "Color",
+      "value": "White"
+     },
+     {
+      "name": "CardType",
+      "displayName": "Card Type",
+      "value": "Oshi holomem"
+     },
+     {
+      "name": "Oshi Skill",
+      "displayName": "Oshi Skill",
+      "value": "[holo Power: -3] Squish Squish <br>[1/Turn]Set the opponent's center holomem's remaining HP to 50."
+     },
+     {
+      "name": "SP Oshi Skill",
+      "displayName": "SP Oshi Skill",
+      "value": "[holo Power: -2] I'll squish you! <br>[1/Game]During this turn, 1 of your holomem gets Arts+50. Then, if that holomem's color is white, it gets Arts+50."
+     },
+     {
+      "name": "Life",
+      "displayName": "Life",
+      "value": "5"
+     }
+    ]
+   },
+   {
+    "productId": 645593,
+    "name": "Amane Kanata (C) (hBP01-009)",
+    "cleanName": "Amane Kanata C hBP01 009",
+    "imageUrl": "https://tcgplayer-cdn.tcgplayer.com/product/645593_200w.jpg",
+    "categoryId": 87,
+    "groupId": 24345,
+    "url": "https://www.tcgplayer.com/product/645593/hololive-official-card-game-blooming-radiance-amane-kanata-c-hbp01-009",
+    "modifiedOn": "2025-11-10T20:47:02.337",
+    "imageCount": 1,
+    "presaleInfo": {
+     "isPresale": false,
+     "releasedOn": null,
+     "note": null
+    },
+    "extendedData": [
+     {
+      "name": "Rarity",
+      "displayName": "Rarity",
+      "value": "Common"
+     },
+     {
+      "name": "Number",
+      "displayName": "Number",
+      "value": "hBP01-009"
+     },
+     {
+      "name": "Color",
+      "displayName": "Color",
+      "value": "White"
+     },
+     {
+      "name": "BloomLevel",
+      "displayName": "Bloom Level",
+      "value": "Debut"
+     },
+     {
+      "name": "CardType",
+      "displayName": "Card Type",
+      "value": "holomem"
+     },
+     {
+      "name": "HP",
+      "displayName": "HP",
+      "value": "90"
+     },
+     {
+      "name": "Arts 1",
+      "displayName": "Arts 1",
+      "value": "[W] KonKanata~ (40)<br>This Arts can only target the opponent's center holomem."
+     },
+     {
+      "name": "Tags",
+      "displayName": "Tags",
+      "value": "#JP;#Gen 4;#Singing"
+     },
+     {
+      "name": "Special Rules",
+      "displayName": "Special Rules",
+      "value": "[Extra] You may include any number of this holomem in the deck"
+     }
+    ]
+   }
+  ],
+  "prices": [
+   {
+    "productId": 645575,
+    "lowPrice": 15.7,
+    "midPrice": 17.99,
+    "highPrice": 30.0,
+    "marketPrice": 16.4,
+    "directLowPrice": null,
+    "subTypeName": "Foil"
+   },
+   {
+    "productId": 645593,
+    "lowPrice": 0.93,
+    "midPrice": 1.99,
+    "highPrice": 5.0,
+    "marketPrice": 1.32,
+    "directLowPrice": null,
+    "subTypeName": "Normal"
+   }
+  ]
+ }
+}

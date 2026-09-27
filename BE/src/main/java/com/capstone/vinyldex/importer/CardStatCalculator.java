@@ -42,6 +42,8 @@ import java.util.regex.Pattern;
  * - Lorcana: forza 0-10, volonta' 1-12, leggenda 0-4.
  * - Riftbound: might da 0 a 10.
  * - NIKKE (Union Arena): BP da 500 a 4000 (piu' i bonus), energia richiesta 0-6, parallele da 1 a 3 stelle.
+ * - Cataloghi TCGplayer (Cyberpunk, hololive, Union Arena, Shadowverse, WIXOSS, Grand Archive, Weiss Schwarz,
+ *   Vanguard): potenza e costo gia' riportati da 0 a 1 dall'import, con le scale di ogni gioco (TcgcsvImporter).
  */
 @Component
 public class CardStatCalculator {
@@ -104,6 +106,8 @@ public class CardStatCalculator {
             case "lorcana" -> lorcana(name, meta, popularity, variant);
             case "riftbound" -> riftbound(name, meta, popularity, variant);
             case "nikke" -> nikke(name, meta, popularity, variant);
+            case "cyberpunk", "hololive", "unionarena", "shadowverse", "wixoss", "grandarchive", "weiss", "vanguard" ->
+                    tcgplayer(meta, popularity, variant);
             case "fc27" -> fc27(meta, popularity);
             default -> new Scores(popularity, variant, 0.45, 0.45);
         };
@@ -568,6 +572,31 @@ public class CardStatCalculator {
                 clamp(0.55 * special + 0.45 * popularity),
                 clamp(influence),
                 energy);
+    }
+
+    // ---------------------------------------------------------------- cataloghi TCGplayer
+
+    /**
+     * Giochi importati dal catalogo TCGplayer (TcgcsvImporter), che riporta gia' da 0 a 1 la forza
+     * (powerPct: potenza, HP, BP, attacco...) e il costo o livello (costPct) con le scale di ogni gioco:
+     * - energy: la forza (le carte senza forza, eventi e magie, stanno sotto la media);
+     * - influence: il costo, piu' molto per le carte che guidano il mazzo (leggende, oshi, leader, campioni);
+     * - style: il valore della stampa (secret, serial, parallele, iconiche...);
+     * - fans: il prezzo di mercato.
+     */
+    private Scores tcgplayer(Map<String, Object> meta, double popularity, double variant) {
+        Double power = num(meta, "powerPct");
+        Double cost = num(meta, "costPct");
+        Double print = num(meta, "printScore");
+        boolean leader = Boolean.TRUE.equals(meta.get("leader"));
+        double energy = power != null ? power : 0.35;
+        double influence = clamp(0.35 + 0.4 * orZero(cost) + (leader ? 0.3 : 0));
+        double special = print != null ? print : variant;
+        return new Scores(
+                popularity,
+                clamp(0.55 * special + 0.45 * popularity),
+                influence,
+                clamp(energy));
     }
 
     // ---------------------------------------------------------------- comuni

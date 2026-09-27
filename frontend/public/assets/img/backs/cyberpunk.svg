@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 1050" width="750" height="1050">
+  <!-- Dorso delle carte Cyberpunk TCG disegnato da VinylDex (nessun logo ufficiale). -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fcee0a" stop-opacity="0.35"/>
+      <stop offset="0.35" stop-color="#0b0b12"/>
+      <stop offset="1" stop-color="#0b0b12"/>
+    </linearGradient>
+    <clipPath id="card"><rect x="0" y="0" width="750" height="1050" rx="40"/></clipPath>
+  </defs>
+  <g clip-path="url(#card)">
+    <rect width="750" height="1050" fill="#0b0b12"/>
+    <rect width="750" height="1050" fill="url(#bg)"/>
+    <g stroke="#fcee0a" stroke-opacity="0.55" stroke-width="6" fill="none">
+      <path d="M60 300 H250 L310 360 H440 L500 300 H690"/><path d="M60 760 H200 L260 700 H490 L550 760 H690"/>
+      <path d="M375 150 V260 M375 800 V900"/></g>
+    <g fill="#fcee0a"><circle cx="250" cy="300" r="12"/><circle cx="500" cy="300" r="12"/><circle cx="260" cy="700" r="12"/><circle cx="490" cy="700" r="12"/></g>
+    <polygon points="375,330 520,530 375,730 230,530" fill="none" stroke="#fcee0a" stroke-width="12"/>
+    <rect x="120" y="505" width="510" height="14" fill="#22d3ee" opacity="0.7"/>
+    <text x="375" y="905" text-anchor="middle" font-family="Impact, 'Arial Black', sans-serif" font-size="64" letter-spacing="6" fill="#fef9c3" stroke="#fcee0a" stroke-width="2">NIGHT CITY</text>
+    <rect x="22" y="22" width="706" height="1006" rx="26" fill="none" stroke="#fcee0a" stroke-width="10"/>
+  </g>
+</svg>

@@ -9,7 +9,7 @@ import { CARD_BACKS } from '../../utils/cardBacks.js';
 const TAU = Math.PI * 2;
 
 /** Giochi il cui raccoglitore ha in copertina il dorso ufficiale delle loro carte. */
-const BACK_COVERS = new Set(['pokemon', 'yugioh', 'scryfall']);
+const BACK_COVERS = new Set(['pokemon', 'yugioh', 'scryfall', 'cyberpunk', 'hololive', 'unionarena', 'shadowverse', 'wixoss', 'grandarchive', 'weiss', 'vanguard']);
 const backImages = new Map();
 
 /**
@@ -87,6 +87,31 @@ function leather(ctx, w, h, base, seed = 7) {
 }
 
 /** Motivi delle copertine, uno per gioco. */
+/**
+ * Copertina di riserva dei giochi dal catalogo TCGplayer, finche' non e' pronto il loro dorso
+ * (che poi la sostituisce): fondo del gioco, un emblema e la cornice nel colore d'accento.
+ */
+function emblem(ctx, w, h, base, accent, motif) {
+  ctx.fillStyle = base;
+  ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 12;
+  ctx.beginPath();
+  if (motif === 'diamond' || motif === 'circuit') {
+    ctx.moveTo(w / 2, h * 0.28);
+    ctx.lineTo(w * 0.75, h * 0.48);
+    ctx.lineTo(w / 2, h * 0.68);
+    ctx.lineTo(w * 0.25, h * 0.48);
+    ctx.closePath();
+  } else if (motif === 'stars') {
+    star(ctx, w / 2, h * 0.46, 200);
+  } else {
+    ctx.arc(w / 2, h * 0.47, 200, 0, TAU);
+  }
+  ctx.stroke();
+  frame(ctx, w, h, accent, 14, 30);
+}
+
 const COVERS = {
   original(ctx, w, h, t) {
     const g = ctx.createLinearGradient(0, 0, w, h);
@@ -414,6 +439,31 @@ const COVERS = {
     ctx.stroke();
     frame(ctx, w, h, '#e11d48', 10, 30);
   },
+  // Giochi dal catalogo TCGplayer: lo stesso disegno del loro dorso (cardBacks.js), a tutta copertina.
+  cyberpunk(ctx, w, h) {
+    emblem(ctx, w, h, '#0b0b12', '#fcee0a', 'circuit');
+  },
+  hololive(ctx, w, h) {
+    emblem(ctx, w, h, '#0b2742', '#38bdf8', 'stars');
+  },
+  unionarena(ctx, w, h) {
+    emblem(ctx, w, h, '#1c1917', '#f97316', 'rays');
+  },
+  shadowverse(ctx, w, h) {
+    emblem(ctx, w, h, '#1e1b4b', '#d4af37', 'moon');
+  },
+  wixoss(ctx, w, h) {
+    emblem(ctx, w, h, '#2a0a3d', '#f472b6', 'diamond');
+  },
+  grandarchive(ctx, w, h) {
+    emblem(ctx, w, h, '#0f2f2d', '#d4af37', 'book');
+  },
+  weiss(ctx, w, h) {
+    emblem(ctx, w, h, '#111111', '#e5c07b', 'split');
+  },
+  vanguard(ctx, w, h) {
+    emblem(ctx, w, h, '#0f1d3d', '#fbbf24', 'shield');
+  },
   fc27(ctx, w, h) {
     for (let x = 0; x < w; x += 64) {
       ctx.fillStyle = (x / 64) % 2 ? '#15803d' : '#16a34a';
@@ -447,6 +497,14 @@ export const BINDER_THEMES = {
   gundam: { title: 'Raccoglitore Gundam', accent: '#1d4ed8', page: '#dfe6ef', pocket: 'rgba(30,41,59,.4)', text: '#0f172a' },
   riftbound: { title: 'Raccoglitore Riftbound', accent: '#cbb26a', page: '#0b1733', pocket: 'rgba(203,178,106,.5)', text: '#fef3c7' },
   nikke: { title: 'Raccoglitore NIKKE', accent: '#fb7185', page: '#141821', pocket: 'rgba(225,29,72,.5)', text: '#ffe4e6' },
+  cyberpunk: { title: 'Raccoglitore Cyberpunk', accent: '#fcee0a', page: '#0b0b12', pocket: '#fcee0a80', text: '#fef9c3' },
+  hololive: { title: 'Raccoglitore hololive', accent: '#38bdf8', page: '#0b2742', pocket: '#38bdf880', text: '#e0f2fe' },
+  unionarena: { title: 'Raccoglitore Union Arena', accent: '#f97316', page: '#1c1917', pocket: '#f9731680', text: '#ffedd5' },
+  shadowverse: { title: 'Raccoglitore Shadowverse', accent: '#d4af37', page: '#1e1b4b', pocket: '#d4af3780', text: '#ede9fe' },
+  wixoss: { title: 'Raccoglitore WIXOSS', accent: '#f472b6', page: '#2a0a3d', pocket: '#f472b680', text: '#fce7f3' },
+  grandarchive: { title: 'Raccoglitore Grand Archive', accent: '#d4af37', page: '#0f2f2d', pocket: '#d4af3780', text: '#ccfbf1' },
+  weiss: { title: 'Raccoglitore Weiss Schwarz', accent: '#e5c07b', page: '#111111', pocket: '#e5c07b80', text: '#fafafa' },
+  vanguard: { title: 'Raccoglitore Vanguard', accent: '#fbbf24', page: '#0f1d3d', pocket: '#fbbf2480', text: '#dbeafe' },
   fc27: { title: 'Raccoglitore FC 27 Ultimate Team', accent: '#e3b341', page: '#0f4d2b', pocket: 'rgba(227,179,65,.55)', text: '#fef9c3' }
 };
 

@@ -4,6 +4,19 @@
  */
 export const NEWS = [
   {
+    date: '2026-10-06',
+    title: 'Otto giochi nuovi: cyberpunk, idol e anime',
+    icon: 'ph-cards',
+    items: [
+      ['ph-circuitry', 'Cyberpunk TCG', 'Night City in carte: Johnny Silverhand, Judy, Panam e i mercenari, con le Iconic Secret.'],
+      ['ph-microphone-stage', 'hololive OFFICIAL CARD GAME', 'Le idol di hololive con gli oshi e i costumi dei live.'],
+      ['ph-fire', 'Union Arena anime', 'Chainsaw Man, Jujutsu Kaisen, Code Geass, Evangelion, Tokyo Ghoul, Sword Art Online e tante altre serie.'],
+      ['ph-moon-stars', 'Shadowverse, WIXOSS e Grand Archive', 'Eroine fantasy, le DIVA con le loro LRIG e l’arte anime di Grand Archive.'],
+      ['ph-yin-yang', 'Weiss Schwarz e Vanguard', 'Le serie idol e anime scelte: Persona, Blue Archive, BOCCHI THE ROCK!, Lycoris Recoil, BanG Dream!…'],
+      ['ph-gift', 'Un pacchetto per ogni gioco', 'Otto pacchetti nuovi, dorsi e raccoglitori dedicati, sei set nuovi da completare.']
+    ]
+  },
+  {
     date: '2026-10-05',
     title: 'Arrivano le carte NIKKE',
     icon: 'ph-crosshair',

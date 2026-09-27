@@ -199,6 +199,7 @@ function ImportTab() {
     { key: 'lorcana', label: SOURCE_LABELS.lorcana, fn: () => adminApi.importLorcana({ limit: count }) },
     { key: 'riftbound', label: SOURCE_LABELS.riftbound, fn: () => adminApi.importRiftbound({ limit: count }) },
     { key: 'nikke', label: SOURCE_LABELS.nikke, fn: () => adminApi.importNikke({ limit: count }) },
+    ...TCGPLAYER_GAMES.map((key) => ({ key, label: SOURCE_LABELS[key], fn: () => adminApi.importSource(key, { limit: count }) })),
     { key: 'gundam', label: SOURCE_LABELS.gundam, fn: () => adminApi.importGundam({ limit: count }) },
     { key: 'dragonball', label: SOURCE_LABELS.dragonball, fn: () => adminApi.importDragonBall({ limit: count }) }
   ];
@@ -344,6 +345,10 @@ function LogsTab() {
 const TAB_COMPONENTS = {
   users: UsersTab, cards: CardsTab, packs: PacksTab, import: ImportTab, missions: MissionsTab, events: EventsTab, hotel: AdminHotelTab, logs: LogsTab
 };
+
+
+/** Giochi importati dal catalogo TCGplayer (TcgcsvImporter nel backend). */
+const TCGPLAYER_GAMES = ['cyberpunk', 'hololive', 'unionarena', 'shadowverse', 'wixoss', 'grandarchive', 'weiss', 'vanguard'];
 
 export default function AdminPage() {
   const [tab, setTab] = useState('users');

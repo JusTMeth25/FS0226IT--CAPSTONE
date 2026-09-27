@@ -10,6 +10,7 @@ import { useApiResource } from '../hooks/useApiResource.js';
 import CardHero from '../components/card/CardHero.jsx';
 import Fc27Credits from '../components/card/Fc27Credits.jsx';
 import NikkeCredits from '../components/card/NikkeCredits.jsx';
+import TcgplayerCredits from '../components/card/TcgplayerCredits.jsx';
 import GradingBox, { GradeBadge } from '../components/card/GradingBox.jsx';
 import PriceHistory from '../components/card/PriceHistory.jsx';
 import GradedSlab from '../components/card/GradedSlab.jsx';
@@ -140,6 +141,7 @@ export default function CardDetailPage() {
 
       {card.source === 'fc27' && <Fc27Credits />}
       {card.source === 'nikke' && <NikkeCredits />}
+      <TcgplayerCredits source={card.source} />
 
       <PriceHistory code={card.id} />
 

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 1050" width="750" height="1050">
+  <!-- Dorso delle carte hololive OFFICIAL CARD GAME disegnato da VinylDex (nessun logo ufficiale). -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7dd3fc" stop-opacity="0.35"/>
+      <stop offset="0.35" stop-color="#0b2742"/>
+      <stop offset="1" stop-color="#0c4a6e"/>
+    </linearGradient>
+    <clipPath id="card"><rect x="0" y="0" width="750" height="1050" rx="40"/></clipPath>
+  </defs>
+  <g clip-path="url(#card)">
+    <rect width="750" height="1050" fill="#0b2742"/>
+    <rect width="750" height="1050" fill="url(#bg)"/>
+    <g fill="#38bdf8" opacity="0.9">
+      <path d="M375 300 L405 400 L510 400 L425 460 L455 560 L375 500 L295 560 L325 460 L240 400 L345 400 Z"/></g>
+    <g fill="#ffffff" opacity="0.7"><circle cx="160" cy="220" r="6"/><circle cx="600" cy="260" r="8"/><circle cx="560" cy="700" r="5"/><circle cx="180" cy="660" r="7"/></g>
+    <rect x="345" y="600" width="60" height="150" rx="30" fill="none" stroke="#38bdf8" stroke-width="10"/>
+    <path d="M300 690 Q300 790 375 790 Q450 790 450 690" fill="none" stroke="#38bdf8" stroke-width="10"/>
+    <text x="375" y="905" text-anchor="middle" font-family="Impact, 'Arial Black', sans-serif" font-size="64" letter-spacing="6" fill="#e0f2fe" stroke="#38bdf8" stroke-width="2">LIVE STAGE</text>
+    <rect x="22" y="22" width="706" height="1006" rx="26" fill="none" stroke="#38bdf8" stroke-width="10"/>
+  </g>
+</svg>

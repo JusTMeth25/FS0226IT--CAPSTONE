@@ -14,6 +14,14 @@ const GAME_PACKS = {
   lorcana: ['ph-sparkle', '#e9c46a', '#2b1d5c'],
   riftbound: ['ph-sword', '#5eead4', '#0b2530'],
   nikke: ['ph-crosshair', '#fb7185', '#1b1f2a'],
+  cyberpunk: ['ph-circuitry', '#fcee0a', '#0b0b12'],
+  hololive: ['ph-microphone-stage', '#7dd3fc', '#0c4a6e'],
+  unionarena: ['ph-fire', '#fb923c', '#1c1917'],
+  shadowverse: ['ph-moon-stars', '#c4b5fd', '#1e1b4b'],
+  wixoss: ['ph-flower-lotus', '#f9a8d4', '#3b0764'],
+  grandarchive: ['ph-book-bookmark', '#5eead4', '#134e4a'],
+  weiss: ['ph-yin-yang', '#f5f5f5', '#111111'],
+  vanguard: ['ph-shield-chevron', '#93c5fd', '#172554'],
   gundam: ['ph-robot', '#93c5fd', '#7f1d1d'],
   original: ['ph-vinyl-record', '#e879f9', '#2e0b3a']
 };

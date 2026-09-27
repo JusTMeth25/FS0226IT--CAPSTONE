@@ -65,6 +65,18 @@ public class CardSetService {
                             && c.getMetadata().get("stars") instanceof Number stars && stars.intValue() > 0),
             new SetDef("nikke-rapi", "Squadra Counters", "Rapi, Anis e Neon in tutte le versioni", "crosshair", 250,
                     named("nikke", "rapi|anis|neon")),
+            new SetDef("cyberpunk-leggende", "Leggende di Night City", "Le carte Legend di Cyberpunk TCG", "lightning", 300,
+                    c -> "cyberpunk".equals(c.getSource()) && metaIs(c, "cardType", "(?i)legend")),
+            new SetDef("hololive-oshi", "Oshi di hololive", "Le carte Oshi delle idol di hololive", "microphone-stage", 300,
+                    c -> "hololive".equals(c.getSource()) && metaIs(c, "cardType", "(?i)oshi")),
+            new SetDef("unionarena-punk", "Diavoli e stregoni", "Chainsaw Man e Jujutsu Kaisen di Union Arena", "fire", 300,
+                    c -> "unionarena".equals(c.getSource()) && metaIs(c, "series", "(?i)chainsaw|jujutsu")),
+            new SetDef("unionarena-ribelli", "Ribelli e mecha", "Code Geass, Evangelion e Gurren Lagann di Union Arena", "robot", 300,
+                    c -> "unionarena".equals(c.getSource()) && metaIs(c, "series", "(?i)code geass|evangelion|gurren")),
+            new SetDef("grandarchive-campioni", "Campioni di Grand Archive", "I Champion di Grand Archive", "shield", 250,
+                    c -> "grandarchive".equals(c.getSource()) && metaIs(c, "cardType", "(?i)champion")),
+            new SetDef("wixoss-lrig", "LRIG di WIXOSS", "Le LRIG, le protagoniste di WIXOSS", "sparkle", 250,
+                    c -> "wixoss".equals(c.getSource()) && metaIs(c, "cardType", "(?i)^lrig")),
             new SetDef("gundam-assi", "Assi di Gundam", "Le carte epiche e leggendarie di Gundam", "rocket", 250,
                     c -> "gundam".equals(c.getSource()) && Set.of("epic", "legendary").contains(c.getRarity())));
 
@@ -92,6 +104,12 @@ public class CardSetService {
     private static boolean fc27Icon(Card card, String nation) {
         Map<String, Object> m = card.getMetadata();
         return "fc27".equals(card.getSource()) && m != null && "icon".equals(m.get("version")) && nation.equals(m.get("nation"));
+    }
+
+    /** Il metadato della carta (tipo, serie...) corrisponde all'espressione. */
+    private static boolean metaIs(Card c, String key, String regex) {
+        Object value = c.getMetadata() == null ? null : c.getMetadata().get(key);
+        return value instanceof String s && Pattern.compile(regex).matcher(s).find();
     }
 
     private static Predicate<Card> named(String source, String regex) {

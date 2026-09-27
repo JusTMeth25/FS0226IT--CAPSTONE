@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 1050" width="750" height="1050">
+  <!-- Dorso delle carte Shadowverse: Evolve disegnato da VinylDex (nessun logo ufficiale). -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c4b5fd" stop-opacity="0.35"/>
+      <stop offset="0.35" stop-color="#1e1b4b"/>
+      <stop offset="1" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <clipPath id="card"><rect x="0" y="0" width="750" height="1050" rx="40"/></clipPath>
+  </defs>
+  <g clip-path="url(#card)">
+    <rect width="750" height="1050" fill="#1e1b4b"/>
+    <rect width="750" height="1050" fill="url(#bg)"/>
+    <circle cx="375" cy="500" r="200" fill="none" stroke="#d4af37" stroke-width="10"/>
+    <path d="M430 330 A180 180 0 1 0 430 670 A140 140 0 1 1 430 330 Z" fill="#d4af37" opacity="0.9"/>
+    <g fill="#ffffff" opacity="0.8"><circle cx="520" cy="420" r="8"/><circle cx="560" cy="520" r="5"/><circle cx="500" cy="600" r="6"/></g>
+    <text x="375" y="905" text-anchor="middle" font-family="Impact, 'Arial Black', sans-serif" font-size="64" letter-spacing="6" fill="#ede9fe" stroke="#d4af37" stroke-width="2">EVOLVE</text>
+    <rect x="22" y="22" width="706" height="1006" rx="26" fill="none" stroke="#d4af37" stroke-width="10"/>
+  </g>
+</svg>

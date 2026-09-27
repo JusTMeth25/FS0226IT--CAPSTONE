@@ -22,6 +22,15 @@ import java.util.Map;
  *   digimon    n=539   0.05 / 0.15 / 0.41 / 1.98  / 6.62  / 14.78  / 139.95 / 2399.50
  *   fc27       n=532   0.01 / 0.05 / 0.09 / 0.45  / 4.50  / 75.00  / 200.00 / 450.00
  *   nikke      n=245   0.03 / 0.10 / 1.46 / 4.77  / 21.01 / 72.23  / 252.04 / 493.73  (settembre 2026)
+ * Cataloghi TCGplayer via tcgcsv.com (settembre 2026, TcgcsvImporter; weiss e vanguard solo i set scelti):
+ *   cyberpunk    n=232    0.05 / 0.12 / 0.27 / 9.56 / 44.77 / 70.81 / 507.51 / 794.3
+ *   hololive     n=1942   0.03 / 0.24 / 1.25 / 5.29 / 32.69 / 109.0 / 622.0 / 3000.0
+ *   unionarena   n=6565   0.01 / 0.14 / 0.45 / 3.04 / 20.88 / 89.99 / 492.49 / 28000.0
+ *   shadowverse  n=7111   0.01 / 0.25 / 0.74 / 3.25 / 15.0 / 47.8 / 260.26 / 35000.19
+ *   wixoss       n=4156   0.03 / 0.25 / 0.73 / 3.0 / 12.99 / 50.0 / 200.0 / 1700.0
+ *   grandarchive n=4923   0.02 / 0.49 / 1.99 / 14.49 / 64.65 / 195.0 / 799.99 / 10000.0
+ *   weiss        n=11060  0.01 / 0.23 / 0.68 / 3.5 / 34.99 / 139.0 / 499.99 / 21000.0
+ *   vanguard     n=3501   0.01 / 0.25 / 0.64 / 3.81 / 20.47 / 56.0 / 199.99 / 2500.0
  *
  * Per fc27 i prezzi sono crediti di Ultimate Team convertiti in dollari (Fc27Importer.COINS_PER_USD):
  * 10.000 crediti = uncommon, 50.000 = rare, 400.000 = epic, 1.500.000 = legendary.
@@ -29,15 +38,23 @@ import java.util.Map;
 @Component
 public class PriceRarityMapper {
 
-    private static final Map<String, Thresholds> THRESHOLDS = Map.of(
-            "pokemon", new Thresholds(3, 19, 75, 250),
-            "scryfall", new Thresholds(0.4, 1.6, 8, 35),
-            "yugioh", new Thresholds(0.21, 0.4, 1.3, 9),
-            "onepiece", new Thresholds(0.2, 4.5, 40, 600),
-            "dragonball", new Thresholds(0.3, 0.75, 4.5, 80),
-            "digimon", new Thresholds(0.4, 2, 6.5, 75),
-            "fc27", new Thresholds(0.5, 2.5, 20, 75),
-            "nikke", new Thresholds(1.5, 4.8, 21, 120));
+    private static final Map<String, Thresholds> THRESHOLDS = Map.ofEntries(
+            Map.entry("pokemon", new Thresholds(3, 19, 75, 250)),
+            Map.entry("scryfall", new Thresholds(0.4, 1.6, 8, 35)),
+            Map.entry("yugioh", new Thresholds(0.21, 0.4, 1.3, 9)),
+            Map.entry("onepiece", new Thresholds(0.2, 4.5, 40, 600)),
+            Map.entry("dragonball", new Thresholds(0.3, 0.75, 4.5, 80)),
+            Map.entry("digimon", new Thresholds(0.4, 2, 6.5, 75)),
+            Map.entry("fc27", new Thresholds(0.5, 2.5, 20, 75)),
+            Map.entry("nikke", new Thresholds(1.5, 4.8, 21, 120)),
+            Map.entry("cyberpunk", new Thresholds(0.3, 9.5, 44, 170)),
+            Map.entry("hololive", new Thresholds(1.25, 5.3, 32, 190)),
+            Map.entry("unionarena", new Thresholds(0.45, 3, 21, 198)),
+            Map.entry("shadowverse", new Thresholds(0.75, 3.25, 15, 94)),
+            Map.entry("wixoss", new Thresholds(0.73, 3, 13, 83)),
+            Map.entry("grandarchive", new Thresholds(2, 14.5, 65, 375)),
+            Map.entry("weiss", new Thresholds(0.68, 3.5, 35, 249)),
+            Map.entry("vanguard", new Thresholds(0.64, 3.8, 20.5, 100)));
 
     /**
      * @return la rarita' corrispondente al prezzo, oppure null quando manca un prezzo affidabile.
@@ -56,15 +73,23 @@ public class PriceRarityMapper {
     /** Percentili a cui corrispondono i valori di PRICE_PERCENTILES (stessa tabella del commento in testa). */
     private static final double[] PERCENTILE_POINTS = {0, 0.25, 0.50, 0.75, 0.90, 0.95, 0.99, 1.0};
 
-    private static final Map<String, double[]> PRICE_PERCENTILES = Map.of(
-            "pokemon", new double[]{0.04, 0.45, 2.94, 18.98, 74.87, 147.74, 379.99, 3998.99},
-            "scryfall", new double[]{0.02, 0.25, 0.38, 1.59, 7.74, 15.43, 54.04, 203.30},
-            "yugioh", new double[]{0.02, 0.14, 0.21, 0.40, 1.28, 3.15, 15.64, 454.44},
-            "onepiece", new double[]{0.02, 0.08, 0.20, 4.45, 40.33, 124.38, 1095.24, 8489.98},
-            "dragonball", new double[]{0.01, 0.13, 0.29, 0.74, 4.34, 12.98, 149.08, 2475.01},
-            "digimon", new double[]{0.05, 0.15, 0.41, 1.98, 6.62, 14.78, 139.95, 2399.50},
-            "fc27", new double[]{0.01, 0.05, 0.09, 0.45, 4.50, 75.00, 200.00, 450.00},
-            "nikke", new double[]{0.03, 0.10, 1.46, 4.77, 21.01, 72.23, 252.04, 493.73});
+    private static final Map<String, double[]> PRICE_PERCENTILES = Map.ofEntries(
+            Map.entry("pokemon", new double[]{0.04, 0.45, 2.94, 18.98, 74.87, 147.74, 379.99, 3998.99}),
+            Map.entry("scryfall", new double[]{0.02, 0.25, 0.38, 1.59, 7.74, 15.43, 54.04, 203.30}),
+            Map.entry("yugioh", new double[]{0.02, 0.14, 0.21, 0.40, 1.28, 3.15, 15.64, 454.44}),
+            Map.entry("onepiece", new double[]{0.02, 0.08, 0.20, 4.45, 40.33, 124.38, 1095.24, 8489.98}),
+            Map.entry("dragonball", new double[]{0.01, 0.13, 0.29, 0.74, 4.34, 12.98, 149.08, 2475.01}),
+            Map.entry("digimon", new double[]{0.05, 0.15, 0.41, 1.98, 6.62, 14.78, 139.95, 2399.50}),
+            Map.entry("fc27", new double[]{0.01, 0.05, 0.09, 0.45, 4.50, 75.00, 200.00, 450.00}),
+            Map.entry("nikke", new double[]{0.03, 0.10, 1.46, 4.77, 21.01, 72.23, 252.04, 493.73}),
+            Map.entry("cyberpunk", new double[]{0.05, 0.12, 0.27, 9.56, 44.77, 70.81, 507.51, 794.3}),
+            Map.entry("hololive", new double[]{0.03, 0.24, 1.25, 5.29, 32.69, 109.0, 622.0, 3000.0}),
+            Map.entry("unionarena", new double[]{0.01, 0.14, 0.45, 3.04, 20.88, 89.99, 492.49, 28000.0}),
+            Map.entry("shadowverse", new double[]{0.01, 0.25, 0.74, 3.25, 15.0, 47.8, 260.26, 35000.19}),
+            Map.entry("wixoss", new double[]{0.03, 0.25, 0.73, 3.0, 12.99, 50.0, 200.0, 1700.0}),
+            Map.entry("grandarchive", new double[]{0.02, 0.49, 1.99, 14.49, 64.65, 195.0, 799.99, 10000.0}),
+            Map.entry("weiss", new double[]{0.01, 0.23, 0.68, 3.5, 34.99, 139.0, 499.99, 21000.0}),
+            Map.entry("vanguard", new double[]{0.01, 0.25, 0.64, 3.81, 20.47, 56.0, 199.99, 2500.0}));
 
     /**
      * Posizione del prezzo nella distribuzione reale della sua fonte, da 0 (la carta piu' economica)
