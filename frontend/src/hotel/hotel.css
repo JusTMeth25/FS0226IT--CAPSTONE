@@ -1428,3 +1428,43 @@ button.hotel-badge:hover:not(:disabled) { transform: translateY(-2px) scale(1.08
 .mg-hockey-puck { position: absolute; width: 22px; height: 10px; border-radius: 50%; background: #0a0a0a; box-shadow: 0 3px 0 #27272a; }
 .mg-hockey-puck.idle { left: 50%; top: 92%; transform: translate(-50%, -50%) scale(1.4); }
 .lux-credit { display: block; margin-top: 4px; font-size: 0.66rem; opacity: 0.6; color: inherit; }
+
+/* Gara rock stile Guitar Hero. */
+.hotel-minigame.is-wide { width: min(700px, calc(100% - 16px)); max-height: calc(100% - 16px); }
+.rock-select { display: grid; gap: 10px; }
+.rock-songs { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+.rock-song { display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 10px 12px; border-radius: 10px; cursor: pointer;
+  background: linear-gradient(135deg, #1f0a2e, #0d0614); border: 2px solid #3f3f46; color: #fff; }
+.rock-song strong { font-size: 0.95rem; }
+.rock-song span { font-size: 0.75rem; opacity: 0.8; }
+.rock-song small { font-size: 0.72rem; color: #fb923c; display: flex; gap: 4px; align-items: center; }
+.rock-song.active { border-color: #f97316; box-shadow: 0 0 14px rgba(249, 115, 22, 0.55); }
+.rock-diffs { display: flex; gap: 8px; }
+.rock-diff { flex: 1; padding: 8px; border-radius: 10px; border: 2px solid #3f3f46; background: #111; color: #fff; font-weight: 800; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; }
+.rock-diff small { font-weight: 500; opacity: 0.7; font-size: 0.7rem; }
+.rock-diff.active { border-color: #22c55e; background: #052e16; }
+.rock-go { font-size: 1.1rem; }
+.rock-stage-view { position: relative; }
+.rock-canvas { display: block; width: 100%; border-radius: 10px; background: #07030d; }
+.rock-results { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  background: rgba(7, 3, 13, 0.82); border-radius: 10px; text-align: center; padding: 12px; }
+.rock-results h4 { margin: 0; font-size: 1.4rem; }
+.rock-stars { display: flex; gap: 6px; font-size: 2rem; color: #3f3f46; }
+.rock-stars .on { color: #facc15; filter: drop-shadow(0 0 6px #facc15); }
+.rock-grade strong { font-size: 1.4rem; color: #f97316; }
+
+/* Prova delle chitarre nel Rock Store. */
+.guitar-tester { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(380px, calc(100% - 24px)); z-index: 5;
+  padding: 12px; border-radius: 12px; background: linear-gradient(135deg, #1c1208, #0c0a09); border: 1px solid #f97316;
+  display: grid; gap: 8px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7); }
+.guitar-tester header { display: flex; align-items: center; gap: 8px; }
+.guitar-tester header small { opacity: 0.7; flex: 1; }
+.guitar-tester-art { display: flex; justify-content: center; }
+.guitar-face.big { width: 140px; height: 150px; }
+.guitar-tester-art.strum-1 .guitar-face, .guitar-tester-art.strum-0 .guitar-face { animation: guitar-strum 0.25s ease-out; }
+@keyframes guitar-strum { 0% { transform: rotate(-3deg) scale(1.04); } 100% { transform: none; } }
+.guitar-tester-chords { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.guitar-tester-chords .btn { min-width: 0; padding: 6px 4px; font-size: 0.78rem; white-space: nowrap; }
+.guitar-tester kbd { font-size: 0.65rem; padding: 0 4px; border-radius: 4px; background: rgba(255, 255, 255, 0.15); }
+@media (prefers-reduced-motion: reduce) { .guitar-tester-art .guitar-face { animation: none; } }

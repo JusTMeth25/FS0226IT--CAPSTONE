@@ -4,6 +4,18 @@
  */
 export const NEWS = [
   {
+    date: '2026-10-02',
+    title: 'Locale Rock, gara di chitarre e Rock Store',
+    icon: 'ph-guitar',
+    items: [
+      ['ph-guitar', 'Gara rock', 'Sulla pedana del Locale Rock: note colorate sulla tastiera, accordi, note lunghe, star power e il pubblico da tenere caldo. Cinque canzoni rock, tre difficoltà.'],
+      ['ph-microphone-stage', 'Locale Rock', 'Palco, ampli e la band dal vivo. Gara a premi ogni sera alle 22:45.'],
+      ['ph-storefront', 'Rock Store', 'Chitarre classiche, acustiche, elettriche e bassi: provi il suono di ognuna prima di comprarla. E il merchandising rock.'],
+      ['ph-t-shirt', 'Vestiti rock', 'Gilet borchiato, maglia della band, flanella, tuta leopardata, jeans con toppe, pelle rossa.'],
+      ['ph-music-notes', 'Musica rock', 'Quattro brani rock nel jukebox, con la chitarra distorta vera; il glam rock anni 80 suona anche in Disco.']
+    ]
+  },
+  {
     date: '2026-10-01',
     title: 'Il Quartiere: negozi di lusso, auto, hockey e ville',
     icon: 'ph-road-horizon',

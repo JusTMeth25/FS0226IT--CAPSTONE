@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
  * 1 donna). Le parti dopo i pantaloni sono arrivate dopo e sono facoltative: i codici salvati
  * prima restano validi, e senza corporatura vale "uomo". Poi i pezzi dei negozi del quartiere
  * (LuxuryCatalog): o = capo firmato, w = orologio, r = veicolo, poi facoltativi n = collana ed
- * e = orecchini; zero vuol dire niente. Questi si
+ * e = orecchini e infine g = chitarra; zero vuol dire niente. Questi si
  * indossano solo se comprati (lo controlla WardrobeService).
  * Il server non conosce i colori, controlla solo che gli indici esistano: cosi' un client
  * modificato non puo' salvare valori che gli altri non saprebbero disegnare.
@@ -27,7 +27,7 @@ public final class HotelLook {
 
     private static final Pattern FORMAT = Pattern.compile(
             "s[0-5]\\.h[0-9]\\.hc[0-9]\\.sh(?:[0-9]|1[01])\\.p[0-7](?:\\.t([0-5])\\.f[0-5]\\.a[0-6](?:\\.b([01])"
-                    + "(?:\\.o(?:[0-9]|1[0-3])\\.w(?:[0-9]|1[01])\\.r[0-9](?:\\.n[0-6]\\.e[0-6])?)?)?)?");
+                    + "(?:\\.o(?:[0-9]|1[0-9])\\.w(?:[0-9]|1[01])\\.r[0-9](?:\\.n[0-6]\\.e[0-6](?:\\.g[0-9])?)?)?)?)?");
 
     private HotelLook() {
     }
@@ -54,7 +54,7 @@ public final class HotelLook {
     /** Pezzi dei negozi indossati, come chiavi del catalogo ("o3", "w1", "r5"). */
     public static List<String> luxuryItems(String look) {
         List<String> items = new ArrayList<>();
-        for (String key : new String[]{"o", "w", "r", "n", "e"}) {
+        for (String key : new String[]{"o", "w", "r", "n", "e", "g"}) {
             int index = part(look, key);
             if (index > 0) items.add(key + index);
         }

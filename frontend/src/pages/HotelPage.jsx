@@ -71,7 +71,9 @@ const USABLE = ['bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart'
   // Ping pong e freccette in sala giochi.
   'ping_pong_table', 'dart_board',
   // Pedana della gara di ballo della Disco anni 80, bersaglio dei tiri al palaghiaccio, bancone della caffetteria.
-  'dance_contest', 'hockey_target', 'espresso_bar'];
+  'dance_contest', 'hockey_target', 'espresso_bar',
+  // Pedane della gara rock del Locale Rock.
+  'guitar_duel'];
 
 /** Il chiosco e l'espositore dell'edicola aprono il banco dei pacchetti. */
 const NEWSSTAND_ITEMS = ['newsstand', 'pack_display'];
@@ -86,14 +88,17 @@ const DISTRICT_DOORS = {
   facade_cars: '00000000-0000-0000-0000-00000000a01a',
   facade_cafe: '00000000-0000-0000-0000-00000000a01b',
   arena_hockey: '00000000-0000-0000-0000-00000000a01c',
-  arena_basket: '00000000-0000-0000-0000-00000000a01d'
+  arena_basket: '00000000-0000-0000-0000-00000000a01d',
+  facade_rock: '00000000-0000-0000-0000-00000000a01e',
+  facade_guitars: '00000000-0000-0000-0000-00000000a01f'
 };
 /** Stanze che si affacciano sul quartiere: da li' un pulsante riporta in strada. */
 const DISTRICT_ROOMS = new Set(Object.values(DISTRICT_DOORS));
 
 /** Banconi dei negozi del quartiere: aprono il negozio (capi, orologi, skate, bici, auto). */
 const LUXURY_COUNTERS = {
-  atelier_counter: 'atelier', watch_counter: 'orologi', skate_counter: 'skate', bike_counter: 'bici', car_counter: 'auto'
+  atelier_counter: 'atelier', watch_counter: 'orologi', skate_counter: 'skate', bike_counter: 'bici', car_counter: 'auto',
+  guitar_counter: 'chitarre', rock_counter: 'rock'
 };
 
 /** Schermo intero vero dove il browser lo permette; altrimenti (iPhone) la pagina copre tutto. */

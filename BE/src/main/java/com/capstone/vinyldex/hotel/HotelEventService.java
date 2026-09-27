@@ -71,6 +71,8 @@ public class HotelEventService {
                     LocalTime.of(18, 0), Duration.ofHours(1), "Miglior punteggio ai tiri liberi: la sfida della domenica."),
             new EventDef("gara-ballo", "Gara di ballo", "music-notes", "Disco anni 80", "disco", false, null,
                     LocalTime.of(22, 0), Duration.ofMinutes(30), "Sali sulla pedana della Disco anni 80: miglior punteggio alla gara di ballo."),
+            new EventDef("gara-rock", "Gara rock", "guitar", "Locale Rock", "rock", false, null,
+                    LocalTime.of(22, 45), Duration.ofMinutes(30), "Sulla pedana del Locale Rock: miglior voto alla gara di chitarre."),
             new EventDef("tiri-hockey", "Tiri al palaghiaccio", "target", "Palaghiaccio", "hockey", false, null,
                     LocalTime.of(19, 0), Duration.ofMinutes(30), "Cinque tiri al bersaglio del palaghiaccio: vince il punteggio piu' alto."));
 

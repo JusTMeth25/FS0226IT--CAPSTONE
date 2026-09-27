@@ -91,10 +91,10 @@ public class RoomService {
     /** Pavimenti e pareti disponibili: i nomi coincidono con gli stili di src/hotel/sprites/room.js. */
     public static final Set<String> FLOOR_STYLES = Set.of("neon", "parquet", "carpet", "checker", "marble", "arena",
             "grass", "pooldeck", "terracotta", "wooddeck", "sand", "cobble", "cinema", "rubber", "pitch", "court", "kart", "disco",
-            "street", "ice", "boutique", "showroom", "coffeehouse");
+            "street", "ice", "boutique", "showroom", "coffeehouse", "rockclub");
     public static final Set<String> WALL_STYLES = Set.of("neon", "brick", "teal", "wood", "windows", "arena",
             "hedge", "pooltile", "skyline", "seaside", "shops", "curtain", "mirror", "stadium", "comics", "disco",
-            "street", "boutique", "showroom", "coffeehouse");
+            "street", "boutique", "showroom", "coffeehouse", "rockclub", "rockstore");
 
     /** Nome, descrizione, porta, capienza e stile: solo il proprietario. Le modifiche arrivano subito ai presenti. */
     @Transactional

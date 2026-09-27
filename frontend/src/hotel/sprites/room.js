@@ -67,6 +67,21 @@ function fbm(x, y, seed = 0) {
  * caselle (con i decimali), sx e sy il pixel sullo schermo per il rumore fine.
  */
 const FLOORS = {
+  // Locale rock: scacchiera bianca e nera consumata, con le macchie di birra e i graffi.
+  rockclub: (() => {
+    const white = rgb('#d6d0c4');
+    const black = rgb('#1c1a1e');
+    const stain = rgb('#5a4630');
+    return (X, Y, sx, sy) => {
+      const dark = (Math.floor(X) + Math.floor(Y)) % 2 === 0;
+      let c = dark ? black : white;
+      const wear = smoothNoise(X * 2.1, Y * 2.1, 5);
+      if (wear > 0.72) c = mix(c, stain, 0.35);
+      if (noise(sx * 3, sy * 7) > 0.985) c = tint(c, dark ? 0.25 : -0.25);
+      return tint(c, (noise(sx, sy) - 0.5) * 0.07 + (frac(X) < 0.02 || frac(Y) < 0.02 ? -0.15 : 0));
+    };
+  })(),
+
   // Boutique di lusso: marmo crema lucido a grandi lastre, con l'intarsio d'oro nelle fughe.
   boutique: (() => {
     const cream = rgb('#efe6d4');
@@ -499,6 +514,49 @@ const baseboard = (h, colors) => {
 };
 
 const WALLS = {
+  // Locale rock: mattoni neri, locandine dei concerti incollate storte e una striscia al neon rossa.
+  rockclub: (() => {
+    const bricks = ['#221c1e', '#2a2226', '#1b1618'].map(rgb);
+    const mortar = rgb('#0c0a0b');
+    const posters = ['#f97316', '#facc15', '#ef4444', '#22c55e', '#e5e7eb'].map(rgb);
+    const neon = rgb('#ef4444');
+    const board = { shadow: rgb('#050404'), board: rgb('#141012'), trim: rgb('#ef4444') };
+    return (col, h, height, side, sy) => {
+      const bb = baseboard(h, board);
+      if (bb) return bb;
+      if (h > height - 12 && h <= height - 9) return neon;
+      // Locandine: rettangoli colorati con le righe del titolo.
+      const slot = Math.floor(col / 46);
+      const px0 = slot * 46 + 8 + Math.floor(noise(slot, 3) * 10);
+      const py0 = 40 + Math.floor(noise(slot, 5) * 30);
+      if (noise(slot, 9) > 0.35 && col >= px0 && col < px0 + 22 && h >= py0 && h < py0 + 30) {
+        const poster = posters[Math.floor(noise(slot, 11) * posters.length)];
+        if ((h - py0) % 7 === 2 && col > px0 + 3 && col < px0 + 18) return rgb('#111111');
+        return tint(poster, (noise(col, sy) - 0.5) * 0.1);
+      }
+      const row = Math.floor(h / 6);
+      const shift = row % 2 ? 7 : 0;
+      if (h % 6 === 0 || (col + shift) % 14 === 0) return mortar;
+      return tint(bricks[Math.floor(noise(Math.floor((col + shift) / 14), row) * 3)], (noise(col, sy) - 0.5) * 0.08);
+    };
+  })(),
+
+  // Rock Store: doghe di legno scuro e una fascia arancione, come i negozi di strumenti.
+  rockstore: (() => {
+    const woods = ['#4a2f22', '#553626', '#3f281d'].map(rgb);
+    const band = rgb('#f97316');
+    const board = { shadow: rgb('#140c08'), board: rgb('#2e1d14'), trim: rgb('#f97316') };
+    return (col, h, height, side, sy) => {
+      const bb = baseboard(h, board);
+      if (bb) return bb;
+      if (h > height - 16 && h <= height - 12) return band;
+      const plank = Math.floor(col / 6);
+      if (col % 6 === 0) return tint(woods[0], -0.35);
+      const grain = Math.sin(h * 0.4 + noise(plank, 2) * 10) > 0.88 ? -0.1 : 0;
+      return tint(woods[plank % woods.length], grain + (noise(col, sy) - 0.5) * 0.05);
+    };
+  })(),
+
   // Quartiere all'aperto: dietro la recinzione di mattoni si vedono i palazzi con le finestre
   // accese, i tetti e il cielo della sera.
   street: (() => {

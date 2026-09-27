@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 /**
  * Merci dei negozi del quartiere: capi firmati (parte "o" del codice aspetto), orologi ("w"),
- * veicoli ("r"), collane ("n") e orecchini ("e"). La chiave e' la parte seguita dall'indice:
+ * veicoli ("r"), collane ("n"), orecchini ("e") e chitarre ("g"). La chiave e' la parte seguita dall'indice:
  * "o3" e' il terzo capo.
  *
  * I nomi dei marchi sono inventati (con un occhio alle case vere): orologi e auto non sono
@@ -24,6 +24,8 @@ public final class LuxuryCatalog {
     public static final String SKATE = "skate";
     public static final String BIKES = "bici";
     public static final String CARS = "auto";
+    public static final String GUITARS = "chitarre";
+    public static final String ROCK = "rock";
 
     /** @param speed solo per i veicoli: caselle per passo (1 a piedi) */
     public record Item(String key, String part, int index, String name, String brand, String shop, int price, int speed,
@@ -45,6 +47,13 @@ public final class LuxuryCatalog {
             outfit(11, "Giacca di velluto", "Sartoria Vinile", 1100, "Velluto bordeaux, camicia aperta, niente cravatta."),
             outfit(12, "Kimono di seta", "Maison Aurora", 1600, "Seta blu notte con i fiori di ciliegio e l'obi rosso."),
             outfit(13, "Tailleur rosa", "Maison Aurora", 1300, "Giacca e pantaloni rosa cipria con i bottoni d'oro."),
+            // Rock Store: abbigliamento da palco.
+            rock(14, "Gilet borchiato", "Amplificato", 650, "Pelle nera con le borchie, jeans strappati."),
+            rock(15, "Maglia della band", "Amplificato", 300, "T-shirt nera dei Vinyl Thunder e jeans neri attillati."),
+            rock(16, "Camicia di flanella", "Garage 91", 350, "Quadri rossi e neri aperti su una maglia grigia."),
+            rock(17, "Tuta glam leopardata", "Glam Palace", 900, "Anni 80, tutta maculata, con la cintura d'argento."),
+            rock(18, "Giacca di jeans con toppe", "Garage 91", 550, "Toppe delle band e spille, sopra una maglia bianca."),
+            rock(19, "Completo di pelle rossa", "Glam Palace", 1200, "Giacca e pantaloni di pelle rossa con le zip."),
             // Gioielleria: orologi al polso.
             watch(1, "Submarino", "Rolaix", 2500, "Acciaio con la ghiera verde, subacqueo."),
             watch(2, "Daytona d'oro", "Rolaix", 4500, "Cronografo in oro giallo, quadrante champagne."),
@@ -79,15 +88,26 @@ public final class LuxuryCatalog {
             ride(6, "Toro giallo", "Lamborgo", CARS, 8000, 4, "Linee a spigolo, porte ad ali."),
             ride(7, "Novecento undici", "Porsa", CARS, 5000, 4, "Coupe' bianca, motore dietro."),
             ride(8, "Hypercar nera", "Bugatto", CARS, 12000, 5, "Nera e bianca, linee da astronave: la piu' veloce del quartiere."),
-            ride(9, "Coupe' blu", "Lotto", CARS, 7000, 4, "Coupe' sportiva bassa e leggera, blu elettrico."));
+            ride(9, "Coupe' blu", "Lotto", CARS, 7000, 4, "Coupe' sportiva bassa e leggera, blu elettrico."),
+            // Rock Store: chitarre e bassi. Si portano a tracolla e si suonano nella gara rock.
+            guitar(1, "Chitarra classica", "Liuteria Vinile", 400, "Corde di nylon e cassa di cedro: arpeggi e flamenco."),
+            guitar(2, "Acustica western", "Liuteria Vinile", 700, "Corde di metallo, cassa grande, suono pieno da falo'."),
+            guitar(3, "Stratosfera rossa", "Fendra", 1200, "Tre pickup, doppia spalla mancante: il suono del rock classico."),
+            guitar(4, "Les Pauline sunburst", "Gibbon", 1800, "Mogano massiccio e humbucker: il suono grosso dell'hard rock."),
+            guitar(5, "Volo V bianca", "Gibbon", 1600, "La chitarra a V degli assoli anni 80."),
+            guitar(6, "Esplosiva nera", "Gibbon", 1700, "Forma a spigoli, nera lucida, per il metal."),
+            guitar(7, "Basso Precisione", "Fendra", 1000, "Quattro corde, blu, il basso di tutte le band."),
+            guitar(8, "Basso Jazzista", "Fendra", 1100, "Manico sottile e suono ricco, finitura sunburst."),
+            guitar(9, "Doppio manico", "Gibbon", 3000, "Dodici e sei corde insieme, per le ballate epiche."));
 
     private static final Map<String, Item> BY_KEY = ITEMS.stream().collect(Collectors.toMap(Item::key, Function.identity()));
 
     /** Quante varianti ha ogni parte (compreso lo zero, "niente"). */
-    public static final int OUTFITS = 14;
+    public static final int OUTFITS = 20;
     public static final int WATCH_COUNT = 12;
     public static final int RIDES = 10;
     public static final int NECKLACES = 7;
+    public static final int GUITAR_COUNT = 10;
     public static final int EARRINGS = 7;
 
     private LuxuryCatalog() {
@@ -99,6 +119,14 @@ public final class LuxuryCatalog {
 
     private static Item watch(int index, String name, String brand, int price, String description) {
         return new Item("w" + index, "w", index, name, brand, WATCHES, price, 1, description);
+    }
+
+    private static Item rock(int index, String name, String brand, int price, String description) {
+        return new Item("o" + index, "o", index, name, brand, ROCK, price, 1, description);
+    }
+
+    private static Item guitar(int index, String name, String brand, int price, String description) {
+        return new Item("g" + index, "g", index, name, brand, GUITARS, price, 1, description);
     }
 
     private static Item jewel(String part, int index, String name, String brand, int price, String description) {

@@ -29,7 +29,9 @@ const SIGNS = {
   facade_cars: { text: 'AUTO SPORTIVE', color: '#ffffff', u: 2.5, v: 1.7, z: 98, size: 11 },
   facade_cafe: { text: 'CAFFE\' DEL VIALE', color: '#f5f1e6', u: 2, v: 1.7, z: 94, size: 10 },
   arena_hockey: { text: 'PALAGHIACCIO', color: '#ffffff', u: 3.5, v: 2.75, z: 57, size: 14 },
-  arena_basket: { text: 'ARENA BASKET', color: '#ffffff', u: 3.5, v: 2.75, z: 57, size: 14 }
+  arena_basket: { text: 'ARENA BASKET', color: '#ffffff', u: 3.5, v: 2.75, z: 57, size: 14 },
+  facade_rock: { text: 'LOCALE ROCK', color: '#f97316', u: 2.5, v: 1.7, z: 101, size: 12 },
+  facade_guitars: { text: 'ROCK STORE', color: '#fde68a', u: 2, v: 1.7, z: 93, size: 11 }
 };
 
 /** Stanze all'aperto dove si va in skate, bici o auto: non gli stadi (RoomInstance.RIDE_WALLS). */
@@ -1449,6 +1451,14 @@ export class HotelEngine {
       // Gara di ballo: si balla a tempo, piu' veloce che sulla pista.
       pose = 'dance';
       frame = animate ? Math.floor(now / 130) % 4 : 0;
+    } else if (user.game === 'rock' || (user.npc?.title === 'Musicista' && /\.g[1-9]$/.test(user.look))) {
+      // Gara rock (e la band del locale): chitarra in mano, la mano pennella a tempo.
+      pose = 'guitar';
+      frame = user.game === 'rock' ? (now - (user.pulseAt || 0) < 150 ? 1 : (animate ? Math.floor(now / 260) % 2 : 0)) : (animate ? Math.floor(now / 230) % 2 : 0);
+    } else if (user.npc?.title === 'Musicista') {
+      // Il batterista: bacchette su e giu'.
+      pose = 'play';
+      frame = animate ? Math.floor(now / 160) % 2 : 0;
     } else if (user.status === 'sit') {
       pose = 'sit';
     } else if (user.status === 'dance' || (this.jukeboxOn && user.status !== 'sit' && this.onDanceFloor(at))) {

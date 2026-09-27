@@ -295,7 +295,7 @@ function filmPixel(x, z, step, scene) {
 /** Mobili piu' alti del solito (palazzi del quartiere): spazio in piu' sopra lo sprite. */
 const TALL = {
   facade_atelier: 170, facade_watches: 170, facade_skate: 150, facade_bikes: 150, facade_cars: 160, facade_cafe: 160,
-  arena_hockey: 200, arena_basket: 200, villa: 150
+  arena_hockey: 200, arena_basket: 200, villa: 150, facade_rock: 170, facade_guitars: 160
 };
 
 /** Bancone di un negozio (2x1): mobile, piano e una fascia colorata davanti. */
@@ -786,6 +786,118 @@ const DRAW = {
     b({ u0: 0.05, v0: 0.1, u1: 2.95, v1: 0.2, z1: 60, color: 'rgba(214, 238, 255, 0.35)', left: 'rgba(214, 238, 255, 0.3)' });
     b({ u0: 0.05, v0: 0.3, u1: 2.95, v1: 0.8, z0: 16, z1: 20, color: '#1f5fbf' });
     [0.2, 1.4, 2.7].forEach((u) => b({ u0: u, v0: 0.4, u1: u + 0.1, v1: 0.7, z1: 16, color: '#27272a' }));
+  },
+
+  // ---------------------------------------------------------------- locale rock e Rock Store
+
+  // Palco (6x3, si calpesta): pedana nera con il bordo di luci e la moquette consumata.
+  rock_stage(b, { d, now, front }) {
+    b({ u0: 0.02, v0: 0.02, u1: 5.98, v1: 2.98, z1: 10, color: '#1c1917', left: '#292524', right: '#0c0a09', tex: 'wood' });
+    b({ u0: 0.1, v0: 0.1, u1: 5.9, v1: 2.9, z0: 10, z1: 10, color: '#27201c', tex: 'fabric' });
+    const step = Math.floor((now || 0) / 250) % 4;
+    front(() => {
+      for (let i = 0; i < 22; i += 1) d(0.12 + i * 0.27, 2.98, 6, (i + step) % 4 === 0 ? '#fde047' : (i % 2 ? '#ef4444' : '#f97316'), 3, 3);
+    });
+  },
+  drum_kit(b, { c }) {
+    // Grancassa di fronte, rullante, tom, timpano, due piatti dorati e lo sgabello.
+    c({ u: 1.0, v: 1.5, r: 0.36, z0: 0, z1: 26, color: '#b91c1c', top: '#e5e7eb' });
+    c({ u: 1.0, v: 1.5, r: 0.2, z0: 13, z1: 13, color: '#f5f5f5', top: '#f5f5f5' });
+    c({ u: 0.55, v: 1.0, r: 0.16, z0: 0, z1: 22, color: '#9ca3af', top: '#e5e7eb', tex: 'metal' });
+    c({ u: 1.45, v: 1.0, r: 0.2, z0: 0, z1: 18, color: '#b91c1c', top: '#e5e7eb' });
+    c({ u: 0.85, v: 1.0, r: 0.13, z0: 28, z1: 36, color: '#b91c1c', top: '#e5e7eb' });
+    c({ u: 1.2, v: 1.0, r: 0.13, z0: 28, z1: 36, color: '#b91c1c', top: '#e5e7eb' });
+    [[0.35, 0.6, 46], [1.7, 0.6, 50]].forEach(([u, v, z]) => {
+      c({ u, v, r: 0.02, z0: 0, z1: z, color: '#9ca3af' });
+      c({ u, v, r: 0.24, z0: z, z1: z + 1, color: '#ca8a04', top: '#fde047' });
+    });
+    c({ u: 1.0, v: 0.45, r: 0.14, z0: 0, z1: 18, color: '#27272a', top: '#3f3f46' });
+  },
+  amp_stack(b, { d, front }) {
+    // Testata e cassa 4x12 nere con la griglia e le manopole.
+    b({ u0: 0.1, v0: 0.2, u1: 0.9, v1: 0.8, z1: 50, color: '#18181b', tex: 'fabric' });
+    b({ u0: 0.08, v0: 0.18, u1: 0.92, v1: 0.82, z0: 50, z1: 64, color: '#111114' });
+    front(() => {
+      d(0.15, 0.8, 46, '#3f3f46', 20, 38);
+      for (let i = 0; i < 4; i += 1) d(0.2 + (i % 2) * 0.32, 0.8, 42 - Math.floor(i / 2) * 18, '#27272a', 9, 9);
+      d(0.18, 0.82, 61, '#d4a017', 22, 2);
+      for (let i = 0; i < 5; i += 1) d(0.22 + i * 0.12, 0.82, 57, '#e5e7eb', 2, 2);
+    });
+  },
+  mic_stand(b, { c }) {
+    c({ u: 0.5, v: 0.5, r: 0.16, z0: 0, z1: 2, color: '#27272a' });
+    c({ u: 0.5, v: 0.5, r: 0.025, z0: 2, z1: 52, color: '#a1a1aa', tex: 'metal' });
+    c({ u: 0.5, v: 0.5, r: 0.06, z0: 52, z1: 60, color: '#3f3f46', top: '#9ca3af' });
+  },
+  // Pedana della gara rock (2x2): i tasti colorati della chitarra sul piano, luci a tempo.
+  guitar_duel(b, { d, now, front }) {
+    b({ u0: 0.02, v0: 0.02, u1: 1.98, v1: 1.98, z1: 12, color: '#18181b', left: '#27272a', right: '#0c0a09', tex: 'metal' });
+    const colors = ['#22c55e', '#ef4444', '#facc15', '#3b82f6', '#f97316'];
+    const lit = Math.floor((now || 0) / 200) % 5;
+    colors.forEach((color, i) => {
+      b({ u0: 0.2 + i * 0.33, v0: 0.3, u1: 0.44 + i * 0.33, v1: 1.7, z0: 12, z1: 13, color: i === lit ? color : shade(color, -0.45), glow: i === lit });
+    });
+    front(() => {
+      for (let i = 0; i < 12; i += 1) d(0.08 + i * 0.16, 1.98, 7, (i + lit) % 3 === 0 ? '#fde047' : '#f97316', 3, 3);
+    });
+  },
+  guitar_wall(b, { d }) {
+    // Pannello di legno con sei chitarre appese.
+    b({ u0: 0.05, v0: 0.1, u1: 1.95, v1: 0.2, z1: 96, color: '#5b3a26', tex: 'wood' });
+    ['#c81e1e', '#e0902e', '#f4f4f5', '#18181b', '#1d4ed8', '#c8904f'].forEach((color, i) => {
+      const u = 0.18 + i * 0.3;
+      for (let z = 60; z < 88; z += 2) d(u + 0.06, 0.22, z, '#7c4a1e', 2, 2);
+      d(u + 0.03, 0.22, 90, '#27272a', 4, 3);
+      d(u, 0.22, 58, color, 9, 14);
+      d(u + 0.02, 0.22, 46, color, 7, 8);
+    });
+  },
+  guitar_stand(b, { c, d }) {
+    // Chitarra elettrica su un supporto a treppiede.
+    c({ u: 0.5, v: 0.5, r: 0.18, z0: 0, z1: 2, color: '#27272a' });
+    c({ u: 0.5, v: 0.5, r: 0.02, z0: 2, z1: 20, color: '#52525b' });
+    d(0.38, 0.52, 34, '#c81e1e', 10, 16);
+    d(0.42, 0.52, 20, '#c81e1e', 8, 6);
+    d(0.44, 0.54, 28, '#f5f5f5', 4, 4);
+    for (let z = 36; z < 62; z += 2) d(0.48, 0.52, z, '#7c4a1e', 2, 2);
+    d(0.46, 0.52, 64, '#27272a', 4, 4);
+  },
+  guitar_counter(b, { d, front }) {
+    shopCounter(b, { body: '#3f2a14', top: '#1c1917', accent: '#f97316' });
+    // Plettri colorati e un accordatore sul banco.
+    ['#ef4444', '#facc15', '#3b82f6', '#22c55e'].forEach((color, i) => d(0.3 + i * 0.2, 0.55, 33, color, 3, 2));
+    b({ u0: 1.4, v0: 0.3, u1: 1.8, v1: 0.55, z0: 33, z1: 37, color: '#18181b' });
+    front(() => d(0.3, 0.9, 22, '#f97316', 20, 4));
+  },
+  rock_counter(b, { d, front }) {
+    shopCounter(b, { body: '#111114', top: '#27272a', accent: '#dc2626' });
+    // Magliette piegate sul banco.
+    ['#111114', '#b91c1c', '#e5e7eb'].forEach((color, i) => b({ u0: 0.2 + i * 0.5, v0: 0.3, u1: 0.6 + i * 0.5, v1: 0.7, z0: 33, z1: 36, color, tex: 'fabric' }));
+    front(() => d(0.4, 0.9, 22, '#dc2626', 18, 4));
+  },
+  facade_rock(b, { c, d, front }) {
+    // Locale rock: mattoni neri, tavola dell'insegna, porta rossa, locandine dei concerti.
+    shopFront(b, d, front, {
+      W: 5, L: 2, h: 124, wall: '#27201c', tex: 'stone', trim: '#dc2626', sign: '#111114', glass: '#1a0628',
+      door: '#b91c1c',
+      goods: (u, z) => ['#f97316', '#22c55e', '#ef4444'].forEach((color, i) => d(u + i * 0.5, 1.72, z, color, 9, 14))
+    });
+    front(() => {
+      // Chitarra gigante al neon sopra l'ingresso.
+      for (let k = 0; k < 14; k += 1) d(3.9 + k * 0.05, 1.72, 76 + k * 1.6, '#f97316', 2, 2);
+      d(3.75, 1.72, 70, '#ef4444', 10, 8);
+    });
+    c({ u: 4.6, v: 0.4, r: 0.02, z0: 124, z1: 150, color: '#e5e7eb' });
+  },
+  facade_guitars(b, { d, front }) {
+    shopFront(b, d, front, {
+      W: 4, L: 2, h: 116, wall: '#5b3a26', tex: 'wood', trim: '#f97316', sign: '#18181b', glass: '#24160e', warm: true,
+      door: '#18181b', awning: ['#18181b', '#f97316'],
+      goods: (u, z) => ['#c81e1e', '#e0902e', '#f4f4f5', '#1d4ed8'].forEach((color, i) => {
+        for (let k = 0; k < 8; k += 1) d(u + i * 0.34 + 0.04, 1.72, z + 10 + k * 2, '#7c4a1e', 1, 2);
+        d(u + i * 0.34, 1.72, z + 8, color, 6, 9);
+      })
+    });
   },
 
   // Piastrella della Disco anni 80: vetro colorato illuminato da sotto, come in Saturday Night Fever.
@@ -1883,7 +1995,9 @@ const ANIMATIONS = {
   karaoke_stage: { period: 300, steps: 4 },
   race_lights: { period: 700, steps: 7 },
   traffic_light: { period: 1500, steps: 3 },
-  dance_contest: { period: 300, steps: 4 }
+  dance_contest: { period: 300, steps: 4 },
+  rock_stage: { period: 250, steps: 4 },
+  guitar_duel: { period: 200, steps: 5 }
 };
 const DANCE_COLORS = 6;
 

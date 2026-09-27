@@ -38,7 +38,7 @@ class HotelLookTest {
         String look = "s1.h1.hc0.sh0.p0.t0.f0.a0.b0.o2.w3.r5";
         assertTrue(HotelLook.isValid(look));
         assertFalse(HotelLook.isValid("s1.h1.hc0.sh0.p0.t0.f0.a0.b0.o2"), "le parti del quartiere vanno insieme");
-        assertFalse(HotelLook.isValid("s1.h1.hc0.sh0.p0.t0.f0.a0.b0.o14.w0.r0"), "capo che non esiste");
+        assertFalse(HotelLook.isValid("s1.h1.hc0.sh0.p0.t0.f0.a0.b0.o20.w0.r0"), "capo che non esiste");
         assertEquals(2, HotelLook.part(look, "o"));
         assertEquals(0, HotelLook.part(look, "x"));
         assertEquals(java.util.List.of("o2", "w3", "r5"), HotelLook.luxuryItems(look));
@@ -56,5 +56,10 @@ class HotelLookTest {
         assertFalse(HotelLook.isValid("s1.h1.hc0.sh0.p0.t0.f0.a0.b1.o0.w0.r0.n7.e0"), "collana che non esiste");
         assertEquals(LuxuryCatalog.NECKLACES - 1, LuxuryCatalog.ITEMS.stream().filter(i -> i.part().equals("n")).count());
         assertEquals(LuxuryCatalog.EARRINGS - 1, LuxuryCatalog.ITEMS.stream().filter(i -> i.part().equals("e")).count());
+        // Chitarra in fondo a tutto, dopo collana e orecchini.
+        String rocker = "s1.h1.hc0.sh0.p0.t0.f0.a0.b0.o19.w0.r0.n0.e2.g9";
+        assertTrue(HotelLook.isValid(rocker));
+        assertEquals(java.util.List.of("o19", "e2", "g9"), HotelLook.luxuryItems(rocker));
+        assertEquals(LuxuryCatalog.GUITAR_COUNT - 1, LuxuryCatalog.ITEMS.stream().filter(i -> i.part().equals("g")).count());
     }
 }

@@ -27,11 +27,12 @@ V30 = os.path.join(MIGRATIONS_DIR, 'V30__hotel_karaoke_fishing_kart.sql')
 V35 = os.path.join(MIGRATIONS_DIR, 'V35__hotel_ping_pong_darts.sql')
 V44 = os.path.join(MIGRATIONS_DIR, 'V44__hotel_disco_80.sql')
 V46 = os.path.join(MIGRATIONS_DIR, 'V46__hotel_district.sql')
-LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18, 18: V19, 19: V30, 20: V44, **{n: V46 for n in range(21, 30)}}
+V48 = os.path.join(MIGRATIONS_DIR, 'V48__hotel_rock.sql')
+LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18, 18: V19, 19: V30, 20: V44, **{n: V46 for n in range(21, 30)}, 30: V48, 31: V48}
 # Migrazione in lavorazione: le altre, gia' pubblicate, non si riscrivono piu' (Flyway ne controlla
 # il contenuto). Le stanze cambiate dopo la pubblicazione si rifanno qui (REBUILT) e gli arredi da
 # togliere si elencano in REMOVED.
-CURRENT = V46
+CURRENT = V48
 REBUILT = {16: V19, 8: V20, 12: V20}
 REMOVED = {V19: [('00000000-0000-0000-0000-00000000a00f', 'basket_hoop')]}
 # Arredi aggiunti a stanze gia' pubblicate: finiscono nella migrazione indicata (vedi Room.migration).
@@ -43,6 +44,7 @@ MIGRATION_TITLES = {
     V30: 'Palco del karaoke al Neon Bar, paletti da pesca sulla spiaggia e la pista dei go-kart.',
     V35: 'Ping pong e freccette in sala giochi.',
     V44: 'Nuova stanza pubblica: Disco anni 80, con la pista illuminata, il DJ e la gara di ballo.',
+    V48: 'Locale Rock con il palco, la band e la gara di chitarre, e il Rock Store di chitarre, bassi e abbigliamento rock.',
     V46: 'Il Quartiere: viale con i negozi di lusso (atelier, gioielleria, skate, bici, auto), la caffetteria, '
          'il palaghiaccio, l\'arena del basket e le ville dei giocatori.',
 }
@@ -118,12 +120,17 @@ FURNI = {
     'street_tree': (1, 1, False, False, -1),
     'espresso_bar': (3, 1, False, False, -1), 'pastry_case': (2, 1, False, False, -1), 'armchair_green': (1, 1, False, False, 2),
     'hockey_goal': (1, 2, False, False, -1), 'hockey_target': (2, 1, False, False, -1), 'team_bench': (3, 1, False, False, 4),
+    # Locale rock e Rock Store.
+    'rock_stage': (6, 3, False, True, -1), 'drum_kit': (2, 2, False, False, -1), 'amp_stack': (1, 1, False, False, -1),
+    'mic_stand': (1, 1, False, False, -1), 'guitar_duel': (2, 2, False, False, -1), 'guitar_wall': (2, 1, False, False, -1),
+    'guitar_stand': (1, 1, False, False, -1), 'guitar_counter': (2, 1, False, False, -1), 'rock_counter': (2, 1, False, False, -1),
+    'facade_rock': (5, 2, False, False, -1), 'facade_guitars': (4, 2, False, False, -1),
     # Minigolf
     **{f'golf_hole_{n}': (3, 2, False, False, -1) for n in range(1, 7)},
 }
 
 # Mobili che si usano cliccandoli: serve una casella libera accanto.
-SERVING = {'atelier_counter', 'watch_counter', 'skate_counter', 'bike_counter', 'car_counter', 'espresso_bar',
+SERVING = {'guitar_duel', 'guitar_counter', 'rock_counter', 'atelier_counter', 'watch_counter', 'skate_counter', 'bike_counter', 'car_counter', 'espresso_bar',
            'hockey_target', 'dance_contest', 'billiard_table', 'bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'pizza_oven', 'beach_bar',
            'popcorn_machine', 'water_cooler', 'newsstand', 'basket_hoop', 'bowling_lane', 'shoe_counter',
            *[f'golf_hole_{n}' for n in range(1, 7)]}
@@ -853,7 +860,8 @@ r.walker('lola', 'Lola', 'GUEST', 's1.h2.hc2.sh1.p1.t4.f2.a2.b1.o3.w2.r6', 28, A
 r.walker('kiko', 'Kiko', 'GUEST', 's3.h5.hc6.sh2.p0.t1.f1.a3.b0.o0.w0.r1', 10, 9, 5)
 r.walker('bea', 'Bea', 'GUEST', 's0.h7.hc4.sh5.p6.t0.f1.a0.b1.o0.w0.r4', SX0 + 1, AY0 + 10, 6)
 r.walker('gigio', 'Gigio', 'GUEST', 's4.h4.hc0.sh10.p0.t1.f5.a6.b0.o0.w0.r3', 28, 8, 5)
-r.walker('contessa', 'Contessa', 'GUEST', 's1.h3.hc3.sh7.p1.t2.f0.a5.b1.o8.w4.r0', 11, AY0 + 12, 4)
+# Il Locale Rock e il Rock Store (facciate nel parco) li aggiunge la V49 a mano: la V46 e' pubblicata.
+r.walker('contessa', 'Contessa', 'GUEST', 's1.h3.hc3.sh7.p1.t2.f0.a5.b1.o8.w4.r0', 8, AY0 + 13, 3)
 r.walker('max', 'Max', 'GUEST', 's2.h0.hc1.sh9.p1.t3.f0.a2.b0.o7.w1.r7', 30, AY0 + 2, 6)
 
 
@@ -967,6 +975,49 @@ for x, y in [(1, 1), (28, 1), (1, 18), (28, 18)]:
 r.walker('canestro', 'Canestro', 'GUEST', 's4.h9.hc0.sh10.p0.t4.f1.a0', 9, 11, 5)
 r.walker('assist', 'Assist', 'GUEST', 's2.h1.hc0.sh3.p0.t4.f1.a0', 19, 11, 5)
 r.walker('curva_sud', 'Curva Sud', 'GUEST', 's0.h3.hc6.sh1.p3.t1.f3.a5.b1', 14, 16, 3)
+
+
+# ------------------------------------------------------------------ Locale rock e Rock Store
+
+r = room(30, 'ROCK_CLUB', 'Locale Rock',
+         'Palco, ampli al massimo e la band dal vivo: sali sulla pedana e sfida tutti alla gara di chitarre, '
+         'con le canzoni rock e le note che arrivano sulla tastiera come in Guitar Hero.',
+         26, 20, 10, 'rockclub', 'rockclub', 30)
+# Palco sul fondo con la batteria e gli ampli; la band suona sopra.
+r.add('rock_stage', 10, 1)
+r.add('drum_kit', 12, 2).add('amp_stack', 10, 1).add('amp_stack', 15, 1).add('amp_stack', 8, 1).add('amp_stack', 17, 1)
+r.add('mic_stand', 14, 3)
+# Due pedane per la gara rock davanti al palco.
+r.add('guitar_duel', 8, 6).add('guitar_duel', 16, 6)
+r.add('speaker', 7, 4).add('speaker', 19, 4).add('neon_sign', 1, 5, 2).add('neon_sign', 1, 15, 2)
+r.add('poster_neon', 5, 1, 0).add('poster_neon', 21, 1, 0).add('jukebox', 24, 1)
+# Bar a sinistra, divanetti e tavolini a destra.
+r.add('bar_counter', 2, 17).add('bar_counter', 5, 17)
+r.row('bar_stool', 2, 18, 6, rot=6)
+r.add('sofa_vinyl', 22, 12, 4).add('coffee_table', 22, 13).add('sofa_vinyl', 22, 14, 0)
+r.table_for_two(13, 17).table_for_two(18, 17)
+r.add('plant_big', 1, 1).add('plant_big', 26, 20).add('lamp_neon', 26, 8).add('lamp_neon', 1, 20)
+r.worker('axel', 'Axel', 'MUSICIAN', 's2.h2.hc7.sh9.p1.t0.f0.a2.b0.o14.w0.r0.n0.e2.g4', 11, 3, 4)
+r.worker('riff', 'Riff', 'MUSICIAN', 's4.h6.hc0.sh8.p1.t0.f0.a0.b1.o15.w0.r0.n0.e2.g7', 16, 3, 4)
+r.worker('tamburo', 'Tamburo', 'MUSICIAN', 's1.h9.hc0.sh9.p1.t4.f0.a6.b0', 13, 1, 4)
+r.worker('joan', 'Joan', 'BARISTA', 's0.h8.hc7.sh8.p1.t4.f0.a5.b1.o16.w0.r0', 4, 16, 4, 'cola', 'bubble', 'juice')
+r.walker('metallo', 'Metallo', 'GUEST', 's3.h2.hc0.sh9.p1.t0.f0.a0.b0.o15.w0.r0', 12, 10, 4)
+r.walker('grunge', 'Grunge', 'GUEST', 's1.h8.hc2.sh2.p0.t0.f1.a0.b0.o16.w0.r0', 17, 11, 4)
+r.walker('glam', 'Glam', 'GUEST', 's0.h2.hc4.sh1.p4.t4.f2.a2.b1.o17.w0.r0', 9, 12, 3)
+
+r = room(31, 'ROCK_STORE', 'Rock Store',
+         'Chitarre classiche, acustiche ed elettriche, bassi e il merchandising rock: prova il suono di ogni chitarra prima di comprarla.',
+         20, 17, 8, 'parquet', 'rockstore', 31)
+r.add('guitar_counter', 6, 2).add('rock_counter', 13, 2)
+r.add('guitar_wall', 1, 1).add('guitar_wall', 3, 1).add('guitar_wall', 16, 1).add('guitar_wall', 18, 1)
+for x, y in [(3, 6), (3, 9), (3, 12), (17, 6), (17, 9)]:
+    r.add('guitar_stand', x, y)
+r.add('amp_stack', 9, 5).add('amp_stack', 11, 5).add('drum_kit', 9, 12)
+r.add('clothes_rack', 18, 11, 2).add('clothes_rack', 18, 14, 2).add('rug_vinyl', 9, 8)
+r.add('plant_big', 1, 17).add('lamp_floor', 20, 17).add('poster_neon', 10, 1, 0)
+r.worker('ruggero', 'Ruggero', 'CLERK', 's1.h6.hc0.sh9.p1.t0.f0.a1.b0.o18.w0.r0.n0.e0.g3', 6, 1, 4)
+r.worker('stella', 'Stella', 'CLERK', 's0.h2.hc4.sh1.p1.t4.f2.a5.b1.o17.w0.r0', 13, 1, 4)
+r.walker('plettro', 'Plettro', 'GUEST', 's2.h5.hc2.sh2.p0.t0.f1.a3.b0.o0.w0.r0.n0.e0.g2', 10, 10, 3)
 
 
 # ------------------------------------------------------------------ output

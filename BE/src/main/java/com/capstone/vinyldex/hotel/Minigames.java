@@ -63,6 +63,8 @@ public final class Minigames {
         games.put("dance_contest", new Game("disco", "Gara di ballo", "punti", 100, 15_000, 120_000, false));
         // Palaghiaccio: cinque tiri al bersaglio con il disco, punti secondo l'angolo preso.
         games.put("hockey_target", new Game("hockey", "Tiri in porta", "punti", 50, 4_000, 90_000, false));
+        // Gara rock stile Guitar Hero: una canzone intera, voto da 0 a 1000 (percentuale del punteggio perfetto).
+        games.put("guitar_duel", new Game("rock", "Gara rock", "punti", 1000, 10_000, 300_000, false));
         for (int hole = 1; hole <= GOLF_HOLES; hole++) {
             games.put("golf_hole_" + hole, new Game("golf" + hole, "Minigolf, buca " + hole, "punti", 6, 2_500, 180_000, false));
         }

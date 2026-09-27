@@ -6,6 +6,7 @@ import { kart } from './kartGame.jsx';
 import { darts, pong } from './arcadeGames.jsx';
 import { disco } from './discoGame.jsx';
 import { hockey } from './hockeyGame.jsx';
+import { rock } from './rockGame.jsx';
 
 /**
  * Minigiochi sui mobili dell'hotel. Si gioca qui, nel browser; il server ha fatto partire la
@@ -281,6 +282,8 @@ const GAMES = {
   disco,
   // Tiri in porta del palaghiaccio (hockeyGame.jsx).
   hockey,
+  // Gara rock stile Guitar Hero (rockGame.jsx).
+  rock,
   ...Object.fromEntries([1, 2, 3, 4, 5, 6].map((hole) => [`golf${hole}`, golf(hole)]))
 };
 
@@ -422,7 +425,7 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
   const seconds = Math.max(0, Math.ceil((snap?.time || 0) / 1000));
 
   return (
-    <div className={`hotel-panel hotel-minigame${game.compact ? ' is-compact' : ''}`} role="dialog" aria-label={start.title}>
+    <div className={`hotel-panel hotel-minigame${game.compact ? ' is-compact' : ''}${game.wide ? ' is-wide' : ''}`} role="dialog" aria-label={start.title}>
       <header className="hotel-panel-header">
         <h3><i className="ph-fill ph-trophy" /> {start.title}</h3>
         {phase === 'play' && game.duration > 0 && <span className={`pvp-timer${seconds <= 5 ? ' urgent' : ''}`}>{seconds}s</span>}

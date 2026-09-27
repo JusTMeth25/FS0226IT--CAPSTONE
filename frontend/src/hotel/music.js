@@ -1,4 +1,5 @@
 import { soundService } from '../services/soundService.js';
+import { GuitarRig } from './guitarSynth.js';
 
 /**
  * Jukebox dell'hotel: sei brani generati con WebAudio, nessun file audio da scaricare.
@@ -11,7 +12,10 @@ import { soundService } from '../services/soundService.js';
  * Gli ultimi due sono disco anni 80 (la Disco li fa suonare da sola): cassa in quattro, charleston
  * aperto in levare (`open`) e basso che salta d'ottava (`octave`).
  *
- * I brani devono restare 6, come RoomInstance.JUKEBOX_TRACKS sul server.
+ * Dal 6 al 9 il rock: glam anni 80 (anche in Disco), hard rock, punk e metal, con la chitarra
+ * distorta vera (corde di guitarSynth.js). "guitar": x power chord lungo, m stoppata col palmo.
+ *
+ * I brani devono restare 10, come RoomInstance.JUKEBOX_TRACKS sul server.
  */
 
 const midiToHz = (note) => 440 * 2 ** ((note - 69) / 12);
@@ -87,6 +91,55 @@ export const TRACKS = [
     octave: true,
     arp: 'x.x.x.xxx.x.x.xx',
     lead: 'square'
+  },
+  {
+    name: 'Tuono al Neon',
+    bpm: 120,
+    chords: [[45, 'm'], [41, 'M'], [43, 'M'], [40, 'M']],
+    kick: 'x.......x.x.....',
+    snare: '....x.......x...',
+    hat: 'x.x.x.x.x.x.x.x.',
+    open: '..x...x...x...x.',
+    bass: 'x.x.x.x.x.x.x.x.',
+    guitar: 'x.....x.x...x...',
+    arp: 'x...x...x...x...',
+    lead: 'sawtooth'
+  },
+  {
+    name: 'Vinile Infuocato',
+    bpm: 132,
+    chords: [[40, 'm'], [40, 'm'], [45, 'M'], [47, 'M']],
+    kick: 'x.....x.x.......',
+    snare: '....x.......x...',
+    hat: 'x.x.x.x.x.x.x.x.',
+    bass: 'x.x.x.x.x.x.x.x.',
+    guitar: 'x.m.m.x.m.m.x.m.',
+    arp: '................',
+    lead: 'sawtooth'
+  },
+  {
+    name: 'Autostrada Elettrica',
+    bpm: 176,
+    chords: [[40, 'M'], [40, 'M'], [45, 'M'], [47, 'M']],
+    kick: 'x...x...x...x...',
+    snare: '..x...x...x...x.',
+    hat: 'x.x.x.x.x.x.x.x.',
+    bass: 'x.x.x.x.x.x.x.x.',
+    guitar: 'x.x.x.x.x.x.x.x.',
+    arp: '................',
+    lead: 'square'
+  },
+  {
+    name: 'Metallo Vinile',
+    bpm: 150,
+    chords: [[40, 'm'], [40, 'm'], [48, 'M'], [50, 'M']],
+    kick: 'x.xxx.xxx.xxx.xx',
+    snare: '....x.......x...',
+    hat: 'x...x...x...x...',
+    bass: 'x.xxx.xxx.xxx.xx',
+    guitar: 'x.mmm.mmx.mmm.mm',
+    arp: '................',
+    lead: 'sawtooth'
   }
 ];
 
@@ -128,6 +181,7 @@ class JukeboxPlayer {
       const data = buffer.getChannelData(0);
       for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
       this.noise = buffer;
+      this.rig = new GuitarRig(this.ctx, this.master);
     }
     if (this.ctx.state === 'suspended') this.ctx.resume();
     this.refresh();
@@ -144,6 +198,12 @@ class JukeboxPlayer {
   stop() {
     clearInterval(this.timer);
     this.timer = 0;
+  }
+
+  /** Silenzio temporaneo (la gara rock ha la sua musica): il brano continua a tempo, senza volume. */
+  setMuted(muted) {
+    this.muted = muted;
+    if (this.master) this.master.gain.setTargetAtTime(muted ? 0 : 0.18, this.ctx.currentTime, 0.1);
   }
 
   destroy() {
@@ -187,6 +247,11 @@ class JukeboxPlayer {
   playStep(song, step, time, stepDur) {
     const inBar = step % STEPS_PER_BAR;
     const chord = chordNotes(song.chords[Math.floor(step / STEPS_PER_BAR)]);
+    // Chitarra rock: power chord distorto sulla fondamentale (lungo o stoppato col palmo).
+    const g = song.guitar?.[inBar];
+    if (g && g !== '.' && this.rig) {
+      this.rig.power(chord[0], time, { length: g === 'm' ? stepDur * 0.8 : stepDur * 3.6, velocity: g === 'm' ? 0.55 : 0.9 });
+    }
     if (song.kick[inBar] === 'x') this.kick(time);
     if (song.snare[inBar] === 'x') this.snare(time);
     if (song.hat[inBar] === 'x') this.hat(time);

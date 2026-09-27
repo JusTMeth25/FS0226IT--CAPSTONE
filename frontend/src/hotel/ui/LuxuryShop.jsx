@@ -5,6 +5,8 @@ import { WATCH_STYLES, formatLook, parseLook } from '../sprites/avatar.js';
 import { drawVehiclePreview, whenVehicleReady } from '../sprites/vehicles.js';
 import AvatarPreview from './AvatarPreview.jsx';
 import { tailorAdvice } from './tailor.js';
+import GuitarFace from './GuitarFace.jsx';
+import GuitarTester from './GuitarTester.jsx';
 
 /** Negozi del quartiere: nome, icona e se c'e' il sarto che consiglia. */
 const LUXURY_SHOPS = {
@@ -12,7 +14,9 @@ const LUXURY_SHOPS = {
   orologi: { title: 'Gioielleria: orologi e gioielli', icon: 'ph-watch', tailor: true },
   skate: { title: 'Skate shop', icon: 'ph-skateboard' },
   bici: { title: 'Negozio di bici', icon: 'ph-bicycle' },
-  auto: { title: 'Concessionaria di auto sportive', icon: 'ph-car-profile' }
+  auto: { title: 'Concessionaria di auto sportive', icon: 'ph-car-profile' },
+  chitarre: { title: 'Rock Store: chitarre e bassi', icon: 'ph-guitar' },
+  rock: { title: 'Rock Store: abbigliamento rock', icon: 'ph-lightning' }
 };
 
 /** Veicolo in anteprima, girato di tre quarti: con il modello 3D appena e' pronto. */
@@ -102,6 +106,7 @@ export default function LuxuryShop({ shop, look, gold, onBought, onWear, onClose
   const [error, setError] = useState(null);
   const [trying, setTrying] = useState(null);
   const [advice, setAdvice] = useState(null);
+  const [testing, setTesting] = useState(null);
   // Crediti dei modelli 3D delle auto (Sketchfab, CC Attribution).
   const [credits, setCredits] = useState({});
   useEffect(() => {
@@ -200,6 +205,7 @@ export default function LuxuryShop({ shop, look, gold, onBought, onWear, onClose
                   {item.part === 'r' && <VehiclePreview ride={item.index} />}
                   {item.part === 'w' && <WatchFace index={item.index} />}
                   {(item.part === 'n' || item.part === 'e') && <JewelFace part={item.part} index={item.index} />}
+                  {item.part === 'g' && <GuitarFace index={item.index} />}
                   {item.part === 'o' && <AvatarPreview look={withItem(item)} scale={1} />}
                 </div>
                 <div className="lux-item-info">
@@ -215,6 +221,11 @@ export default function LuxuryShop({ shop, look, gold, onBought, onWear, onClose
                 </div>
                 <div className="lux-item-actions">
                   {!mine && <span className="lux-price"><i className="ph-fill ph-coin" /> {item.price}</span>}
+                  {item.part === 'g' && (
+                    <button type="button" className="btn btn-secondary btn-small" onClick={() => setTesting(item)}>
+                      <i className="ph-fill ph-speaker-high" /> Suona
+                    </button>
+                  )}
                   {item.part !== 'r' && (
                     <button type="button" className="btn btn-secondary btn-small" onClick={() => setTrying(withItem(item))}>Prova</button>
                   )}
@@ -225,12 +236,12 @@ export default function LuxuryShop({ shop, look, gold, onBought, onWear, onClose
                   )}
                   {mine && !worn && (
                     <button type="button" className="btn btn-primary btn-small" disabled={busy === 'wear'} onClick={() => wear(withItem(item))}>
-                      {item.part === 'r' ? 'Guida' : 'Indossa'}
+                      {item.part === 'r' ? 'Guida' : item.part === 'g' ? 'A tracolla' : 'Indossa'}
                     </button>
                   )}
                   {mine && worn && (
                     <button type="button" className="btn btn-secondary btn-small" disabled={busy === 'wear'} onClick={() => wear(withItem(item, false))}>
-                      {item.part === 'r' ? 'Scendi' : 'Togli'}
+                      {item.part === 'r' ? 'Scendi' : item.part === 'g' ? 'Posa' : 'Togli'}
                     </button>
                   )}
                 </div>
@@ -239,6 +250,7 @@ export default function LuxuryShop({ shop, look, gold, onBought, onWear, onClose
           })}
         </div>
       </div>
+      {testing && <GuitarTester index={testing.index} name={`${testing.brand} ${testing.name}`} onClose={() => setTesting(null)} />}
       {error && <p className="hotel-panel-error">{error}</p>}
       <p className="hotel-panel-hint">
         {shop === 'auto' || shop === 'bici' || shop === 'skate'

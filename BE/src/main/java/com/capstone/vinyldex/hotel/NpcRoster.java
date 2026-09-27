@@ -45,6 +45,8 @@ public final class NpcRoster {
     public static final UUID COFFEE = UUID.fromString("00000000-0000-0000-0000-00000000a01b");
     public static final UUID HOCKEY = UUID.fromString("00000000-0000-0000-0000-00000000a01c");
     public static final UUID BASKET_ARENA = UUID.fromString("00000000-0000-0000-0000-00000000a01d");
+    public static final UUID ROCK_CLUB = UUID.fromString("00000000-0000-0000-0000-00000000a01e");
+    public static final UUID ROCK_STORE = UUID.fromString("00000000-0000-0000-0000-00000000a01f");
 
     /** Cosa fa il personaggio: da qui dipendono movimento, azioni possibili e battute. */
     public enum Role {
@@ -66,6 +68,7 @@ public final class NpcRoster {
         HOCKEY_PLAYER("Giocatore di hockey", true),
         TAILOR("Sarto", false),
         CLERK("Commesso", false),
+        MUSICIAN("Musicista", false),
         GUEST("Ospite", true);
 
         private final String title;
@@ -213,7 +216,7 @@ public final class NpcRoster {
                     walker("kiko", "Kiko", Role.GUEST, "s3.h5.hc6.sh2.p0.t1.f1.a3.b0.o0.w0.r1", 10, 9, 5),
                     walker("bea", "Bea", Role.GUEST, "s0.h7.hc4.sh5.p6.t0.f1.a0.b1.o0.w0.r4", 18, 26, 6),
                     walker("gigio", "Gigio", Role.GUEST, "s4.h4.hc0.sh10.p0.t1.f5.a6.b0.o0.w0.r3", 28, 8, 5),
-                    walker("contessa", "Contessa", Role.GUEST, "s1.h3.hc3.sh7.p1.t2.f0.a5.b1.o8.w4.r0", 11, 28, 4),
+                    walker("contessa", "Contessa", Role.GUEST, "s1.h3.hc3.sh7.p1.t2.f0.a5.b1.o8.w4.r0", 8, 29, 3),
                     walker("max", "Max", Role.GUEST, "s2.h0.hc1.sh9.p1.t3.f0.a2.b0.o7.w1.r7", 30, 18, 6))),
             Map.entry(ATELIER, List.of(
                     worker("vittorio", "Vittorio", Role.TAILOR, "s1.h9.hc9.sh7.p1.t2.f0.a1.b0.o1.w4.r0", 9, 1, 4),
@@ -244,7 +247,19 @@ public final class NpcRoster {
             Map.entry(BASKET_ARENA, List.of(
                     walker("canestro", "Canestro", Role.GUEST, "s4.h9.hc0.sh10.p0.t4.f1.a0", 9, 11, 5),
                     walker("assist", "Assist", Role.GUEST, "s2.h1.hc0.sh3.p0.t4.f1.a0", 19, 11, 5),
-                    walker("curva_sud", "Curva Sud", Role.GUEST, "s0.h3.hc6.sh1.p3.t1.f3.a5.b1", 14, 16, 3)))
+                    walker("curva_sud", "Curva Sud", Role.GUEST, "s0.h3.hc6.sh1.p3.t1.f3.a5.b1", 14, 16, 3))),
+            Map.entry(ROCK_CLUB, List.of(
+                    worker("axel", "Axel", Role.MUSICIAN, "s2.h2.hc7.sh9.p1.t0.f0.a2.b0.o14.w0.r0.n0.e2.g4", 11, 3, 4),
+                    worker("riff", "Riff", Role.MUSICIAN, "s4.h6.hc0.sh8.p1.t0.f0.a0.b1.o15.w0.r0.n0.e2.g7", 16, 3, 4),
+                    worker("tamburo", "Tamburo", Role.MUSICIAN, "s1.h9.hc0.sh9.p1.t4.f0.a6.b0", 13, 1, 4),
+                    worker("joan", "Joan", Role.BARISTA, "s0.h8.hc7.sh8.p1.t4.f0.a5.b1.o16.w0.r0", 4, 16, 4, "cola", "bubble", "juice"),
+                    walker("metallo", "Metallo", Role.GUEST, "s3.h2.hc0.sh9.p1.t0.f0.a0.b0.o15.w0.r0", 12, 10, 4),
+                    walker("grunge", "Grunge", Role.GUEST, "s1.h8.hc2.sh2.p0.t0.f1.a0.b0.o16.w0.r0", 17, 11, 4),
+                    walker("glam", "Glam", Role.GUEST, "s0.h2.hc4.sh1.p4.t4.f2.a2.b1.o17.w0.r0", 9, 12, 3))),
+            Map.entry(ROCK_STORE, List.of(
+                    worker("ruggero", "Ruggero", Role.CLERK, "s1.h6.hc0.sh9.p1.t0.f0.a1.b0.o18.w0.r0.n0.e0.g3", 6, 1, 4),
+                    worker("stella", "Stella", Role.CLERK, "s0.h2.hc4.sh1.p1.t4.f2.a5.b1.o17.w0.r0", 13, 1, 4),
+                    walker("plettro", "Plettro", Role.GUEST, "s2.h5.hc2.sh2.p0.t0.f1.a3.b0.o0.w0.r0.n0.e0.g2", 10, 10, 3)))
     );
 
     private NpcRoster() {

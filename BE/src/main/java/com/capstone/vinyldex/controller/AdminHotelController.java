@@ -30,7 +30,7 @@ import java.util.UUID;
 @RequestMapping("/api/admin/hotel")
 public class AdminHotelController {
 
-    static final Set<String> GAMES = Set.of("goals", "basket", "bowling", "pool", "kart", "pong", "darts", "sing", "fish", "disco", "hockey",
+    static final Set<String> GAMES = Set.of("goals", "basket", "bowling", "pool", "kart", "pong", "darts", "sing", "fish", "disco", "hockey", "rock",
             "bench", "run", "box", "curl", "rhythm", "claw", "golf1", "golf2", "golf3", "golf4", "golf5", "golf6");
 
     private final JdbcTemplate jdbc;

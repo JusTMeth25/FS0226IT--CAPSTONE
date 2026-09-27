@@ -52,7 +52,10 @@ export const ACCESSORIES = ['Nessuno', 'Occhiali', 'Occhiali da sole', 'Cuffie',
  */
 export const OUTFITS = ['Nessuno', 'Completo gessato', 'Smoking', 'Abito da sera', 'Cappotto cammello', 'Giacca di pelle',
   'Tuta firmata', 'Blazer bianco', 'Abito di paillettes', 'Trench', 'Smoking bianco', 'Giacca di velluto', 'Kimono di seta',
-  'Tailleur rosa'];
+  'Tailleur rosa', 'Gilet borchiato', 'Maglia della band', 'Camicia di flanella', 'Tuta glam leopardata',
+  'Giacca di jeans con toppe', 'Completo di pelle rossa'];
+export const GUITARS = ['Nessuna', 'Chitarra classica', 'Acustica western', 'Stratosfera rossa', 'Les Pauline sunburst',
+  'Volo V bianca', 'Esplosiva nera', 'Basso Precisione', 'Basso Jazzista', 'Doppio manico'];
 export const WATCHES = ['Nessuno', 'Rolaix Submarino', 'Rolaix Daytona d\'oro', 'Patec Philippa Nautilo', 'Patec Philippa Calatrava',
   'Audemar Piguay Quercia Reale', 'Audemar Piguay Offshore Nero', 'Rolaix GMT Pepsi', 'Rolaix Day-Date Platino',
   'Patec Philippa Aquanaut Verde', 'Audemar Piguay Codice 11.59', 'Richard Milla RM Scheletrato'];
@@ -77,7 +80,28 @@ const OUTFIT_STYLES = [
   { kind: 'suit', jacket: '#f8f8f4', pants: '#111114', shirt: '#ffffff', bow: '#0a0a0a', satin: '#e5e5dc' },
   { kind: 'suit', jacket: '#6d1a2c', pants: '#111114', shirt: '#f8fafc', open: true },
   { kind: 'gown', color: '#1e2f6b', long: true, sleeves: true, blossoms: '#f9a8d4', obi: '#b91c1c' },
-  { kind: 'suit', jacket: '#f4b6c8', pants: '#f4b6c8', shirt: '#fff1f2', buttons: '#d4a017', open: true }
+  { kind: 'suit', jacket: '#f4b6c8', pants: '#f4b6c8', shirt: '#fff1f2', buttons: '#d4a017', open: true },
+  // Rock Store.
+  { kind: 'vest', color: '#18181b', shirt: '#27272a', studs: '#e5e7eb', pants: '#3b5b8c', rips: true },
+  { kind: 'tee', color: '#111114', pants: '#18181b', logo: true },
+  { kind: 'flannel', color: '#b91c1c', check: '#18181b', shirt: '#9ca3af', pants: '#2d3a66', rips: true },
+  { kind: 'jumpsuit', color: '#d4a054', spots: '#3f2a14', pants: '#d4a054', belt: '#e5e7eb' },
+  { kind: 'denim', color: '#4a6fa5', shirt: '#f5f5f5', pants: '#18181b', patches: ['#ef4444', '#facc15', '#22c55e', '#111'] },
+  { kind: 'leather', color: '#b91c1c', zip: '#e5e7eb', pants: '#991b1b' }
+];
+
+/** Chitarre (parte "g"): colore del corpo, forma e dettagli. */
+export const GUITAR_STYLES = [
+  null,
+  { kind: 'classical', body: '#c8904f', edge: '#7c4a1e', hole: true },
+  { kind: 'acoustic', body: '#d97706', edge: '#78350f', hole: true, burst: '#451a03' },
+  { kind: 'strat', body: '#c81e1e', guard: '#f5f5f5' },
+  { kind: 'lp', body: '#e0902e', burst: '#5b2c06', guard: '#1f1f1f' },
+  { kind: 'v', body: '#f4f4f5', guard: '#111' },
+  { kind: 'explorer', body: '#18181b', guard: '#f5f5f5' },
+  { kind: 'bass', body: '#1d4ed8', guard: '#f5f5f5' },
+  { kind: 'bass', body: '#b45309', burst: '#451a03', guard: '#3f2a14' },
+  { kind: 'double', body: '#9f1239', guard: '#111' }
 ];
 
 /** Orologi: cinturino, cassa, quadrante e ghiera. */
@@ -136,11 +160,12 @@ export const LUXURY_PARTS = [
   { key: 'w', label: 'Orologio', names: WATCHES },
   { key: 'r', label: 'Veicolo', names: RIDES },
   { key: 'n', label: 'Collana', names: NECKLACES },
-  { key: 'e', label: 'Orecchini', names: EARRINGS }
+  { key: 'e', label: 'Orecchini', names: EARRINGS },
+  { key: 'g', label: 'Chitarra', names: GUITARS }
 ];
 
 /** Ordine delle parti nel codice salvato: le prime cinque sono quelle della prima versione. */
-const CODE_ORDER = ['s', 'h', 'hc', 'sh', 'p', 't', 'f', 'a', 'b', 'o', 'w', 'r', 'n', 'e'];
+const CODE_ORDER = ['s', 'h', 'hc', 'sh', 'p', 't', 'f', 'a', 'b', 'o', 'w', 'r', 'n', 'e', 'g'];
 
 export const DEFAULT_LOOK = 's1.h1.hc0.sh0.p0.t0.f0.a0.b0';
 
@@ -150,7 +175,7 @@ export function fixLook(parts) {
 }
 
 export function parseLook(look) {
-  const parts = { s: 1, h: 1, hc: 0, sh: 0, p: 0, t: 0, f: 0, a: 0, b: 0, o: 0, w: 0, r: 0, n: 0, e: 0 };
+  const parts = { s: 1, h: 1, hc: 0, sh: 0, p: 0, t: 0, f: 0, a: 0, b: 0, o: 0, w: 0, r: 0, n: 0, e: 0, g: 0 };
   (look || DEFAULT_LOOK).split('.').forEach((part) => {
     const match = /^([a-z]+)(\d+)$/.exec(part);
     if (match && match[1] in parts) parts[match[1]] = Number(match[2]);
@@ -166,11 +191,15 @@ export function parseLook(look) {
 
 export function formatLook(parts) {
   // I pezzi dei negozi si scrivono solo se ce n'e' almeno uno: i codici di sempre restano uguali.
-  // Collana e orecchini vengono per ultimi e solo se ce n'e' uno dei due.
-  const jewels = parts.n || parts.e;
+  // Collana e orecchini vengono dopo e solo se c'e' uno dei due (o la chitarra, che chiude il codice).
+  const guitar = parts.g;
+  const jewels = guitar || parts.n || parts.e;
   const luxury = jewels || parts.o || parts.w || parts.r;
-  return CODE_ORDER.filter((key) => (['n', 'e'].includes(key) ? jewels : luxury || !['o', 'w', 'r'].includes(key)))
-    .map((key) => `${key}${parts[key] || 0}`).join('.');
+  return CODE_ORDER.filter((key) => {
+    if (key === 'g') return guitar;
+    if (key === 'n' || key === 'e') return jewels;
+    return luxury || !['o', 'w', 'r'].includes(key);
+  }).map((key) => `${key}${parts[key] || 0}`).join('.');
 }
 
 /** Indice del veicolo nel codice aspetto (0 a piedi). */
@@ -263,6 +292,8 @@ function poseOffsets(pose, frame) {
   if (pose === 'play') return { ...pose0, frontArm: frame % 2 ? 6 : 4, backArm: frame % 2 ? 4 : 6 };
   if (pose === 'cue') return { ...pose0, bodyY: 4, frontArm: frame % 2 ? 8 : 5, backArm: 3, frontLeg: 3, backLeg: -3 };
   if (pose === 'sit') return { ...pose0, sit: true };
+  // Chitarra: il braccio davanti pennella sulle corde, il corpo va a tempo.
+  if (pose === 'guitar') return { ...pose0, frontArm: frame % 2 ? -3 : 1, backArm: -4, bodyY: frame % 2 ? 1 : 0, frontLeg: 2, backLeg: -2 };
   return pose0;
 }
 
@@ -750,6 +781,10 @@ function drawOutfitTorso(ctx, y0, style, { skin, back }) {
     }
     return;
   }
+  if (['vest', 'tee', 'flannel', 'jumpsuit', 'denim'].includes(style.kind)) {
+    drawRockTorso(ctx, top, style, { skin, back });
+    return;
+  }
   const jacket = style.jacket || style.color;
   const dark = shade(jacket, -0.3);
   const light = shade(jacket, 0.3);
@@ -821,6 +856,92 @@ function drawOutfitTorso(ctx, y0, style, { skin, back }) {
     px(ctx, 13, top + 2, 2, 23, style.stripe);
   }
   px(ctx, 14, top + (long ? 39 : 25), 21, 1, dark);
+}
+
+/** Capi del Rock Store: gilet borchiato, maglia della band, flanella, tuta leopardata, jeans con toppe. */
+function drawRockTorso(ctx, top, style, { skin, back }) {
+  const c = style.color;
+  const dark = shade(c, -0.3);
+  if (style.kind === 'vest') {
+    // Maglia scura sotto, gilet di pelle aperto sopra con le borchie sulle spalle.
+    block(ctx, 14, top + 2, 21, 23, style.shirt);
+    px(ctx, 13, top, 3, 3, skin);
+    px(ctx, 33, top, 3, 3, skin);
+    px(ctx, 14, top + 1, 8, 24, c);
+    px(ctx, 27, top + 1, 8, 24, c);
+    if (back) px(ctx, 14, top + 1, 21, 24, c);
+    for (let x = 15; x < 34; x += 3) px(ctx, x, top + 2, 1, 1, style.studs);
+    for (let y = top + 6; y < top + 24; y += 4) {
+      px(ctx, 21, y, 1, 1, style.studs);
+      px(ctx, 27, y, 1, 1, style.studs);
+    }
+    return;
+  }
+  block(ctx, 13, top, 23, 25, c);
+  ctx.clearRect(13, top, 2, 1);
+  ctx.clearRect(34, top, 2, 1);
+  if (style.kind === 'jumpsuit') {
+    // Macchie del leopardo e la cintura d'argento.
+    for (let i = 0; i < 14; i += 1) px(ctx, 14 + ((i * 7) % 20), top + 2 + ((i * 5) % 20), 2, 2, style.spots);
+    if (!back) px(ctx, 20, top, 9, 5, skin);
+    px(ctx, 13, top + 21, 23, 2, style.belt);
+    return;
+  }
+  if (style.kind === 'flannel') {
+    // Quadri: righe scure incrociate sul rosso, aperta davanti sulla maglia grigia.
+    for (let x = 13; x < 36; x += 4) px(ctx, x, top, 1, 25, style.check);
+    for (let y = top + 2; y < top + 25; y += 4) px(ctx, 13, y, 23, 1, style.check);
+    if (!back) px(ctx, 21, top, 7, 25, style.shirt);
+    return;
+  }
+  if (style.kind === 'denim') {
+    if (!back) px(ctx, 21, top, 7, 25, style.shirt);
+    style.patches.forEach((color, i) => px(ctx, back ? 16 + i * 5 : [15, 30, 16, 29][i], back ? top + 8 + (i % 2) * 6 : top + 6 + i * 4, 3, 3, color));
+    px(ctx, 13, top, 23, 2, dark);
+    return;
+  }
+  // Maglia della band: girocollo e il logo (un fulmine su un disco).
+  if (!back && style.logo) {
+    px(ctx, 20, top, 9, 2, dark);
+    blob(ctx, 24.5, top + 11, 5, 5, '#e5e7eb');
+    blob(ctx, 24.5, top + 11, 3.5, 3.5, '#111114');
+    px(ctx, 25, top + 7, 2, 4, '#ef4444');
+    px(ctx, 23, top + 10, 2, 4, '#ef4444');
+    px(ctx, 24, top + 13, 2, 3, '#ef4444');
+  }
+}
+
+/**
+ * Chitarra a pixel: corpo (forma per modello), manico e paletta. (x, y) e' il centro del corpo,
+ * (dx, dy) la direzione del manico.
+ */
+function drawGuitarShape(ctx, x, y, style, dx, dy) {
+  const neckLen = style.kind === 'bass' ? 30 : style.kind === 'double' ? 26 : 24;
+  const neck = (offset, color) => {
+    for (let i = 3; i < neckLen; i += 1) px(ctx, Math.round(x + dx * i + offset), Math.round(y + dy * i), 2, 2, color);
+    px(ctx, Math.round(x + dx * neckLen + offset - 1), Math.round(y + dy * neckLen - 1), 4, 3, '#27272a');
+  };
+  neck(0, '#7c4a1e');
+  if (style.kind === 'double') neck(-3, '#7c4a1e');
+  const b = style.body;
+  if (style.kind === 'v') {
+    for (let i = 0; i < 10; i += 1) {
+      px(ctx, x - dx * i - 3 - i * 0.2, y - dy * i + i * 0.6, 3, 3, b);
+      px(ctx, x - dx * i + 1 + i * 0.2, y - dy * i + i * 0.6 + 2, 3, 3, b);
+    }
+  } else if (style.kind === 'explorer') {
+    px(ctx, x - 6, y - 3, 12, 7, b);
+    px(ctx, x - 9, y + 2, 7, 4, b);
+    px(ctx, x + 2, y - 6, 5, 4, b);
+  } else {
+    const r = style.kind === 'acoustic' ? 7.5 : style.kind === 'classical' ? 6.5 : 6;
+    blob(ctx, x - dx * 3, y - dy * 3 + 1, r, r * 0.9, b);
+    blob(ctx, x + dx * 2, y + dy * 2, r * 0.75, r * 0.7, b);
+    if (style.burst) blob(ctx, x - dx * 3, y - dy * 3 + 1, r * 0.55, r * 0.5, shade(b, 0.2));
+    if (style.hole) blob(ctx, x, y, 2, 2, '#1c1208');
+    else if (style.guard) px(ctx, Math.round(x - 3), Math.round(y), 5, 3, style.guard);
+    px(ctx, Math.round(x - 1), Math.round(y + 2), 3, 1, '#d4d4d8');
+  }
 }
 
 /** Gonna dell'abito sopra le gambe: lunga fino alle caviglie o corta sopra il ginocchio. */
@@ -1028,7 +1149,7 @@ function drawAvatar(look, { back, pose, frame, outfit, gear }) {
   const y0 = o.bodyY + (o.sit ? 10 : 0);
   // Maniche: corte per T-shirt, assenti per la canotta, lunghe per il resto.
   let sleeveLength = swim || parts.t === BARE_CHEST ? 0 : parts.t === 0 ? 7 : parts.t === 4 ? 0 : 17;
-  if (style) sleeveLength = style.kind === 'gown' && !style.sleeves ? 0 : 17;
+  if (style) sleeveLength = (style.kind === 'gown' && !style.sleeves) || style.kind === 'vest' ? 0 : style.kind === 'tee' ? 7 : 17;
 
   // Gambe: sedute si piegano in avanti, in piedi oscillano con il passo.
   if (o.sit) {
@@ -1044,6 +1165,10 @@ function drawAvatar(look, { back, pose, frame, outfit, gear }) {
   }
 
   const sleeve = style ? (style.jacket || style.color) : shirt;
+  // Chitarra a tracolla: sulla schiena mentre si cammina, davanti mentre si suona.
+  const guitar = swim ? null : GUITAR_STYLES[parts.g];
+  const playing = pose === 'guitar';
+  if (guitar && !playing && !back) drawGuitarShape(ctx, 12, y0 + 58, guitar, 0.35, -0.94);
   // Sulla panca le mani stanno sopra la testa (piu' in alto a braccia tese); nel tiro a canestro si allungano.
   const reach = pose === 'lift' ? o.liftReach : pose === 'curl' ? -12 : (o.shootReach || 0);
   arm(ctx, 8, y0, { up: o.backUp, swing: o.backArm, sleeve: shade(sleeve, -0.12), skin: shade(skin, -0.08), sleeveLength, reach, jab: o.backJab });
@@ -1056,6 +1181,13 @@ function drawAvatar(look, { back, pose, frame, outfit, gear }) {
   else drawTorso(ctx, y0, parts, { shirt, skin, back });
   if (!o.sit && !style && (swim ? man : parts.t !== 4)) px(ctx, 14, y0 + 63, 21, 2, shade(pants, -0.25)); // cintura / elastico
   if (style && !o.sit) drawOutfitSkirt(ctx, y0, style);
+  // Jeans strappati alle ginocchia.
+  if (style?.rips && !o.sit) {
+    px(ctx, 16 + Math.round(o.backLeg / 2), y0 + 76, 4, 2, skin);
+    px(ctx, 27 + Math.round(o.frontLeg / 2), y0 + 76, 4, 2, skin);
+  }
+  if (guitar && playing) drawGuitarShape(ctx, 28, y0 + 60, guitar, -0.87, -0.5);
+  if (guitar && !playing && back) drawGuitarShape(ctx, 22, y0 + 58, guitar, 0.3, -0.95);
   arm(ctx, 35, y0, { up: o.frontUp, swing: o.frontArm, sleeve, skin, sleeveLength, reach, jab: o.frontJab });
   const watch = swim ? null : WATCH_STYLES[parts.w];
   if (watch && !o.frontUp && !o.frontJab) drawWatch(ctx, y0, watch, o.frontArm);

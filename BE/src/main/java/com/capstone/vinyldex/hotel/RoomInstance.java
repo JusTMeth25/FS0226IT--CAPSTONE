@@ -48,9 +48,11 @@ public class RoomInstance {
     private static final long SIP_PAUSE_MILLIS = 900;
 
     /** Brani del jukebox: il client li genera con WebAudio (src/hotel/music.js). */
-    public static final int JUKEBOX_TRACKS = 6;
+    public static final int JUKEBOX_TRACKS = 10;
     /** Primo brano disco anni 80 (4 e 5): la Disco lo fa partire da sola. */
     static final int DISCO_TRACK = 4;
+    /** Glam rock anni 80 (6), poi i brani rock del locale (7, 8, 9). */
+    static final int GLAM_TRACK = 6;
     private static final long JUKEBOX_COOLDOWN_MILLIS = 3_000;
     private static final Set<String> STATUSES = Set.of("idle", "dance", "sit");
 
@@ -192,9 +194,10 @@ public class RoomInstance {
         this.mind = mind;
         initialItems.forEach(item -> items.put(item.id(), item));
         this.football = FootballMatch.create(items.values(), layout, data.doorX(), data.doorY());
-        // In discoteca la musica c'e' sempre appena si entra: suona la disco anni 80.
-        if ("disco".equals(data.floorStyle()) && data.publicRoom()) {
-            jukeboxTrack = DISCO_TRACK;
+        // In discoteca e al locale rock la musica c'e' sempre appena si entra.
+        int[] playlist = playlist();
+        if (playlist != null) {
+            jukeboxTrack = playlist[0];
             jukeboxStartedAt = System.currentTimeMillis();
         }
         spawnNpcs();
@@ -876,7 +879,7 @@ public class RoomInstance {
     }
 
     /** Minigiochi che gli NPC giocano nelle stanze (quelli che si animano senza un vero giocatore). */
-    static final java.util.Set<String> NPC_GAMES = java.util.Set.of("pong", "box", "sing", "rhythm", "run", "curl", "disco", "hockey");
+    static final java.util.Set<String> NPC_GAMES = java.util.Set.of("pong", "box", "sing", "rhythm", "run", "curl", "disco", "hockey", "rock");
 
     /**
      * Gli ospiti ogni tanto vanno a giocare a un minigioco libero vicino (ping pong, sacco, karaoke,
@@ -1703,6 +1706,17 @@ public class RoomInstance {
         return LuxuryCatalog.speedOf(occupant.user.look());
     }
 
+    /**
+     * Brani dei locali (indici di src/hotel/music.js): la Disco alterna la disco e il glam rock anni
+     * 80, il locale rock i brani rock. null = tutti i brani, uno dopo l'altro.
+     */
+    int[] playlist() {
+        if (!data.publicRoom()) return null;
+        if ("disco".equals(data.floorStyle())) return new int[]{DISCO_TRACK, DISCO_TRACK + 1, GLAM_TRACK};
+        if ("rockclub".equals(data.floorStyle())) return new int[]{7, 8, 9, GLAM_TRACK};
+        return null;
+    }
+
     /** Spegne il jukebox o passa al brano successivo, con una breve pausa fra un cambio e l'altro. */
     public synchronized String setJukebox(UUID userId, boolean on) {
         if (!data.publicRoom() && !data.isOwner(userId)) return "not_your_room";
@@ -1719,10 +1733,15 @@ public class RoomInstance {
         if (now - jukeboxChangedAt < JUKEBOX_COOLDOWN_MILLIS) return "jukebox_cooldown";
         boolean hasJukebox = items.values().stream().anyMatch(i -> "jukebox".equals(i.type()));
         if (!hasJukebox) return "no_jukebox";
-        // In discoteca si alternano solo i due brani disco anni 80.
-        jukeboxTrack = "disco".equals(data.floorStyle()) && data.publicRoom()
-                ? (jukeboxTrack == DISCO_TRACK ? DISCO_TRACK + 1 : DISCO_TRACK)
-                : (jukeboxTrack + 1) % JUKEBOX_TRACKS;
+        // In discoteca e al locale rock si gira solo fra i brani del locale.
+        int[] playlist = playlist();
+        if (playlist == null) {
+            jukeboxTrack = (jukeboxTrack + 1) % JUKEBOX_TRACKS;
+        } else {
+            int at = 0;
+            for (int i = 0; i < playlist.length; i++) if (playlist[i] == jukeboxTrack) at = i;
+            jukeboxTrack = playlist[(at + 1) % playlist.length];
+        }
         jukeboxStartedAt = now;
         jukeboxChangedAt = now;
         broadcast(jukeboxMessage());

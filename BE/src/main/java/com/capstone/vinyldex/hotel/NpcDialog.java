@@ -154,6 +154,8 @@ public final class NpcDialog {
                     "Ehi " + user + ", il ghiaccio e' velocissimo oggi."));
             case TAILOR -> pick(random, List.of("Benvenuto in atelier, " + user + "! Clicca il banco: ti consiglio io come vestirti.",
                     "Ciao " + user + "! Un completo su misura? Prova e ti dico come sta."));
+            case MUSICIAN -> pick(random, List.of("Yeah " + user + "! Sali sulla pedana e sfidaci alla gara rock!",
+                    "Ciao " + user + "! Stasera si suona forte."));
             case CLERK -> pick(random, List.of("Ciao " + user + "! Dai un'occhiata alla merce, il banco e' qui.",
                     "Benvenuto " + user + "! Se qualcosa ti piace, clicca il banco per comprarlo."));
             case FOOTBALLER -> pick(random, List.of("Ciao " + user + "! Passami la palla!",
@@ -331,6 +333,8 @@ public final class NpcDialog {
             case TAILOR -> List.of("Una giacca deve cadere perfetta sulle spalle.", "Il gessato non passa mai di moda.",
                     "Con lo smoking ci vuole un orologio sottile.", "Chi vuole un consiglio di stile?");
             case CLERK -> List.of("Arrivata merce nuova!", "Chiedete pure, sono qui per voi.", "Oggi e' il giorno giusto per un regalo.");
+            case MUSICIAN -> List.of("Uno, due, tre, quattro!", "Alzate il volume!", "Chi ha il coraggio di battere il mio assolo?",
+                    "Questo pezzo e' dedicato a voi!", "Rock and roll!");
             case FIGHTER -> List.of("Chi ha il coraggio di sfidarmi?", "La mia squadra oggi e' imbattibile.",
                     "Scambio carte doppie, chi ci sta?");
             case GUEST -> List.of("Che bella giornata!", "Qualcuno vuole scambiare carte?", "Adoro questo posto.",

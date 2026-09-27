@@ -226,6 +226,18 @@ public final class FurniCatalog {
         add(new FurniDef("hockey_goal", "Porta da hockey", "stadio", 0, 1, 2, false, false, -1, false, false));
         add(new FurniDef("hockey_target", "Bersaglio dei tiri", "stadio", 0, 2, 1, false, false, -1, false, false));
         add(new FurniDef("team_bench", "Panchina delle squadre", "stadio", 0, 3, 1, false, false, 4, false, false));
+        // Locale rock e Rock Store: palco, batteria, ampli, pedane della gara di chitarre, chitarre esposte.
+        add(new FurniDef("rock_stage", "Palco rock", "musica", 0, 6, 3, false, true, -1, false, false));
+        add(new FurniDef("drum_kit", "Batteria", "musica", 450, 2, 2, false, false, -1, false, true));
+        add(new FurniDef("amp_stack", "Testata e cassa", "musica", 300, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("mic_stand", "Asta del microfono", "musica", 60, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("guitar_duel", "Pedana della gara rock", "musica", 0, 2, 2, false, false, -1, false, false));
+        add(new FurniDef("guitar_wall", "Parete di chitarre", "negozi", 250, 2, 1, false, false, -1, false, true));
+        add(new FurniDef("guitar_stand", "Chitarra sul supporto", "musica", 220, 1, 1, false, false, -1, false, true));
+        add(new FurniDef("guitar_counter", "Banco delle chitarre", "negozi", 0, 2, 1, false, false, -1, false, false));
+        add(new FurniDef("rock_counter", "Banco del merchandising", "negozi", 0, 2, 1, false, false, -1, false, false));
+        add(new FurniDef("facade_rock", "Locale rock", "quartiere", 0, 5, 2, false, false, -1, false, false));
+        add(new FurniDef("facade_guitars", "Rock Store", "quartiere", 0, 4, 2, false, false, -1, false, false));
     }
 
     private FurniCatalog() {
