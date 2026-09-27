@@ -867,6 +867,10 @@ button.hotel-trade-card:hover { background: var(--hp-surface-hover); }
   animation: overlayFadeIn 0.3s ease;
 }
 .hotel-pack-opening { max-width: 980px; margin: 0 auto; }
+/* La barra di scorrimento del riquadro (se serve) non sposta il contenuto: spazio uguale ai due lati. */
+.hotel-pack-overlay { scrollbar-gutter: stable both-edges; }
+/* Ispezione della carta: qui copre tutto lo schermo, niente spazio per la barra laterale del sito. */
+.hotel-pack-overlay .pack-overlay { padding-left: var(--space-md); }
 .hotel-pack-overlay-close { position: fixed; top: 14px; right: 14px; z-index: 2; font-size: 1.4rem; }
 
 /* ---------- Filtri nella scelta della squadra (Arena) ---------- */

@@ -1,4 +1,5 @@
 import PackOpeningFlow from '../../components/pack/PackOpeningFlow.jsx';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock.js';
 
 /**
  * Apertura di un pacchetto della borsa, sopra la stanza: e' la stessa della pagina Pacchetti
@@ -6,6 +7,8 @@ import PackOpeningFlow from '../../components/pack/PackOpeningFlow.jsx';
  * dentro la pagina dell'hotel e non su document.body: a schermo intero resta visibile.
  */
 export default function HotelPackOpening({ opening, left, onAgain, onClose, onSummary }) {
+  // Senza la barra di scorrimento della pagina il riquadro occupa tutto lo schermo ed e' centrato davvero.
+  useBodyScrollLock(true);
   const actions = [
     ...(left > 0 ? [{ label: `Apri un altro (${left})`, icon: 'ph-gift', onClick: onAgain, primary: true }] : []),
     { label: 'Torna all\'hotel', icon: 'ph-buildings', onClick: onClose, primary: left === 0 }
