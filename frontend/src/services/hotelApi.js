@@ -29,6 +29,10 @@ export const hotelApi = {
     return apiClient.post(`/friends/${userId}/messages`, { text });
   },
   /** Animale da compagnia: catalogo, il proprio animale, adozione e cibo. */
+  /** Distintivo da mostrare accanto al nome (null lo toglie). */
+  async wearBadge(code) {
+    return apiClient.put('/hotel/badge', { code });
+  },
   async pets() {
     return apiClient.get('/pets');
   },

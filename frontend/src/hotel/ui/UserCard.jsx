@@ -16,9 +16,21 @@ const BADGE_ICONS = {
  * distintivi e la carta migliore. Da qui si sussurra, si da' rispetto, si propone uno
  * scambio, si visita la sua stanza, lo si sfida.
  */
-export default function UserCard({ user, look, isMe, isOwner, respectVersion, onClose, onWhisper, onRespect, onKick, onVisit, onChallenge, onViewCard, onAddFriend }) {
+export default function UserCard({ user, look, isMe, isOwner, respectVersion, onClose, onWhisper, onRespect, onKick, onVisit, onChallenge, onViewCard, onAddFriend, onWearBadge }) {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  // Nella propria scheda un distintivo si indossa (o si toglie) con un click.
+  const wear = (code) => {
+    if (!onWearBadge || busy) return;
+    const next = profile?.wornBadge === code ? null : code;
+    setBusy(true);
+    onWearBadge(next)
+      .then((res) => setProfile((p) => ({ ...p, wornBadge: res.wornBadge })))
+      .catch(() => {})
+      .finally(() => setBusy(false));
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -47,12 +59,25 @@ export default function UserCard({ user, look, isMe, isOwner, respectVersion, on
           )}
           {profile?.badges?.length > 0 && (
             <div className="hotel-badges">
-              {profile.badges.map((b) => (
-                <span key={b.code} className={`hotel-badge hotel-badge-${b.code}`} title={`${b.name}: ${b.description}`}>
-                  <i className={`ph-fill ${BADGE_ICONS[b.code] || (b.icon ? `ph-${b.icon}` : 'ph-seal-check')}`} />
-                </span>
-              ))}
+              {profile.badges.map((b) => {
+                const worn = profile.wornBadge === b.code;
+                const icon = <i className={`ph-fill ${BADGE_ICONS[b.code] || (b.icon ? `ph-${b.icon}` : 'ph-seal-check')}`} />;
+                return onWearBadge ? (
+                  <button key={b.code} type="button" className={`hotel-badge hotel-badge-${b.code}${worn ? ' worn' : ''}`} disabled={busy}
+                    onClick={() => wear(b.code)} aria-pressed={worn}
+                    title={`${b.name}: ${b.description}. ${worn ? 'In mostra accanto al nome: clicca per toglierlo' : 'Clicca per metterlo accanto al nome'}`}>
+                    {icon}
+                  </button>
+                ) : (
+                  <span key={b.code} className={`hotel-badge hotel-badge-${b.code}${worn ? ' worn' : ''}`} title={`${b.name}: ${b.description}${worn ? ' (in mostra)' : ''}`}>
+                    {icon}
+                  </span>
+                );
+              })}
             </div>
+          )}
+          {onWearBadge && profile?.badges?.length > 0 && (
+            <small className="hotel-badges-hint">Clicca un distintivo per mostrarlo accanto al tuo nome.</small>
           )}
         </div>
       </div>

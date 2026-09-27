@@ -10,6 +10,7 @@ import { DECOR_DEFS, createWeatherState, drawWeather, isOutdoor, seasonDecor } f
 import { BALL_COLORS } from './ui/billiards.jsx';
 import { playSfx, volumeAt } from './sfx.js';
 import { PET_H, PET_SOUND, PET_W, petSprite } from './sprites/pet.js';
+import { BADGE_H, BADGE_W, drawBadge } from './sprites/badge.js';
 
 /** Di quanti pixel base si alza chi e' seduto su una sedia o un divano, rispetto al pavimento. */
 const SEAT_LIFT = 7 * DETAIL;
@@ -324,7 +325,7 @@ export class HotelEngine {
   updateUser(user) {
     const existing = this.users.get(user.id);
     if (existing) {
-      Object.assign(existing, { username: user.username, look: user.look, level: user.level, bestCard: user.bestCard, topCards: user.topCards, pet: user.pet, club: user.club });
+      Object.assign(existing, { username: user.username, look: user.look, level: user.level, bestCard: user.bestCard, topCards: user.topCards, pet: user.pet, club: user.club, badge: user.badge });
     }
   }
 
@@ -1549,7 +1550,7 @@ export class HotelEngine {
         const text = user.away ? `${user.username} (assente)` : user.username;
         labels.push({
           kind: 'name', x: head.x, y: labelY, text, me: user.id === this.meId,
-          gem: user.bestCard?.rarity, card: hovered ? user.bestCard : null, club: user.club
+          gem: user.bestCard?.rarity, card: hovered ? user.bestCard : null, club: user.club, badge: user.badge
         });
         // Le tre carte di bandiera stanno sopra l'etichetta (e sopra "Carta migliore" se c'e').
         if (user.topCards?.length) {
@@ -1558,9 +1559,13 @@ export class HotelEngine {
       } else if (user.topCards?.length) {
         // Le carte piu' usate in battaglia (o le piu' preziose) in miniatura sopra la testa.
         labels.push({ kind: 'cards', x: head.x, y: labelY, cards: user.topCards, seed: phaseOf(user.id) });
+        if (user.badge) labels.push({ kind: 'badge', x: head.x, y: labelY, badge: user.badge, beside: 'cards', count: user.topCards.length });
       } else if (user.bestCard) {
         // Distintivo della carta migliore: una gemma che galleggia sopra la testa.
         labels.push({ kind: 'gem', x: head.x, y: labelY, rarity: user.bestCard.rarity, seed: phaseOf(user.id) });
+        if (user.badge) labels.push({ kind: 'badge', x: head.x, y: labelY, badge: user.badge, beside: 'gem' });
+      } else if (user.badge) {
+        labels.push({ kind: 'badge', x: head.x, y: labelY, badge: user.badge });
       }
     });
 
@@ -1590,6 +1595,13 @@ export class HotelEngine {
       else if (label.kind === 'cards') {
         const bob = animate ? Math.round(Math.sin(now / 450 + label.seed)) * cardScale : 0;
         drawTopCards(ctx, label.x, label.y + bob, label.cards, cardScale, now, animate, this.cardHotspots);
+      } else if (label.kind === 'badge') {
+        // Il distintivo indossato sta a sinistra della gemma o delle carte, altrimenti da solo.
+        const width = BADGE_W * gemScale;
+        let right = label.x + width / 2;
+        if (label.beside === 'gem') right = label.x - (GEM_W * gemScale) / 2 - 3;
+        if (label.beside === 'cards') right = label.x - (label.count * (MINI_W * cardScale) + (label.count - 1) * 3 * cardScale) / 2 - 3;
+        drawBadge(ctx, right - width, label.y, label.badge, gemScale);
       } else if (label.kind === 'gem') {
         const bob = animate ? Math.round(Math.sin(now / 450 + label.seed)) * gemScale : 0;
         drawGem(ctx, label.x - (GEM_W * gemScale) / 2, label.y + bob, label.rarity, gemScale, now, animate);
@@ -1926,7 +1938,7 @@ function drawStaffTag(ctx, { x, y }, scale) {
   ctx.fillRect(left + 2 * s, top + 2 * s, s, s);
 }
 
-function drawName(ctx, { x, y, text, me, gem, card, npc, club }, scale, now, animate) {
+function drawName(ctx, { x, y, text, me, gem, card, npc, club, badge }, scale, now, animate) {
   ctx.font = 'bold 11px "Segoe UI", system-ui, sans-serif';
   const width = ctx.measureText(text).width + 10;
   // Sigla del club, nel colore del club, subito a sinistra del nome.
@@ -1951,7 +1963,13 @@ function drawName(ctx, { x, y, text, me, gem, card, npc, club }, scale, now, ani
   ctx.textBaseline = 'middle';
   ctx.fillText(text, x, y - 7);
   // La gemma sta a sinistra del nome, centrata in altezza sull'etichetta.
-  if (gem) drawGem(ctx, x - width / 2 - tagWidth - (tagWidth ? 2 : 0) - GEM_W * scale - 2, y - 7 + (GEM_H * scale) / 2, gem, scale, now, animate);
+  let left = x - width / 2 - tagWidth - (tagWidth ? 2 : 0);
+  if (gem) {
+    left -= GEM_W * scale + 2;
+    drawGem(ctx, left, y - 7 + (GEM_H * scale) / 2, gem, scale, now, animate);
+  }
+  // Il distintivo scelto dal giocatore chiude la fila a sinistra.
+  if (badge) drawBadge(ctx, left - BADGE_W * scale - 2, y - 7 + (BADGE_H * scale) / 2, badge, scale);
   if (card) {
     ctx.font = 'bold 10px "Segoe UI", system-ui, sans-serif';
     const label = `Carta migliore: ${card.name}`;

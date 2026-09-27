@@ -977,6 +977,12 @@ export default function HotelPage() {
               .then(() => showNotice(`Richiesta di amicizia mandata a ${selected.username}!`))
               .catch((err) => showNotice(err?.code === 'already_friends' ? "Siete gia' amici." : err?.code === 'friend_already_requested' ? "Richiesta gia' mandata." : 'Richiesta non riuscita.'))}
             onViewCard={(card) => setViewingCard(card)}
+            onWearBadge={selected.id === me?.id ? (code) => hotelApi.wearBadge(code).then((res) => {
+              // Il server rilegge il profilo e aggiorna l'avatar per tutti nella stanza.
+              send({ type: 'refresh_profile' });
+              showNotice(res.wornBadge ? 'Distintivo in mostra accanto al nome!' : 'Distintivo tolto.');
+              return res;
+            }) : null}
             onChallenge={pvp ? null : () => { send({ type: 'challenge', userId: selected.id }); setSelected(null); }}
           />
         )}

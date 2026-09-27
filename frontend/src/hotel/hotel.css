@@ -1292,3 +1292,9 @@ button.hotel-trade-card:hover { background: var(--hp-surface-hover); }
 .season-how { font-size: .75rem; opacity: .7; margin: 0; }
 .season-mine { margin: 0; color: #fde047; }
 .event-clubs { font-size: .75rem; margin: 4px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Distintivi nella propria scheda: si clicca quello da mostrare accanto al nome. */
+button.hotel-badge { cursor: pointer; font: inherit; padding: 0; transition: transform 0.12s steps(2, end); }
+button.hotel-badge:hover:not(:disabled) { transform: translateY(-2px) scale(1.08); }
+.hotel-badge.worn { outline: 2px solid #ffd24a; outline-offset: 2px; box-shadow: 0 0 10px rgba(255, 210, 74, 0.7); }
+.hotel-badges-hint { display: block; font-size: 0.68rem; color: var(--hp-muted); margin-top: 4px; }

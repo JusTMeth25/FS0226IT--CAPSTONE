@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,6 +42,12 @@ public class HotelController {
     public Map<String, Object> tutorialDone(@CurrentUser UserPrincipal principal) {
         userRepository.findById(principal.getId()).ifPresent(u -> u.setHotelTutorialDone(true));
         return Map.of("done", true);
+    }
+
+    /** Distintivo da mostrare accanto al nome nell'hotel: { "code": "set-..." }, null per toglierlo. */
+    @PutMapping("/badge")
+    public Map<String, Object> wearBadge(@CurrentUser UserPrincipal principal, @RequestBody Map<String, String> body) {
+        return socialService.wear(principal.getId(), body == null ? null : body.get("code"));
     }
 
     @GetMapping("/profile/{userId}")

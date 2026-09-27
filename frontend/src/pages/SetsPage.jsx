@@ -41,7 +41,7 @@ export default function SetsPage() {
   return (
     <section className="sets-page">
       <h2 className="section-title text-gradient"><i className="ph-fill ph-stack" /> Set da completare</h2>
-      <p className="page-subtitle">Raccogli tutte le carte di un set per il premio in gold e il distintivo. Completati: {done} su {data.sets.length}.</p>
+      <p className="page-subtitle">Raccogli tutte le carte di un set per il premio in gold e il distintivo. Completati: {done} su {data.sets.length}. Nell&apos;hotel apri la tua scheda (clic sul tuo avatar) e scegli il distintivo da mostrare accanto al nome.</p>
       {notice && <p className="sets-notice" role="status">{notice}</p>}
 
       {data.badges.length > 0 && (

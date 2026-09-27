@@ -195,9 +195,8 @@ public class HotelSocialService {
         profile.put("respects", respectRepository.countByReceiverId(userId));
         profile.put("uniqueCards", cards.size());
         profile.put("battlesWon", user.getBattlesWon());
-        List<Map<String, String>> badges = new ArrayList<>(badges(user, cards));
-        badges.addAll(setService.badges(userId));
-        profile.put("badges", badges);
+        profile.put("badges", allBadges(user, cards));
+        profile.put("wornBadge", user.getWornBadge());
         profile.put("bestCard", best == null ? null : RoomItemView.CardView.from(best));
         profile.put("roomId", roomRepository.findFirstByOwnerIdOrderByCreatedAtAsc(userId).map(Room::getId).orElse(null));
         profile.put("respectsLeft", viewerId == null ? 0
@@ -207,27 +206,70 @@ public class HotelSocialService {
         return profile;
     }
 
+    /** Tutti i distintivi sbloccati: quelli del gioco e quelli dei set completati. */
+    private List<Map<String, String>> allBadges(User user, List<UserCard> cards) {
+        List<Map<String, String>> badges = new ArrayList<>(badges(user, cards));
+        badges.addAll(setService.badges(user.getId()));
+        return badges;
+    }
+
+    private List<Map<String, String>> allBadges(UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> ApiException.notFound("user_not_found"));
+        List<UserCard> cards = userCardRepository.findByUserIdWithCard(userId).stream()
+                .filter(uc -> uc.getQuantity() > 0).toList();
+        return allBadges(user, cards);
+    }
+
+    /**
+     * Distintivo indossato, se il giocatore lo possiede ancora (per esempio un distintivo della
+     * collezione si perde vendendo carte): altrimenti non se ne mostra nessuno.
+     */
+    @Transactional(readOnly = true)
+    public HotelUser.WornBadge wornBadge(UUID userId) {
+        String code = userRepository.findById(userId).map(User::getWornBadge).orElse(null);
+        if (code == null) return null;
+        return allBadges(userId).stream().filter(b -> code.equals(b.get("code"))).findFirst()
+                .map(b -> new HotelUser.WornBadge(code, b.get("name"), b.get("icon")))
+                .orElse(null);
+    }
+
+    /** Sceglie il distintivo da indossare (null lo toglie). Deve essere fra quelli sbloccati. */
+    @Transactional
+    public Map<String, Object> wear(UUID userId, String code) {
+        User user = userRepository.findById(userId).orElseThrow(() -> ApiException.notFound("user_not_found"));
+        if (code != null && !code.isBlank()) {
+            boolean owned = allBadges(userId).stream().anyMatch(b -> code.equals(b.get("code")));
+            if (!owned) throw ApiException.badRequest("badge_locked");
+            user.setWornBadge(code);
+        } else {
+            user.setWornBadge(null);
+        }
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("wornBadge", user.getWornBadge());
+        return result;
+    }
+
     /** Distintivi guadagnati giocando: si leggono da livello, collezione e battaglie. */
     static List<Map<String, String>> badges(User user, List<UserCard> cards) {
         List<Map<String, String>> badges = new ArrayList<>();
         int unique = cards.size();
-        if (unique >= 100) badges.add(badge("collector3", "Grande collezionista", "100 carte diverse"));
-        else if (unique >= 50) badges.add(badge("collector2", "Collezionista", "50 carte diverse"));
-        else if (unique >= 10) badges.add(badge("collector1", "Primi passi", "10 carte diverse"));
+        if (unique >= 100) badges.add(badge("collector3", "Grande collezionista", "100 carte diverse", "cards"));
+        else if (unique >= 50) badges.add(badge("collector2", "Collezionista", "50 carte diverse", "cards"));
+        else if (unique >= 10) badges.add(badge("collector1", "Primi passi", "10 carte diverse", "cards"));
 
         if (cards.stream().anyMatch(uc -> "legendary".equals(uc.getCard().getRarity()))) {
-            badges.add(badge("legend", "Leggendario", "Possiede una carta leggendaria"));
+            badges.add(badge("legend", "Leggendario", "Possiede una carta leggendaria", "crown"));
         }
-        if (user.getLevel() >= 20) badges.add(badge("level3", "Veterano", "Livello 20"));
-        else if (user.getLevel() >= 10) badges.add(badge("level2", "Esperto", "Livello 10"));
-        else if (user.getLevel() >= 5) badges.add(badge("level1", "In ascesa", "Livello 5"));
+        if (user.getLevel() >= 20) badges.add(badge("level3", "Veterano", "Livello 20", "medal"));
+        else if (user.getLevel() >= 10) badges.add(badge("level2", "Esperto", "Livello 10", "medal"));
+        else if (user.getLevel() >= 5) badges.add(badge("level1", "In ascesa", "Livello 5", "trend-up"));
 
-        if (user.getBattlesWon() >= 25) badges.add(badge("champion", "Campione", "25 battaglie vinte"));
-        else if (user.getBattlesWon() >= 5) badges.add(badge("fighter", "Combattente", "5 battaglie vinte"));
+        if (user.getBattlesWon() >= 25) badges.add(badge("champion", "Campione", "25 battaglie vinte", "trophy"));
+        else if (user.getBattlesWon() >= 5) badges.add(badge("fighter", "Combattente", "5 battaglie vinte", "sword"));
         return badges;
     }
 
-    private static Map<String, String> badge(String code, String name, String description) {
-        return Map.of("code", code, "name", name, "description", description);
+    private static Map<String, String> badge(String code, String name, String description, String icon) {
+        return Map.of("code", code, "name", name, "description", description, "icon", icon);
     }
 }
