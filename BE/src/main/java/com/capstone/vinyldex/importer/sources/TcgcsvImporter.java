@@ -89,8 +89,10 @@ public abstract class TcgcsvImporter extends AbstractCardImporter {
                 continue;
             }
             Map<Integer, Double> prices = prices(groupId);
-            for (JsonNode product : elements(child(products, "results"))) {
-                ImportedCard card = normalize(product, prices, text(group, "name"), text(group, "abbreviation"));
+            List<JsonNode> list = elements(child(products, "results"));
+            Map<Integer, String> images = TcgplayerImages.forGroup(list);
+            for (JsonNode product : list) {
+                ImportedCard card = normalize(product, prices, text(group, "name"), text(group, "abbreviation"), images);
                 if (card != null) all.add(card);
             }
         }
@@ -117,8 +119,10 @@ public abstract class TcgcsvImporter extends AbstractCardImporter {
                 JsonNode products = fetchJsonWithRetry(base() + "/" + groupId + "/products", 4);
                 Map<Integer, Double> prices = prices(groupId);
                 List<ImportedCard> cards = new ArrayList<>();
-                for (JsonNode product : elements(child(products, "results"))) {
-                    ImportedCard card = normalize(product, prices, text(group, "name"), text(group, "abbreviation"));
+                List<JsonNode> list = elements(child(products, "results"));
+                Map<Integer, String> images = TcgplayerImages.forGroup(list);
+                for (JsonNode product : list) {
+                    ImportedCard card = normalize(product, prices, text(group, "name"), text(group, "abbreviation"), images);
                     if (card != null) cards.add(card);
                 }
                 if (!cards.isEmpty()) imported += writer.persist(spec.source(), cards, null);
@@ -165,6 +169,12 @@ public abstract class TcgcsvImporter extends AbstractCardImporter {
 
     /** Prodotto TCGplayer -> carta; null per i prodotti sigillati (niente numero ne' rarita'). */
     ImportedCard normalize(JsonNode product, Map<Integer, Double> prices, String groupName, String groupCode) {
+        return normalize(product, prices, groupName, groupCode, Map.of());
+    }
+
+    /** @param images immagine di ogni prodotto del gruppo (TcgplayerImages.forGroup); se manca si usa la sua. */
+    ImportedCard normalize(JsonNode product, Map<Integer, Double> prices, String groupName, String groupCode,
+                           Map<Integer, String> images) {
         Spec spec = spec();
         Map<String, String> data = new HashMap<>();
         for (JsonNode entry : elements(child(product, "extendedData"))) {
@@ -206,7 +216,7 @@ public abstract class TcgcsvImporter extends AbstractCardImporter {
                 groupCode,
                 data.get("Number"),
                 rarity != null ? rarity : rarityFallback(tcgRarity, print),
-                "https://tcgplayer-cdn.tcgplayer.com/product/" + id + "_in_1000x1000.jpg",
+                images.getOrDefault(id, TcgplayerImages.hasImage(product) ? TcgplayerImages.url(id) : ""),
                 cleanText(description),
                 metadata);
     }

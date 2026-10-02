@@ -56,8 +56,10 @@ public class NikkeImporter extends AbstractCardImporter {
             if (groupId == null || groupName == null || !groupName.toUpperCase(Locale.ROOT).contains("NIKKE")) continue;
             JsonNode products = fetchJsonWithRetry(BASE + "/" + groupId.intValue() + "/products", 3);
             Map<Integer, Double> prices = prices(groupId.intValue());
-            for (JsonNode product : elements(child(products, "results"))) {
-                ImportedCard card = normalize(product, prices, setNameOf(groupName), text(group, "abbreviation"));
+            List<JsonNode> list = elements(child(products, "results"));
+            Map<Integer, String> images = TcgplayerImages.forGroup(list);
+            for (JsonNode product : list) {
+                ImportedCard card = normalize(product, prices, setNameOf(groupName), text(group, "abbreviation"), images);
                 if (card != null) all.add(card);
             }
         }
@@ -99,6 +101,12 @@ public class NikkeImporter extends AbstractCardImporter {
      * numero di collezione.
      */
     ImportedCard normalize(JsonNode product, Map<Integer, Double> prices, String setName, String setCode) {
+        return normalize(product, prices, setName, setCode, Map.of());
+    }
+
+    /** @param images immagine di ogni prodotto del gruppo (TcgplayerImages.forGroup); se manca si usa la sua. */
+    ImportedCard normalize(JsonNode product, Map<Integer, Double> prices, String setName, String setCode,
+                           Map<Integer, String> images) {
         Map<String, String> data = new HashMap<>();
         for (JsonNode entry : elements(child(product, "extendedData"))) {
             String key = text(entry, "name");
@@ -134,7 +142,8 @@ public class NikkeImporter extends AbstractCardImporter {
         metadata.put("url", text(product, "url"));
 
         String rarity = priceRarityMapper.rarityFromPrice(SOURCE, price);
-        String image = "https://tcgplayer-cdn.tcgplayer.com/product/" + productId.intValue() + "_in_1000x1000.jpg";
+        String image = images.getOrDefault(productId.intValue(),
+                TcgplayerImages.hasImage(product) ? TcgplayerImages.url(productId.intValue()) : "");
         return new ImportedCard(
                 String.valueOf(productId.intValue()),
                 SOURCE + "-" + productId.intValue(),

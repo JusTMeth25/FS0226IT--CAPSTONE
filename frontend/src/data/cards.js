@@ -68,7 +68,7 @@ export const CARDS = [
     artistClass: 'The Rebel',
     variant: 'Riot Avenue',
     rarity: 'legendary',
-    img: 'assets/img/RiotAvenue.webp',
+    img: '/assets/img/RiotAvenue.webp',
     fullImage: true,
     stats: { fans: 92, style: 78, influence: 95, energy: 90 },
     description: 'La rivoluzione suona come un riff distorto. Riot Avenue guida la rivolta musicale.'

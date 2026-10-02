@@ -291,21 +291,21 @@ public final class NpcRoster {
     private static final Map<String, Legend> LEGENDS = Map.of(
             "riot_avenue", new Legend("rebel-001", "Riot Avenue", "The Rebel", "/assets/img/RiotAvenue.webp", "guitar", 860,
                     List.of("Riot Music, Riot Soul!", "La rivoluzione suona come un riff distorto.", "Chi sale sulla pedana contro di me?")),
-            "thunder_chord", new Legend("riff-001", "Thunder Chord", "The King of Riffs", null, "guitar", 920,
+            "thunder_chord", new Legend("riff-001", "Thunder Chord", "The King of Riffs", "/assets/img/ThunderChord.webp", "guitar", 920,
                     List.of("Il tuono ha trovato una chitarra!", "Un accordo e crolla il soffitto.", "Sfidami, se hai le dita veloci.")),
             "royal_echo", new Legend("showman-001", "Royal Echo", "The Showman", "/assets/img/RoyalEcho.webp", "voice", 780,
                     List.of("Il re dei palchi saluta il suo pubblico!", "Cantate con me, fino all'ultima fila!", "Una corona non si porta: si guadagna sul palco.")),
             "whisker_riot", new Legend("rebel-extra-001", "Whisker Riot", "The Rebel", "/assets/img/whisker.webp", "drums", 880,
                     List.of("MEOW OR DIE!", "Nove vite, nove assoli!", "Picchio sui tamburi finche' trema il palco!")),
-            "virtuoso_soul", new Legend("virtuoso-001", "Virtuoso's Soul", "The Virtuoso", null, "guitar", 960,
+            "virtuoso_soul", new Legend("virtuoso-001", "Virtuoso's Soul", "The Virtuoso", "/assets/img/VirtuosoSoul.webp", "guitar", 960,
                     List.of("Ogni nota perfetta, ogni pausa divina.", "Un assolo e' una preghiera suonata di corsa.", "Accordate bene: io sento tutto.")),
             "digital_god", new Legend("synth-001", "Digital God", "The Synth Master", "/assets/img/DigitalGod.webp", "guitar", 900,
                     List.of("Ogni frequenza obbedisce a me.", "Sintetizzatore acceso, universo in ascolto.", "Il rock? Un'onda quadra con l'anima.")),
-            "lyric_storm", new Legend("poet-001", "Lyric Storm", "The Poet", null, "guitar", 740,
+            "lyric_storm", new Legend("poet-001", "Lyric Storm", "The Poet", "/assets/img/LyricStorm.webp", "guitar", 740,
                     List.of("Le mie parole sono fulmini, i miei versi tuoni.", "Scrivo una strofa tra un tuono e l'altro.", "Ogni canzone comincia da una tempesta.")),
-            "astral_lullaby", new Legend("dreamer-001", "Astral Lullaby", "The Dreamer", null, "guitar", 700,
+            "astral_lullaby", new Legend("dreamer-001", "Astral Lullaby", "The Dreamer", "/assets/img/AstralLullaby.webp", "guitar", 700,
                     List.of("Chiudete gli occhi: arriva la musica dei sogni.", "Una ninnananna... ma distorta!", "Le stelle stanotte suonano in La.")),
-            "future_frequency", new Legend("innovator-001", "Future Frequency", "The Innovator", null, "guitar", 820,
+            "future_frequency", new Legend("innovator-001", "Future Frequency", "The Innovator", "/assets/img/FutureFrequency.webp", "guitar", 820,
                     List.of("Il futuro ha una frequenza, e io l'ho trovata.", "Questo pezzo uscira' tra dieci anni.", "Chitarra, laser e un pedale inventato ieri."))
     );
 

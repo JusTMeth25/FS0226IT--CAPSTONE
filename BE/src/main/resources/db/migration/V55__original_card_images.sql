@@ -1,0 +1,44 @@
+-- Immagini delle carte originali VinylDex aggiunte in frontend/public/assets/img (commit 6610780 e
+-- seguenti): le carte che non ne avevano una la prendono qui. Quelle che ne avevano gia' una restano com'erano.
+
+UPDATE cards SET img_url = '/assets/img/RoyalEcho.webp' WHERE source = 'original' AND code = 'showman-001' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/GoldenVoice.webp' WHERE source = 'original' AND code = 'showman-002' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/NeonPerformer.webp' WHERE source = 'original' AND code = 'showman-003' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/VelvetCrown.webp' WHERE source = 'original' AND code = 'showman-004' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/CrimsonStage.webp' WHERE source = 'original' AND code = 'showman-005' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = 'assets/img/RiotAvenue.webp' WHERE source = 'original' AND code = 'rebel-001' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/ChaosPulse.webp' WHERE source = 'original' AND code = 'rebel-002' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/CrimsonRiot.webp' WHERE source = 'original' AND code = 'rebel-003' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/StreetVoltage.webp' WHERE source = 'original' AND code = 'rebel-004' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/BrokenChains.webp' WHERE source = 'original' AND code = 'rebel-005' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/whisker.webp' WHERE source = 'original' AND code = 'rebel-extra-001' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/VirtuosoSoul.webp' WHERE source = 'original' AND code = 'virtuoso-001' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/StringTheory.webp' WHERE source = 'original' AND code = 'virtuoso-002' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/HarmonicBlade.webp' WHERE source = 'original' AND code = 'virtuoso-003' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/CrystalNote.webp' WHERE source = 'original' AND code = 'virtuoso-004' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/SilverScale.webp' WHERE source = 'original' AND code = 'virtuoso-005' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/FutureFrequency.webp' WHERE source = 'original' AND code = 'innovator-001' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/DigitalWave.webp' WHERE source = 'original' AND code = 'innovator-002' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/NeonCircuit.webp' WHERE source = 'original' AND code = 'innovator-003' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/BinaryBeat.webp' WHERE source = 'original' AND code = 'innovator-004' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/PixelBass.webp' WHERE source = 'original' AND code = 'innovator-005' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/LyricStorm.webp' WHERE source = 'original' AND code = 'poet-001' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/VerseOfFire.webp' WHERE source = 'original' AND code = 'poet-002' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/SilentRhyme.webp' WHERE source = 'original' AND code = 'poet-003' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/PaperWings.webp' WHERE source = 'original' AND code = 'poet-004' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/InkAndSoul.webp' WHERE source = 'original' AND code = 'poet-005' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/ThunderChord.webp' WHERE source = 'original' AND code = 'riff-001' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/ElectricThrone.webp' WHERE source = 'original' AND code = 'riff-002' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/IronStrings.webp' WHERE source = 'original' AND code = 'riff-003' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/SteelResonance.webp' WHERE source = 'original' AND code = 'riff-004' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/PowerChords.webp' WHERE source = 'original' AND code = 'riff-005' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/AstralLullaby.webp' WHERE source = 'original' AND code = 'dreamer-001' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/NebulaVoice.webp' WHERE source = 'original' AND code = 'dreamer-002' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/StarGazer.webp' WHERE source = 'original' AND code = 'dreamer-003' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/LunarEcho.webp' WHERE source = 'original' AND code = 'dreamer-004' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/DayDreamer.webp' WHERE source = 'original' AND code = 'dreamer-005' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/DigitalGod.webp' WHERE source = 'original' AND code = 'synth-001' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/CyberWave.webp' WHERE source = 'original' AND code = 'synth-002' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/PulseMatrix.webp' WHERE source = 'original' AND code = 'synth-003' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/VoltageBeat.webp' WHERE source = 'original' AND code = 'synth-004' AND (img_url IS NULL OR img_url = '');
+UPDATE cards SET img_url = '/assets/img/NeonSynth.webp' WHERE source = 'original' AND code = 'synth-005' AND (img_url IS NULL OR img_url = '');
