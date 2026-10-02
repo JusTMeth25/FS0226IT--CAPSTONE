@@ -35,9 +35,14 @@ export function makePlaceholderTexture(name, color) {
   return finish(new CanvasTexture(canvas));
 }
 
+/** Logo di VinylDex (lo stesso vinile della favicon), ritagliato su fondo trasparente. */
+const CARD_BACK_LOGO = `${import.meta.env.BASE_URL}assets/img/card-back-logo.webp`;
+
 /**
- * Dorso della carta: un vinile neon con i solchi, come il retro di un mazzo collezionabile.
- * Generato una volta sola e condiviso da tutte le carte.
+ * Dorso delle carte VinylDex: il vinile del logo (quello della favicon) al centro, con l'anello
+ * neon e la scritta VINYLDEX, su fondo blu notte a griglia. Generato una volta sola e condiviso da
+ * tutte le carte. Finche' l'immagine del logo non e' arrivata si vede un vinile disegnato; poi la
+ * texture si ridisegna con il logo.
  */
 let backTexture = null;
 export function getCardBackTexture() {
@@ -49,7 +54,21 @@ export function getCardBackTexture() {
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext('2d');
+  paintCardBack(ctx, w, h, null);
+  backTexture = finish(new CanvasTexture(canvas));
 
+  const logo = new Image();
+  logo.decoding = 'async';
+  logo.onload = () => {
+    paintCardBack(ctx, w, h, logo);
+    backTexture.needsUpdate = true;
+  };
+  logo.src = CARD_BACK_LOGO;
+  return backTexture;
+}
+
+function paintCardBack(ctx, w, h, logo) {
+  ctx.clearRect(0, 0, w, h);
   const bg = ctx.createLinearGradient(0, 0, w, h);
   bg.addColorStop(0, '#0E1635');
   bg.addColorStop(0.5, '#050816');
@@ -65,46 +84,47 @@ export function getCardBackTexture() {
 
   const cx = w / 2;
   const cy = h / 2 - 30;
-  ctx.fillStyle = '#07070c';
-  ctx.beginPath(); ctx.arc(cx, cy, 190, 0, Math.PI * 2); ctx.fill();
+  const radius = 188;
 
-  for (let r = 70; r < 188; r += 3) {
-    ctx.strokeStyle = `rgba(255, 255, 255, ${0.04 + (r % 9 === 0 ? 0.06 : 0)})`;
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+  if (logo) {
+    // Il vinile del logo, con un alone viola sotto per staccarlo dal fondo.
+    ctx.save();
+    ctx.shadowColor = 'rgba(139, 92, 246, 0.8)';
+    ctx.shadowBlur = 30;
+    ctx.fillStyle = '#07070c';
+    ctx.beginPath(); ctx.arc(cx, cy, radius - 2, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    ctx.drawImage(logo, cx - radius, cy - radius, radius * 2, radius * 2);
+  } else {
+    ctx.fillStyle = '#07070c';
+    ctx.beginPath(); ctx.arc(cx, cy, 190, 0, Math.PI * 2); ctx.fill();
+    for (let r = 70; r < 188; r += 3) {
+      ctx.strokeStyle = `rgba(255, 255, 255, ${0.04 + (r % 9 === 0 ? 0.06 : 0)})`;
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+    }
+    const label = ctx.createRadialGradient(cx, cy, 5, cx, cy, 64);
+    label.addColorStop(0, '#EC4899');
+    label.addColorStop(1, '#8B5CF6');
+    ctx.fillStyle = label;
+    ctx.beginPath(); ctx.arc(cx, cy, 64, 0, Math.PI * 2); ctx.fill();
   }
 
+  // Anello neon attorno al disco.
   ctx.lineWidth = 4;
   ctx.strokeStyle = '#EC4899';
   ctx.shadowColor = '#EC4899';
   ctx.shadowBlur = 18;
-  ctx.beginPath(); ctx.arc(cx, cy, 188, 0, Math.PI * 2); ctx.stroke();
-  ctx.strokeStyle = '#22D3EE';
-  ctx.shadowColor = '#22D3EE';
-  ctx.beginPath(); ctx.arc(cx, cy, 140, -0.6, 1.4); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, radius + 2, 0, Math.PI * 2); ctx.stroke();
   ctx.shadowBlur = 0;
-
-  const label = ctx.createRadialGradient(cx, cy, 5, cx, cy, 64);
-  label.addColorStop(0, '#EC4899');
-  label.addColorStop(1, '#8B5CF6');
-  ctx.fillStyle = label;
-  ctx.beginPath(); ctx.arc(cx, cy, 64, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#050816';
-  ctx.beginPath(); ctx.arc(cx, cy, 7, 0, Math.PI * 2); ctx.fill();
 
   ctx.fillStyle = '#F0F0F0';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = '900 30px system-ui, sans-serif';
-  ctx.fillText('VD', cx, cy - 30);
-
   ctx.font = '900 54px system-ui, sans-serif';
   ctx.shadowColor = '#8B5CF6';
   ctx.shadowBlur = 24;
   ctx.fillText('VINYLDEX', cx, h - 90);
   ctx.shadowBlur = 0;
-
-  backTexture = finish(new CanvasTexture(canvas));
-  return backTexture;
 }
 
 /** Solchi di un vinile d'oro visti dall'alto, per la faccia del disco leggendario. */

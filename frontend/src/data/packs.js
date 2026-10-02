@@ -26,9 +26,9 @@ export const PACKS = [
   {
     id: 'pack-premium',
     name: 'Pacchetto Premium',
-    description: '10 carte con 1 Leggendaria garantita. Il massimo del lusso!',
+    description: '5 carte con 1 Leggendaria garantita. Il massimo del lusso!',
     price: 250,
-    cardCount: 10,
+    cardCount: 5,
     dropRates: { common: 0.20, uncommon: 0.25, rare: 0.25, epic: 0.20, legendary: 0.10 },
     guarantees: { rare: 1, epic: 0, legendary: 1 },
     isFree: false
