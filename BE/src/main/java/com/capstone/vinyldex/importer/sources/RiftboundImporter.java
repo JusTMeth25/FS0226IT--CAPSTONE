@@ -42,6 +42,14 @@ public class RiftboundImporter extends AbstractCardImporter {
 
         int total = totalNode == null ? 1000 : totalNode.intValue();
         int maxPage = pagesNode == null ? 1 : Math.max(1, pagesNode.intValue());
+        if (request.wantsAll()) {
+            int imported = 0;
+            for (int p = 1; p <= maxPage; p++) {
+                JsonNode body = p == 1 ? probe : fetchJson("https://api.riftcodex.com/cards?page=" + p);
+                imported += writer.persist(SOURCE, elements(child(body, "items")).stream().map(RiftboundImporter::normalize).toList(), null);
+            }
+            return ImportResult.success(SOURCE, imported, null, total);
+        }
         int page = request.page() != null ? request.pageOrOne() : random.nextInt(maxPage) + 1;
 
         JsonNode body = page == 1 ? probe : fetchJson("https://api.riftcodex.com/cards?page=" + page);

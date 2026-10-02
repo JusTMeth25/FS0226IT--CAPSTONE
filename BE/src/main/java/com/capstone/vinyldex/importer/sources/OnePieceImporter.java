@@ -35,6 +35,9 @@ public class OnePieceImporter extends AbstractCardImporter {
         int limit = request.limitOrDefault(100, MAX_LIMIT);
 
         List<JsonNode> all = elements(fetchJson("https://www.optcgapi.com/api/allSetCards/"));
+        if (request.wantsAll()) {
+            return ImportResult.success(SOURCE, persistInChunks(SOURCE, all.stream().map(this::normalize).toList()), null, all.size());
+        }
         int start = randomStart(all.size(), limit);
 
         List<ImportedCard> cards = all.subList(start, Math.min(start + limit, all.size())).stream()

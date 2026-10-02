@@ -77,6 +77,15 @@ public class CardSetService {
                     c -> "grandarchive".equals(c.getSource()) && metaIs(c, "cardType", "(?i)champion")),
             new SetDef("wixoss-lrig", "LRIG di WIXOSS", "Le LRIG, le protagoniste di WIXOSS", "sparkle", 250,
                     c -> "wixoss".equals(c.getSource()) && metaIs(c, "cardType", "(?i)^lrig")),
+            new SetDef("pokemon-giappone", "Charizard dal Giappone", "Ogni Charizard delle espansioni giapponesi", "fire", 300,
+                    named("pokemonjp", "charizard|lizardon")),
+            new SetDef("pokemon-promo-mew", "Mew leggendari", "Mew e Mewtwo delle promo Pokémon, Ancient Mew compreso", "sparkle", 300,
+                    named("pokemonpromo", "mew")),
+            new SetDef("nba-rookie-leggende", "Rookie leggendarie", "Le rookie card delle leggende NBA", "basketball", 400,
+                    c -> "nba".equals(c.getSource()) && c.getMetadata() != null
+                            && Boolean.TRUE.equals(c.getMetadata().get("rookie")) && Boolean.TRUE.equals(c.getMetadata().get("legend"))),
+            new SetDef("nba-downtown", "Downtown", "Tutte le Donruss Optic Downtown", "buildings", 350,
+                    c -> "nba".equals(c.getSource()) && metaIs(c, "insert", "(?i)downtown")),
             new SetDef("gundam-assi", "Assi di Gundam", "Le carte epiche e leggendarie di Gundam", "rocket", 250,
                     c -> "gundam".equals(c.getSource()) && Set.of("epic", "legendary").contains(c.getRarity())));
 

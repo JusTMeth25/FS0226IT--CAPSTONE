@@ -56,7 +56,9 @@ public class PackGenerator {
         List<Card> allCards = cardRepository.findAllActiveWithArtistClass();
         // Pacchetto di una sola fonte (per esempio Ultimate Team): si pesca solo fra quelle carte.
         if (pack.getSource() != null && !pack.getSource().isBlank()) {
-            allCards = allCards.stream().filter(c -> pack.getSource().equals(c.getSource())).toList();
+            // La fonte del pacchetto vale per tutta la sua famiglia: il Pacchetto Pokémon pesca anche
+            // le carte giapponesi (pokemonjp) e le promo (pokemonpromo).
+            allCards = allCards.stream().filter(c -> c.getSource() != null && c.getSource().startsWith(pack.getSource())).toList();
         }
         if (featured != null && !featured.isEmpty()) {
             Set<String> sources = featured.stream().map(Card::getSource).collect(Collectors.toSet());

@@ -4,6 +4,18 @@
  */
 export const NEWS = [
   {
+    date: '2026-10-07',
+    title: 'Carte NBA e Pokémon introvabili',
+    icon: 'ph-basketball',
+    items: [
+      ['ph-basketball', 'Carte NBA', 'Prizm, Donruss Optic, Topps Chrome, le Downtown e le Kaboom!: dalla Fleer 1986 di Jordan a Wembanyama, con le parallele Gold /10 e Black 1/1.'],
+      ['ph-gift', 'Pacchetto NBA', '5 carte NBA con 1 Rara garantita. Due set nuovi: Rookie leggendarie e Downtown.'],
+      ['ph-lightning', 'Pokémon dal Giappone', 'Tutte le espansioni giapponesi, dal Charizard Crystal di Mysterious Mountains in poi.'],
+      ['ph-sparkle', 'Promo Pokémon', 'Ancient Mew, le promo Wizards, McDonald’s, Jumbo e premi dei tornei. Nel Pacchetto Pokémon trovi anche loro.'],
+      ['ph-cards', 'Cataloghi completi', 'Magic con le versioni speciali (showcase, borderless, Marvel) e i cataloghi interi degli altri giochi.']
+    ]
+  },
+  {
     date: '2026-10-06',
     title: 'Otto giochi nuovi: cyberpunk, idol e anime',
     icon: 'ph-cards',

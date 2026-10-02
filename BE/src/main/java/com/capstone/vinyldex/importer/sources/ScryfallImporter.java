@@ -24,6 +24,14 @@ public class ScryfallImporter extends AbstractCardImporter {
     /** Query molto ampia: qualunque carta Magic reale dal 1993 a oggi. */
     private static final String DEFAULT_QUERY = "year>=1993";
 
+    /**
+     * "Tutto il catalogo" di Magic sono oltre 100.000 stampe: si prendono le versioni da collezione
+     * (showcase, borderless, extended art, full art, Masterpiece, numerate, Marvel Universe con la
+     * Reanimate in cornice invertita) che valgono almeno mezzo dollaro. Circa 12.000 stampe.
+     */
+    static final String SPECIAL_QUERY = "(is:showcase or is:borderless or is:extendedart or is:fullart or frame:inverted"
+            + " or st:masterpiece or is:serialized or set:mar) usd>=0.5";
+
     public ScryfallImporter(RestClient restClient, CardImportWriter writer, PriceRarityMapper priceRarityMapper) {
         super(restClient, writer, priceRarityMapper);
     }
@@ -43,6 +51,7 @@ public class ScryfallImporter extends AbstractCardImporter {
      */
     @Override
     protected ImportResult doImport(AdminRequests.ImportRequest request) {
+        if (request.wantsAll()) return importSpecialPrints();
         int limit = request.limitOrDefault(100, MAX_PAGE_SIZE);
         String query = request.query() == null || request.query().isBlank() ? DEFAULT_QUERY : request.query();
         String baseUrl = "https://api.scryfall.com/cards/search?q="
@@ -64,6 +73,39 @@ public class ScryfallImporter extends AbstractCardImporter {
 
         int imported = writer.persist(SOURCE, cards, null);
         return ImportResult.success(SOURCE, imported, page, totalCards);
+    }
+
+    /** Segue next_page fino all'ultima pagina; Scryfall chiede 50-100 ms fra una richiesta e l'altra. */
+    private ImportResult importSpecialPrints() {
+        String url = "https://api.scryfall.com/cards/search?unique=prints&q=" + URLEncoder.encode(SPECIAL_QUERY, StandardCharsets.UTF_8);
+        int imported = 0;
+        Integer total = null;
+        int failures = 0;
+        while (url != null) {
+            JsonNode body;
+            try {
+                body = fetchJson(url);
+            } catch (RuntimeException ex) {
+                if (++failures > 5) break;
+                pause(1000);
+                continue;
+            }
+            JsonNode count = child(body, "total_cards");
+            if (count != null) total = count.intValue();
+            imported += writer.persist(SOURCE, elements(child(body, "data")).stream().map(this::normalize).toList(), null);
+            JsonNode more = child(body, "has_more");
+            url = more != null && more.asBoolean() ? text(body, "next_page") : null;
+            pause(120);
+        }
+        return ImportResult.success(SOURCE, imported, null, total);
+    }
+
+    private static void pause(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private ImportedCard normalize(JsonNode card) {

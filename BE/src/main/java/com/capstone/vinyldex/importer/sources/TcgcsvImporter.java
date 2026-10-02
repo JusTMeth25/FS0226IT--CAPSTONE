@@ -38,9 +38,15 @@ public abstract class TcgcsvImporter extends AbstractCardImporter {
      * @param cost        campi del costo o livello (vale il piu' alto)
      * @param leaderTypes tipi di carta che guidano il mazzo (piu' influenza)
      * @param rights      titolari dei diritti, per la descrizione delle carte demo
+     * @param skip        prodotti da scartare per nome o rarita' (per esempio le Code Card digitali)
      */
     protected record Spec(String source, String title, int categoryId, Pattern groups, List<Stat> power, List<Stat> cost,
-                          Pattern leaderTypes, String rights) {
+                          Pattern leaderTypes, String rights, Pattern skip) {
+
+        protected Spec(String source, String title, int categoryId, Pattern groups, List<Stat> power, List<Stat> cost,
+                       Pattern leaderTypes, String rights) {
+            this(source, title, categoryId, groups, power, cost, leaderTypes, rights, null);
+        }
     }
 
     private static final Pattern TOP = Pattern.compile(
@@ -91,10 +97,12 @@ public abstract class TcgcsvImporter extends AbstractCardImporter {
             Map<Integer, Double> prices = prices(groupId);
             List<JsonNode> list = elements(child(products, "results"));
             Map<Integer, String> images = TcgplayerImages.forGroup(list);
+            List<ImportedCard> groupCards = new ArrayList<>();
             for (JsonNode product : list) {
                 ImportedCard card = normalize(product, prices, text(group, "name"), text(group, "abbreviation"), images);
-                if (card != null) all.add(card);
+                if (card != null) groupCards.add(card);
             }
+            all.addAll(withEstimates(groupCards));
         }
         if (all.isEmpty()) throw new IllegalStateException(spec.source() + "_no_cards");
 
@@ -125,7 +133,7 @@ public abstract class TcgcsvImporter extends AbstractCardImporter {
                     ImportedCard card = normalize(product, prices, text(group, "name"), text(group, "abbreviation"), images);
                     if (card != null) cards.add(card);
                 }
-                if (!cards.isEmpty()) imported += writer.persist(spec.source(), cards, null);
+                if (!cards.isEmpty()) imported += writer.persist(spec.source(), withEstimates(cards), null);
             } catch (RuntimeException ex) {
                 failedGroups++;
                 log.warn("Gruppo {} di {} non importato: {}", groupId, spec.source(), ex.getMessage());
@@ -187,7 +195,9 @@ public abstract class TcgcsvImporter extends AbstractCardImporter {
         int id = productId.intValue();
 
         String tcgRarity = data.get("Rarity");
+        if (spec.skip() != null && (spec.skip().matcher(name).find() || (tcgRarity != null && spec.skip().matcher(tcgRarity).find()))) return null;
         String cardType = data.get("CardType");
+        if (cardType == null) cardType = data.get("Card Type");
         Double price = prices.get(id);
         double print = printScore(tcgRarity, name);
 
@@ -219,6 +229,62 @@ public abstract class TcgcsvImporter extends AbstractCardImporter {
                 images.getOrDefault(id, TcgplayerImages.hasImage(product) ? TcgplayerImages.url(id) : ""),
                 cleanText(description),
                 metadata);
+    }
+
+    /** Prezzi stimati a mano per carte famose che su TCGplayer non hanno vendite (codice -> dollari). */
+    private static final Map<String, Double> CURATED_ESTIMATES = loadEstimates();
+
+    private static Map<String, Double> loadEstimates() {
+        Map<String, Double> estimates = new HashMap<>();
+        try (var in = new org.springframework.core.io.ClassPathResource("tcgplayer/price-estimates.json").getInputStream()) {
+            JsonNode root = tools.jackson.databind.json.JsonMapper.builder().build().readTree(in);
+            root.propertyNames().forEach(code -> estimates.put(code, root.get(code).get("price").asDouble()));
+        } catch (Exception ex) {
+            // Senza elenco si usano solo le stime dal set.
+        }
+        return estimates;
+    }
+
+    /**
+     * Le carte senza prezzo di mercato (mai vendute su TCGplayer, spesso le piu' rare) prendono un
+     * prezzo stimato: quello scritto a mano per le carte famose, altrimenti la mediana delle carte
+     * dello stesso set con la stessa rarita'. Il prezzo resta segnato come stima (priceSource).
+     */
+    List<ImportedCard> withEstimates(List<ImportedCard> cards) {
+        Map<String, List<Double>> byRarity = new HashMap<>();
+        for (ImportedCard card : cards) {
+            if (card.metadata().get("marketPrice") instanceof Double price) {
+                byRarity.computeIfAbsent(String.valueOf(card.metadata().get("tcgRarity")), k -> new ArrayList<>()).add(price);
+            }
+        }
+        List<ImportedCard> result = new ArrayList<>(cards.size());
+        for (ImportedCard card : cards) {
+            if (card.metadata().get("marketPrice") != null) {
+                result.add(card);
+                continue;
+            }
+            Double estimate = CURATED_ESTIMATES.get(card.code());
+            if (estimate == null) estimate = median(byRarity.get(String.valueOf(card.metadata().get("tcgRarity"))));
+            if (estimate == null) {
+                result.add(card);
+                continue;
+            }
+            Map<String, Object> metadata = new HashMap<>(card.metadata());
+            metadata.put("marketPrice", estimate);
+            metadata.put("priceSource", "stima");
+            String rarity = priceRarityMapper.rarityFromPrice(spec().source(), estimate);
+            result.add(new ImportedCard(card.externalId(), card.code(), card.name(), card.setName(), card.setCode(), card.number(),
+                    rarity != null ? rarity : card.rarity(), card.imgUrl(), card.description(), metadata));
+        }
+        return result;
+    }
+
+    private static Double median(List<Double> values) {
+        if (values == null || values.isEmpty()) return null;
+        List<Double> sorted = values.stream().sorted().toList();
+        int mid = sorted.size() / 2;
+        double value = sorted.size() % 2 == 1 ? sorted.get(mid) : (sorted.get(mid - 1) + sorted.get(mid)) / 2;
+        return Math.round(value * 100) / 100.0;
     }
 
     /** Quanto e' speciale la stampa, dalla rarita' del gioco e dalla sigla nel nome: da 0.3 a 1. */

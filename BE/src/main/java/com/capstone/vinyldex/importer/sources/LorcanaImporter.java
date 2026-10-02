@@ -32,6 +32,9 @@ public class LorcanaImporter extends AbstractCardImporter {
         int limit = request.limitOrDefault(100, MAX_LIMIT);
 
         List<JsonNode> all = elements(fetchJson("https://api.lorcana-api.com/bulk/cards"));
+        if (request.wantsAll()) {
+            return ImportResult.success(SOURCE, persistInChunks(SOURCE, all.stream().map(LorcanaImporter::normalize).toList()), null, all.size());
+        }
         int start = randomStart(all.size(), limit);
 
         List<ImportedCard> cards = all.subList(start, Math.min(start + limit, all.size())).stream()

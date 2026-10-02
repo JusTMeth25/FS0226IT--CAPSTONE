@@ -210,7 +210,8 @@ function ImportTab() {
     { key: 'nikke', label: SOURCE_LABELS.nikke, fn: () => adminApi.importNikke({ limit: count }) },
     ...TCGPLAYER_GAMES.map((key) => ({ key, label: SOURCE_LABELS[key], fn: () => adminApi.importSource(key, { limit: count }) })),
     { key: 'gundam', label: SOURCE_LABELS.gundam, fn: () => adminApi.importGundam({ limit: count }) },
-    { key: 'dragonball', label: SOURCE_LABELS.dragonball, fn: () => adminApi.importDragonBall({ limit: count }) }
+    { key: 'dragonball', label: SOURCE_LABELS.dragonball, fn: () => adminApi.importDragonBall({ limit: count }) },
+    { key: 'nba', label: SOURCE_LABELS.nba, fn: () => adminApi.importSource('nba', { limit: count }) }
   ];
 
   return (
@@ -241,7 +242,7 @@ function ImportTab() {
           <button className="btn btn-primary btn-small" disabled={status[s.key]?.loading} onClick={() => runImport(s.key, s.fn)}>
             {status[s.key]?.loading ? 'Import…' : 'Importa'}
           </button>
-          {TCGPLAYER_GAMES.includes(s.key) && (
+          {FULL_CATALOG.has(s.key) && (
             <button className="btn btn-secondary btn-small" disabled={status[s.key]?.loading} title="Tutte le carte del gioco: può richiedere alcuni minuti"
               onClick={() => runImport(s.key, () => adminApi.importSource(s.key, { all: true }))}>
               Tutto il catalogo
@@ -363,7 +364,9 @@ const TAB_COMPONENTS = {
 
 
 /** Giochi importati dal catalogo TCGplayer (TcgcsvImporter nel backend). */
-const TCGPLAYER_GAMES = ['cyberpunk', 'hololive', 'unionarena', 'shadowverse', 'wixoss', 'grandarchive', 'weiss', 'vanguard'];
+const TCGPLAYER_GAMES = ['cyberpunk', 'hololive', 'unionarena', 'shadowverse', 'wixoss', 'grandarchive', 'weiss', 'vanguard', 'pokemonjp', 'pokemonpromo'];
+/** Fonti che sanno importare tutto il loro catalogo in un colpo (richiesta con all: true). */
+const FULL_CATALOG = new Set([...TCGPLAYER_GAMES, 'pokemon', 'yugioh', 'scryfall', 'onepiece', 'digimon', 'lorcana', 'riftbound', 'dragonball']);
 
 export default function AdminPage() {
   const [tab, setTab] = useState('users');

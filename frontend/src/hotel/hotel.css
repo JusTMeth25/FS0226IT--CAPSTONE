@@ -1550,3 +1550,19 @@ button.hotel-badge:hover:not(:disabled) { transform: translateY(-2px) scale(1.08
 .rock-rival small { font-size: .62rem; line-height: 1.1; text-align: center; }
 .rock-rival b { font-size: .65rem; color: #fde047; }
 .rock-rival.active { border-color: #ec4899; box-shadow: 0 0 12px rgba(236, 72, 153, .6); }
+
+/* Carte sopra la testa nella scheda del giocatore: nella propria si cambiano con un click. */
+.hotel-top-cards { display: flex; flex-direction: column; gap: 6px; }
+.hotel-top-cards-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 700; font-size: 0.85rem; }
+.hotel-top-cards-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.hotel-top-card {
+  position: relative; padding: 0; border: 2px solid var(--rarity-color, #8b5cf6); border-radius: 8px;
+  background: var(--hp-surface); aspect-ratio: 5 / 7; overflow: hidden; cursor: pointer;
+}
+.hotel-top-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hotel-top-card-edit {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 3px 0; font-size: 0.7rem; font-weight: 700;
+  background: rgba(0, 0, 0, 0.65); color: #fff; opacity: 0; transition: opacity 0.15s;
+}
+.hotel-top-card:hover .hotel-top-card-edit, .hotel-top-card:focus-visible .hotel-top-card-edit { opacity: 1; }
+@media (hover: none) { .hotel-top-card-edit { opacity: 1; } }

@@ -53,7 +53,27 @@ public class DragonBallImporter extends AbstractCardImporter {
             throw new IllegalStateException("tcgcsv_no_groups");
         }
 
+        if (request.wantsAll()) {
+            int imported = 0;
+            int total = 0;
+            for (JsonNode g : groups) {
+                try {
+                    int[] result = importGroup(g, Integer.MAX_VALUE);
+                    imported += result[0];
+                    total += result[1];
+                } catch (Exception ex) {
+                    log.warn("Dragon Ball: gruppo {} saltato: {}", text(g, "name"), ex.getMessage());
+                }
+            }
+            return ImportResult.success(SOURCE, imported, null, total);
+        }
         JsonNode group = selectGroup(groups, request.groupId());
+        int[] result = importGroup(group, limit);
+        return ImportResult.successWithSet(SOURCE, result[0], text(group, "name"), result[1]);
+    }
+
+    /** Importa le carte singole di un gruppo (set); restituisce {importate, disponibili}. */
+    private int[] importGroup(JsonNode group, int limit) throws InterruptedException {
         int groupId = child(group, "groupId").intValue();
         String groupName = text(group, "name");
 
@@ -77,7 +97,7 @@ public class DragonBallImporter extends AbstractCardImporter {
                 .toList();
 
         int imported = writer.persist(SOURCE, cards, null);
-        return ImportResult.successWithSet(SOURCE, imported, groupName, singles.size());
+        return new int[]{imported, singles.size()};
     }
 
     private JsonNode selectGroup(List<JsonNode> groups, Integer requestedGroupId) {

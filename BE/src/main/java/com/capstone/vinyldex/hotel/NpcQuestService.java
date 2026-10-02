@@ -39,7 +39,7 @@ public class NpcQuestService {
     public static final int QUESTS_PER_DAY = 3;
     static final List<String> SOURCES = List.of("pokemon", "yugioh", "scryfall", "onepiece", "digimon", "dragonball",
             "lorcana", "gundam", "riftbound", "nikke", "cyberpunk", "hololive", "unionarena", "shadowverse", "wixoss", "grandarchive",
-            "weiss", "vanguard", "fc27", "original");
+            "weiss", "vanguard", "pokemonjp", "pokemonpromo", "nba", "fc27", "original");
     static final Map<String, String> SOURCE_NAMES = Map.ofEntries(
             Map.entry("pokemon", "Pokémon"), Map.entry("yugioh", "Yu-Gi-Oh!"), Map.entry("scryfall", "Magic"),
             Map.entry("onepiece", "One Piece"), Map.entry("digimon", "Digimon"), Map.entry("dragonball", "Dragon Ball"),
@@ -47,6 +47,7 @@ public class NpcQuestService {
             Map.entry("cyberpunk", "Cyberpunk"), Map.entry("hololive", "hololive"), Map.entry("unionarena", "Union Arena"),
             Map.entry("shadowverse", "Shadowverse"), Map.entry("wixoss", "WIXOSS"), Map.entry("grandarchive", "Grand Archive"),
             Map.entry("weiss", "Weiss Schwarz"), Map.entry("vanguard", "Vanguard"),
+            Map.entry("pokemonjp", "Pokémon (Giappone)"), Map.entry("pokemonpromo", "Pokémon promo"), Map.entry("nba", "NBA"),
             Map.entry("fc27", "EA FC 27"), Map.entry("original", "VinylDex"));
     static final List<String> RARITY_ORDER = List.of("common", "uncommon", "rare", "epic", "legendary");
     static final Map<String, String> RARITY_NAMES = Map.of("uncommon", "non comune", "rare", "rara", "epic", "epica");

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../services/apiClient.js';
-import { getRarityColor } from '../../utils/cardUtils.js';
+import { getRarityColor, resolveCardImage } from '../../utils/cardUtils.js';
 import AvatarPreview from './AvatarPreview.jsx';
 import PhotoGallery from '../../components/common/PhotoGallery.jsx';
 import CompareCollections from '../../components/card/CompareCollections.jsx';
@@ -18,7 +18,7 @@ const BADGE_ICONS = {
  * distintivi e la carta migliore. Da qui si sussurra, si da' rispetto, si propone uno
  * scambio, si visita la sua stanza, lo si sfida.
  */
-export default function UserCard({ user, look, isMe, isOwner, respectVersion, onClose, onWhisper, onRespect, onKick, onVisit, onChallenge, onViewCard, onAddFriend, onWearBadge, onGift }) {
+export default function UserCard({ user, look, isMe, isOwner, respectVersion, onClose, onWhisper, onRespect, onKick, onVisit, onChallenge, onViewCard, onAddFriend, onWearBadge, onGift, onPickCard, onChooseTopCards }) {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -31,6 +31,27 @@ export default function UserCard({ user, look, isMe, isOwner, respectVersion, on
     setBusy(true);
     onWearBadge(next)
       .then((res) => setProfile((p) => ({ ...p, wornBadge: res.wornBadge })))
+      .catch(() => {})
+      .finally(() => setBusy(false));
+  };
+
+  // Nella propria scheda le tre carte sopra la testa si cambiano una alla volta.
+  const changeTopCard = async (slot) => {
+    if (!onPickCard || !onChooseTopCards || busy) return;
+    const card = await onPickCard(`Carta sopra la testa n. ${slot + 1}`);
+    if (!card) return;
+    const codes = (profile?.topCards || []).map((c) => c.id);
+    const other = codes.indexOf(card.id);
+    // Se la carta era gia' in un altro posto, i due posti si scambiano.
+    if (other >= 0 && other !== slot) codes[other] = codes[slot];
+    codes[slot] = card.id;
+    saveTopCards(codes.filter(Boolean));
+  };
+
+  const saveTopCards = (codes) => {
+    setBusy(true);
+    onChooseTopCards(codes)
+      .then((res) => setProfile((p) => ({ ...p, topCards: res.topCards, topCardsCustom: res.topCardsCustom })))
       .catch(() => {})
       .finally(() => setBusy(false));
   };
@@ -89,6 +110,34 @@ export default function UserCard({ user, look, isMe, isOwner, respectVersion, on
         <button type="button" className="hotel-best-card" style={{ '--rarity-color': getRarityColor(profile.bestCard.rarity) }} onClick={() => onViewCard(profile.bestCard)}>
           <i className="ph-fill ph-star" /> Carta migliore: <strong>{profile.bestCard.name}</strong>
         </button>
+      )}
+
+      {profile?.topCards?.length > 0 && (
+        <div className="hotel-top-cards">
+          <div className="hotel-top-cards-head">
+            <span><i className="ph-fill ph-cards-three" /> Carte sopra la testa</span>
+            {onChooseTopCards && profile.topCardsCustom && (
+              <button type="button" className="btn btn-secondary btn-small" disabled={busy} onClick={() => saveTopCards([])}
+                title="Le sceglie il gioco: le piu' usate in battaglia, poi le piu' costose">
+                Automatiche
+              </button>
+            )}
+          </div>
+          <div className="hotel-top-cards-row">
+            {profile.topCards.map((card, slot) => (
+              <button key={`${slot}-${card.id}`} type="button" className="hotel-top-card" disabled={busy}
+                style={{ '--rarity-color': getRarityColor(card.rarity) }}
+                onClick={() => (onChooseTopCards ? changeTopCard(slot) : onViewCard(card))}
+                title={onChooseTopCards ? `${card.name}: clicca per cambiarla` : card.name}>
+                <img src={resolveCardImage(card)} alt={card.name} loading="lazy" />
+                {onChooseTopCards && <span className="hotel-top-card-edit"><i className="ph-bold ph-swap" /> Cambia</span>}
+              </button>
+            ))}
+          </div>
+          {onChooseTopCards && !profile.topCardsCustom && (
+            <small className="hotel-badges-hint">Ora le sceglie il gioco. Clicca una carta per mettere quella che vuoi.</small>
+          )}
+        </div>
       )}
 
       {profile?.id && <PhotoGallery userId={profile.id} compact />}

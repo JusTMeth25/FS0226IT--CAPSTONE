@@ -37,7 +37,10 @@ export const SOURCE_LABELS = {
   vanguard: 'Cardfight!! Vanguard',
   gundam: 'Gundam Card Game',
   dragonball: 'Dragon Ball Super CCG',
-  fc27: 'EA FC 27 Ultimate Team'
+  fc27: 'EA FC 27 Ultimate Team',
+  pokemonjp: 'Pokémon (Giappone)',
+  pokemonpromo: 'Pokémon promo e speciali',
+  nba: 'NBA'
 };
 
 export function getSourceLabel(source) {
@@ -91,6 +94,8 @@ export function placeholderImage(card) {
 export function resolveCardImage(card) {
   // Carte EA FC 27: la carta in stile Ultimate Team la disegna il backend (con la foto, se c'e').
   if (card.source === 'fc27' && !card.img) return fcCardImage(card);
+  // Carte NBA: disegnate dal backend (NbaCardArtController) con la foto del giocatore.
+  if (card.source === 'nba' && !card.img) return `${BASE_URL}/cards/${encodeURIComponent(card.id)}/nba-card.svg?v=1`;
   return card.img || placeholderImage(card);
 }
 

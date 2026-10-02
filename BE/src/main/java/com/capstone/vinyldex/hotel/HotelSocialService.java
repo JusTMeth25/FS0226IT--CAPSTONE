@@ -135,7 +135,53 @@ public class HotelSocialService {
     public Showcase showcase(UUID userId) {
         List<UserCard> cards = userCardRepository.findByUserIdWithCard(userId).stream()
                 .filter(uc -> uc.getQuantity() > 0).toList();
-        return new Showcase(best(cards), top(cards));
+        List<String> chosen = userRepository.findById(userId).map(u -> codes(u.getHotelTopCards())).orElse(List.of());
+        return new Showcase(best(cards), top(cards, chosen));
+    }
+
+    static List<String> codes(String raw) {
+        if (raw == null || raw.isBlank()) return List.of();
+        return java.util.Arrays.stream(raw.split(",")).map(String::trim).filter(s -> !s.isEmpty()).limit(TOP_CARDS).toList();
+    }
+
+    /**
+     * Le carte sopra la testa scelte dal giocatore, nell'ordine scelto. Una carta che non possiede
+     * piu' (venduta, regalata, fusa) sparisce; i posti liberi si riempiono in automatico.
+     */
+    static List<Card> top(List<UserCard> cards, List<String> chosen) {
+        List<Card> top = new ArrayList<>();
+        for (String code : chosen) {
+            cards.stream().map(UserCard::getCard)
+                    .filter(c -> code.equals(c.getCode()) && top.stream().noneMatch(t -> t.getId().equals(c.getId())))
+                    .findFirst().ifPresent(top::add);
+        }
+        for (Card c : top(cards)) {
+            if (top.size() >= TOP_CARDS) break;
+            if (top.stream().noneMatch(t -> t.getId().equals(c.getId()))) top.add(c);
+        }
+        return top;
+    }
+
+    /**
+     * Sceglie le carte da portare sopra la testa (al massimo tre, tutte possedute). Una lista vuota
+     * torna alla scelta automatica.
+     */
+    @Transactional
+    public Map<String, Object> chooseTopCards(UUID userId, List<String> requested) {
+        User user = userRepository.findById(userId).orElseThrow(() -> ApiException.notFound("user_not_found"));
+        List<String> wanted = requested == null ? List.of()
+                : requested.stream().filter(c -> c != null && !c.isBlank()).map(String::trim).distinct().toList();
+        if (wanted.size() > TOP_CARDS) throw ApiException.badRequest("too_many_cards");
+        List<UserCard> cards = userCardRepository.findByUserIdWithCard(userId).stream()
+                .filter(uc -> uc.getQuantity() > 0).toList();
+        for (String code : wanted) {
+            if (cards.stream().noneMatch(uc -> code.equals(uc.getCard().getCode()))) throw ApiException.badRequest("card_not_owned");
+        }
+        user.setHotelTopCards(wanted.isEmpty() ? null : String.join(",", wanted));
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("topCards", top(cards, wanted).stream().map(RoomItemView.CardView::from).toList());
+        result.put("topCardsCustom", !wanted.isEmpty());
+        return result;
     }
 
     /** Carte sopra la testa dell'avatar. */
@@ -198,6 +244,9 @@ public class HotelSocialService {
         profile.put("badges", allBadges(user, cards));
         profile.put("wornBadge", user.getWornBadge());
         profile.put("bestCard", best == null ? null : RoomItemView.CardView.from(best));
+        List<String> chosen = codes(user.getHotelTopCards());
+        profile.put("topCards", top(cards, chosen).stream().map(RoomItemView.CardView::from).toList());
+        profile.put("topCardsCustom", !chosen.isEmpty());
         profile.put("roomId", roomRepository.findFirstByOwnerIdOrderByCreatedAtAsc(userId).map(Room::getId).orElse(null));
         profile.put("respectsLeft", viewerId == null ? 0
                 : (int) Math.max(0, DAILY_RESPECTS - respectRepository.countByGiverIdAndDay(viewerId, today)));

@@ -25,5 +25,10 @@ export const CARD_BACKS = {
   dragonball: '/assets/img/backs/dragonball.png',
   gundam: '/assets/img/backs/gundam.jpg',
   // Dorso in stile Ultimate Team disegnato da noi: le carte UT non hanno un retro ufficiale.
-  fc27: '/assets/img/backs/fc27.svg'
+  fc27: '/assets/img/backs/fc27.svg',
+  // Le carte giapponesi e le promo hanno lo stesso dorso Pokémon.
+  pokemonjp: '/assets/img/backs/pokemon.jpg',
+  pokemonpromo: '/assets/img/backs/pokemon.jpg',
+  // Dorso disegnato da noi: niente loghi NBA o dei produttori di carte.
+  nba: '/assets/img/backs/nba.svg'
 };

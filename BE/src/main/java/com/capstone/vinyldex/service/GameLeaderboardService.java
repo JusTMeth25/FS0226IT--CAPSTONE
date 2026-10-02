@@ -31,7 +31,7 @@ public class GameLeaderboardService {
     public static final int WEEKLY_PRIZE = 200;
     public static final List<String> SOURCES = List.of("original", "pokemon", "yugioh", "scryfall", "onepiece", "digimon",
             "dragonball", "lorcana", "gundam", "riftbound", "nikke", "cyberpunk", "hololive", "unionarena", "shadowverse", "wixoss",
-            "grandarchive", "weiss", "vanguard", "fc27");
+            "grandarchive", "weiss", "vanguard", "pokemonjp", "pokemonpromo", "nba", "fc27");
 
     private final JdbcTemplate jdbc;
     private final WalletService walletService;

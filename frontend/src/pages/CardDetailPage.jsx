@@ -53,6 +53,19 @@ export default function CardDetailPage() {
 
   if (!referenceCard) {
     if (needsRemoteLookup && remote.loading) return <LoadingSpinner label="Carico la carta…" />;
+    // Solo un 404 vuol dire che la carta non c'e': per gli altri errori (server occupato, rete) si riprova.
+    if (needsRemoteLookup && remote.error && remote.error.status !== 404) {
+      return (
+        <EmptyState
+          icon="ph-wifi-slash"
+          title="Carta non caricata"
+          description={remote.error.status === 429
+            ? 'Troppe richieste in poco tempo: aspetta qualche secondo e riprova.'
+            : 'Il server non ha risposto. Riprova tra poco.'}
+          action={<button className="btn btn-primary" onClick={() => remote.reload()}>Riprova</button>}
+        />
+      );
+    }
     return (
       <EmptyState
         icon="ph-question"

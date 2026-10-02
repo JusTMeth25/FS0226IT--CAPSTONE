@@ -244,6 +244,17 @@ export const PACKS = [
     source: 'vanguard'
   },
   {
+    id: 'pack-nba',
+    name: 'Pacchetto NBA',
+    description: '5 carte NBA (Prizm, Optic, Chrome, Downtown...) con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'nba'
+  },
+  {
     id: 'pack-gundam',
     name: 'Pacchetto Gundam',
     description: '5 carte solo Gundam con 1 Rara garantita.',

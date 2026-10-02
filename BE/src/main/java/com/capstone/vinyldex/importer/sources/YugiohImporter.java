@@ -32,6 +32,7 @@ public class YugiohImporter extends AbstractCardImporter {
     /** Senza offset esplicito si parte da un punto casuale, cosi' ogni import porta carte diverse. */
     @Override
     protected ImportResult doImport(AdminRequests.ImportRequest request) {
+        if (request.wantsAll()) return importAll();
         int limit = request.limitOrDefault(100, MAX_LIMIT);
         int offset = request.offset() != null && request.offset() >= 0
                 ? request.offset()
@@ -44,6 +45,31 @@ public class YugiohImporter extends AbstractCardImporter {
 
         JsonNode total = child(child(body, "meta"), "total_rows");
         return ImportResult.successWithOffset(SOURCE, imported, offset, total == null ? null : total.intValue());
+    }
+
+    /** Tutto il database YGOPRODeck (circa 14.000 carte), a blocchi da 1000 salvati uno alla volta. */
+    private ImportResult importAll() {
+        int block = 1000;
+        int imported = 0;
+        Integer total = null;
+        int failures = 0;
+        for (int offset = 0; total == null || offset < total; ) {
+            JsonNode body;
+            try {
+                body = fetchJson("https://db.ygoprodeck.com/api/v7/cardinfo.php?num=" + block + "&offset=" + offset);
+            } catch (RuntimeException ex) {
+                if (++failures > 5) break;
+                continue;
+            }
+            List<ImportedCard> cards = elements(child(body, "data")).stream().map(this::normalize).toList();
+            if (cards.isEmpty()) break;
+            imported += writer.persist(SOURCE, cards, null);
+            JsonNode rows = child(child(body, "meta"), "total_rows");
+            if (rows != null) total = rows.intValue();
+            offset += block;
+            if (total == null) break;
+        }
+        return ImportResult.success(SOURCE, imported, null, total);
     }
 
     private ImportedCard normalize(JsonNode card) {

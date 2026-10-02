@@ -51,4 +51,20 @@ class ShowcaseTest {
     void fewCards() {
         assertEquals(List.of("a"), codes(HotelSocialService.top(List.of(owned("a", 1, 0)))));
     }
+
+    @Test
+    @DisplayName("Le carte scelte dal giocatore vengono prima, nell'ordine scelto; i posti liberi si riempiono da soli")
+    void chosenFirst() {
+        List<UserCard> cards = List.of(owned("a", 1, 0), owned("b", 50, 0), owned("c", 5, 0), owned("d", 20, 0));
+        assertEquals(List.of("a", "c", "b"), codes(HotelSocialService.top(cards, List.of("a", "c", "a"))));
+        assertEquals(List.of("c", "a", "b"), codes(HotelSocialService.top(cards, List.of("c", "a"))));
+    }
+
+    @Test
+    @DisplayName("Una carta scelta che non si possiede piu' viene sostituita in automatico")
+    void soldCardReplaced() {
+        List<UserCard> cards = List.of(owned("a", 1, 0), owned("b", 50, 0), owned("c", 5, 0));
+        assertEquals(List.of("a", "b", "c"), codes(HotelSocialService.top(cards, List.of("venduta", "a"))));
+        assertEquals(List.of("x", "y"), HotelSocialService.codes(" x, y ,,"));
+    }
 }

@@ -74,6 +74,13 @@ public class User {
     @Column(name = "worn_badge", length = 80)
     private String wornBadge;
 
+    /**
+     * Carte scelte per stare sopra la testa dell'avatar nell'hotel: codici separati da virgola,
+     * al massimo tre. Null = scelte in automatico (HotelSocialService.top).
+     */
+    @Column(name = "hotel_top_cards", length = 400)
+    private String hotelTopCards;
+
     /** La guida dell'hotel si e' gia' presentata (tutorial della prima visita). */
     @Column(name = "hotel_tutorial_done", nullable = false)
     private boolean hotelTutorialDone = false;

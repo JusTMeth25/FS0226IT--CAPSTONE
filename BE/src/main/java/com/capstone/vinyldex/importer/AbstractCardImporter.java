@@ -130,6 +130,15 @@ public abstract class AbstractCardImporter implements CardImporter {
     }
 
     /** Punto di partenza casuale per estrarre un blocco da un elenco completo non paginato. */
+    /** Import "tutto il catalogo": si salva a blocchi, cosi' ogni transazione resta piccola. */
+    protected int persistInChunks(String source, List<ImportedCard> cards) {
+        int imported = 0;
+        for (int from = 0; from < cards.size(); from += 1000) {
+            imported += writer.persist(source, cards.subList(from, Math.min(from + 1000, cards.size())), null);
+        }
+        return imported;
+    }
+
     protected int randomStart(int total, int limit) {
         return random.nextInt(Math.max(1, total - limit));
     }

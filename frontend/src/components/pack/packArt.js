@@ -22,6 +22,7 @@ const GAME_PACKS = {
   grandarchive: ['ph-book-bookmark', '#5eead4', '#134e4a'],
   weiss: ['ph-yin-yang', '#f5f5f5', '#111111'],
   vanguard: ['ph-shield-chevron', '#93c5fd', '#172554'],
+  nba: ['ph-basketball', '#fca5a5', '#0b1e3f'],
   gundam: ['ph-robot', '#93c5fd', '#7f1d1d'],
   original: ['ph-vinyl-record', '#e879f9', '#2e0b3a']
 };

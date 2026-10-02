@@ -61,6 +61,10 @@ public class DigimonImporter extends AbstractCardImporter {
         }
 
         List<JsonNode> all = new ArrayList<>(uniqueById.values());
+        if (request.wantsAll()) {
+            Map<Integer, Double> prices = getPriceMap();
+            return ImportResult.success(SOURCE, persistInChunks(SOURCE, all.stream().map(card -> normalize(card, prices)).toList()), null, all.size());
+        }
         int start = randomStart(all.size(), limit);
         List<JsonNode> slice = all.subList(start, Math.min(start + limit, all.size()));
 

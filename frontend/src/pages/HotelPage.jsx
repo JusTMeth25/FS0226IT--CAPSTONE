@@ -217,6 +217,8 @@ export default function HotelPage() {
   const [quiz, setQuiz] = useState(null);
   const [quizResult, setQuizResult] = useState(null);
   const [showingCard, setShowingCard] = useState(false);
+  // Scelta di una carta chiesta da un pannello (per esempio le carte sopra la testa): { title, resolve }.
+  const [cardPick, setCardPick] = useState(null);
   // Regalo a un amico dalla sua scheda: apre la posta con il destinatario gia' scelto.
   const [giftTo, setGiftTo] = useState('');
   /** Tutorial della prima visita: si chiede al server se e' gia' stato visto. */
@@ -1145,11 +1147,24 @@ export default function HotelPage() {
               return res;
             }) : null}
             onChallenge={pvp ? null : () => { send({ type: 'challenge', userId: selected.id }); setSelected(null); }}
+            onPickCard={selected.id === me?.id ? (title) => new Promise((resolve) => setCardPick({ title, resolve })) : null}
+            onChooseTopCards={selected.id === me?.id ? (codes) => hotelApi.topCards(codes).then((res) => {
+              // Come per il distintivo: il server rilegge le carte e le mostra a tutta la stanza.
+              send({ type: 'refresh_profile' });
+              showNotice(res.topCardsCustom ? 'Carte sopra la testa aggiornate!' : 'Carte sopra la testa scelte dal gioco.');
+              return res;
+            }) : null}
           />
         )}
 
         {(quiz || quizResult) && (
           <QuizOverlay quiz={quiz} result={quizResult} clockOffset={clockOffset} onClose={() => setQuizResult(null)} />
+        )}
+        {cardPick && (
+          <CardPicker title={cardPick.title}
+            onClose={() => { cardPick.resolve(null); setCardPick(null); }}
+            onPick={(card) => { cardPick.resolve(card); setCardPick(null); }}
+          />
         )}
         {showingCard && (
           <CardPicker title="Mostra una carta"

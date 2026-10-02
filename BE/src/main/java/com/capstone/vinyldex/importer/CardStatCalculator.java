@@ -106,9 +106,10 @@ public class CardStatCalculator {
             case "lorcana" -> lorcana(name, meta, popularity, variant);
             case "riftbound" -> riftbound(name, meta, popularity, variant);
             case "nikke" -> nikke(name, meta, popularity, variant);
-            case "cyberpunk", "hololive", "unionarena", "shadowverse", "wixoss", "grandarchive", "weiss", "vanguard" ->
+            case "pokemonjp", "pokemonpromo", "cyberpunk", "hololive", "unionarena", "shadowverse", "wixoss", "grandarchive", "weiss", "vanguard" ->
                     tcgplayer(meta, popularity, variant);
             case "fc27" -> fc27(meta, popularity);
+            case "nba" -> nba(meta, popularity);
             default -> new Scores(popularity, variant, 0.45, 0.45);
         };
 
@@ -572,6 +573,39 @@ public class CardStatCalculator {
                 clamp(0.55 * special + 0.45 * popularity),
                 clamp(influence),
                 energy);
+    }
+
+    // ---------------------------------------------------------------- NBA
+
+    /**
+     * Carte NBA (NbaImporter):
+     * - fans: il prezzo, piu' un bonus per le leggende e le rookie card;
+     * - style: la parallela (Black 1/1, Gold /10, Silver/Holo/Refractor, base) e gli inserti famosi;
+     * - influence: la valutazione del giocatore (OVR 75-99);
+     * - energy: valutazione piu' un po' di slancio per ruolo (guardie veloci, centri potenti).
+     */
+    private Scores nba(Map<String, Object> meta, double popularity) {
+        double rating = clamp((orZero(num(meta, "ovr")) - 75) / 24);
+        boolean legend = Boolean.TRUE.equals(meta.get("legend"));
+        boolean rookie = Boolean.TRUE.equals(meta.get("rookie"));
+        String parallel = lower(str(meta, "parallel"));
+        String insert = lower(str(meta, "insert"));
+        Double serial = num(meta, "serial");
+        double print;
+        if (parallel.contains("black") || (serial != null && serial <= 1)) print = 1.0;
+        else if (parallel.contains("gold")) print = 0.85;
+        else if (parallel.contains("silver") || parallel.contains("holo") || parallel.contains("refractor")) print = 0.6;
+        else print = 0.35;
+        if (insert.contains("downtown") || insert.contains("kaboom") || lower(str(meta, "brand")).contains("exquisite")) {
+            print = Math.max(print, 0.8);
+        }
+        String position = lower(str(meta, "position"));
+        double drive = position.contains("c") && !position.contains("g") ? 0.1 : position.contains("g") ? 0.06 : 0.08;
+        return new Scores(
+                clamp(0.65 * popularity + (legend ? 0.25 : 0) + (rookie ? 0.1 : 0)),
+                clamp(0.6 * print + 0.4 * popularity),
+                rating,
+                clamp(0.85 * rating + drive));
     }
 
     // ---------------------------------------------------------------- cataloghi TCGplayer

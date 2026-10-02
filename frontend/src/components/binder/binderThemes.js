@@ -9,7 +9,7 @@ import { CARD_BACKS } from '../../utils/cardBacks.js';
 const TAU = Math.PI * 2;
 
 /** Giochi il cui raccoglitore ha in copertina il dorso ufficiale delle loro carte. */
-const BACK_COVERS = new Set(['pokemon', 'yugioh', 'scryfall', 'cyberpunk', 'hololive', 'unionarena', 'shadowverse', 'wixoss', 'grandarchive', 'weiss', 'vanguard']);
+const BACK_COVERS = new Set(['pokemon', 'yugioh', 'scryfall', 'cyberpunk', 'hololive', 'unionarena', 'shadowverse', 'wixoss', 'grandarchive', 'weiss', 'vanguard', 'pokemonjp', 'pokemonpromo', 'nba']);
 const backImages = new Map();
 
 /**
@@ -482,8 +482,39 @@ const COVERS = {
     ctx.strokeRect(w / 2 - 220, 70, 440, 220);
     ctx.strokeRect(w / 2 - 220, h - 290, 440, 220);
     frame(ctx, w, h, '#e3b341', 16, 20);
+  },
+  nba(ctx, w, h) {
+    // Parquet a doghe con le linee del campo: area, lunetta e cerchio di centrocampo.
+    for (let x = 0; x < w; x += 48) {
+      ctx.fillStyle = (x / 48) % 2 ? '#c2843f' : '#d4954f';
+      ctx.fillRect(x, 0, 48, h);
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,.9)';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(60, 60, w - 120, h - 120);
+    ctx.beginPath();
+    ctx.moveTo(60, h / 2);
+    ctx.lineTo(w - 60, h / 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(w / 2, h / 2, 120, 0, TAU);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(29,66,138,.75)';
+    ctx.fillRect(w / 2 - 130, 60, 260, 300);
+    ctx.fillRect(w / 2 - 130, h - 360, 260, 300);
+    ctx.strokeRect(w / 2 - 130, 60, 260, 300);
+    ctx.strokeRect(w / 2 - 130, h - 360, 260, 300);
+    ctx.beginPath();
+    ctx.arc(w / 2, 60, w / 2 - 110, 0, Math.PI);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(w / 2, h - 60, w / 2 - 110, Math.PI, TAU);
+    ctx.stroke();
+    frame(ctx, w, h, '#c8102e', 16, 20);
   }
 };
+COVERS.pokemonjp = COVERS.pokemon;
+COVERS.pokemonpromo = COVERS.pokemon;
 
 export const BINDER_THEMES = {
   original: { title: 'Raccoglitore VinylDex', accent: '#ec4899', page: '#1c1234', pocket: 'rgba(236,72,153,.5)', text: '#fdf4ff' },
@@ -505,6 +536,9 @@ export const BINDER_THEMES = {
   grandarchive: { title: 'Raccoglitore Grand Archive', accent: '#d4af37', page: '#0f2f2d', pocket: '#d4af3780', text: '#ccfbf1' },
   weiss: { title: 'Raccoglitore Weiss Schwarz', accent: '#e5c07b', page: '#111111', pocket: '#e5c07b80', text: '#fafafa' },
   vanguard: { title: 'Raccoglitore Vanguard', accent: '#fbbf24', page: '#0f1d3d', pocket: '#fbbf2480', text: '#dbeafe' },
+  pokemonjp: { title: 'Raccoglitore Pokémon Giappone', accent: '#fde047', page: '#7f1d1d', pocket: 'rgba(253,224,71,.55)', text: '#fef9c3' },
+  pokemonpromo: { title: 'Raccoglitore Pokémon promo', accent: '#fde047', page: '#3b0764', pocket: 'rgba(253,224,71,.55)', text: '#fef9c3' },
+  nba: { title: 'Raccoglitore NBA', accent: '#c8102e', page: '#0b1e3f', pocket: 'rgba(200,16,46,.5)', text: '#e0e7ff' },
   fc27: { title: 'Raccoglitore FC 27 Ultimate Team', accent: '#e3b341', page: '#0f4d2b', pocket: 'rgba(227,179,65,.55)', text: '#fef9c3' }
 };
 

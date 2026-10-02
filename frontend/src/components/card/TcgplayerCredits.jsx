@@ -11,9 +11,21 @@ const GAMES = {
   grandarchive: { game: 'Grand Archive', rights: 'Grand Archive © Weebs of the Shore.' },
   weiss: { game: 'Weiss Schwarz', rights: 'Weiss Schwarz © Bushiroad; le serie anime © dei rispettivi autori ed editori.' },
   vanguard: { game: 'Cardfight!! Vanguard', rights: 'Cardfight!! Vanguard © Bushiroad.' },
+  pokemonjp: { game: 'Pokémon (edizione giapponese)', rights: 'Pokémon © Nintendo, Creatures, GAME FREAK.' },
+  pokemonpromo: { game: 'Pokémon (promo e speciali)', rights: 'Pokémon © Nintendo, Creatures, GAME FREAK.' },
 };
 
 export default function TcgplayerCredits({ source }) {
+  if (source === 'nba') {
+    return (
+      <p className="card-detail-credits">
+        Carta NBA disegnata da VinylDex ispirandosi alle serie Panini, Topps, Fleer e Upper Deck; foto dei
+        giocatori da NBA.com. Prezzi stimati da VinylDex sul mercato delle carte non gradate. NBA e marchi delle
+        squadre © NBA; Prizm, Donruss Optic © Panini; Chrome © Topps; Fleer, Exquisite © Upper Deck.
+        {' '}VinylDex è un progetto didattico non ufficiale, non affiliato né approvato dai titolari dei diritti.
+      </p>
+    );
+  }
   const info = GAMES[source];
   if (!info) return null;
   return (

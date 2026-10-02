@@ -81,6 +81,12 @@ public class HotelController {
         return socialService.wear(principal.getId(), body == null ? null : body.get("code"));
     }
 
+    /** Carte sopra la testa dell'avatar: { "cards": ["codice", ...] } al massimo tre, [] per l'automatico. */
+    @PutMapping("/top-cards")
+    public Map<String, Object> topCards(@CurrentUser UserPrincipal principal, @RequestBody Map<String, java.util.List<String>> body) {
+        return socialService.chooseTopCards(principal.getId(), body == null ? null : body.get("cards"));
+    }
+
     @GetMapping("/profile/{userId}")
     public Map<String, Object> profile(@CurrentUser UserPrincipal principal, @PathVariable UUID userId) {
         return socialService.profile(principal.getId(), userId);

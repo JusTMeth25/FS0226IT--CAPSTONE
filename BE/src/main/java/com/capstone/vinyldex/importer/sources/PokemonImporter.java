@@ -45,6 +45,7 @@ public class PokemonImporter extends AbstractCardImporter {
      */
     @Override
     protected ImportResult doImport(AdminRequests.ImportRequest request) {
+        if (request.wantsAll()) return importAll();
         int limit = request.limitOrDefault(100, MAX_PAGE_SIZE);
         int page = request.page() != null ? request.pageOrOne() : random.nextInt(APPROX_PAGES) + 1;
 
@@ -56,6 +57,41 @@ public class PokemonImporter extends AbstractCardImporter {
 
         JsonNode total = child(body, "totalCount");
         return ImportResult.success(SOURCE, imported, page, total == null ? null : total.intValue());
+    }
+
+    /**
+     * Tutto il catalogo (oltre 20.000 carte): pagine da 250 salvate una alla volta, cosi' la memoria
+     * resta bassa e le pagine gia' salvate restano anche se l'API smette di rispondere.
+     */
+    private ImportResult importAll() {
+        int imported = 0;
+        Integer total = null;
+        int failures = 0;
+        for (int page = 1; total == null || (page - 1) * MAX_PAGE_SIZE < total; page++) {
+            String url = "https://api.pokemontcg.io/v2/cards?pageSize=" + MAX_PAGE_SIZE + "&page=" + page;
+            JsonNode body;
+            try {
+                body = apiKey.isBlank() ? fetchJson(url) : fetchJson(url, "X-Api-Key", apiKey);
+            } catch (RuntimeException ex) {
+                // L'API risponde spesso 500 o va in timeout: si riprova la stessa pagina aspettando sempre di piu'.
+                if (++failures > 8) break;
+                try {
+                    Thread.sleep(2000L * failures);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+                page--;
+                continue;
+            }
+            failures = 0;
+            List<ImportedCard> cards = elements(child(body, "data")).stream().map(this::normalize).toList();
+            if (cards.isEmpty()) break;
+            imported += writer.persist(SOURCE, cards, null);
+            JsonNode count = child(body, "totalCount");
+            if (count != null) total = count.intValue();
+        }
+        return ImportResult.success(SOURCE, imported, null, total);
     }
 
     private ImportedCard normalize(JsonNode card) {

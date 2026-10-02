@@ -170,6 +170,19 @@ export default function BinderPage() {
     }
   };
 
+  // Cambiando vista si resta sulla stessa pagina. La vista piatta su schermo stretto mostra una
+  // pagina alla volta, il libro 3D sempre due: si passa dal numero di pagina, non da quello della doppia.
+  const toggleView = () => {
+    const nextFlat = !flat;
+    const nextPerSpread = nextFlat && single ? 1 : 2;
+    // Finche' il raccoglitore carica conta la pagina dell'indirizzo: il numero di pagine non e' ancora noto.
+    const current = cards ? spread : spreadParam;
+    const next = Math.floor((current * perSpread) / nextPerSpread);
+    setTurning(null);
+    setFlat(nextFlat);
+    setSpread(cards ? Math.min(next, Math.ceil(pages.length / nextPerSpread) - 1) : next);
+  };
+
   // Si caricano i blocchi della doppia pagina mostrata e di quelle accanto (per sfogliare senza attese).
   useEffect(() => {
     if (!cards) return;
@@ -216,7 +229,7 @@ export default function BinderPage() {
             {sets.map((s) => <option key={s.key} value={s.key}>{s.title}</option>)}
           </select>
         </label>
-        <button type="button" className="btn btn-secondary btn-small" onClick={() => { setFlat((f) => !f); setSpread(0); }}>
+        <button type="button" className="btn btn-secondary btn-small" onClick={toggleView}>
           <i className={`ph-fill ${flat ? 'ph-cube' : 'ph-squares-four'}`} /> {flat ? 'Vista 3D' : 'Vista piatta'}
         </button>
         <span className="binder-count">{owned} / {total} carte</span>

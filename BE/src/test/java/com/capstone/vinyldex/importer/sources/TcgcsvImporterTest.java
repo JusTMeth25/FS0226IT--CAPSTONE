@@ -117,4 +117,28 @@ class TcgcsvImporterTest {
         });
         assertEquals(8, importers.stream().map(CardImporter::source).distinct().count());
     }
+
+    private static ImportedCard priced(String code, String tcgRarity, Double price) {
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("tcgRarity", tcgRarity);
+        metadata.put("marketPrice", price);
+        return new ImportedCard(code, code, code, "Set", "S", "1", "common", "", null, metadata);
+    }
+
+    @Test
+    @DisplayName("Le carte senza prezzo prendono la stima a mano o la mediana della stessa rarita' nel set")
+    void missingPricesAreEstimated() {
+        PokemonJpImporter importer = new PokemonJpImporter(rest, writer, mapper);
+        List<ImportedCard> cards = importer.withEstimates(List.of(
+                priced("pokemonjp-1", "Holo Rare", 10.0),
+                priced("pokemonjp-2", "Holo Rare", 30.0),
+                priced("pokemonjp-3", "Holo Rare", null),
+                priced("pokemonjp-576161", "Holo Rare", null),
+                priced("pokemonjp-4", "Promo", null)));
+        assertEquals(20.0, cards.get(2).metadata().get("marketPrice"));
+        assertEquals("stima", cards.get(2).metadata().get("priceSource"));
+        assertEquals(650.0, cards.get(3).metadata().get("marketPrice"), "Charizard Crystal di Mysterious Mountains");
+        assertEquals("legendary", cards.get(3).rarity());
+        assertEquals(null, cards.get(4).metadata().get("marketPrice"), "nessuna carta simile con prezzo");
+    }
 }

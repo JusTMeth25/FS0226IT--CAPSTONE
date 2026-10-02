@@ -33,6 +33,10 @@ export const hotelApi = {
   async wearBadge(code) {
     return apiClient.put('/hotel/badge', { code });
   },
+  /** Carte sopra la testa dell'avatar: fino a tre codici, [] per tornare alla scelta automatica. */
+  async topCards(cards) {
+    return apiClient.put('/hotel/top-cards', { cards });
+  },
   async pets() {
     return apiClient.get('/pets');
   },
