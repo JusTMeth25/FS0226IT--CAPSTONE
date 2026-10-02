@@ -65,9 +65,11 @@ public class AdminController {
 
     // ------------------------------------------------------------------- carte
 
+    /** Le ultime carte (al massimo AdminService.CARD_LIST_LIMIT), o quelle che corrispondono a q. */
     @GetMapping("/cards")
-    public Map<String, List<AdminDtos.AdminCardDto>> listCards() {
-        return Map.of("cards", adminService.listCards());
+    public Map<String, List<AdminDtos.AdminCardDto>> listCards(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String q) {
+        return Map.of("cards", adminService.listCards(q));
     }
 
     @PostMapping("/cards")
@@ -128,7 +130,7 @@ public class AdminController {
                                     @RequestBody(required = false) AdminRequests.ImportRequest request) {
         AdminRequests.ImportRequest safeRequest = request != null
                 ? request
-                : new AdminRequests.ImportRequest(null, null, null, null, null, null);
+                : new AdminRequests.ImportRequest(null, null, null, null, null, null, null);
         return importService.importFrom(source, safeRequest);
     }
 

@@ -76,11 +76,6 @@
   background-size: 64px 64px;
   mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 20%, transparent 75%);
   -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 20%, transparent 75%);
-  animation: auroraGrid 40s linear infinite;
-}
-@keyframes auroraGrid {
-  from { background-position: 0 0, 0 0; }
-  to   { background-position: 64px 64px, 64px 64px; }
 }
 
 /* Bordi scuriti: tiene l'attenzione al centro e alza il contrasto del testo ai lati. */
@@ -1036,4 +1031,34 @@
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+
+/* ========================================
+   MODALITA' LEGGERA (utils/perfMode.js)
+   Telefoni, tablet e computer poco potenti: lo sfondo resta uguale ma fermo, i pannelli
+   perdono la sfocatura dietro (un fondo quasi opaco al suo posto, stesso colore) e i bagliori
+   che pulsano restano accesi senza animare l'ombra, che costa un ridisegno a ogni fotogramma.
+   ======================================== */
+.perf-lite .aurora-blob { animation: none; will-change: auto; }
+.perf-lite .aurora-blob { filter: blur(48px); }
+.perf-lite .glass-panel { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(14, 22, 53, 0.94); }
+.perf-lite .topbar { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(5, 8, 22, 0.98); }
+
+.perf-lite .card-rarity-legendary,
+.perf-lite .card-full-image.card-rarity-legendary { animation: none; }
+.perf-lite .card-full-image.card-rarity-legendary { box-shadow: 0 0 0 3px var(--rarity-legendary), 0 0 18px 2px rgba(255, 215, 0, 0.45); }
+.perf-lite .free-pack-notice { animation: none; }
+.perf-lite .bottom-nav { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(10, 16, 36, 0.99); }
+
+/* Segnaposto della carta 3D mentre arriva three.js: stesso riquadro, nessun salto della pagina. */
+.card-3d-loading { display: flex; align-items: center; justify-content: center; }
+.card-3d-loading img { height: 82%; max-width: 80%; object-fit: contain; border-radius: 4%; opacity: 0.85; }
+.card-3d-flip-placeholder { visibility: hidden; }
+/* Riflesso che scorre sul testo: ridisegna il testo a ogni fotogramma, in modalita' leggera resta fermo. */
+.perf-lite .shiny-text { animation: none; }
+
+/* Telefoni piccoli: nella barra in alto non c'e' spazio per la scritta, resta il logo. */
+@media (max-width: 380px) {
+  .topbar-brand-text { display: none; }
 }

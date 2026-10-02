@@ -6,6 +6,7 @@ import { BASE_URL } from '../../services/apiClient.js';
 import { resolveCardImage } from '../../utils/cardUtils.js';
 import { gradeInfo, gradeTone } from '../../utils/gradeUtils.js';
 import { coverBack, drawCover, drawPageBackground } from './binderThemes.js';
+import { isLiteDevice, sceneDpr } from '../../utils/perfMode.js';
 import { useDocumentVisible } from '../three/useThreeEnabled.js';
 
 /** Misure del libro (unita' di scena) e della texture di una pagina (pixel). */
@@ -212,9 +213,18 @@ function paintPage(canvas, cards, theme, number, onImage) {
   ctx.globalAlpha = 1;
 }
 
+/** Pagine tenute in memoria come texture: le altre si ridisegnano quando si torna li'. */
+const MAX_PAGE_TEXTURES = 14;
+
+/** Cosa c'e' su una pagina: cambia quando arrivano le carte o se ne trova una nuova. */
+const pageSignature = (cards) => (cards ? cards.map((c) => `${c.id}:${c.owned ? 1 : 0}:${c.grade || 0}`).join('|') : null);
+
 /**
  * Texture delle pagine di un raccoglitore: create quando servono e ridisegnate quando arrivano
  * le immagini delle carte. Ogni pagina ha anche la versione specchiata (il retro del foglio).
+ * Le carte arrivano a blocchi (una pagina non ancora caricata e' null): quando arrivano, le
+ * pagine gia' disegnate vuote si ridisegnano. Si tengono solo le pagine usate di recente: con
+ * cataloghi di migliaia di carte sfogliare tutto il libro non deve riempire la memoria del telefono.
  */
 class PageTextures {
   constructor(pages, theme) {
@@ -223,9 +233,23 @@ class PageTextures {
     this.cache = new Map();
   }
 
+  /** Nuove pagine (blocchi di carte arrivati): si ridisegnano quelle cambiate. */
+  update(pages) {
+    const old = this.pages;
+    this.pages = pages;
+    this.cache.forEach((entry, index) => {
+      if (pageSignature(old[index]) !== pageSignature(pages[index])) entry.repaint();
+    });
+  }
+
   get(index, mirrored = false) {
     if (index < 0 || index >= this.pages.length) return null;
     let entry = this.cache.get(index);
+    if (entry) {
+      // Usata di recente: in fondo alla coda.
+      this.cache.delete(index);
+      this.cache.set(index, entry);
+    }
     if (!entry) {
       const canvas = document.createElement('canvas');
       canvas.width = TEX_W;
@@ -243,10 +267,21 @@ class PageTextures {
         flipped.needsUpdate = true;
       };
       repaint();
-      entry = { texture, flipped };
+      entry = { texture, flipped, repaint };
       this.cache.set(index, entry);
+      this.trim();
     }
     return mirrored ? entry.flipped : entry.texture;
+  }
+
+  /** Butta le texture usate meno di recente oltre il limite. */
+  trim() {
+    while (this.cache.size > MAX_PAGE_TEXTURES) {
+      const [oldest, entry] = this.cache.entries().next().value;
+      entry.texture.dispose();
+      entry.flipped.dispose();
+      this.cache.delete(oldest);
+    }
   }
 
   dispose() {
@@ -405,6 +440,7 @@ const CORNER_UV = 0.6;
 function Book({ pages, theme, spread, onCard, onSettled, onTurned, controlsRef }) {
   const [store] = useState(() => new PageTextures(pages, theme));
   useEffect(() => () => store.dispose(), [store]);
+  useEffect(() => { store.update(pages); }, [store, pages]);
   const pageTexture = (index, mirrored) => store.get(index, mirrored);
   const cover = useCoverTexture(theme);
   const [shown, setShown] = useState(spread);
@@ -619,12 +655,29 @@ function Book({ pages, theme, spread, onCard, onSettled, onTurned, controlsRef }
 }
 
 /**
+ * Su schermi stretti (telefoni in verticale) la camera si allontana finche' il libro aperto ci
+ * sta tutto in larghezza, invece di uscire dai bordi.
+ */
+function FitCamera({ controlsRef }) {
+  const { camera, size } = useThree();
+  useEffect(() => {
+    const aspect = size.width / Math.max(1, size.height);
+    camera.position.set(0, 0, 7.4 * Math.max(1, 1.3 / aspect));
+    camera.updateProjectionMatrix();
+    controlsRef.current?.saveState?.();
+  }, [camera, size.width, size.height, controlsRef]);
+  return null;
+}
+
+/**
  * Raccoglitore in 3D: il libro si apre, le pagine si sfogliano curvandosi, le carte stanno nelle
  * tasche di plastica. Si comanda da fuori con `spread` (la doppia pagina da mostrare).
  */
 export default function BinderBook3D({ pages, theme, spread, onCard, onSettled, onTurned, pagesKey = '' }) {
   const visible = useDocumentVisible();
   const controls = useRef(null);
+  // Dispositivi leggeri: niente riflessi d'ambiente, ombra e antialias (meno shader da compilare all'apertura).
+  const [lite] = useState(isLiteDevice);
   return (
     <div className="binder-3d">
       <div className="binder-3d-tools">
@@ -634,23 +687,27 @@ export default function BinderBook3D({ pages, theme, spread, onCard, onSettled, 
         <span className="binder-3d-hint">Trascina per girare il libro · rotella o due dita per lo zoom · afferra l&apos;angolo di una pagina per sfogliarla</span>
       </div>
       <Canvas
-        dpr={[1, 2]}
+        dpr={sceneDpr()}
         frameloop={visible ? 'always' : 'never'}
         camera={{ position: [0, 0, 7.4], fov: 42 }}
-        gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
+        gl={{ alpha: true, antialias: !lite, powerPreference: 'high-performance' }}
       >
-        <ambientLight intensity={0.85} />
+        <ambientLight intensity={lite ? 1.05 : 0.85} />
         <directionalLight position={[-3, 4, 7]} intensity={1.1} />
-        <Environment resolution={32}>
-          <Lightformer form="rect" intensity={1.2} position={[0, 4, 4]} scale={[8, 2, 1]} color="#ffffff" />
-        </Environment>
+        {!lite && (
+          <Environment resolution={32}>
+            <Lightformer form="rect" intensity={1.2} position={[0, 4, 4]} scale={[8, 2, 1]} color="#ffffff" />
+          </Environment>
+        )}
+        <FitCamera controlsRef={controls} />
         <Book key={`${theme.key}:${pagesKey}`} pages={pages} theme={theme} spread={spread} onCard={onCard} onSettled={onSettled}
           onTurned={onTurned} controlsRef={controls} />
         {/* Il libro si gira con il mouse o un dito, si avvicina con la rotella o con due dita. */}
         <OrbitControls ref={controls} makeDefault enablePan={false} enableDamping dampingFactor={0.08}
-          minDistance={3.6} maxDistance={11} minPolarAngle={0.45} maxPolarAngle={2.0}
+          minDistance={3.6} maxDistance={16} minPolarAngle={0.45} maxPolarAngle={2.0}
           minAzimuthAngle={-0.85} maxAzimuthAngle={0.85} rotateSpeed={0.7} zoomSpeed={0.8} />
-        <ContactShadows position={[0, -1.9, -1.2]} rotation={[-0.62 + Math.PI / 2, 0, 0]} opacity={0.4} scale={11} blur={2.8} far={3} />
+        {/* L'ombra sul piano si calcola nei primi fotogrammi (il libro che si apre) e poi resta: rifarla a ogni fotogramma costa. */}
+        {!lite && <ContactShadows frames={90} position={[0, -1.9, -1.2]} rotation={[-0.62 + Math.PI / 2, 0, 0]} opacity={0.4} scale={11} blur={2.8} far={3} />}
       </Canvas>
     </div>
   );

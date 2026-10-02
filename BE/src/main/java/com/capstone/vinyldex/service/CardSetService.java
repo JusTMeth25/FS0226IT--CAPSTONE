@@ -109,8 +109,10 @@ public class CardSetService {
     /** Il metadato della carta (tipo, serie...) corrisponde all'espressione. */
     private static boolean metaIs(Card c, String key, String regex) {
         Object value = c.getMetadata() == null ? null : c.getMetadata().get(key);
-        return value instanceof String s && Pattern.compile(regex).matcher(s).find();
+        return value instanceof String s && PATTERNS.computeIfAbsent(regex, Pattern::compile).matcher(s).find();
     }
+
+    private static final java.util.concurrent.ConcurrentHashMap<String, Pattern> PATTERNS = new java.util.concurrent.ConcurrentHashMap<>();
 
     private static Predicate<Card> named(String source, String regex) {
         Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
@@ -131,7 +133,7 @@ public class CardSetService {
         java.time.LocalDate saturday = today.with(java.time.temporal.TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SATURDAY));
         if (today.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) saturday = today.minusDays(1);
         boolean active = today.getDayOfWeek() == java.time.DayOfWeek.SATURDAY || today.getDayOfWeek() == java.time.DayOfWeek.SUNDAY;
-        List<Map.Entry<SetDef, List<Card>>> sets = members(cardRepository.findAllActiveWithArtistClass()).entrySet().stream()
+        List<Map.Entry<SetDef, List<Card>>> sets = currentMembers().entrySet().stream()
                 .filter(e -> e.getValue().size() >= 3).toList();
         java.time.Instant starts = saturday.atStartOfDay(ZONE).toInstant();
         java.time.Instant ends = saturday.plusDays(2).atStartOfDay(ZONE).toInstant();
@@ -139,6 +141,28 @@ public class CardSetService {
         int index = (int) Math.floorMod(saturday.toEpochDay() / 7, (long) sets.size());
         Map.Entry<SetDef, List<Card>> pick = sets.get(index);
         return new Weekend(active, pick.getKey().key(), pick.getKey().title(), pick.getKey().icon(), pick.getValue(), starts, ends);
+    }
+
+    private volatile List<Card> membersCatalog;
+    private volatile Map<SetDef, List<Card>> membersCache;
+
+    /**
+     * Le carte di ogni set dal catalogo in cache, ricalcolate solo quando il catalogo cambia: con
+     * decine di migliaia di carte rifare tutti i filtri a ogni richiesta costerebbe troppo.
+     */
+    Map<SetDef, List<Card>> currentMembers() {
+        List<Card> catalog = cardRepository.findAllActiveWithArtistClass();
+        Map<SetDef, List<Card>> cached = membersCache;
+        if (cached != null && membersCatalog == catalog) return cached;
+        Map<SetDef, List<Card>> fresh = members(catalog);
+        membersCache = fresh;
+        membersCatalog = catalog;
+        return fresh;
+    }
+
+    /** Le carte di un set (null se il set non esiste o ha troppe poche carte). */
+    public List<Card> setCards(String key) {
+        return SETS.stream().filter(s -> s.key().equals(key)).findFirst().map(set -> currentMembers().get(set)).orElse(null);
     }
 
     /** Le carte di ogni set, dal catalogo attivo. */
@@ -167,7 +191,7 @@ public class CardSetService {
         Set<UUID> owned = owned(userId);
         Set<String> claimed = claimed(userId);
         List<Map<String, Object>> result = new ArrayList<>();
-        members(cardRepository.findAllActiveWithArtistClass()).forEach((set, cards) -> {
+        currentMembers().forEach((set, cards) -> {
             long have = cards.stream().filter(c -> owned.contains(c.getId())).count();
             Map<String, Object> view = new LinkedHashMap<>();
             view.put("key", set.key());
@@ -179,12 +203,6 @@ public class CardSetService {
             view.put("owned", have);
             view.put("complete", have == cards.size());
             view.put("claimed", claimed.contains(set.key()));
-            view.put("cards", cards.stream().map(c -> {
-                Map<String, Object> card = new LinkedHashMap<>();
-                card.put("owned", owned.contains(c.getId()));
-                card.put("card", CardDto.from(c));
-                return card;
-            }).toList());
             result.add(view);
         });
         result.sort(Comparator.comparingInt(CardSetService::rank)
@@ -203,7 +221,7 @@ public class CardSetService {
     public Map<String, Object> claim(UUID userId, String key) {
         SetDef set = SETS.stream().filter(s -> s.key().equals(key)).findFirst()
                 .orElseThrow(() -> ApiException.notFound("set_not_found"));
-        List<Card> cards = members(cardRepository.findAllActiveWithArtistClass()).get(set);
+        List<Card> cards = currentMembers().get(set);
         if (cards == null) throw ApiException.notFound("set_not_found");
         Set<UUID> owned = owned(userId);
         if (!cards.stream().allMatch(c -> owned.contains(c.getId()))) throw ApiException.badRequest("set_incomplete");

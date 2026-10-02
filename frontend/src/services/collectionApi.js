@@ -12,6 +12,13 @@ export const collectionApi = {
     const qs = params.toString();
     return apiClient.get(`/collection${qs ? `?${qs}` : ''}`);
   },
+  /** Raccoglitore a pagine: le carte di un gioco (source) o di un set (set) da offset, al massimo limit. */
+  async binder({ source, set, offset = 0, limit = 90 }) {
+    const params = new URLSearchParams({ offset: String(offset), limit: String(limit) });
+    if (set) params.set('set', set);
+    else if (source) params.set('source', source);
+    return apiClient.get(`/collection/binder?${params}`);
+  },
   async toggleFavorite(cardId) {
     return apiClient.post(`/collection/${cardId}/favorite`);
   }

@@ -719,6 +719,11 @@
 @media (max-width: 767px) {
   .hotel-page { height: calc(100dvh - 210px); }
   .hotel-tool span { display: none; }
+}
+
+/* Telefoni, tablet e portatili piccoli: gli strumenti (con le etichette) non stanno in una riga
+   insieme alla chat, che verrebbe schiacciata a zero e coperta dai pulsanti. La chat va a capo. */
+@media (max-width: 1279px) {
   .hotel-toolbar { flex-wrap: wrap; }
   .hotel-chat { order: 3; flex-basis: 100%; }
 }

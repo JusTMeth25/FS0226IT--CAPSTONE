@@ -71,17 +71,10 @@ public abstract class TcgcsvImporter extends AbstractCardImporter {
     @Override
     protected ImportResult doImport(AdminRequests.ImportRequest request) throws InterruptedException {
         Spec spec = spec();
+        if (request.wantsAll()) return importAll();
         int limit = request.limitOrDefault(100, MAX_LIMIT);
 
-        List<JsonNode> groups = new ArrayList<>();
-        for (JsonNode group : elements(child(fetchJsonWithRetry(base() + "/groups", 4), "results"))) {
-            String name = text(group, "name");
-            if (name != null && child(group, "groupId") != null && (spec.groups() == null || spec.groups().matcher(name).find())) {
-                groups.add(group);
-            }
-        }
-        if (groups.isEmpty()) throw new IllegalStateException(spec.source() + "_no_groups");
-        Collections.shuffle(groups, random);
+        List<JsonNode> groups = groups();
 
         // Gruppi a caso finche' ci sono tre volte le carte richieste: basta per un blocco vario.
         List<ImportedCard> all = new ArrayList<>();
@@ -107,6 +100,51 @@ public abstract class TcgcsvImporter extends AbstractCardImporter {
         List<ImportedCard> slice = all.subList(0, Math.min(limit, all.size()));
         int imported = writer.persist(spec.source(), slice, null);
         return ImportResult.success(spec.source(), imported, null, all.size());
+    }
+
+    /**
+     * Tutto il catalogo del gioco, gruppo per gruppo: ogni gruppo si salva da solo, cosi' un gruppo
+     * che non risponde non fa perdere gli altri e le transazioni restano piccole. Le carte gia'
+     * importate si aggiornano (prezzo, immagine, testo) senza perdere le statistiche ribilanciate.
+     */
+    private ImportResult importAll() throws InterruptedException {
+        Spec spec = spec();
+        int imported = 0;
+        int failedGroups = 0;
+        for (JsonNode group : groups()) {
+            int groupId = child(group, "groupId").intValue();
+            try {
+                JsonNode products = fetchJsonWithRetry(base() + "/" + groupId + "/products", 4);
+                Map<Integer, Double> prices = prices(groupId);
+                List<ImportedCard> cards = new ArrayList<>();
+                for (JsonNode product : elements(child(products, "results"))) {
+                    ImportedCard card = normalize(product, prices, text(group, "name"), text(group, "abbreviation"));
+                    if (card != null) cards.add(card);
+                }
+                if (!cards.isEmpty()) imported += writer.persist(spec.source(), cards, null);
+            } catch (RuntimeException ex) {
+                failedGroups++;
+                log.warn("Gruppo {} di {} non importato: {}", groupId, spec.source(), ex.getMessage());
+            }
+        }
+        if (imported == 0) throw new IllegalStateException(spec.source() + "_no_cards");
+        log.info("Import completo di {}: {} carte, {} gruppi non letti", spec.source(), imported, failedGroups);
+        return ImportResult.success(spec.source(), imported, null, imported);
+    }
+
+    /** I gruppi (set) del gioco da importare, in ordine casuale. */
+    private List<JsonNode> groups() throws InterruptedException {
+        Spec spec = spec();
+        List<JsonNode> groups = new ArrayList<>();
+        for (JsonNode group : elements(child(fetchJsonWithRetry(base() + "/groups", 4), "results"))) {
+            String name = text(group, "name");
+            if (name != null && child(group, "groupId") != null && (spec.groups() == null || spec.groups().matcher(name).find())) {
+                groups.add(group);
+            }
+        }
+        if (groups.isEmpty()) throw new IllegalStateException(spec.source() + "_no_groups");
+        Collections.shuffle(groups, random);
+        return groups;
     }
 
     /** Prezzo di mercato per prodotto (il piu' alto fra normale e foil). Senza prezzi l'import va avanti. */

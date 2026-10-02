@@ -139,8 +139,14 @@ public final class AdminRequests {
             Integer limit,
             Integer page,
             Integer offset,
-            Integer groupId
+            Integer groupId,
+            /** Tutto il catalogo della fonte, non un blocco a caso (solo i giochi che lo supportano). */
+            Boolean all
     ) {
+        public boolean wantsAll() {
+            return Boolean.TRUE.equals(all);
+        }
+
         public int limitOrDefault(int fallback, int max) {
             if (limit == null || limit < 1) return fallback;
             return Math.min(limit, max);

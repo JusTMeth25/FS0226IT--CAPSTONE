@@ -114,10 +114,18 @@ function UsersTab() {
 }
 
 function CardsTab() {
+  // Il catalogo e' enorme: il server manda le ultime 300 carte, o quelle che corrispondono alla ricerca.
+  const [query, setQuery] = useState('');
+  const [search, setSearch] = useState('');
   return (
+    <>
+    <form className="admin-form-row glass-panel" onSubmit={(e) => { e.preventDefault(); setSearch(query.trim()); }}>
+      <input className="ai-input" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cerca per nome, codice o fonte (es. weiss)" aria-label="Cerca carte" />
+      <button type="submit" className="btn btn-primary btn-small">Cerca</button>
+    </form>
     <Resource
-      fetcher={() => adminApi.getCards()}
-      deps={[]}
+      fetcher={() => adminApi.getCards(search)}
+      deps={[search]}
       errorLabel="Impossibile caricare le carte."
       render={(data) => {
         const cards = data?.cards || [];
@@ -142,6 +150,7 @@ function CardsTab() {
         );
       }}
     />
+    </>
   );
 }
 
@@ -232,6 +241,12 @@ function ImportTab() {
           <button className="btn btn-primary btn-small" disabled={status[s.key]?.loading} onClick={() => runImport(s.key, s.fn)}>
             {status[s.key]?.loading ? 'Import…' : 'Importa'}
           </button>
+          {TCGPLAYER_GAMES.includes(s.key) && (
+            <button className="btn btn-secondary btn-small" disabled={status[s.key]?.loading} title="Tutte le carte del gioco: può richiedere alcuni minuti"
+              onClick={() => runImport(s.key, () => adminApi.importSource(s.key, { all: true }))}>
+              Tutto il catalogo
+            </button>
+          )}
         </div>
       ))}
     </div>

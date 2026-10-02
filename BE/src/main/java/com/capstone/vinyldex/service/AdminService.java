@@ -99,9 +99,14 @@ public class AdminService {
 
     // ------------------------------------------------------------------- carte
 
+    /** Il catalogo conta decine di migliaia di carte: la tabella dell'admin ne mostra al massimo tante. */
+    public static final int CARD_LIST_LIMIT = 300;
+
+    /** Le carte piu' recenti, o quelle con q nel nome, nel codice o come fonte. */
     @Transactional(readOnly = true)
-    public List<AdminDtos.AdminCardDto> listCards() {
-        return cardRepository.findAllWithArtistClassOrderByCreatedAtDesc().stream()
+    public List<AdminDtos.AdminCardDto> listCards(String q) {
+        String query = q == null ? "" : q.trim();
+        return cardRepository.adminSearch(query, org.springframework.data.domain.PageRequest.of(0, CARD_LIST_LIMIT)).stream()
                 .map(AdminDtos.AdminCardDto::from)
                 .toList();
     }

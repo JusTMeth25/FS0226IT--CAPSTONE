@@ -24,7 +24,7 @@ export default function DailyCard() {
       <h3 className="panel-title"><i className="ph-fill ph-calendar-star" /> Carta del giorno</h3>
       <div className="daily-card-body">
         <button type="button" className="daily-card-img" onClick={() => navigate(`/card/${encodeURIComponent(card.id)}`)} aria-label={`Dettagli di ${card.name}`}>
-          <img src={resolveCardImage(card)} alt={card.name} />
+          <img loading="lazy" decoding="async" src={resolveCardImage(card)} alt={card.name} />
         </button>
         <div className="daily-card-info">
           <strong>{card.name}</strong>

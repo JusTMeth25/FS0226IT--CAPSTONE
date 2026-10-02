@@ -4,7 +4,7 @@
  * - Le chiamate /api e il WebSocket dell'hotel non passano mai dalla cache.
  * - Le notifiche "pacchetto gratis pronto" le mostra da qui, su richiesta della pagina.
  */
-const CACHE = 'vinyldex-v1';
+const CACHE = 'vinyldex-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './favicon.png'];
 
 self.addEventListener('install', (event) => {

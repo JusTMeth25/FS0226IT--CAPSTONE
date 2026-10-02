@@ -49,7 +49,7 @@ public class Fc27Seeder implements ApplicationRunner {
         }
         if (!needsEa) return;
         Thread thread = new Thread(() -> {
-            ImportResult result = importer.importCards(new AdminRequests.ImportRequest(null, null, eaPlayers, 1, null, null));
+            ImportResult result = importer.importCards(new AdminRequests.ImportRequest(null, null, eaPlayers, 1, null, null, null));
             log.info("Carte EA FC 27 dalla classifica EA: {} (errore: {})", result.imported(), result.error());
         }, "fc27-ea-seed");
         thread.setDaemon(true);

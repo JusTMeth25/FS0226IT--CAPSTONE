@@ -50,11 +50,11 @@ export const PACK_GRADIENT = {
 
 // Artwork dedicata per pacchetto (se assente si usa icona + gradient come fallback).
 export const PACK_IMAGE = {
-  'pack-base': '/assets/img/BasePack.png',
-  'pack-deluxe': '/assets/img/DeluxePack.png',
-  'pack-premium': '/assets/img/PremiumPack.png',
+  'pack-base': '/assets/img/BasePack.webp',
+  'pack-deluxe': '/assets/img/DeluxePack.webp',
+  'pack-premium': '/assets/img/PremiumPack.webp',
   // Il pacchetto del weekend: la grafica del Deluxe nei colori del tramonto, con il suo titolo.
-  'pack-weekend': '/assets/img/WeekendPack.png',
+  'pack-weekend': '/assets/img/WeekendPack.webp',
   // I pacchetti di un solo gioco hanno come grafica il dorso delle carte di quel gioco
   // (VinylDex Originali non ha un dorso in file: resta la grafica disegnata).
   'pack-ultimate': CARD_BACKS.fc27,

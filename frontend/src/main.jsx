@@ -11,7 +11,9 @@ import { GameProvider } from './context/GameContext.jsx'
 import { SoundProvider } from './context/SoundContext.jsx'
 import { initNativeApp } from './services/nativeInit.js'
 import { registerServiceWorker } from './services/pwa.js'
+import { applyPerfMode } from './utils/perfMode.js'
 
+applyPerfMode()
 initNativeApp()
 registerServiceWorker()
 

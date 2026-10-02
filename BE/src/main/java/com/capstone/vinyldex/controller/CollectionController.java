@@ -31,6 +31,16 @@ public class CollectionController {
     }
 
     /** id e' il code pubblico della carta, non lo UUID. */
+    /** Raccoglitore a pagine: un gioco (source) o un set (set), dalle carte offset, al massimo limit. */
+    @GetMapping("/collection/binder")
+    public CollectionService.BinderPage binder(@CurrentUser UserPrincipal principal,
+                                               @org.springframework.web.bind.annotation.RequestParam(required = false) String source,
+                                               @org.springframework.web.bind.annotation.RequestParam(required = false) String set,
+                                               @org.springframework.web.bind.annotation.RequestParam(defaultValue = "0") int offset,
+                                               @org.springframework.web.bind.annotation.RequestParam(defaultValue = "90") int limit) {
+        return collectionService.binder(principal.getId(), source, set, offset, limit);
+    }
+
     @GetMapping("/cards/{id}")
     public Map<String, CardDto> getCard(@PathVariable String id) {
         return Map.of("card", collectionService.getCardByCode(id));

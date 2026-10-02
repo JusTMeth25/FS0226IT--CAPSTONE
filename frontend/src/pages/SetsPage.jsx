@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiClient } from '../services/apiClient.js';
+import { collectionApi } from '../services/collectionApi.js';
 import { useAuth } from '../hooks/useAuth.js';
 import { getRarityColor, resolveCardImage } from '../utils/cardUtils.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
@@ -81,9 +82,44 @@ export default function SetsPage() {
                   {expanded ? 'Nascondi' : 'Vedi carte'}
                 </button>
               </div>
-              {expanded && (
-                <ul className="set-cards">
-                  {set.cards.map(({ card, owned }) => (
+              {expanded && <SetCards setKey={set.key} />}
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+/** Carte di un set, a pagine da SET_PAGE: i set dei cataloghi interi ne hanno centinaia. */
+const SET_PAGE = 60;
+
+function SetCards({ setKey }) {
+  const [cards, setCards] = useState([]);
+  const [total, setTotal] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const fetchPage = useCallback((offset) => collectionApi.binder({ set: setKey, offset, limit: SET_PAGE }), [setKey]);
+  useEffect(() => {
+    let cancelled = false;
+    fetchPage(0)
+      .then((res) => { if (!cancelled) { setCards(res.cards); setTotal(res.total); } })
+      .catch(() => { if (!cancelled) setTotal(0); });
+    return () => { cancelled = true; };
+  }, [fetchPage]);
+  const more = () => {
+    setBusy(true);
+    fetchPage(cards.length)
+      .then((res) => { setCards((current) => [...current, ...res.cards]); setTotal(res.total); })
+      .catch(() => {})
+      .finally(() => setBusy(false));
+  };
+  if (total === null) return <LoadingSpinner />;
+  return (
+    <>
+      <ul className="set-cards">
+        {cards.map((card) => {
+          const owned = card.owned;
+          return (
                     <li key={card.id} className={owned ? 'owned' : 'missing'} style={{ '--rarity-color': getRarityColor(card.rarity) }}>
                       {owned ? (
                         <Link to={`/card/${encodeURIComponent(card.id)}`} title={card.name}>
@@ -96,13 +132,14 @@ export default function SetsPage() {
                       )}
                       <small>{card.name}</small>
                     </li>
-                  ))}
-                </ul>
-              )}
-            </article>
           );
         })}
-      </div>
-    </section>
+      </ul>
+      {cards.length < total && (
+        <button type="button" className="btn btn-secondary btn-small set-more" disabled={busy} onClick={more}>
+          {busy ? 'Carico…' : `Mostra altre (${total - cards.length})`}
+        </button>
+      )}
+    </>
   );
 }

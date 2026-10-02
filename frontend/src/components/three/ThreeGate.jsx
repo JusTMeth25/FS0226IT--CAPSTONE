@@ -31,13 +31,15 @@ class SceneBoundary extends Component {
  * vengono scaricati solo quando una di queste scene viene davvero mostrata. Finche' il codice
  * arriva, e ogni volta che la scena non puo' partire, si vede `fallback` (l'effetto CSS di oggi).
  */
-export default function ThreeGate({ fallback, children }) {
+export default function ThreeGate({ fallback, loading, children }) {
   const enabled = useThreeEnabled();
   if (!enabled) return fallback;
 
+  // `loading`, se c'e', occupa lo stesso spazio della scena mentre il codice arriva: la pagina
+  // non salta quando la scena compare.
   return (
     <SceneBoundary fallback={fallback}>
-      <Suspense fallback={fallback}>{children}</Suspense>
+      <Suspense fallback={loading ?? fallback}>{children}</Suspense>
     </SceneBoundary>
   );
 }

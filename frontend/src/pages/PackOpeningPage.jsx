@@ -53,7 +53,7 @@ function PackSelectCard({ pack, gold, isFreeAvailable, cooldownRemaining, gifted
       <div className="pack-card-art-wrap" style={{ background: packImage ? undefined : PACK_GRADIENT[pack.id] }}>
         {packImage ? (
           <>
-            <img className="pack-card-art-full" src={packImage} alt={pack.name} />
+            <img loading="lazy" decoding="async" className="pack-card-art-full" src={packImage} alt={pack.name} />
             {/* La grafica dei pacchetti di un solo gioco e' il dorso delle carte: il nome va scritto. */}
             {pack.source && <span className="pack-card-name-tag">{pack.name.replace('Pacchetto ', '')}</span>}
           </>

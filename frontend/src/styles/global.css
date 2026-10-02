@@ -61,7 +61,7 @@
 
 /* ---------- Reset & Base ---------- */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html { font-size: 16px; scroll-behavior: smooth; }
+html { font-size: 16px; scroll-behavior: smooth; scrollbar-gutter: stable; }
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   background-color: var(--bg-primary);
@@ -1241,12 +1241,13 @@ input.filter-select { cursor: text; }
   .nav-link { font-size: 0.95rem; }
   .app-main { padding: var(--space-xl); }
   .btn { font-size: 1rem; padding: var(--space-sm) var(--space-lg); }
-  .grid { grid-template-columns: repeat(4, 1fr); gap: var(--space-xl); padding: var(--space-md) 0; }
+  /* Quante colonne di carte ci stanno davvero (con la barra laterale a 992-1200px ne entrano tre). */
+  .grid { grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr)); gap: var(--space-xl); padding: var(--space-md) 0; }
   .section-title { font-size: 1.6rem; margin-bottom: var(--space-lg); }
   .dashboard-grid { grid-template-columns: 2fr 1fr; gap: var(--space-xl); }
   .pack-modal { width: 90%; }
   .pack-reveal-grid { grid-template-columns: repeat(5, 1fr); gap: var(--space-lg); }
-  .collection-grid { grid-template-columns: repeat(4, 1fr); gap: var(--space-xl); }
+  .collection-grid { grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr)); gap: var(--space-xl); }
   .collection-stats { gap: var(--space-2xl); }
   .rarity-counts-row { gap: var(--space-lg); }
   .rarity-count-item { min-width: 90px; }
@@ -1723,3 +1724,15 @@ input.filter-select { cursor: text; }
 .graded-slab-small .slab-window.is-foil::after { inset: 3px; }
 .slab-foil-chip { position: absolute; left: 10px; bottom: 10px; z-index: 5; padding: 1px 7px; border-radius: 999px; font-size: .6rem; font-weight: 900; letter-spacing: .04em; color: #1a1030; text-transform: uppercase; background: linear-gradient(90deg, #ff9ad5, #ffe27a, #8dffd9, #8fd3ff, #d9a2ff); box-shadow: 0 0 8px rgba(255, 255, 255, .5); }
 .graded-slab-small .slab-foil-chip { left: 5px; bottom: 5px; font-size: .5rem; padding: 0 5px; }
+
+/* Raccoglitore a blocchi: pagina in arrivo dal server e "Mostra altre" dei set */
+.binder-sheet.loading .binder-pocket { animation: binder-pocket-pulse 1.2s ease-in-out infinite; }
+@keyframes binder-pocket-pulse { 50% { opacity: .45; } }
+.set-more { margin-top: var(--space-sm); width: 100%; }
+@media (prefers-reduced-motion: reduce) { .binder-sheet.loading .binder-pocket { animation: none; } }
+
+/* Griglia dei set: decine di pannelli. La sfocatura dietro a ognuno costa troppo allo scorrimento
+   (lo sfondo e' scuro e quasi non si vede): fondo pieno dello stesso colore, e i pannelli fuori
+   dallo schermo non si disegnano finche' non servono. */
+.sets-grid .glass-panel { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(14, 22, 53, 0.92); }
+.sets-grid .set-card { content-visibility: auto; contain-intrinsic-size: auto 150px; }

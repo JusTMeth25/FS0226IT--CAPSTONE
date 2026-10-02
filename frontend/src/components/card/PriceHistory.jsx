@@ -25,7 +25,7 @@ function Chart({ points, color, format, label }) {
         <b style={{ color }}>{format(last.value)}</b>
         {points.length > 1 && (
           <small className={trend >= 0 ? 'up' : 'down'}>
-            <i className={`ph-bold ${trend >= 0 ? 'ph-trend-up' : 'ph-trend-down'}`} /> {trend >= 0 ? '+' : ''}{format(trend)}
+            <i className={`ph-fill ${trend >= 0 ? 'ph-trend-up' : 'ph-trend-down'}`} /> {trend >= 0 ? '+' : ''}{format(trend)}
           </small>
         )}
       </figcaption>

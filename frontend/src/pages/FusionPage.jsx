@@ -88,7 +88,7 @@ export default function FusionPage() {
             const card = byId.get(picked[i]);
             return (
               <div key={i} className={`fusion-slot${card ? ' filled' : ''}${busy ? ' melting' : ''}`} style={{ '--rarity-color': getRarityColor(rarity) }}>
-                {card ? <img src={resolveCardImage(card)} alt={card.name} /> : <i className="ph ph-plus" />}
+                {card ? <img loading="lazy" decoding="async" src={resolveCardImage(card)} alt={card.name} /> : <i className="ph ph-plus" />}
               </div>
             );
           })}

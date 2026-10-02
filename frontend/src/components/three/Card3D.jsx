@@ -10,6 +10,7 @@ import { useDocumentVisible } from './useThreeEnabled.js';
 import { BASE_URL } from '../../services/apiClient.js';
 import { CARD_BACKS } from '../../utils/cardBacks.js';
 import { gradeInfo, gradeTone, gradedValue } from '../../utils/gradeUtils.js';
+import { isLiteDevice, sceneDpr } from '../../utils/perfMode.js';
 import { getSourceLabel } from '../../utils/cardUtils.js';
 
 const CARD_W = 2.5;
@@ -223,24 +224,28 @@ export default function Card3D({ card }) {
   const visible = useDocumentVisible();
   const toggle = () => setFlipped((f) => !f);
 
+  const lite = isLiteDevice();
   return (
     <div className="card-3d-stage">
       <div className="card-3d-canvas">
         <Canvas
           flat
-          dpr={[1, 2]}
+          dpr={sceneDpr()}
           frameloop={visible ? 'always' : 'never'}
           camera={{ position: [0, card.grade > 0 ? 0.4 : 0, card.grade > 0 ? 8.2 : 6.4], fov: 38 }}
-          gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
+          gl={{ alpha: true, antialias: !lite, powerPreference: 'high-performance' }}
         >
-          <ambientLight intensity={0.8} />
+          <ambientLight intensity={lite ? 1 : 0.8} />
           <directionalLight position={[2, 3, 5]} intensity={1.2} />
 
-          {/* Luci neutre per i riflessi del bordo metallico: niente colori, niente anelli dietro. */}
-          <Environment resolution={32}>
-            <Lightformer form="rect" intensity={1.5} position={[0, 4, 3]} scale={[6, 2, 1]} color="#ffffff" />
-            <Lightformer form="rect" intensity={0.8} position={[-4, 0, 2]} scale={[2, 6, 1]} color="#ffffff" />
-          </Environment>
+          {/* Luci neutre per i riflessi del bordo metallico: niente colori, niente anelli dietro.
+              Sui dispositivi leggeri si saltano (meno shader da compilare all'apertura). */}
+          {!lite && (
+            <Environment resolution={32}>
+              <Lightformer form="rect" intensity={1.5} position={[0, 4, 3]} scale={[6, 2, 1]} color="#ffffff" />
+              <Lightformer form="rect" intensity={0.8} position={[-4, 0, 2]} scale={[2, 6, 1]} color="#ffffff" />
+            </Environment>
+          )}
 
           <PresentationControls
             global={false}

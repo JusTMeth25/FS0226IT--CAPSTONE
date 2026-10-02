@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { HotelEngine } from '../HotelEngine.js';
+import { isLiteDevice } from '../../utils/perfMode.js';
 import { useReducedMotion } from '../../hooks/useReducedMotion.js';
 
 /** Oltre questo spostamento (pixel) il gesto e' un trascinamento della vista, non un clic. */
@@ -63,7 +64,8 @@ const HotelCanvas = forwardRef(function HotelCanvas({ walkKeys = true, zoom, onZ
 
     const wrap = wrapRef.current;
     const observer = new ResizeObserver(() => {
-      engine.resize(wrap.clientWidth, wrap.clientHeight, Math.min(window.devicePixelRatio || 1, 2));
+      // Dispositivi leggeri: al massimo 1,5 pixel per punto (meno pixel da ridisegnare a ogni fotogramma).
+      engine.resize(wrap.clientWidth, wrap.clientHeight, Math.min(window.devicePixelRatio || 1, isLiteDevice() ? 1.5 : 2));
     });
     observer.observe(wrap);
 

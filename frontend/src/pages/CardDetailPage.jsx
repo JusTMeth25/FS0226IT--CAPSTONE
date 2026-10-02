@@ -4,7 +4,7 @@ import { useGame } from '../hooks/useGame.js';
 import { useAuth } from '../hooks/useAuth.js';
 import { findCardById } from '../data/cards.js';
 import { PACKS } from '../data/packs.js';
-import { getRarityColor, getRarityName, getSourceLabel, formatCardPrice } from '../utils/cardUtils.js';
+import { getRarityColor, getRarityName, getSourceLabel, formatCardPrice, resolveCardImage } from '../utils/cardUtils.js';
 import { cardApi } from '../services/cardApi.js';
 import { useApiResource } from '../hooks/useApiResource.js';
 import CardHero from '../components/card/CardHero.jsx';
@@ -98,7 +98,16 @@ export default function CardDetailPage() {
 
       <ThreeGate fallback={card.grade > 0
         ? <><GradedSlab card={card} /><CardHero card={card} quantity={card.quantity} hideArt /></>
-        : <CardHero card={card} quantity={card.quantity} />}>
+        : <CardHero card={card} quantity={card.quantity} />}
+        loading={(
+          <>
+            <div className="card-3d-stage">
+              <div className="card-3d-canvas card-3d-loading"><img src={resolveCardImage(card)} alt="" /></div>
+              <span className="btn btn-secondary card-3d-flip card-3d-flip-placeholder" aria-hidden="true">Gira la carta</span>
+            </div>
+            <CardHero card={card} quantity={card.quantity} hideArt />
+          </>
+        )}>
         <Card3D card={card} />
         <CardHero card={card} quantity={card.quantity} hideArt />
       </ThreeGate>

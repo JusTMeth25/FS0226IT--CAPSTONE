@@ -120,7 +120,7 @@ export default function MarketplacePage() {
         <div className="listing-list">
           {listings.map((listing) => (
             <div className="listing-item glass-panel" key={listing.id}>
-              <div className="listing-item-art"><img src={resolveCardImage(listing.card)} alt={listing.card?.name} /></div>
+              <div className="listing-item-art"><img loading="lazy" decoding="async" src={resolveCardImage(listing.card)} alt={listing.card?.name} /></div>
               <div className="listing-item-info">
                 <span className="listing-item-name" style={{ color: getRarityColor(listing.card?.rarity) }}>{listing.card?.name}</span>
                 <span className="listing-item-meta">Venditore: {listing.seller?.username} · Quantità: {listing.quantity}</span>

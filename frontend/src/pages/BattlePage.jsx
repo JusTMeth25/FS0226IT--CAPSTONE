@@ -64,7 +64,7 @@ function VsScreen({ team, aiTeamLength, tournamentBadge, onStartRound }) {
               {team.map((c) => (
                 <div key={c.id} className={`battle-vs-mini ${getRarityCSSClass(c.rarity)}`}>
                   <div style={{ width: 30, height: 40, overflow: 'hidden', borderRadius: 4 }}>
-                    <img src={resolveCardImage(c)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img loading="lazy" decoding="async" src={resolveCardImage(c)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                   <span style={{ fontSize: '0.55rem' }}>{c.name}</span>
                 </div>

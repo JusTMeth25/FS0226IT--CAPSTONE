@@ -8,7 +8,7 @@ export const adminApi = {
   async setUserGold(userId, gold) { return apiClient.patch(`/admin/users/${userId}/gold`, { gold }); },
 
   // Carte / pacchetti / drop-rate / garanzie
-  async getCards() { return apiClient.get('/admin/cards'); },
+  async getCards(q = '') { return apiClient.get(`/admin/cards${q ? `?q=${encodeURIComponent(q)}` : ''}`); },
   async createCard(payload) { return apiClient.post('/admin/cards', payload); },
   async updateCard(cardId, payload) { return apiClient.patch(`/admin/cards/${cardId}`, payload); },
   async getPacks() { return apiClient.get('/admin/packs'); },
@@ -27,7 +27,10 @@ export const adminApi = {
   async importRiftbound(payload) { return apiClient.post('/admin/import/riftbound', payload); },
   async importNikke(payload) { return apiClient.post('/admin/import/nikke', payload); },
   /** Giochi dal catalogo TCGplayer: stesso percorso, cambia solo la fonte. */
-  async importSource(source, payload) { return apiClient.post(`/admin/import/${source}`, payload); },
+  async importSource(source, payload) {
+    // Tutto il catalogo sono migliaia di carte: il server ci mette minuti, non secondi.
+    return apiClient.post(`/admin/import/${source}`, payload, { timeout: payload?.all ? 3_600_000 : 180_000 });
+  },
   async importGundam(payload) { return apiClient.post('/admin/import/gundam', payload); },
   async importDragonBall(payload) { return apiClient.post('/admin/import/dragonball', payload); },
 

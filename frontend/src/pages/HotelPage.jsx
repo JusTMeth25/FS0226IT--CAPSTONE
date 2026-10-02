@@ -49,6 +49,7 @@ import { DEFAULT_LOOK, RIDES, formatLook, parseLook } from '../hotel/sprites/ava
 import { RIDE_WALLS } from '../hotel/sprites/vehicles.js';
 import { authApi } from '../services/authApi.js';
 import { TRACKS, getJukebox } from '../hotel/music.js';
+import { isLiteDevice } from '../utils/perfMode.js';
 import '../hotel/hotel.css';
 
 /** L'Arena: solo qui si gioca contro gli NPC sfidanti. */
@@ -290,8 +291,9 @@ export default function HotelPage() {
   const [travel, setTravel] = useState(null);
   const [minigameResult, setMinigameResult] = useState(null);
   // Minigioco aperto: la stanza dietro scende a 20 fotogrammi al secondo, il gioco resta fluido.
+  // Su telefoni e dispositivi leggeri la stanza va a 30: il movimento resta fluido, la batteria dura il doppio.
   useEffect(() => {
-    canvasRef.current?.setMaxFps(minigame ? 20 : null);
+    canvasRef.current?.setMaxFps(minigame ? 20 : (isLiteDevice() ? 30 : null));
   }, [minigame]);
   /** Punteggio della partita nello stadio: { blue, red }, null nelle stanze senza pallone. */
   const [football, setFootball] = useState(null);

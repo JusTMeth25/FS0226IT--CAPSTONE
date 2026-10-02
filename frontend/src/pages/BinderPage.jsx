@@ -1,4 +1,4 @@
-import { lazy, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { collectionApi } from '../services/collectionApi.js';
 import { apiClient } from '../services/apiClient.js';
@@ -14,9 +14,22 @@ const BinderBook3D = lazy(() => import('../components/binder/BinderBook3D.jsx'))
 
 const PER_PAGE = 9;
 const TURN_MS = 320;
+/** Carte chieste al server in una volta: dieci pagine (multiplo di PER_PAGE). */
+const CHUNK = 90;
 
 /** Una pagina del raccoglitore 2D: nove tasche, le carte che mancano sono sagome scure. */
 function BinderSheet({ cards, number }) {
+  // Pagina non ancora arrivata dal server: tasche vuote che pulsano.
+  if (!cards) {
+    return (
+      <div className="binder-sheet loading" aria-busy="true">
+        <div className="binder-pockets">
+          {Array.from({ length: PER_PAGE }, (_, i) => <div key={i} className="binder-pocket empty-slot" />)}
+        </div>
+        <span className="binder-page-number">{number}</span>
+      </div>
+    );
+  }
   return (
     <div className="binder-sheet">
       <div className="binder-pockets">
@@ -53,8 +66,8 @@ function FlatBinder({ pages, spread, single, turning }) {
   const first = spread * (single ? 1 : 2);
   return (
     <div className={`binder${turning ? ` turning-${turning}` : ''}${single ? ' single' : ''}`} aria-live="polite">
-      <BinderSheet cards={pages[first] || []} number={first + 1} />
-      {!single && <BinderSheet cards={pages[first + 1] || []} number={first + 2} />}
+      <BinderSheet cards={pages[first] === undefined ? [] : pages[first]} number={first + 1} />
+      {!single && <BinderSheet cards={pages[first + 1] === undefined ? [] : pages[first + 1]} number={first + 2} />}
     </div>
   );
 }
@@ -75,10 +88,14 @@ export default function BinderPage() {
   const spreadParam = Number(getParam('p', '0')) || 0;
   const setSpread = (value) => setParam('p', value > 0 ? String(value) : '');
   const [sets, setSets] = useState([]);
-  const [cards, setCards] = useState(null);
+  // Il raccoglitore arriva a blocchi di CHUNK carte: totale, possedute e i blocchi gia' caricati.
+  const [book, setBook] = useState(null);
+  const loading = useRef(new Set());
+  const activeKey = useRef(null);
   const [turning, setTurning] = useState(null);
   const [single, setSingle] = useState(() => window.innerWidth < 900);
   const [flat, setFlat] = useState(false);
+  const bookKey = setKey ? `set:${setKey}` : `source:${source}`;
 
   useEffect(() => {
     apiClient.get('/sets').then((res) => setSets(res.sets)).catch(() => setSets([]));
@@ -87,36 +104,53 @@ export default function BinderPage() {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    if (setKey) {
-      const set = sets.find((s) => s.key === setKey);
-      Promise.resolve(set ? set.cards.map(({ card, owned }) => ({ ...card, owned })) : []).then((list) => {
-        if (!cancelled) setCards(list);
+  const loadChunk = useCallback((key, index) => {
+    const id = `${key}#${index}`;
+    if (loading.current.has(id)) return;
+    loading.current.add(id);
+    const [kind, value] = [key.slice(0, key.indexOf(':')), key.slice(key.indexOf(':') + 1)];
+    collectionApi.binder({ [kind]: value, offset: index * CHUNK, limit: CHUNK }).then((res) => {
+      // Risposta di un raccoglitore che non si guarda piu': si scarta.
+      if (key !== activeKey.current) return;
+      setBook((current) => {
+        const chunks = new Map(current?.key === key ? current.chunks : []);
+        chunks.set(index, res.cards || []);
+        return { key, total: res.total, owned: res.owned, chunks };
       });
-    } else {
-      collectionApi.getCollection({ source }).then((res) => {
-        if (cancelled) return;
-        const list = [...(res.collection || [])].sort((a, b) => (a.setCode || '').localeCompare(b.setCode || '')
-          || String(a.number || '').localeCompare(String(b.number || ''), undefined, { numeric: true })
-          || a.name.localeCompare(b.name));
-        setCards(list);
-      }).catch(() => setCards([]));
-    }
-    return () => { cancelled = true; };
-  }, [source, setKey, sets]);
+    }).catch(() => {
+      loading.current.delete(id);
+      setBook((current) => current || { key, total: 0, owned: 0, chunks: new Map() });
+    });
+  }, []);
+
+  // Nuovo gioco o set: si ricomincia dal primo blocco.
+  useEffect(() => {
+    loading.current = new Set();
+    activeKey.current = bookKey;
+    loadChunk(bookKey, 0);
+  }, [bookKey, loadChunk]);
+
+  const cards = book && book.key === bookKey ? book : null;
+  const total = cards?.total || 0;
 
   // Il tema segue il gioco scelto (per un set: il gioco delle sue carte).
-  const theme = useMemo(() => themeFor(setKey ? (cards?.[0]?.source || 'original') : source), [setKey, cards, source]);
+  const firstCard = cards?.chunks.get(0)?.[0];
+  const theme = useMemo(() => themeFor(setKey ? (firstCard?.source || 'original') : source), [setKey, firstCard, source]);
 
+  // Pagine: quelle dei blocchi non ancora arrivati sono null (il libro le disegna vuote).
   const pages = useMemo(() => {
-    const list = cards || [];
-    const out = Array.from({ length: Math.max(1, Math.ceil(list.length / PER_PAGE)) }, (_, i) => list.slice(i * PER_PAGE, (i + 1) * PER_PAGE));
+    const count = Math.max(1, Math.ceil(total / PER_PAGE));
+    const out = Array.from({ length: count }, (_, i) => {
+      const chunk = cards?.chunks.get(Math.floor((i * PER_PAGE) / CHUNK));
+      if (!chunk) return null;
+      const start = (i * PER_PAGE) % CHUNK;
+      return chunk.slice(start, start + PER_PAGE);
+    });
     // Nel libro le pagine vanno a coppie (davanti e dietro di ogni foglio).
     if (out.length % 2) out.push([]);
     return out;
-  }, [cards]);
-  const pagesKey = `${setKey || source}:${cards?.length || 0}`;
+  }, [cards, total]);
+  const pagesKey = `${bookKey}:${total}`;
   const perSpread = flat && single ? 1 : 2;
   const spreads = Math.max(1, Math.ceil(pages.length / perSpread));
   // Anche la pagina sta nell'indirizzo; se il raccoglitore si e' accorciato si resta nell'ultima.
@@ -136,6 +170,17 @@ export default function BinderPage() {
     }
   };
 
+  // Si caricano i blocchi della doppia pagina mostrata e di quelle accanto (per sfogliare senza attese).
+  useEffect(() => {
+    if (!cards) return;
+    const firstPage = Math.max(0, spread * perSpread - 2);
+    const lastPage = Math.min(pages.length - 1, spread * perSpread + perSpread + 2);
+    for (let page = firstPage; page <= lastPage; page += 1) {
+      const index = Math.floor((page * PER_PAGE) / CHUNK);
+      if (!cards.chunks.has(index) && index * CHUNK < total) loadChunk(bookKey, index);
+    }
+  }, [cards, spread, perSpread, pages.length, total, bookKey, loadChunk]);
+
   // I tasti chiamano sempre l'ultima versione di turn senza riagganciare l'ascoltatore.
   const turnRef = useRef(turn);
   useEffect(() => { turnRef.current = turn; });
@@ -152,7 +197,7 @@ export default function BinderPage() {
   // Anche le carte che mancano si aprono: il dettaglio dice dove trovarle.
   const openCard = (card) => navigate(`/card/${encodeURIComponent(card.id)}`);
 
-  const owned = (cards || []).filter((c) => c.owned).length;
+  const owned = cards?.owned || 0;
   const flatView = <FlatBinder pages={pages} spread={spread} single={single} turning={turning} />;
   return (
     <section className="binder-page" style={{ '--binder-accent': theme.accent, '--binder-page': theme.page, '--binder-pocket': theme.pocket, '--binder-cover': `url(${coverImage(theme)})` }}>
@@ -174,7 +219,7 @@ export default function BinderPage() {
         <button type="button" className="btn btn-secondary btn-small" onClick={() => { setFlat((f) => !f); setSpread(0); }}>
           <i className={`ph-fill ${flat ? 'ph-cube' : 'ph-squares-four'}`} /> {flat ? 'Vista 3D' : 'Vista piatta'}
         </button>
-        <span className="binder-count">{owned} / {cards?.length || 0} carte</span>
+        <span className="binder-count">{owned} / {total} carte</span>
       </div>
       <p className="binder-title"><img src={coverImage(theme)} alt="" /> {theme.title}</p>
 
@@ -189,11 +234,11 @@ export default function BinderPage() {
       )}
       <div className="binder-nav">
         <button type="button" className="btn btn-secondary" onClick={() => turn(-1)} disabled={spread === 0} aria-label="Pagina precedente">
-          <i className="ph-bold ph-caret-left" />
+          <i className="ph-fill ph-caret-left" />
         </button>
         <span>{spread + 1} / {spreads}</span>
         <button type="button" className="btn btn-secondary" onClick={() => turn(1)} disabled={spread >= spreads - 1} aria-label="Pagina successiva">
-          <i className="ph-bold ph-caret-right" />
+          <i className="ph-fill ph-caret-right" />
         </button>
       </div>
     </section>
