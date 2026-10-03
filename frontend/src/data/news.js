@@ -4,6 +4,15 @@
  */
 export const NEWS = [
   {
+    date: '2026-10-11',
+    title: 'Rap, R&B e il Re del Pop in Disco',
+    icon: 'ph-microphone-stage',
+    items: [
+      ['ph-microphone-stage', 'Cantanti al microfono', 'Alla Disco anni 80 arrivano gli omaggi a 2Pac, The Notorious B.I.G., Eminem, Drake, Travis Scott, Miguel e Michael Jackson, con i loro brani veri (anteprime di Apple Music).'],
+      ['ph-headphones', 'Nuovo DJ', 'In consolle anche l’omaggio a Skrillex. Tra un brano e l’altro la musica sfuma come in un mixer, senza stacchi.']
+    ]
+  },
+  {
     date: '2026-10-10',
     title: 'Musica vera in Disco e chitarre di Guitar Hero',
     icon: 'ph-vinyl-record',

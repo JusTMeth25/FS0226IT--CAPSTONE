@@ -103,14 +103,6 @@
     "url": "https://music.apple.com/it/album/silence-feat-khalid/1268152497"
    },
    {
-    "id": 1627354261,
-    "title": "Numb",
-    "artist": "Marshmello & Khalid",
-    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/5f/33/50/5f335061-9183-8483-90fe-6a88d0be8ebe/mzaf_12382531130618297876.plus.aac.p.m4a",
-    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/b8/89/cc/b889ccdd-ce21-16ce-beab-15c9d8fd1a51/196589226488.jpg/300x300bb.jpg",
-    "url": "https://music.apple.com/it/album/numb/1627354260"
-   },
-   {
     "id": 1445055017,
     "title": "Wolves",
     "artist": "Selena Gomez & Marshmello",
@@ -133,6 +125,14 @@
     "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/e1/89/fb/e189fb73-25d0-78b1-63c6-4b224479531a/mzaf_10432777350372879206.plus.aac.p.m4a",
     "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/ab/96/39/ab96394c-de76-c250-b9f5-644505c5bfa8/859716236469_Cover.jpg/300x300bb.jpg",
     "url": "https://music.apple.com/it/album/summer/6802264072"
+   },
+   {
+    "id": 1627354261,
+    "title": "Numb",
+    "artist": "Marshmello & Khalid",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/5f/33/50/5f335061-9183-8483-90fe-6a88d0be8ebe/mzaf_12382531130618297876.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/b8/89/cc/b889ccdd-ce21-16ce-beab-15c9d8fd1a51/196589226488.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/numb/1627354260"
    },
    {
     "id": 1743575321,
@@ -277,6 +277,14 @@
     "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/65/c6/2a/65c62a9e-3c98-7d84-0ee5-027370bf9e01/mzaf_2262530577054038075.plus.aac.p.m4a",
     "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/c0/b2/f3/c0b2f358-0507-c076-4948-95e183669182/00602567159476.rgb.jpg/300x300bb.jpg",
     "url": "https://music.apple.com/it/album/lonely-together-feat-rita-ora-acoustic/1445150346"
+   },
+   {
+    "id": 1462628897,
+    "title": "SOS (feat. Aloe Blacc)",
+    "artist": "Avicii",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/c0/8b/6f/c08b6ff4-e5b3-55d8-6f5a-d4d89b3b45e4/mzaf_146900326226616811.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/29/9e/8f/299e8f03-3a49-6a5c-9bec-32c0964c2832/19UMGIM41833.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/sos-feat-aloe-blacc/1462628887"
    }
   ]
  },
@@ -493,6 +501,589 @@
     "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/5f/c3/f5/5fc3f543-4ada-f9c6-eb51-0c84bbf4cacd/mzaf_7384467618510571559.plus.aac.p.m4a",
     "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/b0/28/a7/b028a717-937c-5bdd-43ad-f1b696431cfc/8712944473490.jpg/300x300bb.jpg",
     "url": "https://music.apple.com/it/album/forbidden-voices/1346088014"
+   }
+  ]
+ },
+ {
+  "key": "skrilla",
+  "name": "Skrilla",
+  "tribute": "Skrillex",
+  "look": "s0.h2.hc7.sh9.p1.t0.f0.a1",
+  "tracks": [
+   {
+    "id": 434543347,
+    "title": "Scary Monsters and Nice Sprites",
+    "artist": "Skrillex",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/48/1d/f2/481df22a-e26c-8d82-df42-b245415f0e52/mzaf_17921545611228568896.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music/ac/7f/06/mzi.cmuaapze.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/scary-monsters-and-nice-sprites/434543345"
+   },
+   {
+    "id": 442170037,
+    "title": "First of the Year (Equinox)",
+    "artist": "Skrillex",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/90/90/59/9090595d-f19d-01ac-82dd-a01aa9806814/mzaf_12985876051657110140.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/d0/2f/0c/d02f0ccc-97ae-373e-5899-c5d7ee5b55a2/mzi.nkvrjjei.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/first-of-the-year-equinox/442170036"
+   },
+   {
+    "id": 434543348,
+    "title": "Kill EVERYBODY",
+    "artist": "Skrillex",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/19/35/ca/1935ca26-6a30-3837-06c3-c6f24220a6d4/mzaf_10223125678758186987.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music/ac/7f/06/mzi.cmuaapze.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/kill-everybody/434543345"
+   },
+   {
+    "id": 522765492,
+    "title": "Make It Bun Dem",
+    "artist": "Skrillex & Damian \"Jr. Gong\" Marley",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/64/c7/4d/64c74d88-3a39-6728-3ffa-d9206b9b4fbe/mzaf_7162026607186518842.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music/v4/93/87/5e/93875e78-46f2-ebdb-5c6f-67df166f6976/075679961136.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/make-it-bun-dem/522765477"
+   },
+   {
+    "id": 971262282,
+    "title": "Where Are Ü Now (with Justin Bieber) [feat. Justin Bieber]",
+    "artist": "Jack Ü, Skrillex & Diplo",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/6b/38/03/6b38036d-535e-0a0a-188b-7d8276ac9ba4/mzaf_15488351555519735389.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/b3/ea/21/b3ea217e-d5d0-4db7-5942-15cdff5ad68d/075679927354.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/where-are-%C3%BC-now-with-justin-bieber-feat-justin-bieber/971262235"
+   },
+   {
+    "id": 1660687515,
+    "title": "Rumble",
+    "artist": "Skrillex, Fred again.. & Flowdan",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/58/b7/ff/58b7ffc7-9fa3-924f-5e95-9f48dec3e407/mzaf_2471317642603839567.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/60/ca/ce/60cace9d-9faa-5a6b-f8c4-20aa3ba7c1b5/075679702593.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/rumble/1660687514"
+   },
+   {
+    "id": 1125270043,
+    "title": "Purple Lamborghini",
+    "artist": "Skrillex & Rick Ross",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/1c/04/5a/1c045a3a-50b6-01ff-a096-f6e2617798d7/mzaf_8971150483421961161.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/ea/7b/3a/ea7b3a69-b589-603a-037c-b161f328afb1/075679910462.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/purple-lamborghini/1125268524"
+   },
+   {
+    "id": 833843702,
+    "title": "Ragga Bomb",
+    "artist": "Skrillex",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/25/43/cb/2543cbd2-e424-fa04-c504-ca8a781b8171/mzaf_14362698564368696927.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/d8/a7/6f/d8a76fed-bac7-3bdb-26ee-aeead3e7b9d1/075679944986.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/ragga-bomb/833843609"
+   }
+  ]
+ },
+ {
+  "key": "duepac",
+  "name": "Due Pac",
+  "tribute": "2Pac",
+  "role": "singer",
+  "look": "s4.h9.hc7.sh7.p0.t4.f1.a6",
+  "tracks": [
+   {
+    "id": 1440662041,
+    "title": "California Love (feat. Roger Troutman & Dr. Dre)",
+    "artist": "2Pac",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/62/70/83/62708320-c29a-05c1-444e-f54a4dc11b78/mzaf_180909787822676774.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/72/00/89/720089d8-c063-a323-e0cc-de921e50b968/00602527051789.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/california-love-feat-roger-troutman-dr-dre/1440661662"
+   },
+   {
+    "id": 1440831379,
+    "title": "Changes (feat. Talent) [Greatest Hits Version]",
+    "artist": "2Pac",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/04/c1/b5/04c1b54c-9d88-08b7-48d5-9884d0ff9ceb/mzaf_6076485493122699680.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/37/0d/ab/370dab9b-82da-cbc8-5b05-163661065358/00602547284808.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/changes-feat-talent-greatest-hits-version/1440830932"
+   },
+   {
+    "id": 1440662208,
+    "title": "Dear Mama",
+    "artist": "2Pac",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/0a/51/7e/0a517e4a-8106-400f-f4a0-050d79b30293/mzaf_1121910821221536917.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/72/00/89/720089d8-c063-a323-e0cc-de921e50b968/00602527051789.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/dear-mama/1440661662"
+   },
+   {
+    "id": 1440661721,
+    "title": "Keep Ya Head Up",
+    "artist": "2Pac",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/b7/23/72/b723722a-57ed-8543-61b1-66ad28942b3a/mzaf_5078570779089291363.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/72/00/89/720089d8-c063-a323-e0cc-de921e50b968/00602527051789.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/keep-ya-head-up/1440661662"
+   },
+   {
+    "id": 1440662034,
+    "title": "I Get Around",
+    "artist": "2Pac",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/25/58/d6/2558d685-0346-99ad-5462-41b97102b80e/mzaf_4578327602483946105.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/72/00/89/720089d8-c063-a323-e0cc-de921e50b968/00602527051789.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/i-get-around/1440661662"
+   },
+   {
+    "id": 1588494313,
+    "title": "All Eyez On Me (feat. Big Syke)",
+    "artist": "2Pac",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/13/5e/7f/135e7f39-a38c-238e-4b1e-e9c1d8ff05c4/mzaf_1539161598890726745.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/55/e5/7c/55e57cf2-8325-a088-7d54-3aeedad1143f/21UM1IM16263.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/all-eyez-on-me-feat-big-syke/1588492978"
+   },
+   {
+    "id": 1588493080,
+    "title": "Ambitionz Az A Ridah",
+    "artist": "2Pac",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/ab/9b/6b/ab9b6bb6-131a-600f-afa4-f6f86c1f10fc/mzaf_4361110318809234711.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/55/e5/7c/55e57cf2-8325-a088-7d54-3aeedad1143f/21UM1IM16263.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/ambitionz-az-a-ridah/1588492978"
+   },
+   {
+    "id": 1440661820,
+    "title": "Hail Mary",
+    "artist": "2Pac",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/b4/27/aa/b427aa00-9bad-6fe7-7683-1e576b48e0c3/mzaf_5404417223813696452.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/72/00/89/720089d8-c063-a323-e0cc-de921e50b968/00602527051789.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/hail-mary/1440661662"
+   }
+  ]
+ },
+ {
+  "key": "biggie",
+  "name": "Notorio Grande",
+  "tribute": "The Notorious B.I.G.",
+  "role": "singer",
+  "look": "s5.h9.hc7.sh8.p1.t3.f0.a2",
+  "tracks": [
+   {
+    "id": 204669680,
+    "title": "Juicy",
+    "artist": "The Notorious B.I.G.",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/dd/0f/47/dd0f4778-50bb-3e3f-dcea-5866600eba40/mzaf_15801848187432565404.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/f8/6a/3d/f86a3db0-d518-cd49-c0c9-25e767ae0a6d/075679456861.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/juicy/204669415"
+   },
+   {
+    "id": 906586716,
+    "title": "Hypnotize [Amended]",
+    "artist": "The Notorious B.I.G.",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/fb/9e/4c/fb9e4c39-ad08-ac65-4bba-93b7f114f1da/mzaf_12989477505414788592.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/d0/9d/c8/d09dc822-43c6-b392-7980-ab492aa9a257/dj.bywycbiu.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/hypnotize-amended/906586710"
+   },
+   {
+    "id": 204669732,
+    "title": "Big Poppa",
+    "artist": "The Notorious B.I.G.",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/a7/67/9e/a7679ee9-f358-dd4d-f6bc-85cb6b2d39da/mzaf_555885344151662906.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/f8/6a/3d/f86a3db0-d518-cd49-c0c9-25e767ae0a6d/075679456861.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/big-poppa/204669415"
+   },
+   {
+    "id": 906586721,
+    "title": "Mo Money Mo Problems (feat. Ma$e & Puff Daddy) [Amended]",
+    "artist": "The Notorious B.I.G.",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/c8/af/a2/c8afa2f2-ea4f-b338-d43d-a08586f26e68/mzaf_10139011686141721684.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/d0/9d/c8/d09dc822-43c6-b392-7980-ab492aa9a257/dj.bywycbiu.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/mo-money-mo-problems-feat-ma%24e-puff-daddy-amended/906586710"
+   },
+   {
+    "id": 898124997,
+    "title": "One More Chance (Radio Edit 2)",
+    "artist": "The Notorious B.I.G.",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/2c/cf/cf/2ccfcf2d-48c6-7bad-f7d5-a85b2a6800cd/mzaf_8320598288859514514.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/93/94/ee/9394eefa-0449-b19f-1d9e-b4d0e9c67910/603497899364.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/one-more-chance-radio-edit-2/898124988"
+   },
+   {
+    "id": 1627155421,
+    "title": "Sky's the Limit (feat. 112) [Radio Edit] [2014 Remaster]",
+    "artist": "The Notorious B.I.G.",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/29/59/1a/29591a5c-2647-09ab-8878-bd264a0d4ae2/mzaf_9508790476192210124.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/ba/69/31/ba69312d-506b-0e92-58a5-42f02b607a1f/603497839100.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/skys-the-limit-feat-112-radio-edit-2014-remaster/1627155341"
+   },
+   {
+    "id": 1627155423,
+    "title": "Going Back to Cali (Radio Edit) [2014 Remaster]",
+    "artist": "The Notorious B.I.G.",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/2d/dd/3b/2ddd3b94-89f3-9ee6-f34b-32d9cbc58cab/mzaf_2650355985095425886.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/ba/69/31/ba69312d-506b-0e92-58a5-42f02b607a1f/603497839100.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/going-back-to-cali-radio-edit-2014-remaster/1627155341"
+   },
+   {
+    "id": 1145520524,
+    "title": "Notorious Thugs (feat. Bone Thugs-N-Harmony) [2016 Remaster]",
+    "artist": "The Notorious B.I.G.",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/97/40/a9/9740a932-5106-4e5e-507f-667f97231022/mzaf_8558746382582355904.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/ad/d5/73/add573ca-8c81-e1b1-879d-6b92cd3ef0df/603497871957.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/notorious-thugs-feat-bone-thugs-n-harmony-2016-remaster/1145519016"
+   }
+  ]
+ },
+ {
+  "key": "slim",
+  "name": "Slim Ombroso",
+  "tribute": "Eminem",
+  "role": "singer",
+  "look": "s0.h9.hc3.sh9.p0.t1.f1.a0",
+  "tracks": [
+   {
+    "id": 1440903439,
+    "title": "Lose Yourself",
+    "artist": "Eminem",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/13/5a/61/135a6154-8ca2-0523-1fa2-f4ac0ea9e1e7/mzaf_13242749689945681184.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/08/23/fc/0823fcd9-cb44-695b-32bf-b3bf51d9f800/00606949351229.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/lose-yourself/1440903339"
+   },
+   {
+    "id": 1440723697,
+    "title": "Without Me",
+    "artist": "Eminem",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/fa/e3/48/fae34808-f180-3750-0156-bab1a540a3bc/mzaf_14307695057713258058.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/27/79/d5/2779d529-ff10-c15d-1c50-08cd46dd1237/06UMGIM17625.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/without-me/1440723318"
+   },
+   {
+    "id": 1440906589,
+    "title": "The Real Slim Shady",
+    "artist": "Eminem",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/24/46/4b/24464b23-3549-34d6-d6a0-8ccd366ec46d/mzaf_7734851299967221725.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/ea/ac/03/eaac03e5-8e9d-847e-d5b9-af7dee6a970b/00606949063221.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/the-real-slim-shady/1440906504"
+   },
+   {
+    "id": 1425131554,
+    "title": "Mockingbird",
+    "artist": "Eminem",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/01/02/04/010204d9-0ec4-9f71-586c-4776a579b1cb/mzaf_6978124395926668013.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/49/2c/16/492c1618-544d-2587-094c-009b059ba96f/00602567850359.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/mockingbird/1425129724"
+   },
+   {
+    "id": 1440800149,
+    "title": "Not Afraid",
+    "artist": "Eminem",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/68/4a/89/684a89b3-3421-d4fd-a120-8970af9f8292/mzaf_7689170473332549856.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/0a/c5/c5/0ac5c519-5587-6d80-2629-04b9d45dfcd1/00602527394510.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/not-afraid/1440799464"
+   },
+   {
+    "id": 1440800719,
+    "title": "Love the Way You Lie (feat. Rihanna)",
+    "artist": "Eminem",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/96/08/b0/9608b02b-3bd8-f457-8237-24b3fc21a330/mzaf_16695151160591345982.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/0a/c5/c5/0ac5c519-5587-6d80-2629-04b9d45dfcd1/00602527394510.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/love-the-way-you-lie-feat-rihanna/1440799464"
+   },
+   {
+    "id": 1440864098,
+    "title": "Rap God",
+    "artist": "Eminem",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/0f/6d/05/0f6d0556-6fb9-c0ee-ea5b-c08f5b0e5880/mzaf_11226521513197111611.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/50/a2/d5/50a2d5a8-8ba5-c8a0-421c-70635bf9e80d/00602537542710.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/rap-god/1440862900"
+   },
+   {
+    "id": 1440906513,
+    "title": "Stan (feat. Dido)",
+    "artist": "Eminem",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/da/e8/29/dae829f1-6d2f-1586-eec6-18ad342ae162/mzaf_8655433564349456575.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/ea/ac/03/eaac03e5-8e9d-847e-d5b9-af7dee6a970b/00606949063221.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/stan-feat-dido/1440906504"
+   }
+  ]
+ },
+ {
+  "key": "draghetto",
+  "name": "Draghetto",
+  "tribute": "Drake",
+  "role": "singer",
+  "look": "s3.h0.hc7.sh9.p1.t1.f1.a0",
+  "tracks": [
+   {
+    "id": 1440841730,
+    "title": "Hotline Bling",
+    "artist": "Drake",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/73/56/5c/73565c27-16d4-1f8a-ec12-77616e3ca05d/mzaf_9178247693050174633.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/f2/0d/8b/f20d8bff-a927-ae98-6784-20a1f51cb23e/16UMGIM27642.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/hotline-bling/1440841363"
+   },
+   {
+    "id": 1406109863,
+    "title": "God's Plan",
+    "artist": "Drake",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/c6/4a/be/c64abe74-adb4-cff5-005d-0fab3d72a806/mzaf_10276154697254415719.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/bb/6d/8f/bb6d8f67-6d04-10b5-dd62-eb5809ac54fc/00602567879152.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/gods-plan/1406109769"
+   },
+   {
+    "id": 1440841384,
+    "title": "One Dance (feat. Wizkid & Kyla)",
+    "artist": "Drake",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/cb/ee/e3/cbeee354-21e5-2c44-daeb-bcd95e26fe6a/mzaf_5204581280747289469.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/f2/0d/8b/f20d8bff-a927-ae98-6784-20a1f51cb23e/16UMGIM27642.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/one-dance-feat-wizkid-kyla/1440841363"
+   },
+   {
+    "id": 1440821277,
+    "title": "Started From the Bottom",
+    "artist": "Drake",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/8a/a9/ad/8aa9ad46-cd3a-a72f-c325-f6d4be150d95/mzaf_13219736619442703133.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/5f/30/6d/5f306d67-bff8-2595-9d41-51be895d3208/00602537542321.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/started-from-the-bottom/1440820956"
+   },
+   {
+    "id": 1406109901,
+    "title": "In My Feelings",
+    "artist": "Drake",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/df/e8/e2/dfe8e281-f90d-a00e-141e-aab9f5b0b0b1/mzaf_8379698669799841165.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/bb/6d/8f/bb6d8f67-6d04-10b5-dd62-eb5809ac54fc/00602567879152.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/in-my-feelings/1406109769"
+   },
+   {
+    "id": 1440892167,
+    "title": "Passionfruit",
+    "artist": "Drake",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/3d/b7/73/3db773ac-bade-82c1-c570-4a699945d1f6/mzaf_13103071700695768982.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/18/9d/b8/189db80b-bfa8-89d1-1514-5fcb7e5cf8f4/00602557611526.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/passionfruit/1440891750"
+   },
+   {
+    "id": 1406109896,
+    "title": "Nice For What",
+    "artist": "Drake",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/b5/df/23/b5df2301-6d1b-bd29-7521-745cc346fb13/mzaf_15429939059485588664.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/bb/6d/8f/bb6d8f67-6d04-10b5-dd62-eb5809ac54fc/00602567879152.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/nice-for-what/1406109769"
+   },
+   {
+    "id": 1440873033,
+    "title": "Hold On, We're Going Home",
+    "artist": "Drake & Majid Jordan",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/07/ab/6b/07ab6bb7-f274-72a1-b232-f774aa36fe68/mzaf_1144694497644610938.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/14/df/2c/14df2ca7-0056-3c7f-724d-75ee42345728/13UAAIM79861.rgb.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/hold-on-were-going-home/1440872495"
+   }
+  ]
+ },
+ {
+  "key": "scotto",
+  "name": "Travis Scotto",
+  "tribute": "Travis Scott",
+  "role": "singer",
+  "look": "s4.h6.hc7.sh8.p7.t3.f4.a0",
+  "tracks": [
+   {
+    "id": 1151481750,
+    "title": "goosebumps",
+    "artist": "Travis Scott",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/f0/60/39/f060399b-690f-2e55-7013-5530cd616d95/mzaf_6001308391779304655.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/b8/e5/27/b8e527c8-aaf4-c7b7-5562-c479458ed7d9/886446092645.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/goosebumps/1151481435"
+   },
+   {
+    "id": 1456179771,
+    "title": "Antidote",
+    "artist": "Travis Scott",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/87/58/43/875843d7-4725-12ab-26c8-f909a7dc5188/mzaf_6375379465114836886.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/6d/fb/f1/6dfbf17d-4032-f585-35ad-f3f9b6859cd9/886445460421.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/antidote/1456179762"
+   },
+   {
+    "id": 1421243623,
+    "title": "BUTTERFLY EFFECT",
+    "artist": "Travis Scott",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/46/c7/32/46c7320a-5a79-5edd-a447-4be6246dfa76/mzaf_15930848296096645653.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/30/66/90/306690d4-2a29-402e-e406-6b319ce7731a/886447227169.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/butterfly-effect/1421241217"
+   },
+   {
+    "id": 1708274783,
+    "title": "FE!N (feat. Playboi Carti)",
+    "artist": "Travis Scott",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/ce/61/9a/ce619acc-40f8-5bf0-c6d8-5649dacc5d3c/mzaf_9048266760750013994.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/7d/4f/94/7d4f9468-56e1-3a2d-7186-c8088170ef58/196871341899.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/fe-n-feat-playboi-carti/1708274558"
+   },
+   {
+    "id": 1708274801,
+    "title": "TELEKINESIS (feat. SZA & Future)",
+    "artist": "Travis Scott",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/9f/74/38/9f743809-a740-d388-ab4e-2d529cdf1816/mzaf_10282848371758525405.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/7d/4f/94/7d4f9468-56e1-3a2d-7186-c8088170ef58/196871341899.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/telekinesis-feat-sza-future/1708274558"
+   },
+   {
+    "id": 1421243212,
+    "title": "YOSEMITE",
+    "artist": "Travis Scott",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/9c/01/e4/9c01e4d1-08eb-2988-717b-89216a6491f9/mzaf_1401007185924005358.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/30/66/90/306690d4-2a29-402e-e406-6b319ce7731a/886447227169.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/yosemite/1421241217"
+   },
+   {
+    "id": 1456179767,
+    "title": "90210 (feat. Kacy Hill)",
+    "artist": "Travis Scott",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/22/86/24/22862454-3c82-2944-b812-abf44bfb2c7d/mzaf_3589282494721155792.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/6d/fb/f1/6dfbf17d-4032-f585-35ad-f3f9b6859cd9/886445460421.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/90210-feat-kacy-hill/1456179762"
+   },
+   {
+    "id": 1151481753,
+    "title": "pick up the phone",
+    "artist": "Young Thug & Travis Scott",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/57/82/9e/57829eeb-602b-6572-0212-04f96694b706/mzaf_838415077415712784.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/b8/e5/27/b8e527c8-aaf4-c7b7-5562-c479458ed7d9/886446092645.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/pick-up-the-phone/1151481435"
+   }
+  ]
+ },
+ {
+  "key": "miguelito",
+  "name": "Miguelito",
+  "tribute": "Miguel",
+  "role": "singer",
+  "look": "s3.h6.hc7.sh9.p1.t2.f0.a2",
+  "tracks": [
+   {
+    "id": 439618071,
+    "title": "Sure Thing",
+    "artist": "Miguel",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/c4/3c/ef/c43cef58-ab77-43b3-8840-337f29f97559/mzaf_8011635695086582296.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/4b/85/3f/4b853f59-1e43-5e93-54cf-5a799c04ed1d/884977670820.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/sure-thing/439618070"
+   },
+   {
+    "id": 645744839,
+    "title": "Adorn",
+    "artist": "Miguel",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/d6/62/92/d662928d-efc5-d788-4735-d47e4c46b94a/mzaf_79699335494473833.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/6b/d1/40/6bd1409d-4d2f-fc47-5e4f-95a409b43d5a/886443929340.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/adorn/645744834"
+   },
+   {
+    "id": 1437432601,
+    "title": "Sky Walker (Recorded Live at Austin City Limits)",
+    "artist": "Miguel",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/89/f6/e8/89f6e85a-29f9-8e05-636f-cc809417e2ed/mzaf_15729738516963670964.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music118/v4/e7/62/7c/e7627c21-fd87-243a-105e-5d287c285259/886447350980.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/sky-walker-recorded-live-at-austin-city-limits/1437432097"
+   },
+   {
+    "id": 1305444997,
+    "title": "Pineapple Skies",
+    "artist": "Miguel",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/09/ca/5b/09ca5bef-2240-38bc-b857-5f48b73b982c/mzaf_6457346995707686839.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/36/b1/91/36b191ad-319e-729e-653a-6590248059e8/886446846248.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/pineapple-skies/1305444975"
+   },
+   {
+    "id": 561580289,
+    "title": "How Many Drinks?",
+    "artist": "Miguel",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/81/f1/37/81f1377d-2136-08f6-ebd9-19f216a6cd4c/mzaf_10337512721468856693.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/f5/ac/ef/f5acefb7-1175-b6f9-082f-9fd287953627/886443634664.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/how-many-drinks/561579942"
+   },
+   {
+    "id": 991133367,
+    "title": "Coffee (feat. Wale)",
+    "artist": "Miguel",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/fe/32/c2/fe32c264-872c-5370-d7cf-c5d269d08200/mzaf_12413104144201058736.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music5/v4/2e/d4/54/2ed454fb-c5fd-0327-b6a8-2bc072507533/886445261967.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/coffee-feat-wale/991133358"
+   },
+   {
+    "id": 1087077325,
+    "title": "Waves (Joshua Tree Version)",
+    "artist": "Miguel",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/e3/9b/bd/e39bbd8f-b68f-15cc-406a-3de767739f8b/mzaf_11406313309503914191.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/2a/3f/2d/2a3f2d3a-037a-06ac-8957-6f1506836abe/886445737837.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/waves-joshua-tree-version/1087077322"
+   },
+   {
+    "id": 1305445677,
+    "title": "Told You So",
+    "artist": "Miguel",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/61/1e/5f/611e5f51-562f-d5f0-d80f-c0e595d24000/mzaf_15672707227599987497.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/36/b1/91/36b191ad-319e-729e-653a-6590248059e8/886446846248.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/told-you-so/1305444975"
+   }
+  ]
+ },
+ {
+  "key": "jacko",
+  "name": "Michele Jackson",
+  "tribute": "Michael Jackson",
+  "role": "singer",
+  "look": "s1.h2.hc7.sh6.p1.t3.f0.a0",
+  "tracks": [
+   {
+    "id": 336644237,
+    "title": "Billie Jean (Single Version)",
+    "artist": "Michael Jackson",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/a0/20/1b/a0201bf3-e6a7-f2fc-a836-a536593c3e51/mzaf_3717140176449046337.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Features125/v4/2a/82/a5/2a82a59b-6e79-7c39-761a-c1d3b82e93cb/dj.dzbxcmnk.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/billie-jean-single-version/336643808"
+   },
+   {
+    "id": 269573303,
+    "title": "Thriller",
+    "artist": "Michael Jackson",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/58/8c/cb/588ccb9a-ab79-4a38-43b5-d4c24ea42859/mzaf_2083607504726567992.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/32/4f/fd/324ffda2-9e51-8f6a-0c2d-c6fd2b41ac55/074643811224.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/thriller/269572838"
+   },
+   {
+    "id": 269573341,
+    "title": "Beat It",
+    "artist": "Michael Jackson",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/88/cd/46/88cd46bd-dba7-1dc2-a63b-e8c111ac4fc3/mzaf_4042555053237612653.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/32/4f/fd/324ffda2-9e51-8f6a-0c2d-c6fd2b41ac55/074643811224.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/beat-it/269572838"
+   },
+   {
+    "id": 159294551,
+    "title": "Smooth Criminal",
+    "artist": "Michael Jackson",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/38/7d/84/387d847b-0a17-d7d0-81fa-3d1e2036a0e3/mzaf_1148403634523455455.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/3d/9d/38/3d9d3811-71f0-3a0e-1ada-3004e56ff852/827969428726.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/smooth-criminal/159292399"
+   },
+   {
+    "id": 559334751,
+    "title": "Bad (2012 Remaster)",
+    "artist": "Michael Jackson",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/30/f9/43/30f94399-c427-c5ee-e3d2-125a4c0175f4/mzaf_8436053573765616411.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/d5/5f/28/d55f28f4-610c-ee81-dc16-a01cda46bbc4/886443546264.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/bad-2012-remaster/559334659"
+   },
+   {
+    "id": 186166292,
+    "title": "Don't Stop 'Til You Get Enough",
+    "artist": "Michael Jackson",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/02/8b/f4/028bf436-7279-0dd0-4b10-adbf2275ab80/mzaf_7743925534490811276.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/0c/fe/a3/0cfea324-57c1-d530-5248-9bb591bbd7bf/074643574525.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/dont-stop-til-you-get-enough/186166282"
+   },
+   {
+    "id": 186166358,
+    "title": "Rock with You (Single Version)",
+    "artist": "Michael Jackson",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/ba/c3/12/bac31216-bfc5-68dd-1f86-955777ba5c77/mzaf_5177525496066876810.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/0c/fe/a3/0cfea324-57c1-d530-5248-9bb591bbd7bf/074643574525.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/rock-with-you-single-version/186166282"
+   },
+   {
+    "id": 336644238,
+    "title": "Man In the Mirror",
+    "artist": "Michael Jackson",
+    "preview": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/9f/55/cd/9f55cd93-3ae4-d569-e9fe-010cd54fed06/mzaf_9989697837286716176.plus.aac.p.m4a",
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Features125/v4/2a/82/a5/2a82a59b-6e79-7c39-761a-c1d3b82e93cb/dj.dzbxcmnk.jpg/300x300bb.jpg",
+    "url": "https://music.apple.com/it/album/man-in-the-mirror/336643808"
    }
   ]
  }

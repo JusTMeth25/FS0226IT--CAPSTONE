@@ -160,6 +160,7 @@ function chordNotes([root, kind]) {
 /** Dissolvenza incrociata fra un brano della radio e l'altro, e sfumata quando la radio si spegne. */
 const RADIO_FADE_MS = 3000;
 const RADIO_FADE_OUT_MS = 800;
+const RADIO_MUTED_KEY = 'vinyldex_radio_muted';
 
 /** Porta il volume di un elemento <audio> a `to` in `ms` millisecondi. */
 function fade(audio, to, ms, done) {
@@ -187,6 +188,11 @@ class JukeboxPlayer {
     this.clockOffset = 0;
     this.nextStep = 0;
     this.nextTime = 0;
+    try {
+      this.radioMuted = localStorage.getItem(RADIO_MUTED_KEY) === '1';
+    } catch {
+      this.radioMuted = false;
+    }
     this.unsubscribe = soundService.subscribe(() => this.refresh());
     // Con la scheda nascosta la musica si ferma e riprende dal punto giusto al ritorno.
     document.addEventListener('visibilitychange', () => this.refresh());
@@ -250,7 +256,7 @@ class JukeboxPlayer {
     }
     const want = this.radio.preview;
     const offset = Math.max(0, (Date.now() + this.clockOffset - this.startedAt) / 1000);
-    const volume = this.muted ? 0 : RADIO_VOLUME;
+    const volume = this.radioVolume();
     const live = this.live;
     if (live && live.dataset.src === want && !live.paused) {
       // Stesso brano: si corregge solo se e' andato fuori tempo, per non fare scatti.
@@ -272,7 +278,7 @@ class JukeboxPlayer {
       if (at < (deck.duration || 30) - 0.5) deck.currentTime = at;
       deck.play().catch(() => {});
       // Entrata piu' morbida se si arriva a brano iniziato (entrando nella stanza).
-      fade(deck, this.muted ? 0 : RADIO_VOLUME, offset > 2 ? 1200 : RADIO_FADE_MS);
+      fade(deck, this.radioVolume(), offset > 2 ? 1200 : RADIO_FADE_MS);
     };
     this.live = deck;
     if (deck.readyState >= 1) start();
@@ -297,10 +303,30 @@ class JukeboxPlayer {
     idle.load();
   }
 
+  /** Volume della radio: zero se e' silenziata dal giocatore o da un minigioco. */
+  radioVolume() {
+    return this.muted || this.radioMuted ? 0 : RADIO_VOLUME;
+  }
+
+  /**
+   * Radio della Disco silenziata solo per questo giocatore. Il brano continua a tempo con il
+   * server (a volume zero): riattivandola si sente il pezzo che stanno ascoltando tutti, dal
+   * punto giusto, senza ricominciare ne' cambiare brano. La scelta resta salvata nel browser.
+   */
+  setRadioMuted(muted) {
+    this.radioMuted = muted;
+    try {
+      localStorage.setItem(RADIO_MUTED_KEY, muted ? '1' : '0');
+    } catch {
+      // Senza localStorage la scelta vale finche' resta aperta la pagina.
+    }
+    if (this.live) fade(this.live, this.radioVolume(), 500);
+  }
+
   /** Silenzio temporaneo (la gara rock ha la sua musica): il brano continua a tempo, senza volume. */
   setMuted(muted) {
     this.muted = muted;
-    if (this.live) fade(this.live, muted ? 0 : RADIO_VOLUME, 300);
+    if (this.live) fade(this.live, this.radioVolume(), 300);
     if (this.master) this.master.gain.setTargetAtTime(muted ? 0 : 0.18, this.ctx.currentTime, 0.1);
   }
 

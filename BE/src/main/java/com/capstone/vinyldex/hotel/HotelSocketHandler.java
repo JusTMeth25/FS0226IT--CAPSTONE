@@ -173,6 +173,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         HotelUser hotelUser = HotelUser.from(user.get(), socialService.showcase(userId)).withPet(petService.petOf(userId))
                 .withClub(clubService.badgeOf(userId)).withBadge(socialService.wornBadge(userId));
         session.authenticate(hotelUser);
+        session.setAdmin(user.get().isAdmin());
         registry.register(session);
         session.send(Map.of("type", "hello", "user", hotelUser));
     }
@@ -303,6 +304,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             HotelUser updated = HotelUser.from(user, socialService.showcase(user.getId())).withPet(petService.petOf(user.getId()))
                     .withClub(clubService.badgeOf(user.getId())).withBadge(socialService.wornBadge(user.getId()));
             session.authenticate(updated);
+            session.setAdmin(user.isAdmin());
             session.send(Map.of("type", "hello", "user", updated));
             if (room != null) room.updateUser(updated);
         });

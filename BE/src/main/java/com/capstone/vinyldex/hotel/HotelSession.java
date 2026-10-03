@@ -31,6 +31,8 @@ public class HotelSession {
     private final ChatFilter chatFilter = new ChatFilter();
 
     private volatile HotelUser user;
+    /** Amministratore del sito: nella Disco anni 80 e' l'unico che cambia o spegne la musica. */
+    private volatile boolean admin;
     private volatile UUID roomId;
     private volatile long lastActivity = System.currentTimeMillis();
 
@@ -49,6 +51,14 @@ public class HotelSession {
 
     public void authenticate(HotelUser user) {
         this.user = user;
+    }
+
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
+    }
+
+    public boolean isAdmin() {
+        return admin;
     }
 
     public boolean isAuthenticated() {

@@ -120,6 +120,7 @@ const LUXURY_COUNTERS = {
 const canFullscreen = typeof document !== 'undefined' && !!document.documentElement.requestFullscreen;
 
 const ERRORS = {
+  radio_admin_only: 'La musica della Disco anni 80 la sceglie la regia: puoi solo silenziarla per te.',
   quiz_running: 'C\'e\' gia\' un quiz in corso: scrivi la risposta in chat!',
   quiz_cooldown: 'Un attimo: il prossimo quiz parte fra qualche secondo.',
   show_card_cooldown: 'Aspetta qualche secondo prima di mostrare un\'altra carta.',
@@ -275,6 +276,8 @@ export default function HotelPage() {
   const [notice, setNotice] = useState(null);
   const [zoom, setZoom] = useState(() => (window.innerWidth < 600 ? 0.5 : 1));
   const [jukebox, setJukebox] = useState({ track: -1 });
+  // Radio della Disco silenziata solo per me: il brano continua a tempo con gli altri.
+  const [radioMuted, setRadioMuted] = useState(() => getJukebox().radioMuted);
   const [likes, setLikes] = useState(null);
   const [respectVersion, setRespectVersion] = useState(0);
   const [pvp, setPvp] = useState(null);
@@ -1076,16 +1079,23 @@ export default function HotelPage() {
                   {jukebox.radio.artwork && <img src={jukebox.radio.artwork} alt="" />}
                   <span className="hotel-radio-text">
                     <strong>{jukebox.radio.title}</strong>
-                    <small>{jukebox.radio.artist} · in consolle {jukebox.radio.dj} (omaggio a {jukebox.radio.tribute})</small>
+                    <small>{jukebox.radio.artist} · {jukebox.radio.role === 'singer' ? 'al microfono' : 'in consolle'} {jukebox.radio.dj} (omaggio a {jukebox.radio.tribute})</small>
                   </span>
                   {/* Le anteprime vengono da Apple Music: il link al brano e' obbligatorio. */}
                   <a href={jukebox.radio.url} target="_blank" rel="noopener noreferrer" className="hotel-radio-apple" title="Ascolta il brano intero su Apple Music">
                     <i className="ph-fill ph-apple-logo" /> Apple Music
                   </a>
-                  {canUseJukebox && (
+                  <button type="button" onClick={() => {
+                    getJukebox().setRadioMuted(!radioMuted);
+                    setRadioMuted(!radioMuted);
+                  }} title={radioMuted ? 'Riattiva la musica (solo per te)' : 'Silenzia la musica (solo per te)'}>
+                    <i className={radioMuted ? 'ph-fill ph-speaker-slash' : 'ph-fill ph-speaker-high'} />
+                  </button>
+                  {/* Cambiarla o spegnerla vale per tutta la stanza: solo la regia (admin). */}
+                  {user?.role === 'ADMIN' && (
                     <>
-                      <button type="button" onClick={() => send({ type: 'jukebox', on: true })} title="Brano successivo"><i className="ph-fill ph-skip-forward" /></button>
-                      <button type="button" onClick={() => send({ type: 'jukebox', on: false })} title="Spegni la musica"><i className="ph-fill ph-stop" /></button>
+                      <button type="button" onClick={() => send({ type: 'jukebox', on: true })} title="Brano successivo (per tutti)"><i className="ph-fill ph-skip-forward" /></button>
+                      <button type="button" onClick={() => send({ type: 'jukebox', on: false })} title="Spegni la musica (per tutti)"><i className="ph-fill ph-stop" /></button>
                     </>
                   )}
                 </span>

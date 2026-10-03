@@ -766,6 +766,11 @@ public class RoomInstance {
             say(npc, NpcDialog.noDj(), user, false);
             return;
         }
+        // La radio della Disco e' la stessa per tutti: i giocatori non la cambiano chiedendo al DJ.
+        if (radio != null && (user == null || !mayChangeRadio(user.user.id()))) {
+            if (!quiet) say(npc, "Il set lo decide la regia: resta in pista che il prossimo pezzo spacca!", user, false);
+            return;
+        }
         String error = cycleJukebox();
         if (error == null && !quiet) say(npc, NpcDialog.musicChange(random), user, false);
     }
@@ -1449,6 +1454,7 @@ public class RoomInstance {
             case "jukebox" -> {
                 boolean mayUse = data.publicRoom() || data.isOwner(userId);
                 if (!mayUse) return "not_your_room";
+                if (!mayChangeRadio(userId)) return "radio_admin_only";
                 return cycleJukebox();
             }
             default -> {
@@ -1894,12 +1900,23 @@ public class RoomInstance {
     /** Spegne il jukebox o passa al brano successivo, con una breve pausa fra un cambio e l'altro. */
     public synchronized String setJukebox(UUID userId, boolean on) {
         if (!data.publicRoom() && !data.isOwner(userId)) return "not_your_room";
+        if (!mayChangeRadio(userId)) return "radio_admin_only";
         if (!on) {
             jukeboxTrack = -1;
             broadcast(jukeboxMessage());
             return null;
         }
         return cycleJukebox();
+    }
+
+    /**
+     * La radio della Disco anni 80 la sentono tutti uguale: la cambia o la spegne solo un admin.
+     * Nelle altre stanze il jukebox lo usa chiunque (nelle stanze private il proprietario).
+     */
+    private boolean mayChangeRadio(UUID userId) {
+        if (radio == null) return true;
+        Occupant occupant = occupants.get(userId);
+        return occupant != null && occupant.session != null && occupant.session.isAdmin();
     }
 
     private String cycleJukebox() {

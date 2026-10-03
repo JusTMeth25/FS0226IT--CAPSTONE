@@ -13,8 +13,8 @@ import java.util.Map;
 /**
  * La musica vera della Disco: i set dei DJ (resources/music/djs.json, preparato da
  * BE/scripts/disco_djs.py) con le anteprime ufficiali di 30 secondi di Apple Music (iTunes Search
- * API). Ogni DJ e' un personaggio ispirato a un DJ vero e suona i brani dell'artista a cui e'
- * ispirato; finito il suo set alla consolle sale il DJ successivo.
+ * API). Ogni DJ e' un personaggio ispirato a un DJ o a un cantante vero e suona i brani
+ * dell'artista a cui e' ispirato; finito il suo set alla consolle sale il DJ successivo.
  *
  * Il server decide brano e momento d'inizio, ogni client suona l'anteprima dal punto giusto: tutti
  * nella stanza sentono lo stesso pezzo nello stesso momento.
@@ -35,8 +35,11 @@ final class DiscoRadio {
     record Track(long id, String title, String artist, String preview, String artwork, String url) {
     }
 
-    /** altLook (facoltativo): il secondo aspetto, per i duo che si danno il cambio un brano a testa. */
-    record Dj(String key, String name, String tribute, String look, String altLook, List<Track> tracks) {
+    /**
+     * role: "dj" (in consolle) o "singer" (al microfono). altLook (facoltativo): il secondo aspetto,
+     * per i duo che si danno il cambio un brano a testa.
+     */
+    record Dj(String key, String name, String tribute, String role, String look, String altLook, List<Track> tracks) {
     }
 
     static final List<Dj> DJS = load();
@@ -54,7 +57,7 @@ final class DiscoRadio {
                 }
                 if (!tracks.isEmpty()) {
                     djs.add(new Dj(node.path("key").asString(), node.path("name").asString(), node.path("tribute").asString(),
-                            node.path("look").asString(), node.path("altLook").asString(null), List.copyOf(tracks)));
+                            node.path("role").asString("dj"), node.path("look").asString(), node.path("altLook").asString(null), List.copyOf(tracks)));
                 }
             }
             return List.copyOf(djs);
@@ -114,6 +117,7 @@ final class DiscoRadio {
             Map<String, Object> view = new LinkedHashMap<>();
             view.put("dj", d.name());
             view.put("tribute", d.tribute());
+            view.put("role", d.role());
             view.put("title", t.title());
             view.put("artist", t.artist());
             view.put("preview", t.preview());
