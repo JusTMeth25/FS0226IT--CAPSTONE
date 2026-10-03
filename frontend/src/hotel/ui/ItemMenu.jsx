@@ -2,7 +2,7 @@
  * Menu di un mobile cliccato. Il proprietario della stanza lo ruota, lo sposta, lo rimette
  * nell'inventario e sceglie la carta da esporre; tutti possono guardare la carta in 3D.
  */
-export default function ItemMenu({ item, def, isOwner, onRotate, onMove, onPickup, onChooseCard, onViewCard, onClose, jukeboxOn, onJukebox }) {
+export default function ItemMenu({ item, def, isOwner, onRotate, onMove, onPickup, onChooseCard, onViewCard, onClose, jukeboxOn, onJukebox, onSongs }) {
   return (
     <div className="hotel-panel hotel-item-menu" role="dialog" aria-label={def?.name || 'Mobile'}>
       <header className="hotel-panel-header">
@@ -13,6 +13,11 @@ export default function ItemMenu({ item, def, isOwner, onRotate, onMove, onPicku
         {item.card && (
           <button type="button" className="btn btn-primary btn-small" onClick={onViewCard}>
             <i className="ph-fill ph-cards" /> Guarda {item.card.name}
+          </button>
+        )}
+        {onSongs && item.type === 'jukebox' && (
+          <button type="button" className="btn btn-primary btn-small" onClick={onSongs}>
+            <i className="ph ph-queue" /> Scegli le canzoni
           </button>
         )}
         {isOwner && item.type === 'jukebox' && (

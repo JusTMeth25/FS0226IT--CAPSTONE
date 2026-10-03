@@ -1,5 +1,6 @@
 import { soundService } from '../services/soundService.js';
 import { GuitarRig } from './guitarSynth.js';
+import { onSpotifyResync, spotifyConnected, spotifyPause, spotifyPlay, spotifyVolume } from './spotify.js';
 
 /**
  * Jukebox dell'hotel: sei brani generati con WebAudio, nessun file audio da scaricare.
@@ -21,6 +22,8 @@ import { GuitarRig } from './guitarSynth.js';
  * anteprime ufficiali di 30 secondi di Apple Music suonate da un elemento <audio>.
  */
 export const RADIO_TRACK = 100;
+/** Canzoni vere messe in coda al jukebox di una stanza (JukeboxQueue sul server). */
+export const QUEUE_TRACK = 101;
 const RADIO_VOLUME = 0.55;
 
 const midiToHz = (note) => 440 * 2 ** ((note - 69) / 12);
@@ -194,6 +197,8 @@ class JukeboxPlayer {
       this.radioMuted = false;
     }
     this.unsubscribe = soundService.subscribe(() => this.refresh());
+    // Brano cambiato dall'app di Spotify: il lettore torna a quello della stanza.
+    onSpotifyResync(() => this.refresh());
     // Con la scheda nascosta la musica si ferma e riprende dal punto giusto al ritorno.
     document.addEventListener('visibilitychange', () => this.refresh());
   }
@@ -218,10 +223,12 @@ class JukeboxPlayer {
   }
 
   /** Brano da suonare secondo il server. serverTime serve a correggere l'orologio locale. */
-  set(track, startedAt, serverTime, radio = null) {
+  set(track, startedAt, serverTime, radio = null, upcoming = []) {
     this.track = track;
+    // I brani dopo quello in onda (coda e radio del jukebox): Spotify li mette in coda dietro.
+    this.upcoming = upcoming || [];
     this.startedAt = startedAt;
-    this.radio = track === RADIO_TRACK ? radio : null;
+    this.radio = track === RADIO_TRACK || track === QUEUE_TRACK ? radio : null;
     if (serverTime) this.clockOffset = serverTime - Date.now();
     this.refresh();
   }
@@ -275,7 +282,9 @@ class JukeboxPlayer {
     const start = () => {
       if (this.live !== deck) return;
       const at = Math.max(0, (Date.now() + this.clockOffset - this.startedAt) / 1000);
-      if (at < (deck.duration || 30) - 0.5) deck.currentTime = at;
+      // Anteprima gia' finita (un brano intero di Spotify va avanti oltre i 30 secondi): silenzio.
+      if (at >= (deck.duration || 30) - 0.5) return;
+      deck.currentTime = at;
       deck.play().catch(() => {});
       // Entrata piu' morbida se si arriva a brano iniziato (entrando nella stanza).
       fade(deck, this.radioVolume(), offset > 2 ? 1200 : RADIO_FADE_MS);
@@ -291,6 +300,20 @@ class JukeboxPlayer {
     } else {
       this.preloadNext();
     }
+  }
+
+  /** Brano intero sul lettore Spotify della pagina; se non si puo' (niente Premium) si torna all'anteprima. */
+  playSpotify() {
+    const uri = this.radio.spotifyUri;
+    const offset = Math.max(0, Date.now() + this.clockOffset - this.startedAt);
+    this.spotifyOn = true;
+    const next = this.upcoming.map((song) => song.spotifyUri).filter(Boolean).slice(0, 30);
+    spotifyPlay([uri, ...next], offset, this.radioVolume()).catch((error) => {
+      this.spotifyOn = false;
+      this.spotifyError = error.message;
+      this.spotifyFailed = uri;
+      this.refresh();
+    });
   }
 
   /** Il lettore libero carica il brano dopo. */
@@ -321,12 +344,14 @@ class JukeboxPlayer {
       // Senza localStorage la scelta vale finche' resta aperta la pagina.
     }
     if (this.live) fade(this.live, this.radioVolume(), 500);
+    if (this.spotifyOn) spotifyVolume(this.radioVolume());
   }
 
   /** Silenzio temporaneo (la gara rock ha la sua musica): il brano continua a tempo, senza volume. */
   setMuted(muted) {
     this.muted = muted;
     if (this.live) fade(this.live, this.radioVolume(), 300);
+    if (this.spotifyOn) spotifyVolume(this.radioVolume());
     if (this.master) this.master.gain.setTargetAtTime(muted ? 0 : 0.18, this.ctx.currentTime, 0.1);
   }
 
@@ -344,16 +369,32 @@ class JukeboxPlayer {
   refresh() {
     this.stopSynth();
     const enabled = soundService.isEnabled();
-    const radio = this.track === RADIO_TRACK && this.radio?.preview;
+    const real = this.track === RADIO_TRACK || this.track === QUEUE_TRACK;
+    // Brano intero su Spotify per chi l'ha collegato (se non ha gia' fallito), altrimenti l'anteprima.
+    const spotify = real && this.radio?.spotifyUri && spotifyConnected() && this.spotifyFailed !== this.radio.spotifyUri;
+    const radio = real && !spotify && this.radio?.preview;
     if (!radio) this.stopRadio();
+    if (!spotify && this.spotifyOn) {
+      this.spotifyOn = false;
+      spotifyPause();
+    }
     if (!this.ctx || this.track < 0 || !enabled || document.hidden) {
       this.stopRadio();
+      if (this.spotifyOn) {
+        this.spotifyOn = false;
+        spotifyPause();
+      }
+      return;
+    }
+    if (spotify) {
+      this.playSpotify();
       return;
     }
     if (radio) {
       this.playRadio();
       return;
     }
+    if (real) return;
 
     // A che punto del giro siamo, secondo l'orario d'inizio deciso dal server.
     const song = TRACKS[this.track];

@@ -16,6 +16,8 @@ import TravelPanel, { TravelOverlay } from '../hotel/ui/TravelPanel.jsx';
 import Shop from '../hotel/ui/Shop.jsx';
 import Inventory from '../hotel/ui/Inventory.jsx';
 import ItemMenu from '../hotel/ui/ItemMenu.jsx';
+import JukeboxPanel from '../hotel/ui/JukeboxPanel.jsx';
+import { onSpotifyQueueAdd } from '../hotel/spotify.js';
 import CardPicker from '../hotel/ui/CardPicker.jsx';
 import CardViewer from '../hotel/ui/CardViewer.jsx';
 import useDraggablePanels from '../hotel/useDraggablePanels.js';
@@ -48,7 +50,7 @@ import { footprintOf, nextRotation } from '../hotel/sprites/furni.js';
 import { DEFAULT_LOOK, RIDES, formatLook, parseLook } from '../hotel/sprites/avatar.js';
 import { RIDE_WALLS } from '../hotel/sprites/vehicles.js';
 import { authApi } from '../services/authApi.js';
-import { RADIO_TRACK, TRACKS, getJukebox } from '../hotel/music.js';
+import { QUEUE_TRACK, RADIO_TRACK, TRACKS, getJukebox } from '../hotel/music.js';
 import { isLiteDevice } from '../utils/perfMode.js';
 import '../hotel/hotel.css';
 
@@ -119,7 +121,16 @@ const LUXURY_COUNTERS = {
 /** Schermo intero vero dove il browser lo permette; altrimenti (iPhone) la pagina copre tutto. */
 const canFullscreen = typeof document !== 'undefined' && !!document.documentElement.requestFullscreen;
 
+/** I brani dopo quello in onda: prima la coda del jukebox, poi la radio accesa. */
+function upcomingSongs(jukebox) {
+  return [...(jukebox?.queue || []), ...(jukebox?.station?.next || [])];
+}
+
 const ERRORS = {
+  jukebox_queue_full: 'La coda del jukebox e\' piena: aspetta che finisca qualche canzone.',
+  jukebox_queue_mine: 'Hai gia\' 5 canzoni in coda: lascia spazio anche agli altri!',
+  jukebox_bad_song: 'Questa canzone non si puo\' mettere in coda.',
+  jukebox_not_yours: 'Puoi togliere o saltare solo le canzoni che hai scelto tu.',
   radio_admin_only: 'La musica della Disco anni 80 la sceglie la regia: puoi solo silenziarla per te.',
   quiz_running: 'C\'e\' gia\' un quiz in corso: scrivi la risposta in chat!',
   quiz_cooldown: 'Un attimo: il prossimo quiz parte fra qualche secondo.',
@@ -363,13 +374,13 @@ export default function HotelPage() {
         setRoom(message.room);
         setPeople(Object.fromEntries(message.users.map((u) => [u.id, u])));
         setItems(Object.fromEntries((message.items || []).map((i) => [i.id, i])));
-        setJukebox({ track: message.jukebox?.track ?? -1, radio: message.jukebox?.radio || null });
+        setJukebox({ track: message.jukebox?.track ?? -1, radio: message.jukebox?.radio || null, queue: message.jukebox?.queue || null, station: message.jukebox?.station || null, booth: !!message.jukebox?.booth });
         setFootball(message.ball ? { blue: message.ball.blue, red: message.ball.red } : null);
         setMatch(message.match || null);
         setQuiz(message.quiz || null);
         setQuizResult(null);
         if (message.weather) setWeather(message.weather);
-        getJukebox().set(message.jukebox?.track ?? -1, message.jukebox?.startedAt ?? 0, message.serverTime, message.jukebox?.radio);
+        getJukebox().set(message.jukebox?.track ?? -1, message.jukebox?.startedAt ?? 0, message.serverTime, message.jukebox?.radio, upcomingSongs(message.jukebox));
         setPanel((current) => (current === 'trades' ? current : null));
         setSelected(null);
         setSelectedNpc(null);
@@ -422,8 +433,8 @@ export default function HotelPage() {
         setSelectedItemId((id) => (id === message.id ? null : id));
         break;
       case 'jukebox':
-        setJukebox({ track: message.track, radio: message.radio || null });
-        getJukebox().set(message.track, message.startedAt, message.serverTime, message.radio);
+        setJukebox({ track: message.track, radio: message.radio || null, queue: message.queue || null, station: message.station || null, booth: !!message.booth });
+        getJukebox().set(message.track, message.startedAt, message.serverTime, message.radio, upcomingSongs(message));
         break;
       case 'respect': {
         const from = peopleRef.current[message.from]?.username || 'Qualcuno';
@@ -846,6 +857,16 @@ export default function HotelPage() {
   }
 
   const canUseJukebox = !!room && (room.isPublic || isOwner);
+  const isAdmin = user?.role === 'ADMIN';
+  // Chi gestisce la coda: in Disco la regia (admin), nelle stanze il proprietario.
+  const jukeboxManager = jukebox.booth ? isAdmin : isOwner;
+  // Brani messi in coda dall'app di Spotify (anche dal telefono): vanno nella coda del jukebox
+  // della stanza, dove si puo' (stanze dei giocatori; in Disco solo la regia).
+  const songQueueOpen = !!room && (!room.isPublic || (jukebox.booth && isAdmin));
+  useEffect(() => (!songQueueOpen ? undefined : onSpotifyQueueAdd((song) => {
+    send({ type: 'jukebox_add', track: { title: song.title, artist: song.artist, artwork: song.artwork, spotifyUri: song.spotifyUri, durationMs: song.durationMs } });
+    showNotice(`Dal tuo Spotify: ${song.title} in coda nel jukebox.`);
+  })), [songQueueOpen, send, showNotice]);
 
   async function goToMyRoom() {
     try {
@@ -940,6 +961,11 @@ export default function HotelPage() {
     if (isOwner && buildMode) {
       setSelected(null);
       setSelectedItemId(item.id);
+      return;
+    }
+    // Nelle stanze dei giocatori jukebox e giradischi aprono la scelta delle canzoni vere.
+    if ((item.type === 'jukebox' || item.type === 'turntable') && room && !room.isPublic) {
+      setPanel('jukebox');
       return;
     }
     // Bancone: si riceve una bibita (camminandoci accanto se serve). Jukebox: cambia brano.
@@ -1094,13 +1120,47 @@ export default function HotelPage() {
                   {/* Cambiarla o spegnerla vale per tutta la stanza: solo la regia (admin). */}
                   {user?.role === 'ADMIN' && (
                     <>
+                      <button type="button" onClick={() => setPanel('jukebox')} title="Regia: metti le tue canzoni in tutte le discoteche"><i className="ph ph-queue" /></button>
                       <button type="button" onClick={() => send({ type: 'jukebox', on: true })} title="Brano successivo (per tutti)"><i className="ph-fill ph-skip-forward" /></button>
                       <button type="button" onClick={() => send({ type: 'jukebox', on: false })} title="Spegni la musica (per tutti)"><i className="ph-fill ph-stop" /></button>
                     </>
                   )}
                 </span>
               )}
-              {jukebox.track >= 0 && jukebox.track !== RADIO_TRACK && (
+              {jukebox.track === QUEUE_TRACK && jukebox.radio && (
+                <span className="hotel-now-playing hotel-radio">
+                  {jukebox.radio.artwork && <img src={jukebox.radio.artwork} alt="" />}
+                  <span className="hotel-radio-text">
+                    <strong>{jukebox.radio.title}</strong>
+                    <small>{jukebox.radio.artist} · {jukebox.booth ? `regia di ${jukebox.radio.addedBy}` : `scelta da ${jukebox.radio.addedBy}`}</small>
+                  </span>
+                  {jukebox.radio.spotifyUrl ? (
+                    <a href={jukebox.radio.spotifyUrl} target="_blank" rel="noopener noreferrer" className="hotel-radio-apple hotel-radio-spotify" title="Apri il brano su Spotify">
+                      <i className="ph-fill ph-spotify-logo" /> Spotify
+                    </a>
+                  ) : jukebox.radio.url && (
+                    <a href={jukebox.radio.url} target="_blank" rel="noopener noreferrer" className="hotel-radio-apple" title="Ascolta il brano intero su Apple Music">
+                      <i className="ph-fill ph-apple-logo" /> Apple Music
+                    </a>
+                  )}
+                  {(!jukebox.booth || isAdmin) && (
+                    <button type="button" onClick={() => setPanel('jukebox')} title="Jukebox: cerca e metti in coda"><i className="ph ph-queue" /></button>
+                  )}
+                  <button type="button" onClick={() => {
+                    getJukebox().setRadioMuted(!radioMuted);
+                    setRadioMuted(!radioMuted);
+                  }} title={radioMuted ? 'Riattiva la musica (solo per te)' : 'Silenzia la musica (solo per te)'}>
+                    <i className={radioMuted ? 'ph-fill ph-speaker-slash' : 'ph-fill ph-speaker-high'} />
+                  </button>
+                  {(jukeboxManager || (!jukebox.booth && jukebox.radio.addedById === me?.id)) && (
+                    <button type="button" onClick={() => send({ type: 'jukebox_skip' })} title="Brano successivo"><i className="ph-fill ph-skip-forward" /></button>
+                  )}
+                  {jukeboxManager && (
+                    <button type="button" onClick={() => send({ type: 'jukebox', on: false })} title="Spegni il jukebox"><i className="ph-fill ph-stop" /></button>
+                  )}
+                </span>
+              )}
+              {jukebox.track >= 0 && jukebox.track !== RADIO_TRACK && jukebox.track !== QUEUE_TRACK && (
                 <span className="hotel-now-playing">
                   <i className="ph-fill ph-music-notes" /> {TRACKS[jukebox.track]?.name}
                   {canUseJukebox && (
@@ -1239,6 +1299,7 @@ export default function HotelPage() {
             onPickup={() => { send({ type: 'pickup', itemId: selectedItem.id }); setSelectedItemId(null); }}
             jukeboxOn={jukebox.track >= 0}
             onJukebox={(on) => send({ type: 'jukebox', on })}
+            onSongs={room && !room.isPublic ? () => { setPanel('jukebox'); setSelectedItemId(null); } : null}
           />
         )}
 
@@ -1313,6 +1374,9 @@ export default function HotelPage() {
           />
         )}
         {travel && <TravelOverlay mode={travel.mode} to={travel.to} />}
+        {panel === 'jukebox' && (
+          <JukeboxPanel jukebox={jukebox} meId={me?.id} isOwner={jukeboxManager} send={send} onClose={() => setPanel(null)} />
+        )}
         {panel === 'luxury' && (
           <LuxuryShop
             shop={luxuryShop}

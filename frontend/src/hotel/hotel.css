@@ -1576,3 +1576,72 @@ button.hotel-badge:hover:not(:disabled) { transform: translateY(-2px) scale(1.08
 .hotel-radio-text small { opacity: 0.75; font-size: 0.7rem; }
 .hotel-radio-apple { color: #fff; font-size: 0.7rem; font-weight: 700; white-space: nowrap; text-decoration: none; padding: 2px 6px; border-radius: 6px; background: rgba(250, 45, 72, 0.85); }
 .hotel-radio-apple:hover { background: #fa2d48; }
+
+/* Jukebox delle stanze: ricerca su Apple Music o Spotify e coda delle canzoni. */
+.hotel-radio-spotify { background: rgba(30, 215, 96, 0.85); color: #04130a; }
+.hotel-radio-spotify:hover { background: #1ed760; }
+.hotel-jukebox-panel { top: var(--space-sm); right: var(--space-sm); width: min(420px, calc(100% - 16px)); max-height: calc(100% - 16px); overflow-y: auto; }
+.jukebox-now { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; background: rgba(139, 92, 246, 0.18); margin-bottom: 10px; }
+.jukebox-now img { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; }
+.jukebox-now > div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.jukebox-now strong, .jukebox-list strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jukebox-now small, .jukebox-list small { color: var(--text-secondary, #b8b5d0); font-size: 0.72rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jukebox-source i { color: #1ed760; }
+.jukebox-spotify { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 10px; font-size: 0.8rem; }
+.jukebox-spotify > span i { color: #1ed760; }
+.jukebox-spotify small { color: var(--text-secondary, #b8b5d0); font-size: 0.72rem; flex-basis: 100%; }
+.jukebox-tabs { display: flex; gap: 6px; margin-bottom: 6px; }
+.jukebox-tabs button { flex: 1; padding: 6px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.15); background: transparent; color: inherit; font-size: 0.78rem; cursor: pointer; }
+.jukebox-tabs button.active { background: rgba(139, 92, 246, 0.35); border-color: #8b5cf6; }
+.jukebox-search-row { display: flex; gap: 6px; }
+.jukebox-search-row input { flex: 1; min-width: 0; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.3); color: inherit; }
+.jukebox-list { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.jukebox-list li { display: flex; align-items: center; gap: 8px; padding: 6px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); }
+.jukebox-list li img { width: 38px; height: 38px; border-radius: 5px; object-fit: cover; }
+.jukebox-list li > span { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.jukebox-pos { width: 22px; text-align: center; color: #c4b5fd; }
+.jukebox-explicit { font-style: normal; font-size: 0.6rem; padding: 0 4px; border-radius: 3px; background: #9ca3af; color: #111; vertical-align: middle; }
+.jukebox-queue-title { margin: 12px 0 4px; font-size: 0.85rem; }
+.jukebox-empty, .jukebox-credits { color: var(--text-secondary, #b8b5d0); font-size: 0.75rem; }
+.jukebox-warn { color: #fbbf24; font-size: 0.75rem; }
+
+/* Telefoni e tablet: la barra di quello che suona va a capo invece di uscire dallo schermo, il
+   jukebox occupa tutta la scena e le chitarre del Rock Store restano grandi abbastanza. */
+.hotel-room-info { max-width: calc(100% - 16px); }
+.lux-guitar { width: 84px; height: 96px; }
+@media (max-width: 820px) {
+  .hotel-radio { flex-wrap: wrap; border-radius: 12px; padding: 4px 8px; row-gap: 4px; }
+  .hotel-radio-text { flex: 1 1 140px; }
+  .hotel-radio button { padding: 4px 6px; font-size: 0.9rem; }
+  .hotel-jukebox-panel { left: var(--space-sm); right: var(--space-sm); top: var(--space-sm); bottom: var(--space-sm); width: auto; max-height: none; }
+}
+@media (max-width: 640px) {
+  .hotel-radio { max-width: 100%; }
+  .hotel-radio-apple { font-size: 0; padding: 4px 6px; }
+  .hotel-radio-apple i { font-size: 0.85rem; }
+  .jukebox-spotify small { display: none; }
+  .jukebox-list li img { width: 32px; height: 32px; }
+  .lux-mirror .hotel-avatar-preview { height: 96px; width: auto; }
+  .lux-mirror { padding: 4px; }
+  .lux-guitar { width: 64px; height: 76px; }
+}
+@media (max-width: 640px) {
+  .lux-item-actions { flex-wrap: wrap; min-width: 0; }
+  .lux-item-actions .btn { flex: 1 1 auto; min-width: 0; padding-left: 8px; padding-right: 8px; }
+  .lux-item-actions .lux-price { flex: 0 0 100%; justify-content: flex-start; }
+}
+
+/* Jukebox: radio accesa, album aperto, scelta fra brani/album/artisti/radio. */
+.jukebox-modes button { font-size: 0.72rem; padding: 5px 4px; }
+.jukebox-station { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; margin-bottom: 10px;
+  background: rgba(34, 211, 238, 0.12); border: 1px solid rgba(34, 211, 238, 0.4); }
+.jukebox-station > i { font-size: 1.4rem; color: #22d3ee; }
+.jukebox-station > span { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.jukebox-station small { color: var(--text-secondary, #b8b5d0); font-size: 0.72rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jukebox-album-head { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+.jukebox-album-head img { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; }
+.jukebox-album-head > span { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.jukebox-album-head small { color: var(--text-secondary, #b8b5d0); font-size: 0.72rem; }
+.jukebox-wide { width: 100%; justify-content: center; }
+.jukebox-avatar { width: 38px; height: 38px; display: grid; place-items: center; font-size: 1.3rem; border-radius: 50%; background: rgba(139, 92, 246, 0.25); }
+.jukebox-ok { color: #4ade80; font-size: 0.75rem; }

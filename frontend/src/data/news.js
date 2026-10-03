@@ -4,6 +4,27 @@
  */
 export const NEWS = [
   {
+    date: '2026-10-13',
+    title: 'Radio, album e regia della Disco',
+    icon: 'ph-radio',
+    items: [
+      ['ph-radio', 'Radio nel jukebox', 'Accendi la radio di un artista, di un album intero o di un genere (dubstep, rap anni 90...): suona quando la coda è vuota, le canzoni scelte passano sempre davanti.'],
+      ['ph-vinyl-record', 'Album e artisti', 'Nel jukebox cerchi anche album e artisti, su Apple Music o sul tuo Spotify. Anche il giradischi della stanza fa da jukebox.'],
+      ['ph-spotify-logo', 'Dal telefono al jukebox', 'Con Spotify Premium collegato, i brani che metti in coda dall’app di Spotify sul telefono (dispositivo “VinylDex Hotel”) finiscono nella coda del jukebox della stanza, per tutti.'],
+      ['ph-headphones', 'Regia della Disco', 'Gli admin mettono canzoni e radio in tutte le discoteche del server; finita la coda tornano i DJ.']
+    ]
+  },
+  {
+    date: '2026-10-12',
+    title: 'Jukebox con le tue canzoni e Spotify',
+    icon: 'ph-vinyl-record',
+    items: [
+      ['ph-queue', 'Canzoni a scelta', 'Nella tua stanza, dal jukebox, cerca qualsiasi canzone su Apple Music e mettila in coda: la sentono tutti a tempo. Anche gli ospiti possono sceglierne fino a 5.'],
+      ['ph-spotify-logo', 'Spotify Premium', 'Collega il tuo Spotify Premium e senti le canzoni intere, anche quelle cercate su Spotify. Chi non ce l’ha sente l’anteprima.'],
+      ['ph-waveform', 'Dubstep e Diplo in Disco', 'Arrivano gli omaggi a Diplo, Excision, Flux Pavilion, Zomboy e Knife Party, e piu’ brani per tutti. Sempre la versione originale, senza censure.']
+    ]
+  },
+  {
     date: '2026-10-11',
     title: 'Rap, R&B e il Re del Pop in Disco',
     icon: 'ph-microphone-stage',

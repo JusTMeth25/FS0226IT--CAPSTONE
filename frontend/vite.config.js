@@ -21,6 +21,9 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000
   },
   server: {
+    // 127.0.0.1 e non solo "localhost": Spotify (jukebox) accetta come redirect solo l'IP di
+    // loopback, e il login deve tornare alla stessa origine da cui e' partito.
+    host: '127.0.0.1',
     proxy: {
       '/api': {
         target: 'http://localhost:4000',

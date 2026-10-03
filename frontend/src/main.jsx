@@ -13,12 +13,14 @@ import { SoundProvider } from './context/SoundContext.jsx'
 import { initNativeApp } from './services/nativeInit.js'
 import { registerServiceWorker } from './services/pwa.js'
 import { applyPerfMode } from './utils/perfMode.js'
+import { handleSpotifyCallback } from './hotel/spotify.js'
 
 applyPerfMode()
 initNativeApp()
 registerServiceWorker()
 
-createRoot(document.getElementById('root')).render(
+// Ritorno dal login di Spotify (jukebox delle stanze): prima si salvano i token, poi parte l'app.
+handleSpotifyCallback().catch(() => false).finally(() => createRoot(document.getElementById('root')).render(
   <StrictMode>
     <HashRouter>
       <AuthProvider>
@@ -30,4 +32,4 @@ createRoot(document.getElementById('root')).render(
       </AuthProvider>
     </HashRouter>
   </StrictMode>,
-)
+))

@@ -131,4 +131,46 @@ final class DiscoRadio {
             return view;
         }
     }
+
+    /**
+     * Regia della Disco: le canzoni (e le radio) che un admin mette in coda dal suo jukebox, uguali
+     * per tutte le discoteche del server. Finche' la regia ha qualcosa da suonare i DJ aspettano;
+     * finita la coda torna il set del DJ. Le stanze controllano la versione a ogni giro: se e'
+     * cambiata rimandano lo stato del jukebox ai presenti.
+     */
+    static final class Booth {
+        private static final JukeboxQueue QUEUE = new JukeboxQueue();
+        private static long version;
+
+        private Booth() {
+        }
+
+        /** Da chiamare con il lock della regia: per modificare la coda e far ripartire le stanze. */
+        static synchronized <T> T change(java.util.function.Function<JukeboxQueue, T> edit) {
+            T result = edit.apply(QUEUE);
+            version++;
+            return result;
+        }
+
+        static synchronized <T> T read(java.util.function.Function<JukeboxQueue, T> view) {
+            return view.apply(QUEUE);
+        }
+
+        /** Fa avanzare la coda della regia quando il brano e' finito (una volta sola per tutte le stanze). */
+        static synchronized long tick(long now) {
+            if (QUEUE.due(now)) {
+                QUEUE.advance(now);
+                version++;
+            }
+            return version;
+        }
+
+        static synchronized long version() {
+            return version;
+        }
+
+        static synchronized boolean playing() {
+            return QUEUE.current() != null;
+        }
+    }
 }

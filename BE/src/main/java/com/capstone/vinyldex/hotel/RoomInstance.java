@@ -1,5 +1,7 @@
 package com.capstone.vinyldex.hotel;
 
+import tools.jackson.databind.JsonNode;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -68,6 +70,10 @@ public class RoomInstance {
     private DiscoRadio.State radio;
     private long jukeboxStartedAt = 0;
     private long jukeboxChangedAt = 0;
+    /** Coda delle canzoni vere scelte da chi e' nella stanza (solo stanze dei giocatori). */
+    private final JukeboxQueue songs = new JukeboxQueue();
+    /** Ultima versione della regia della Disco gia' mandata ai presenti. */
+    private long boothVersion = -1;
 
     /** NPC: cose da dire o da fare fra poco, e quando hanno salutato chi. */
     private final Random random;
@@ -380,6 +386,17 @@ public class RoomInstance {
         }
         if (now % 5_000 < TICK_CHECK_MILLIS) closeKartRace();
         if (radio != null && jukeboxTrack == DiscoRadio.RADIO_TRACK && radio.due(now)) nextRadioTrack(now);
+        if (booth()) {
+            long version = DiscoRadio.Booth.tick(now);
+            if (version != boothVersion) {
+                boothVersion = version;
+                syncBoothTrack(now);
+                broadcast(jukeboxMessage());
+                findPreviews();
+            }
+        } else if (jukeboxTrack == JukeboxQueue.QUEUE_TRACK && songs.due(now)) {
+            nextSong(now);
+        }
         if (quiz != null && now > quiz.deadline()) endQuiz(null);
         if (football != null && match.playing()) {
             TeamMatch.Outcome outcome = match.onTick(now, football.score(FootballMatch.Team.BLUE), football.score(FootballMatch.Team.RED));
@@ -562,7 +579,7 @@ public class RoomInstance {
                 .findFirst()
                 .ifPresent(npc -> {
                     if (greetedRecently(npc, user)) return;
-                    say(npc, NpcDialog.greeting(npc.npc.role(), user.user.username(), random), user, false, 1_800);
+                    say(npc, greeting(npc.npc.role(), user.user.username()), user, false, 1_800);
                 });
     }
 
@@ -612,7 +629,7 @@ public class RoomInstance {
         NpcRoster.Role role = npc.npc.role();
         switch (NpcDialog.intentOf(text)) {
             case ORDER -> order(npc, user, NpcDialog.requestedItem(text), false);
-            case GREET -> say(npc, NpcDialog.greeting(role, name, random), user, whispered);
+            case GREET -> say(npc, greeting(role, name), user, whispered);
             case THANKS -> say(npc, NpcDialog.thanks(name, random), user, whispered);
             case DANCE -> dance(npc, user, false);
             case MUSIC -> music(npc, user, false);
@@ -759,6 +776,14 @@ public class RoomInstance {
         npc.sitUntil = System.currentTimeMillis() + 20_000;
         broadcast(statusMessage(npc));
         if (!quiet) say(npc, NpcDialog.dancing(), user, false);
+    }
+
+    /** Saluto dell'NPC; il DJ della Disco non promette pezzi a richiesta (li sceglie la regia). */
+    private String greeting(NpcRoster.Role role, String name) {
+        if (role == NpcRoster.Role.DJ && radio != null) {
+            return "Yo " + name + "! Stasera in consolle c'e' " + radio.currentDj().name() + ": tutti in pista!";
+        }
+        return NpcDialog.greeting(role, name, random);
     }
 
     private void music(Occupant npc, Occupant user, boolean quiet) {
@@ -1827,7 +1852,9 @@ public class RoomInstance {
     public synchronized void startParty(String theme, long endsAt) {
         partyTheme = theme;
         partyEndsAt = endsAt;
-        jukeboxTrack = radio != null ? DiscoRadio.RADIO_TRACK : PARTY_TRACKS.getOrDefault(theme, 0);
+        // La radio della Disco e le canzoni in coda continuano anche durante la festa.
+        if (radio != null) jukeboxTrack = DiscoRadio.RADIO_TRACK;
+        else if (jukeboxTrack != JukeboxQueue.QUEUE_TRACK) jukeboxTrack = PARTY_TRACKS.getOrDefault(theme, 0);
         jukeboxStartedAt = System.currentTimeMillis();
         broadcast(jukeboxMessage());
         broadcast(partyMessage());
@@ -1903,10 +1930,179 @@ public class RoomInstance {
         if (!mayChangeRadio(userId)) return "radio_admin_only";
         if (!on) {
             jukeboxTrack = -1;
+            songs.stop();
             broadcast(jukeboxMessage());
             return null;
         }
         return cycleJukebox();
+    }
+
+    /** Le canzoni vere si mettono in coda solo nelle stanze dei giocatori con un jukebox. */
+    /** Mobili da cui si sceglie la musica: il jukebox e il giradischi. */
+    private static final Set<String> MUSIC_PLAYERS = Set.of("jukebox", "turntable");
+
+    /** Le canzoni vere si mettono in coda nelle stanze dei giocatori con un jukebox o un giradischi. */
+    private boolean songQueueOpen() {
+        return !data.publicRoom() && items.values().stream().anyMatch(i -> MUSIC_PLAYERS.contains(i.type()));
+    }
+
+    /** In Disco la coda e' quella della regia (DiscoRadio.Booth), uguale in tutte le discoteche. */
+    private boolean booth() {
+        return radio != null;
+    }
+
+    /**
+     * Chi puo' usare la coda: in Disco solo un admin (la regia), nelle stanze dei giocatori chi c'e'.
+     * null se puo', altrimenti il codice d'errore.
+     */
+    private String mayQueue(UUID userId) {
+        Occupant occupant = occupants.get(userId);
+        if (occupant == null || occupant.session == null) return "not_in_room";
+        if (booth()) return occupant.session.isAdmin() ? null : "radio_admin_only";
+        return songQueueOpen() ? null : "no_jukebox";
+    }
+
+    /** Modifica la coda giusta (regia o stanza), fa partire la musica se taceva e avvisa i presenti. */
+    private <T> T editQueue(java.util.function.Function<JukeboxQueue, T> edit) {
+        long now = System.currentTimeMillis();
+        T result;
+        if (booth()) {
+            result = DiscoRadio.Booth.change(q -> {
+                T r = edit.apply(q);
+                if (q.current() == null && !q.isEmpty()) q.advance(now);
+                return r;
+            });
+            boothVersion = DiscoRadio.Booth.version();
+            syncBoothTrack(now);
+        } else {
+            boolean wasPlaying = jukeboxTrack == JukeboxQueue.QUEUE_TRACK && songs.current() != null;
+            result = edit.apply(songs);
+            if (!wasPlaying && !songs.isEmpty()) {
+                songs.advance(now);
+                jukeboxStartedAt = now;
+            }
+            if (songs.current() != null) jukeboxTrack = JukeboxQueue.QUEUE_TRACK;
+        }
+        broadcast(jukeboxMessage());
+        findPreviews();
+        return result;
+    }
+
+    /** In Disco: canzoni della regia se ce ne sono, altrimenti il set del DJ (che riparte da li'). */
+    private void syncBoothTrack(long now) {
+        if (DiscoRadio.Booth.playing()) {
+            if (jukeboxTrack != -1) jukeboxTrack = JukeboxQueue.QUEUE_TRACK;
+        } else if (jukeboxTrack == JukeboxQueue.QUEUE_TRACK) {
+            jukeboxTrack = DiscoRadio.RADIO_TRACK;
+            radio.startedAt = now;
+            jukeboxStartedAt = now;
+        }
+    }
+
+    /** I brani arrivati da Spotify senza anteprima Apple: il server la cerca per chi non ha Spotify. */
+    private void findPreviews() {
+        List<JukeboxQueue.Song> missing = booth() ? DiscoRadio.Booth.read(q -> q.missingPreviews(4)) : songs.missingPreviews(4);
+        boolean isBooth = booth();
+        for (JukeboxQueue.Song song : missing) {
+            ApplePreviews.lookup(song.artist(), song.title(), found -> {
+                if (isBooth) {
+                    DiscoRadio.Booth.change(q -> q.setPreview(song.id(), found.preview(), found.url(), found.artwork()));
+                } else {
+                    previewFound(song.id(), found);
+                }
+            });
+        }
+    }
+
+    private synchronized void previewFound(String songId, ApplePreviews.Found found) {
+        if (songs.setPreview(songId, found.preview(), found.url(), found.artwork())) broadcast(jukeboxMessage());
+    }
+
+    /** Chi e' nella stanza mette in coda una canzone; se il jukebox tace parte subito. */
+    public synchronized String addSong(UUID userId, JsonNode track) {
+        String denied = mayQueue(userId);
+        if (denied != null) return denied;
+        JukeboxQueue.Song song = JukeboxQueue.parse(track, userId, occupants.get(userId).user.username());
+        if (song == null) return "jukebox_bad_song";
+        if (booth() && jukeboxTrack == -1) jukeboxTrack = JukeboxQueue.QUEUE_TRACK;
+        return editQueue(q -> q.add(song));
+    }
+
+    /**
+     * Accende una radio (i brani di un artista, un album, una ricerca): suona quando la coda e'
+     * vuota. Si sostituisce solo la propria radio; il proprietario della stanza anche quella degli altri.
+     */
+    public synchronized String setStation(UUID userId, String name, JsonNode tracks, boolean append) {
+        String denied = mayQueue(userId);
+        if (denied != null) return denied;
+        String username = occupants.get(userId).user.username();
+        JukeboxQueue.Station current = booth() ? DiscoRadio.Booth.read(JukeboxQueue::station) : songs.station();
+        if (!booth() && current != null && !current.addedById().equals(userId) && !data.isOwner(userId)) return "jukebox_not_yours";
+        List<JukeboxQueue.Song> list = new ArrayList<>();
+        if (tracks != null) {
+            for (JsonNode node : tracks) {
+                if (list.size() >= JukeboxQueue.MAX_STATION) break;
+                JukeboxQueue.Song song = JukeboxQueue.parse(node, userId, username);
+                if (song != null) list.add(song);
+            }
+        }
+        if (list.isEmpty()) return "jukebox_bad_song";
+        if (booth() && jukeboxTrack == -1) jukeboxTrack = JukeboxQueue.QUEUE_TRACK;
+        String safeName = name == null ? "Radio" : name;
+        // I pezzi dopo il primo aggiungono brani alla radio appena accesa da chi la sta mandando.
+        if (append) return editQueue(q -> q.appendStation(list, userId));
+        return editQueue(q -> q.setStation(safeName, list, userId, username));
+    }
+
+    /** Spegne la radio: il proprietario della stanza o chi l'ha accesa (in Disco la regia). */
+    public synchronized String stopStation(UUID userId) {
+        String denied = mayQueue(userId);
+        if (denied != null) return denied;
+        JukeboxQueue.Station current = booth() ? DiscoRadio.Booth.read(JukeboxQueue::station) : songs.station();
+        if (current == null) return null;
+        if (!booth() && !current.addedById().equals(userId) && !data.isOwner(userId)) return "jukebox_not_yours";
+        return editQueue(q -> {
+            q.stopStation();
+            return null;
+        });
+    }
+
+    /** Salta il brano in onda: il proprietario sempre, gli altri solo il brano che hanno scelto loro. */
+    public synchronized String skipSong(UUID userId) {
+        String denied = mayQueue(userId);
+        if (denied != null) return denied;
+        JukeboxQueue.Song current = booth() ? DiscoRadio.Booth.read(JukeboxQueue::current) : songs.current();
+        if (jukeboxTrack != JukeboxQueue.QUEUE_TRACK || current == null) return null;
+        if (!booth() && !data.isOwner(userId) && !current.addedById().equals(userId)) return "jukebox_not_yours";
+        nextSong(System.currentTimeMillis());
+        return null;
+    }
+
+    /** Toglie un brano dalla coda: il proprietario o chi l'ha messo. */
+    public synchronized String removeSong(UUID userId, String songId) {
+        String denied = mayQueue(userId);
+        if (denied != null) return denied;
+        JukeboxQueue.Song song = booth() ? DiscoRadio.Booth.read(q -> q.find(songId)) : songs.find(songId);
+        if (song == null) return null;
+        if (!booth() && !data.isOwner(userId) && !song.addedById().equals(userId)) return "jukebox_not_yours";
+        return editQueue(q -> {
+            q.remove(songId);
+            return null;
+        });
+    }
+
+    /** Parte la canzone dopo in coda (o in radio); finita la coda il jukebox si spegne. */
+    private void nextSong(long now) {
+        if (booth()) {
+            DiscoRadio.Booth.change(q -> q.advance(now));
+            boothVersion = DiscoRadio.Booth.version();
+            syncBoothTrack(now);
+        } else {
+            jukeboxTrack = songs.advance(now) ? JukeboxQueue.QUEUE_TRACK : -1;
+        }
+        jukeboxStartedAt = now;
+        broadcast(jukeboxMessage());
+        findPreviews();
     }
 
     /**
@@ -1922,9 +2118,14 @@ public class RoomInstance {
     private String cycleJukebox() {
         long now = System.currentTimeMillis();
         if (now - jukeboxChangedAt < JUKEBOX_COOLDOWN_MILLIS) return "jukebox_cooldown";
-        boolean hasJukebox = items.values().stream().anyMatch(i -> "jukebox".equals(i.type()));
+        boolean hasJukebox = items.values().stream().anyMatch(i -> MUSIC_PLAYERS.contains(i.type()));
         if (!hasJukebox && radio == null) return "no_jukebox";
         jukeboxChangedAt = now;
+        // Con le canzoni in coda "brano successivo" passa alla canzone dopo.
+        if (jukeboxTrack == JukeboxQueue.QUEUE_TRACK) {
+            nextSong(now);
+            return null;
+        }
         // In Disco il jukebox chiede al DJ il brano successivo del suo set (o riaccende la radio).
         if (radio != null) {
             if (jukeboxTrack != DiscoRadio.RADIO_TRACK) {
@@ -1965,6 +2166,30 @@ public class RoomInstance {
         state.put("track", jukeboxTrack);
         state.put("startedAt", radio != null && jukeboxTrack == DiscoRadio.RADIO_TRACK ? radio.startedAt : jukeboxStartedAt);
         if (radio != null && jukeboxTrack == DiscoRadio.RADIO_TRACK) state.put("radio", radio.view());
+        // Canzoni in coda: quella in onda (stessi campi della radio) e le prossime.
+        if (booth()) {
+            DiscoRadio.Booth.read(q -> {
+                if (jukeboxTrack == JukeboxQueue.QUEUE_TRACK && q.current() != null) {
+                    state.put("startedAt", q.startedAt());
+                    Map<String, Object> playing = q.nowPlaying();
+                    playing.put("booth", true);
+                    state.put("radio", playing);
+                }
+                state.put("queue", q.upcoming());
+                state.put("station", q.stationView());
+                return null;
+            });
+            state.put("booth", true);
+        } else {
+            if (jukeboxTrack == JukeboxQueue.QUEUE_TRACK) {
+                state.put("startedAt", songs.startedAt());
+                state.put("radio", songs.nowPlaying());
+            }
+            if (songQueueOpen()) {
+                state.put("queue", songs.upcoming());
+                state.put("station", songs.stationView());
+            }
+        }
         return state;
     }
 

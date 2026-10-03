@@ -55,6 +55,8 @@ public class HotelSocketHandler extends TextWebSocketHandler {
 
     private static final long AUTH_TIMEOUT_MILLIS = 5_000;
     static final int MAX_MESSAGE_BYTES = 2_048;
+    /** La radio del jukebox arriva a pezzi di qualche brano: sotto gli 8 KB del container WebSocket. */
+    static final int MAX_RADIO_MESSAGE_BYTES = 7_500;
 
     public static final CloseStatus AUTH_FAILED = new CloseStatus(4003, "auth_failed");
     public static final CloseStatus BANNED = new CloseStatus(4004, "banned");
@@ -114,7 +116,8 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         HotelSession session = sessions.get(raw.getId());
         if (session == null) return;
 
-        if (message.getPayloadLength() > MAX_MESSAGE_BYTES) {
+        int limit = message.getPayload().startsWith("{\"type\":\"jukebox_radio\"") ? MAX_RADIO_MESSAGE_BYTES : MAX_MESSAGE_BYTES;
+        if (message.getPayloadLength() > limit) {
             session.close(CloseStatus.TOO_BIG_TO_PROCESS);
             return;
         }
@@ -260,6 +263,22 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             }
             case "jukebox" -> {
                 if (room != null) reply(session, room.setJukebox(userId, node.path("on").asBoolean(true)));
+            }
+            case "jukebox_add" -> {
+                if (room != null) reply(session, room.addSong(userId, node.path("track")));
+            }
+            case "jukebox_skip" -> {
+                if (room != null) reply(session, room.skipSong(userId));
+            }
+            case "jukebox_remove" -> {
+                if (room != null) reply(session, room.removeSong(userId, text(node, "songId")));
+            }
+            case "jukebox_radio" -> {
+                if (room != null) reply(session, room.setStation(userId, text(node, "name"), node.path("tracks"),
+                        node.path("append").asBoolean(false)));
+            }
+            case "jukebox_radio_stop" -> {
+                if (room != null) reply(session, room.stopStation(userId));
             }
             case "challenge" -> reply(session, pvpService.challenge(session, uuid(node, "userId")));
             case "challenge_reply" -> reply(session, pvpService.reply(session, uuid(node, "challengeId"),
