@@ -2,6 +2,8 @@ package com.capstone.vinyldex.dto.response;
 
 import com.capstone.vinyldex.entity.Card;
 
+import java.util.Map;
+
 /**
  * Carta come la vede il frontend.
  *
@@ -28,7 +30,9 @@ public record CardDto(
         // Solo per le carte EA FC 27: il prezzo in crediti di Ultimate Team.
         Long coinPrice,
         // 1 per la versione olografica di una carta (HoloCardService): il frontend la fa brillare.
-        int foil
+        int foil,
+        // Carte con una foto con licenza libera (NBA Action): autore, licenza e pagina della foto.
+        Map<String, Object> photoCredit
 ) {
 
     public static CardDto from(Card card) {
@@ -50,8 +54,21 @@ public record CardDto(
                 card.getNumber(),
                 card.getMarketPrice(),
                 coinPrice(card),
-                card.isHolo() ? 1 : 0
+                card.isHolo() ? 1 : 0,
+                photoCredit(card)
         );
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> photoCredit(Card card) {
+        Object raw = card.getMetadata() == null ? null : card.getMetadata().get("actionPhoto");
+        if (!(raw instanceof Map<?, ?> info)) return null;
+        Map<String, Object> m = (Map<String, Object>) info;
+        Map<String, Object> credit = new java.util.LinkedHashMap<>();
+        for (String key : java.util.List.of("artist", "license", "licenseUrl", "page", "title")) {
+            if (m.get(key) != null) credit.put(key, m.get(key));
+        }
+        return credit;
     }
 
     public static Long coinPrice(Card card) {

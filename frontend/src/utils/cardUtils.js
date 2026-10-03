@@ -95,7 +95,7 @@ export function resolveCardImage(card) {
   // Carte EA FC 27: la carta in stile Ultimate Team la disegna il backend (con la foto, se c'e').
   if (card.source === 'fc27' && !card.img) return fcCardImage(card);
   // Carte NBA: disegnate dal backend (NbaCardArtController) con la foto del giocatore.
-  if (card.source === 'nba' && !card.img) return `${BASE_URL}/cards/${encodeURIComponent(card.id)}/nba-card.svg?v=1`;
+  if (card.source === 'nba' && !card.img) return `${BASE_URL}/cards/${encodeURIComponent(card.id)}/nba-card.svg?v=2`;
   return card.img || placeholderImage(card);
 }
 

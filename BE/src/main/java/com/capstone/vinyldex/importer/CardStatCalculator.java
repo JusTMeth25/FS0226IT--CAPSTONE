@@ -598,6 +598,9 @@ public class CardStatCalculator {
         else print = 0.35;
         if (insert.contains("downtown") || insert.contains("kaboom") || lower(str(meta, "brand")).contains("exquisite")) {
             print = Math.max(print, 0.8);
+        } else if (insert.contains("action")) {
+            // Le Action VinylDex: giocatore disegnato e animato, piu' scenografiche di una base.
+            print = Math.max(print, 0.65);
         }
         String position = lower(str(meta, "position"));
         double drive = position.contains("c") && !position.contains("g") ? 0.1 : position.contains("g") ? 0.06 : 0.08;

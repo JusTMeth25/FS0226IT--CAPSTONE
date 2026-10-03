@@ -167,7 +167,7 @@ export default function CardDetailPage() {
 
       {card.source === 'fc27' && <Fc27Credits />}
       {card.source === 'nikke' && <NikkeCredits />}
-      <TcgplayerCredits source={card.source} />
+      <TcgplayerCredits source={card.source} cardId={card.id} />
 
       <PriceHistory code={card.id} />
 

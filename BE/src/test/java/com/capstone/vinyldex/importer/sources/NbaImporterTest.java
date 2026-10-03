@@ -76,4 +76,26 @@ class NbaImporterTest {
                 byId(importer.curatedCards(), "lebron-james-2024-25-donruss-optic-downtown-2-gold").metadata(), null);
         assertTrue(downtown.contains("Downtown") && downtown.contains("LEBRON JAMES"));
     }
+
+    @Test
+    @DisplayName("Ogni giocatore ha la sua Action; le foto vengono solo da Wikimedia con licenza libera e crediti")
+    void actionCards() throws Exception {
+        List<ImportedCard> cards = importer.curatedCards();
+        List<ImportedCard> action = cards.stream().filter(c -> "Action".equals(c.metadata().get("insert"))).toList();
+        assertEquals(53, action.size(), "una per giocatore piu' la Slam Dunk 1988 di Jordan");
+        int withPhoto = 0;
+        for (ImportedCard card : action) {
+            if (!(card.metadata().get("actionPhoto") instanceof java.util.Map<?, ?> photo) || photo.get("local") != null) continue;
+            withPhoto++;
+            String thumb = String.valueOf(photo.get("thumb"));
+            assertTrue(thumb.startsWith("https://upload.wikimedia.org/") || thumb.startsWith("https://thumb.wikimedia.org/"), thumb);
+            assertTrue(String.valueOf(photo.get("license")).matches("(?i)(CC BY(-SA)? [0-9.]+|CC0|Public domain)"), card.externalId());
+            assertTrue(String.valueOf(photo.get("page")).startsWith("https://commons.wikimedia.org/"), card.externalId());
+        }
+        assertTrue(withPhoto >= 40, "foto per " + withPhoto + " giocatori");
+
+        ImportedCard jordan = byId(cards, "michael-jordan-1986-87-fleer-base-rookie-57");
+        String svg = NbaCardArtController.render(jordan.metadata(), null);
+        assertTrue(svg.contains("VINYLDEX") && svg.contains("Wikimedia Commons"), "la Fleer di Jordan e' una carta Action con i crediti");
+    }
 }

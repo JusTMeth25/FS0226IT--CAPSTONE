@@ -64,6 +64,11 @@ public class NbaImporter extends AbstractCardImporter {
             metadata.put(key, text(node, key));
         }
         metadata.put("ovr", decimal(node, "ovr") == null ? null : decimal(node, "ovr").intValue());
+        metadata.put("jersey", decimal(node, "jersey") == null ? null : decimal(node, "jersey").intValue());
+        // Carte Action: la foto in azione da Wikimedia Commons, con autore e licenza (NbaActionArt).
+        if (node.has("actionPhoto") && node.get("actionPhoto").isObject()) {
+            metadata.put("actionPhoto", MAPPER.convertValue(node.get("actionPhoto"), Map.class));
+        }
         metadata.put("serial", decimal(node, "serial") == null ? null : decimal(node, "serial").intValue());
         metadata.put("rookie", node.has("rookie") && node.get("rookie").asBoolean());
         metadata.put("legend", node.has("legend") && node.get("legend").asBoolean());

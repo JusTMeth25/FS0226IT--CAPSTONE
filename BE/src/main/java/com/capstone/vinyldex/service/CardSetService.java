@@ -86,6 +86,8 @@ public class CardSetService {
             new SetDef("nba-rookie-leggende", "Rookie leggendarie", "Le rookie card delle leggende NBA", "basketball", 400,
                     c -> "nba".equals(c.getSource()) && c.getMetadata() != null
                             && Boolean.TRUE.equals(c.getMetadata().get("rookie")) && Boolean.TRUE.equals(c.getMetadata().get("legend"))),
+            new SetDef("nba-action", "VinylDex Hoops Action", "Tutti i giocatori NBA in azione, nelle carte animate", "basketball", 500,
+                    c -> "nba".equals(c.getSource()) && metaIs(c, "insert", "(?i)^action$")),
             new SetDef("nba-downtown", "Downtown", "Tutte le Donruss Optic Downtown", "buildings", 350,
                     c -> "nba".equals(c.getSource()) && metaIs(c, "insert", "(?i)downtown")),
             new SetDef("gundam-assi", "Assi di Gundam", "Le carte epiche e leggendarie di Gundam", "rocket", 250,

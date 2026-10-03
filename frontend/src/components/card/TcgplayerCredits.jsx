@@ -1,3 +1,6 @@
+import { cardApi } from '../../services/cardApi.js';
+import { useApiResource } from '../../hooks/useApiResource.js';
+
 /**
  * Fonti e diritti delle carte dei giochi importati dal catalogo TCGplayer (tcgcsv.com): immagini,
  * dati e prezzi di mercato vengono da li'. Progetto didattico non ufficiale.
@@ -15,12 +18,30 @@ const GAMES = {
   pokemonpromo: { game: 'Pokémon (promo e speciali)', rights: 'Pokémon © Nintendo, Creatures, GAME FREAK.' },
 };
 
-export default function TcgplayerCredits({ source }) {
+/** Autore e licenza della foto in azione (carte NBA Action, foto da Wikimedia Commons). */
+function PhotoCredit({ cardId }) {
+  const { data } = useApiResource(() => cardApi.getCard(cardId), [cardId]);
+  const credit = data?.card?.photoCredit;
+  if (!credit) return null;
+  return (
+    <>
+      {' '}Foto:{' '}
+      <a href={credit.page} target="_blank" rel="noopener noreferrer">{credit.artist || 'autore sconosciuto'}</a>,{' '}
+      {credit.licenseUrl
+        ? <a href={credit.licenseUrl} target="_blank" rel="noopener noreferrer">{credit.license}</a>
+        : credit.license}
+      , da Wikimedia Commons.
+    </>
+  );
+}
+
+export default function TcgplayerCredits({ source, cardId }) {
   if (source === 'nba') {
     return (
       <p className="card-detail-credits">
-        Carta NBA disegnata da VinylDex ispirandosi alle serie Panini, Topps, Fleer e Upper Deck; foto dei
-        giocatori da NBA.com. Prezzi stimati da VinylDex sul mercato delle carte non gradate. NBA e marchi delle
+        Carta NBA disegnata da VinylDex ispirandosi alle serie Panini, Topps, Fleer e Upper Deck (le Action
+        sono un omaggio alle carte degli anni '80, con foto in azione con licenza libera); ritratti dei giocatori da NBA.com.
+        {cardId && <PhotoCredit cardId={cardId} />} Prezzi stimati da VinylDex sul mercato delle carte non gradate. NBA e marchi delle
         squadre © NBA; Prizm, Donruss Optic © Panini; Chrome © Topps; Fleer, Exquisite © Upper Deck.
         {' '}VinylDex è un progetto didattico non ufficiale, non affiliato né approvato dai titolari dei diritti.
       </p>

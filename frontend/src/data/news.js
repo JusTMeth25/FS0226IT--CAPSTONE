@@ -4,6 +4,16 @@
  */
 export const NEWS = [
   {
+    date: '2026-10-08',
+    title: 'Carte NBA Action',
+    icon: 'ph-basketball',
+    items: [
+      ['ph-person-simple-run', 'VinylDex Hoops Action', 'Una carta per ogni giocatore NBA nello stile delle carte anni ’80: fondo rosso, bande bianche e blu, cornice gialla.'],
+      ['ph-camera', 'Foto in azione', 'Schiacciate, tiri e terzi tempi in foto vere con licenza libera (Wikimedia Commons), con autore e licenza sulla carta. La foto si muove piano, come una carta lucida.'],
+      ['ph-star', 'Nuovo set', 'VinylDex Hoops Action: tutti i 52 giocatori. Anche la Fleer 1986 di Jordan ha la sua foto in schiacciata.']
+    ]
+  },
+  {
     date: '2026-10-07',
     title: 'Carte NBA e Pokémon introvabili',
     icon: 'ph-basketball',

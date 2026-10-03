@@ -16,7 +16,19 @@
   "price": 12000,
   "nbaId": 893,
   "name": "Michael Jordan",
-  "set": "1986-87 Fleer"
+  "set": "1986-87 Fleer",
+  "jersey": 23,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Michael Jordan dunk contest February 1985.jpg",
+   "thumb": "https://upload.wikimedia.org/wikipedia/commons/a/a2/Michael_Jordan_dunk_contest_February_1985.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+   "page": "https://commons.wikimedia.org/wiki/File:Michael_Jordan_dunk_contest_February_1985.jpg",
+   "artist": "Uncredited",
+   "license": "Public domain",
+   "licenseUrl": "",
+   "focusX": 0.5,
+   "focusY": 0.5
+  }
  },
  {
   "id": "michael-jordan-1997-98-metal-universe-precious-metal-gems-red-23",
@@ -35,7 +47,8 @@
   "price": 900000,
   "nbaId": 893,
   "name": "Michael Jordan",
-  "set": "1997-98 Metal Universe Precious Metal Gems Red"
+  "set": "1997-98 Metal Universe Precious Metal Gems Red",
+  "jersey": 23
  },
  {
   "id": "michael-jordan-1985-86-star-rookie-101",
@@ -54,7 +67,8 @@
   "price": 30000,
   "nbaId": 893,
   "name": "Michael Jordan",
-  "set": "1985-86 Star"
+  "set": "1985-86 Star",
+  "jersey": 23
  },
  {
   "id": "lebron-james-2003-04-topps-chrome-rookie-111",
@@ -73,7 +87,8 @@
   "price": 2500,
   "nbaId": 2544,
   "name": "LeBron James",
-  "set": "2003-04 Topps Chrome"
+  "set": "2003-04 Topps Chrome",
+  "jersey": 23
  },
  {
   "id": "lebron-james-2003-04-topps-chrome-rookie-111-refractor",
@@ -92,7 +107,8 @@
   "price": 10000,
   "nbaId": 2544,
   "name": "LeBron James (Refractor)",
-  "set": "2003-04 Topps Chrome"
+  "set": "2003-04 Topps Chrome",
+  "jersey": 23
  },
  {
   "id": "lebron-james-2003-04-topps-chrome-rookie-111-gold-refractor",
@@ -111,7 +127,8 @@
   "price": 150000,
   "nbaId": 2544,
   "name": "LeBron James (Gold Refractor)",
-  "set": "2003-04 Topps Chrome"
+  "set": "2003-04 Topps Chrome",
+  "jersey": 23
  },
  {
   "id": "lebron-james-2003-04-upper-deck-exquisite-rookie-patch-auto-78",
@@ -130,7 +147,8 @@
   "price": 1500000,
   "nbaId": 2544,
   "name": "LeBron James",
-  "set": "2003-04 Upper Deck Exquisite Rookie Patch Auto"
+  "set": "2003-04 Upper Deck Exquisite Rookie Patch Auto",
+  "jersey": 23
  },
  {
   "id": "lebron-james-2024-25-donruss-optic-downtown-2",
@@ -149,7 +167,8 @@
   "price": 450,
   "nbaId": 2544,
   "name": "LeBron James",
-  "set": "2024-25 Donruss Optic Downtown"
+  "set": "2024-25 Donruss Optic Downtown",
+  "jersey": 23
  },
  {
   "id": "lebron-james-2024-25-donruss-optic-downtown-2-gold",
@@ -168,7 +187,8 @@
   "price": 3600,
   "nbaId": 2544,
   "name": "LeBron James (Gold)",
-  "set": "2024-25 Donruss Optic Downtown"
+  "set": "2024-25 Donruss Optic Downtown",
+  "jersey": 23
  },
  {
   "id": "lebron-james-2012-13-panini-prizm-base-1",
@@ -187,7 +207,8 @@
   "price": 150,
   "nbaId": 2544,
   "name": "LeBron James",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 23
  },
  {
   "id": "lebron-james-2012-13-panini-prizm-base-1-silver",
@@ -206,7 +227,8 @@
   "price": 600,
   "nbaId": 2544,
   "name": "LeBron James (Silver)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 23
  },
  {
   "id": "lebron-james-2012-13-panini-prizm-base-1-gold",
@@ -225,7 +247,8 @@
   "price": 6750,
   "nbaId": 2544,
   "name": "LeBron James (Gold)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 23
  },
  {
   "id": "lebron-james-2012-13-panini-prizm-base-1-black",
@@ -244,7 +267,8 @@
   "price": 24000,
   "nbaId": 2544,
   "name": "LeBron James (Black)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 23
  },
  {
   "id": "kobe-bryant-1996-97-topps-chrome-rookie-138",
@@ -263,7 +287,8 @@
   "price": 3000,
   "nbaId": 977,
   "name": "Kobe Bryant",
-  "set": "1996-97 Topps Chrome"
+  "set": "1996-97 Topps Chrome",
+  "jersey": 24
  },
  {
   "id": "kobe-bryant-1996-97-topps-chrome-rookie-138-refractor",
@@ -282,7 +307,8 @@
   "price": 12000,
   "nbaId": 977,
   "name": "Kobe Bryant (Refractor)",
-  "set": "1996-97 Topps Chrome"
+  "set": "1996-97 Topps Chrome",
+  "jersey": 24
  },
  {
   "id": "kobe-bryant-1996-97-bowman-s-best-rookie-r23",
@@ -301,7 +327,8 @@
   "price": 450,
   "nbaId": 977,
   "name": "Kobe Bryant",
-  "set": "1996-97 Bowman's Best"
+  "set": "1996-97 Bowman's Best",
+  "jersey": 24
  },
  {
   "id": "kobe-bryant-2012-13-panini-prizm-base-24",
@@ -320,7 +347,8 @@
   "price": 120,
   "nbaId": 977,
   "name": "Kobe Bryant",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 24
  },
  {
   "id": "kobe-bryant-2012-13-panini-prizm-base-24-silver",
@@ -339,7 +367,8 @@
   "price": 480,
   "nbaId": 977,
   "name": "Kobe Bryant (Silver)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 24
  },
  {
   "id": "kobe-bryant-2012-13-panini-prizm-base-24-gold",
@@ -358,7 +387,8 @@
   "price": 5400,
   "nbaId": 977,
   "name": "Kobe Bryant (Gold)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 24
  },
  {
   "id": "kobe-bryant-2012-13-panini-prizm-base-24-black",
@@ -377,7 +407,8 @@
   "price": 19200,
   "nbaId": 977,
   "name": "Kobe Bryant (Black)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 24
  },
  {
   "id": "shaquille-o-neal-1992-93-topps-stadium-club-beam-team-21",
@@ -396,7 +427,8 @@
   "price": 150,
   "nbaId": 406,
   "name": "Shaquille O'Neal",
-  "set": "1992-93 Topps Stadium Club Beam Team"
+  "set": "1992-93 Topps Stadium Club Beam Team",
+  "jersey": 32
  },
  {
   "id": "shaquille-o-neal-1992-93-upper-deck-rookie-1",
@@ -415,7 +447,8 @@
   "price": 60,
   "nbaId": 406,
   "name": "Shaquille O'Neal",
-  "set": "1992-93 Upper Deck"
+  "set": "1992-93 Upper Deck",
+  "jersey": 32
  },
  {
   "id": "tim-duncan-1997-98-topps-chrome-rookie-115",
@@ -434,7 +467,8 @@
   "price": 500,
   "nbaId": 1495,
   "name": "Tim Duncan",
-  "set": "1997-98 Topps Chrome"
+  "set": "1997-98 Topps Chrome",
+  "jersey": 21
  },
  {
   "id": "tim-duncan-1997-98-topps-chrome-rookie-115-refractor",
@@ -453,7 +487,8 @@
   "price": 2000,
   "nbaId": 1495,
   "name": "Tim Duncan (Refractor)",
-  "set": "1997-98 Topps Chrome"
+  "set": "1997-98 Topps Chrome",
+  "jersey": 21
  },
  {
   "id": "larry-bird-1980-81-topps-bird--erving--johnson-6",
@@ -472,7 +507,8 @@
   "price": 6000,
   "nbaId": 1449,
   "name": "Larry Bird",
-  "set": "1980-81 Topps Bird / Erving / Johnson"
+  "set": "1980-81 Topps Bird / Erving / Johnson",
+  "jersey": 33
  },
  {
   "id": "magic-johnson-1980-81-topps-bird--erving--johnson-6m",
@@ -491,7 +527,8 @@
   "price": 6000,
   "nbaId": 77142,
   "name": "Magic Johnson",
-  "set": "1980-81 Topps Bird / Erving / Johnson"
+  "set": "1980-81 Topps Bird / Erving / Johnson",
+  "jersey": 32
  },
  {
   "id": "kareem-abdul-jabbar-1969-70-topps-lew-alcindor-rookie-25",
@@ -510,7 +547,8 @@
   "price": 9000,
   "nbaId": 76003,
   "name": "Kareem Abdul-Jabbar",
-  "set": "1969-70 Topps Lew Alcindor Rookie"
+  "set": "1969-70 Topps Lew Alcindor Rookie",
+  "jersey": 33
  },
  {
   "id": "allen-iverson-1996-97-topps-chrome-rookie-171",
@@ -529,7 +567,8 @@
   "price": 350,
   "nbaId": 947,
   "name": "Allen Iverson",
-  "set": "1996-97 Topps Chrome"
+  "set": "1996-97 Topps Chrome",
+  "jersey": 3
  },
  {
   "id": "allen-iverson-1996-97-topps-chrome-rookie-171-refractor",
@@ -548,7 +587,8 @@
   "price": 1400,
   "nbaId": 947,
   "name": "Allen Iverson (Refractor)",
-  "set": "1996-97 Topps Chrome"
+  "set": "1996-97 Topps Chrome",
+  "jersey": 3
  },
  {
   "id": "dirk-nowitzki-1998-99-topps-chrome-rookie-154",
@@ -567,7 +607,8 @@
   "price": 300,
   "nbaId": 1717,
   "name": "Dirk Nowitzki",
-  "set": "1998-99 Topps Chrome"
+  "set": "1998-99 Topps Chrome",
+  "jersey": 41
  },
  {
   "id": "dirk-nowitzki-1998-99-topps-chrome-rookie-154-refractor",
@@ -586,7 +627,8 @@
   "price": 1200,
   "nbaId": 1717,
   "name": "Dirk Nowitzki (Refractor)",
-  "set": "1998-99 Topps Chrome"
+  "set": "1998-99 Topps Chrome",
+  "jersey": 41
  },
  {
   "id": "dwyane-wade-2003-04-topps-chrome-rookie-115",
@@ -605,7 +647,8 @@
   "price": 300,
   "nbaId": 2548,
   "name": "Dwyane Wade",
-  "set": "2003-04 Topps Chrome"
+  "set": "2003-04 Topps Chrome",
+  "jersey": 3
  },
  {
   "id": "dwyane-wade-2003-04-topps-chrome-rookie-115-refractor",
@@ -624,7 +667,8 @@
   "price": 1200,
   "nbaId": 2548,
   "name": "Dwyane Wade (Refractor)",
-  "set": "2003-04 Topps Chrome"
+  "set": "2003-04 Topps Chrome",
+  "jersey": 3
  },
  {
   "id": "kevin-garnett-1995-96-topps-finest-rookie-113",
@@ -643,7 +687,8 @@
   "price": 200,
   "nbaId": 708,
   "name": "Kevin Garnett",
-  "set": "1995-96 Topps Finest"
+  "set": "1995-96 Topps Finest",
+  "jersey": 21
  },
  {
   "id": "hakeem-olajuwon-1986-87-fleer-rookie-82",
@@ -662,7 +707,8 @@
   "price": 400,
   "nbaId": 165,
   "name": "Hakeem Olajuwon",
-  "set": "1986-87 Fleer"
+  "set": "1986-87 Fleer",
+  "jersey": 34
  },
  {
   "id": "charles-barkley-1986-87-fleer-rookie-7",
@@ -681,7 +727,8 @@
   "price": 350,
   "nbaId": 787,
   "name": "Charles Barkley",
-  "set": "1986-87 Fleer"
+  "set": "1986-87 Fleer",
+  "jersey": 34
  },
  {
   "id": "scottie-pippen-1988-89-fleer-rookie-20",
@@ -700,7 +747,8 @@
   "price": 250,
   "nbaId": 937,
   "name": "Scottie Pippen",
-  "set": "1988-89 Fleer"
+  "set": "1988-89 Fleer",
+  "jersey": 33
  },
  {
   "id": "dennis-rodman-1988-89-fleer-rookie-43",
@@ -719,7 +767,8 @@
   "price": 120,
   "nbaId": 23,
   "name": "Dennis Rodman",
-  "set": "1988-89 Fleer"
+  "set": "1988-89 Fleer",
+  "jersey": 10
  },
  {
   "id": "patrick-ewing-1986-87-fleer-rookie-32",
@@ -738,7 +787,8 @@
   "price": 300,
   "nbaId": 121,
   "name": "Patrick Ewing",
-  "set": "1986-87 Fleer"
+  "set": "1986-87 Fleer",
+  "jersey": 33
  },
  {
   "id": "karl-malone-1986-87-fleer-rookie-68",
@@ -757,7 +807,8 @@
   "price": 250,
   "nbaId": 252,
   "name": "Karl Malone",
-  "set": "1986-87 Fleer"
+  "set": "1986-87 Fleer",
+  "jersey": 32
  },
  {
   "id": "john-stockton-1988-89-fleer-rookie-115",
@@ -776,7 +827,8 @@
   "price": 200,
   "nbaId": 304,
   "name": "John Stockton",
-  "set": "1988-89 Fleer"
+  "set": "1988-89 Fleer",
+  "jersey": 12
  },
  {
   "id": "vince-carter-1998-99-topps-chrome-rookie-199",
@@ -795,7 +847,8 @@
   "price": 150,
   "nbaId": 1713,
   "name": "Vince Carter",
-  "set": "1998-99 Topps Chrome"
+  "set": "1998-99 Topps Chrome",
+  "jersey": 15
  },
  {
   "id": "vince-carter-1998-99-topps-chrome-rookie-199-refractor",
@@ -814,7 +867,8 @@
   "price": 600,
   "nbaId": 1713,
   "name": "Vince Carter (Refractor)",
-  "set": "1998-99 Topps Chrome"
+  "set": "1998-99 Topps Chrome",
+  "jersey": 15
  },
  {
   "id": "tracy-mcgrady-1997-98-topps-chrome-rookie-125",
@@ -833,7 +887,8 @@
   "price": 120,
   "nbaId": 1503,
   "name": "Tracy McGrady",
-  "set": "1997-98 Topps Chrome"
+  "set": "1997-98 Topps Chrome",
+  "jersey": 1
  },
  {
   "id": "tracy-mcgrady-1997-98-topps-chrome-rookie-125-refractor",
@@ -852,7 +907,8 @@
   "price": 480,
   "nbaId": 1503,
   "name": "Tracy McGrady (Refractor)",
-  "set": "1997-98 Topps Chrome"
+  "set": "1997-98 Topps Chrome",
+  "jersey": 1
  },
  {
   "id": "steve-nash-1996-97-topps-chrome-rookie-182",
@@ -871,7 +927,8 @@
   "price": 120,
   "nbaId": 959,
   "name": "Steve Nash",
-  "set": "1996-97 Topps Chrome"
+  "set": "1996-97 Topps Chrome",
+  "jersey": 13
  },
  {
   "id": "yao-ming-2002-03-topps-chrome-rookie-146",
@@ -890,7 +947,8 @@
   "price": 80,
   "nbaId": 2397,
   "name": "Yao Ming",
-  "set": "2002-03 Topps Chrome"
+  "set": "2002-03 Topps Chrome",
+  "jersey": 11
  },
  {
   "id": "yao-ming-2002-03-topps-chrome-rookie-146-refractor",
@@ -909,7 +967,8 @@
   "price": 320,
   "nbaId": 2397,
   "name": "Yao Ming (Refractor)",
-  "set": "2002-03 Topps Chrome"
+  "set": "2002-03 Topps Chrome",
+  "jersey": 11
  },
  {
   "id": "carmelo-anthony-2003-04-topps-chrome-rookie-113",
@@ -928,7 +987,8 @@
   "price": 120,
   "nbaId": 2546,
   "name": "Carmelo Anthony",
-  "set": "2003-04 Topps Chrome"
+  "set": "2003-04 Topps Chrome",
+  "jersey": 15
  },
  {
   "id": "carmelo-anthony-2003-04-topps-chrome-rookie-113-refractor",
@@ -947,7 +1007,8 @@
   "price": 480,
   "nbaId": 2546,
   "name": "Carmelo Anthony (Refractor)",
-  "set": "2003-04 Topps Chrome"
+  "set": "2003-04 Topps Chrome",
+  "jersey": 15
  },
  {
   "id": "paul-pierce-1998-99-topps-chrome-rookie-135",
@@ -966,7 +1027,8 @@
   "price": 80,
   "nbaId": 1718,
   "name": "Paul Pierce",
-  "set": "1998-99 Topps Chrome"
+  "set": "1998-99 Topps Chrome",
+  "jersey": 34
  },
  {
   "id": "ray-allen-1996-97-topps-chrome-rookie-217",
@@ -985,7 +1047,8 @@
   "price": 90,
   "nbaId": 951,
   "name": "Ray Allen",
-  "set": "1996-97 Topps Chrome"
+  "set": "1996-97 Topps Chrome",
+  "jersey": 34
  },
  {
   "id": "stephen-curry-2009-10-topps-chrome-rookie-101",
@@ -1004,7 +1067,8 @@
   "price": 1200,
   "nbaId": 201939,
   "name": "Stephen Curry",
-  "set": "2009-10 Topps Chrome"
+  "set": "2009-10 Topps Chrome",
+  "jersey": 30
  },
  {
   "id": "stephen-curry-2009-10-topps-chrome-rookie-101-refractor",
@@ -1023,7 +1087,8 @@
   "price": 4800,
   "nbaId": 201939,
   "name": "Stephen Curry (Refractor)",
-  "set": "2009-10 Topps Chrome"
+  "set": "2009-10 Topps Chrome",
+  "jersey": 30
  },
  {
   "id": "stephen-curry-2024-25-donruss-optic-downtown-1",
@@ -1042,7 +1107,8 @@
   "price": 350,
   "nbaId": 201939,
   "name": "Stephen Curry",
-  "set": "2024-25 Donruss Optic Downtown"
+  "set": "2024-25 Donruss Optic Downtown",
+  "jersey": 30
  },
  {
   "id": "stephen-curry-2024-25-donruss-optic-downtown-1-gold",
@@ -1061,7 +1127,8 @@
   "price": 2800,
   "nbaId": 201939,
   "name": "Stephen Curry (Gold)",
-  "set": "2024-25 Donruss Optic Downtown"
+  "set": "2024-25 Donruss Optic Downtown",
+  "jersey": 30
  },
  {
   "id": "stephen-curry-2012-13-panini-prizm-base-121",
@@ -1080,7 +1147,8 @@
   "price": 120,
   "nbaId": 201939,
   "name": "Stephen Curry",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 30
  },
  {
   "id": "stephen-curry-2012-13-panini-prizm-base-121-silver",
@@ -1099,7 +1167,8 @@
   "price": 480,
   "nbaId": 201939,
   "name": "Stephen Curry (Silver)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 30
  },
  {
   "id": "stephen-curry-2012-13-panini-prizm-base-121-gold",
@@ -1118,7 +1187,8 @@
   "price": 5400,
   "nbaId": 201939,
   "name": "Stephen Curry (Gold)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 30
  },
  {
   "id": "stephen-curry-2012-13-panini-prizm-base-121-black",
@@ -1137,7 +1207,8 @@
   "price": 19200,
   "nbaId": 201939,
   "name": "Stephen Curry (Black)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 30
  },
  {
   "id": "kevin-durant-2007-08-topps-chrome-rookie-131",
@@ -1156,7 +1227,8 @@
   "price": 500,
   "nbaId": 201142,
   "name": "Kevin Durant",
-  "set": "2007-08 Topps Chrome"
+  "set": "2007-08 Topps Chrome",
+  "jersey": 35
  },
  {
   "id": "kevin-durant-2007-08-topps-chrome-rookie-131-refractor",
@@ -1175,7 +1247,8 @@
   "price": 2000,
   "nbaId": 201142,
   "name": "Kevin Durant (Refractor)",
-  "set": "2007-08 Topps Chrome"
+  "set": "2007-08 Topps Chrome",
+  "jersey": 35
  },
  {
   "id": "kevin-durant-2023-24-crown-royale-kaboom-4",
@@ -1194,7 +1267,8 @@
   "price": 250,
   "nbaId": 201142,
   "name": "Kevin Durant",
-  "set": "2023-24 Crown Royale Kaboom!"
+  "set": "2023-24 Crown Royale Kaboom!",
+  "jersey": 35
  },
  {
   "id": "giannis-antetokounmpo-2013-14-panini-prizm-rookie-290",
@@ -1213,7 +1287,8 @@
   "price": 350,
   "nbaId": 203507,
   "name": "Giannis Antetokounmpo",
-  "set": "2013-14 Panini Prizm"
+  "set": "2013-14 Panini Prizm",
+  "jersey": 34
  },
  {
   "id": "giannis-antetokounmpo-2013-14-panini-prizm-rookie-290-silver",
@@ -1232,7 +1307,8 @@
   "price": 1400,
   "nbaId": 203507,
   "name": "Giannis Antetokounmpo (Silver)",
-  "set": "2013-14 Panini Prizm"
+  "set": "2013-14 Panini Prizm",
+  "jersey": 34
  },
  {
   "id": "giannis-antetokounmpo-2013-14-panini-prizm-rookie-290-gold",
@@ -1251,7 +1327,8 @@
   "price": 15750,
   "nbaId": 203507,
   "name": "Giannis Antetokounmpo (Gold)",
-  "set": "2013-14 Panini Prizm"
+  "set": "2013-14 Panini Prizm",
+  "jersey": 34
  },
  {
   "id": "giannis-antetokounmpo-2013-14-panini-prizm-rookie-290-black",
@@ -1270,7 +1347,8 @@
   "price": 56000,
   "nbaId": 203507,
   "name": "Giannis Antetokounmpo (Black)",
-  "set": "2013-14 Panini Prizm"
+  "set": "2013-14 Panini Prizm",
+  "jersey": 34
  },
  {
   "id": "giannis-antetokounmpo-2024-25-donruss-optic-downtown-7",
@@ -1289,7 +1367,8 @@
   "price": 300,
   "nbaId": 203507,
   "name": "Giannis Antetokounmpo",
-  "set": "2024-25 Donruss Optic Downtown"
+  "set": "2024-25 Donruss Optic Downtown",
+  "jersey": 34
  },
  {
   "id": "giannis-antetokounmpo-2024-25-donruss-optic-downtown-7-gold",
@@ -1308,7 +1387,8 @@
   "price": 2400,
   "nbaId": 203507,
   "name": "Giannis Antetokounmpo (Gold)",
-  "set": "2024-25 Donruss Optic Downtown"
+  "set": "2024-25 Donruss Optic Downtown",
+  "jersey": 34
  },
  {
   "id": "nikola-jokic-2015-16-panini-prizm-rookie-42",
@@ -1327,7 +1407,8 @@
   "price": 450,
   "nbaId": 203999,
   "name": "Nikola Jokic",
-  "set": "2015-16 Panini Prizm"
+  "set": "2015-16 Panini Prizm",
+  "jersey": 15
  },
  {
   "id": "nikola-jokic-2015-16-panini-prizm-rookie-42-silver",
@@ -1346,7 +1427,8 @@
   "price": 1800,
   "nbaId": 203999,
   "name": "Nikola Jokic (Silver)",
-  "set": "2015-16 Panini Prizm"
+  "set": "2015-16 Panini Prizm",
+  "jersey": 15
  },
  {
   "id": "nikola-jokic-2015-16-panini-prizm-rookie-42-gold",
@@ -1365,7 +1447,8 @@
   "price": 20250,
   "nbaId": 203999,
   "name": "Nikola Jokic (Gold)",
-  "set": "2015-16 Panini Prizm"
+  "set": "2015-16 Panini Prizm",
+  "jersey": 15
  },
  {
   "id": "nikola-jokic-2015-16-panini-prizm-rookie-42-black",
@@ -1384,7 +1467,8 @@
   "price": 72000,
   "nbaId": 203999,
   "name": "Nikola Jokic (Black)",
-  "set": "2015-16 Panini Prizm"
+  "set": "2015-16 Panini Prizm",
+  "jersey": 15
  },
  {
   "id": "nikola-jokic-2023-24-crown-royale-kaboom-9",
@@ -1403,7 +1487,8 @@
   "price": 280,
   "nbaId": 203999,
   "name": "Nikola Jokic",
-  "set": "2023-24 Crown Royale Kaboom!"
+  "set": "2023-24 Crown Royale Kaboom!",
+  "jersey": 15
  },
  {
   "id": "luka-doncic-2018-19-panini-prizm-rookie-280",
@@ -1422,7 +1507,8 @@
   "price": 400,
   "nbaId": 1629029,
   "name": "Luka Doncic",
-  "set": "2018-19 Panini Prizm"
+  "set": "2018-19 Panini Prizm",
+  "jersey": 77
  },
  {
   "id": "luka-doncic-2018-19-panini-prizm-rookie-280-silver",
@@ -1441,7 +1527,8 @@
   "price": 1600,
   "nbaId": 1629029,
   "name": "Luka Doncic (Silver)",
-  "set": "2018-19 Panini Prizm"
+  "set": "2018-19 Panini Prizm",
+  "jersey": 77
  },
  {
   "id": "luka-doncic-2018-19-panini-prizm-rookie-280-gold",
@@ -1460,7 +1547,8 @@
   "price": 18000,
   "nbaId": 1629029,
   "name": "Luka Doncic (Gold)",
-  "set": "2018-19 Panini Prizm"
+  "set": "2018-19 Panini Prizm",
+  "jersey": 77
  },
  {
   "id": "luka-doncic-2018-19-panini-prizm-rookie-280-black",
@@ -1479,7 +1567,8 @@
   "price": 64000,
   "nbaId": 1629029,
   "name": "Luka Doncic (Black)",
-  "set": "2018-19 Panini Prizm"
+  "set": "2018-19 Panini Prizm",
+  "jersey": 77
  },
  {
   "id": "luka-doncic-2018-19-donruss-optic-rated-rookie-177",
@@ -1498,7 +1587,8 @@
   "price": 180,
   "nbaId": 1629029,
   "name": "Luka Doncic",
-  "set": "2018-19 Donruss Optic Rated Rookie"
+  "set": "2018-19 Donruss Optic Rated Rookie",
+  "jersey": 77
  },
  {
   "id": "luka-doncic-2018-19-donruss-optic-rated-rookie-177-holo",
@@ -1517,7 +1607,8 @@
   "price": 540,
   "nbaId": 1629029,
   "name": "Luka Doncic (Holo)",
-  "set": "2018-19 Donruss Optic Rated Rookie"
+  "set": "2018-19 Donruss Optic Rated Rookie",
+  "jersey": 77
  },
  {
   "id": "luka-doncic-2018-19-donruss-optic-rated-rookie-177-gold",
@@ -1536,7 +1627,8 @@
   "price": 6300,
   "nbaId": 1629029,
   "name": "Luka Doncic (Gold)",
-  "set": "2018-19 Donruss Optic Rated Rookie"
+  "set": "2018-19 Donruss Optic Rated Rookie",
+  "jersey": 77
  },
  {
   "id": "luka-doncic-2024-25-donruss-optic-downtown-5",
@@ -1555,7 +1647,8 @@
   "price": 320,
   "nbaId": 1629029,
   "name": "Luka Doncic",
-  "set": "2024-25 Donruss Optic Downtown"
+  "set": "2024-25 Donruss Optic Downtown",
+  "jersey": 77
  },
  {
   "id": "luka-doncic-2024-25-donruss-optic-downtown-5-gold",
@@ -1574,7 +1667,8 @@
   "price": 2560,
   "nbaId": 1629029,
   "name": "Luka Doncic (Gold)",
-  "set": "2024-25 Donruss Optic Downtown"
+  "set": "2024-25 Donruss Optic Downtown",
+  "jersey": 77
  },
  {
   "id": "joel-embiid-2014-15-panini-prizm-rookie-263",
@@ -1593,7 +1687,8 @@
   "price": 120,
   "nbaId": 203954,
   "name": "Joel Embiid",
-  "set": "2014-15 Panini Prizm"
+  "set": "2014-15 Panini Prizm",
+  "jersey": 21
  },
  {
   "id": "joel-embiid-2014-15-panini-prizm-rookie-263-silver",
@@ -1612,7 +1707,8 @@
   "price": 480,
   "nbaId": 203954,
   "name": "Joel Embiid (Silver)",
-  "set": "2014-15 Panini Prizm"
+  "set": "2014-15 Panini Prizm",
+  "jersey": 21
  },
  {
   "id": "joel-embiid-2014-15-panini-prizm-rookie-263-gold",
@@ -1631,7 +1727,8 @@
   "price": 5400,
   "nbaId": 203954,
   "name": "Joel Embiid (Gold)",
-  "set": "2014-15 Panini Prizm"
+  "set": "2014-15 Panini Prizm",
+  "jersey": 21
  },
  {
   "id": "joel-embiid-2014-15-panini-prizm-rookie-263-black",
@@ -1650,7 +1747,8 @@
   "price": 19200,
   "nbaId": 203954,
   "name": "Joel Embiid (Black)",
-  "set": "2014-15 Panini Prizm"
+  "set": "2014-15 Panini Prizm",
+  "jersey": 21
  },
  {
   "id": "jayson-tatum-2017-18-panini-prizm-rookie-16",
@@ -1669,7 +1767,8 @@
   "price": 180,
   "nbaId": 1628369,
   "name": "Jayson Tatum",
-  "set": "2017-18 Panini Prizm"
+  "set": "2017-18 Panini Prizm",
+  "jersey": 0
  },
  {
   "id": "jayson-tatum-2017-18-panini-prizm-rookie-16-silver",
@@ -1688,7 +1787,8 @@
   "price": 720,
   "nbaId": 1628369,
   "name": "Jayson Tatum (Silver)",
-  "set": "2017-18 Panini Prizm"
+  "set": "2017-18 Panini Prizm",
+  "jersey": 0
  },
  {
   "id": "jayson-tatum-2017-18-panini-prizm-rookie-16-gold",
@@ -1707,7 +1807,8 @@
   "price": 8100,
   "nbaId": 1628369,
   "name": "Jayson Tatum (Gold)",
-  "set": "2017-18 Panini Prizm"
+  "set": "2017-18 Panini Prizm",
+  "jersey": 0
  },
  {
   "id": "jayson-tatum-2017-18-panini-prizm-rookie-16-black",
@@ -1726,7 +1827,8 @@
   "price": 28800,
   "nbaId": 1628369,
   "name": "Jayson Tatum (Black)",
-  "set": "2017-18 Panini Prizm"
+  "set": "2017-18 Panini Prizm",
+  "jersey": 0
  },
  {
   "id": "jayson-tatum-2024-25-donruss-optic-downtown-11",
@@ -1745,7 +1847,8 @@
   "price": 220,
   "nbaId": 1628369,
   "name": "Jayson Tatum",
-  "set": "2024-25 Donruss Optic Downtown"
+  "set": "2024-25 Donruss Optic Downtown",
+  "jersey": 0
  },
  {
   "id": "victor-wembanyama-2023-24-panini-prizm-rookie-136",
@@ -1764,7 +1867,8 @@
   "price": 350,
   "nbaId": 1641705,
   "name": "Victor Wembanyama",
-  "set": "2023-24 Panini Prizm"
+  "set": "2023-24 Panini Prizm",
+  "jersey": 1
  },
  {
   "id": "victor-wembanyama-2023-24-panini-prizm-rookie-136-silver",
@@ -1783,7 +1887,8 @@
   "price": 1400,
   "nbaId": 1641705,
   "name": "Victor Wembanyama (Silver)",
-  "set": "2023-24 Panini Prizm"
+  "set": "2023-24 Panini Prizm",
+  "jersey": 1
  },
  {
   "id": "victor-wembanyama-2023-24-panini-prizm-rookie-136-gold",
@@ -1802,7 +1907,8 @@
   "price": 15750,
   "nbaId": 1641705,
   "name": "Victor Wembanyama (Gold)",
-  "set": "2023-24 Panini Prizm"
+  "set": "2023-24 Panini Prizm",
+  "jersey": 1
  },
  {
   "id": "victor-wembanyama-2023-24-panini-prizm-rookie-136-black",
@@ -1821,7 +1927,8 @@
   "price": 56000,
   "nbaId": 1641705,
   "name": "Victor Wembanyama (Black)",
-  "set": "2023-24 Panini Prizm"
+  "set": "2023-24 Panini Prizm",
+  "jersey": 1
  },
  {
   "id": "victor-wembanyama-2023-24-donruss-optic-rated-rookie-201",
@@ -1840,7 +1947,8 @@
   "price": 220,
   "nbaId": 1641705,
   "name": "Victor Wembanyama",
-  "set": "2023-24 Donruss Optic Rated Rookie"
+  "set": "2023-24 Donruss Optic Rated Rookie",
+  "jersey": 1
  },
  {
   "id": "victor-wembanyama-2023-24-donruss-optic-rated-rookie-201-holo",
@@ -1859,7 +1967,8 @@
   "price": 660,
   "nbaId": 1641705,
   "name": "Victor Wembanyama (Holo)",
-  "set": "2023-24 Donruss Optic Rated Rookie"
+  "set": "2023-24 Donruss Optic Rated Rookie",
+  "jersey": 1
  },
  {
   "id": "victor-wembanyama-2023-24-donruss-optic-rated-rookie-201-gold",
@@ -1878,7 +1987,8 @@
   "price": 7700,
   "nbaId": 1641705,
   "name": "Victor Wembanyama (Gold)",
-  "set": "2023-24 Donruss Optic Rated Rookie"
+  "set": "2023-24 Donruss Optic Rated Rookie",
+  "jersey": 1
  },
  {
   "id": "victor-wembanyama-2023-24-donruss-optic-downtown-1",
@@ -1897,7 +2007,8 @@
   "price": 900,
   "nbaId": 1641705,
   "name": "Victor Wembanyama",
-  "set": "2023-24 Donruss Optic Downtown"
+  "set": "2023-24 Donruss Optic Downtown",
+  "jersey": 1
  },
  {
   "id": "victor-wembanyama-2023-24-donruss-optic-downtown-1-gold",
@@ -1916,7 +2027,8 @@
   "price": 5400,
   "nbaId": 1641705,
   "name": "Victor Wembanyama (Gold)",
-  "set": "2023-24 Donruss Optic Downtown"
+  "set": "2023-24 Donruss Optic Downtown",
+  "jersey": 1
  },
  {
   "id": "victor-wembanyama-2023-24-crown-royale-kaboom-1",
@@ -1935,7 +2047,8 @@
   "price": 1200,
   "nbaId": 1641705,
   "name": "Victor Wembanyama",
-  "set": "2023-24 Crown Royale Kaboom!"
+  "set": "2023-24 Crown Royale Kaboom!",
+  "jersey": 1
  },
  {
   "id": "anthony-edwards-2020-21-panini-prizm-rookie-258",
@@ -1954,7 +2067,8 @@
   "price": 200,
   "nbaId": 1630162,
   "name": "Anthony Edwards",
-  "set": "2020-21 Panini Prizm"
+  "set": "2020-21 Panini Prizm",
+  "jersey": 5
  },
  {
   "id": "anthony-edwards-2020-21-panini-prizm-rookie-258-silver",
@@ -1973,7 +2087,8 @@
   "price": 800,
   "nbaId": 1630162,
   "name": "Anthony Edwards (Silver)",
-  "set": "2020-21 Panini Prizm"
+  "set": "2020-21 Panini Prizm",
+  "jersey": 5
  },
  {
   "id": "anthony-edwards-2020-21-panini-prizm-rookie-258-gold",
@@ -1992,7 +2107,8 @@
   "price": 9000,
   "nbaId": 1630162,
   "name": "Anthony Edwards (Gold)",
-  "set": "2020-21 Panini Prizm"
+  "set": "2020-21 Panini Prizm",
+  "jersey": 5
  },
  {
   "id": "anthony-edwards-2020-21-panini-prizm-rookie-258-black",
@@ -2011,7 +2127,8 @@
   "price": 32000,
   "nbaId": 1630162,
   "name": "Anthony Edwards (Black)",
-  "set": "2020-21 Panini Prizm"
+  "set": "2020-21 Panini Prizm",
+  "jersey": 5
  },
  {
   "id": "anthony-edwards-2024-25-donruss-optic-downtown-12",
@@ -2030,7 +2147,8 @@
   "price": 260,
   "nbaId": 1630162,
   "name": "Anthony Edwards",
-  "set": "2024-25 Donruss Optic Downtown"
+  "set": "2024-25 Donruss Optic Downtown",
+  "jersey": 5
  },
  {
   "id": "anthony-edwards-2024-25-donruss-optic-downtown-12-gold",
@@ -2049,7 +2167,8 @@
   "price": 2080,
   "nbaId": 1630162,
   "name": "Anthony Edwards (Gold)",
-  "set": "2024-25 Donruss Optic Downtown"
+  "set": "2024-25 Donruss Optic Downtown",
+  "jersey": 5
  },
  {
   "id": "shai-gilgeous-alexander-2018-19-panini-prizm-rookie-163",
@@ -2068,7 +2187,8 @@
   "price": 180,
   "nbaId": 1628983,
   "name": "Shai Gilgeous-Alexander",
-  "set": "2018-19 Panini Prizm"
+  "set": "2018-19 Panini Prizm",
+  "jersey": 2
  },
  {
   "id": "shai-gilgeous-alexander-2018-19-panini-prizm-rookie-163-silver",
@@ -2087,7 +2207,8 @@
   "price": 720,
   "nbaId": 1628983,
   "name": "Shai Gilgeous-Alexander (Silver)",
-  "set": "2018-19 Panini Prizm"
+  "set": "2018-19 Panini Prizm",
+  "jersey": 2
  },
  {
   "id": "shai-gilgeous-alexander-2018-19-panini-prizm-rookie-163-gold",
@@ -2106,7 +2227,8 @@
   "price": 8100,
   "nbaId": 1628983,
   "name": "Shai Gilgeous-Alexander (Gold)",
-  "set": "2018-19 Panini Prizm"
+  "set": "2018-19 Panini Prizm",
+  "jersey": 2
  },
  {
   "id": "shai-gilgeous-alexander-2018-19-panini-prizm-rookie-163-black",
@@ -2125,7 +2247,8 @@
   "price": 28800,
   "nbaId": 1628983,
   "name": "Shai Gilgeous-Alexander (Black)",
-  "set": "2018-19 Panini Prizm"
+  "set": "2018-19 Panini Prizm",
+  "jersey": 2
  },
  {
   "id": "shai-gilgeous-alexander-2024-25-crown-royale-kaboom-6",
@@ -2144,7 +2267,8 @@
   "price": 260,
   "nbaId": 1628983,
   "name": "Shai Gilgeous-Alexander",
-  "set": "2024-25 Crown Royale Kaboom!"
+  "set": "2024-25 Crown Royale Kaboom!",
+  "jersey": 2
  },
  {
   "id": "ja-morant-2019-20-panini-prizm-rookie-249",
@@ -2163,7 +2287,8 @@
   "price": 90,
   "nbaId": 1629630,
   "name": "Ja Morant",
-  "set": "2019-20 Panini Prizm"
+  "set": "2019-20 Panini Prizm",
+  "jersey": 12
  },
  {
   "id": "ja-morant-2019-20-panini-prizm-rookie-249-silver",
@@ -2182,7 +2307,8 @@
   "price": 360,
   "nbaId": 1629630,
   "name": "Ja Morant (Silver)",
-  "set": "2019-20 Panini Prizm"
+  "set": "2019-20 Panini Prizm",
+  "jersey": 12
  },
  {
   "id": "ja-morant-2019-20-panini-prizm-rookie-249-gold",
@@ -2201,7 +2327,8 @@
   "price": 4050,
   "nbaId": 1629630,
   "name": "Ja Morant (Gold)",
-  "set": "2019-20 Panini Prizm"
+  "set": "2019-20 Panini Prizm",
+  "jersey": 12
  },
  {
   "id": "ja-morant-2019-20-panini-prizm-rookie-249-black",
@@ -2220,7 +2347,8 @@
   "price": 14400,
   "nbaId": 1629630,
   "name": "Ja Morant (Black)",
-  "set": "2019-20 Panini Prizm"
+  "set": "2019-20 Panini Prizm",
+  "jersey": 12
  },
  {
   "id": "devin-booker-2015-16-panini-prizm-rookie-322",
@@ -2239,7 +2367,8 @@
   "price": 110,
   "nbaId": 1626164,
   "name": "Devin Booker",
-  "set": "2015-16 Panini Prizm"
+  "set": "2015-16 Panini Prizm",
+  "jersey": 1
  },
  {
   "id": "devin-booker-2015-16-panini-prizm-rookie-322-silver",
@@ -2258,7 +2387,8 @@
   "price": 440,
   "nbaId": 1626164,
   "name": "Devin Booker (Silver)",
-  "set": "2015-16 Panini Prizm"
+  "set": "2015-16 Panini Prizm",
+  "jersey": 1
  },
  {
   "id": "devin-booker-2015-16-panini-prizm-rookie-322-gold",
@@ -2277,7 +2407,8 @@
   "price": 4950,
   "nbaId": 1626164,
   "name": "Devin Booker (Gold)",
-  "set": "2015-16 Panini Prizm"
+  "set": "2015-16 Panini Prizm",
+  "jersey": 1
  },
  {
   "id": "devin-booker-2015-16-panini-prizm-rookie-322-black",
@@ -2296,7 +2427,8 @@
   "price": 17600,
   "nbaId": 1626164,
   "name": "Devin Booker (Black)",
-  "set": "2015-16 Panini Prizm"
+  "set": "2015-16 Panini Prizm",
+  "jersey": 1
  },
  {
   "id": "zion-williamson-2019-20-panini-prizm-rookie-248",
@@ -2315,7 +2447,8 @@
   "price": 90,
   "nbaId": 1629627,
   "name": "Zion Williamson",
-  "set": "2019-20 Panini Prizm"
+  "set": "2019-20 Panini Prizm",
+  "jersey": 1
  },
  {
   "id": "zion-williamson-2019-20-panini-prizm-rookie-248-silver",
@@ -2334,7 +2467,8 @@
   "price": 360,
   "nbaId": 1629627,
   "name": "Zion Williamson (Silver)",
-  "set": "2019-20 Panini Prizm"
+  "set": "2019-20 Panini Prizm",
+  "jersey": 1
  },
  {
   "id": "zion-williamson-2019-20-panini-prizm-rookie-248-gold",
@@ -2353,7 +2487,8 @@
   "price": 4050,
   "nbaId": 1629627,
   "name": "Zion Williamson (Gold)",
-  "set": "2019-20 Panini Prizm"
+  "set": "2019-20 Panini Prizm",
+  "jersey": 1
  },
  {
   "id": "zion-williamson-2019-20-panini-prizm-rookie-248-black",
@@ -2372,7 +2507,8 @@
   "price": 14400,
   "nbaId": 1629627,
   "name": "Zion Williamson (Black)",
-  "set": "2019-20 Panini Prizm"
+  "set": "2019-20 Panini Prizm",
+  "jersey": 1
  },
  {
   "id": "kawhi-leonard-2012-13-panini-prizm-rookie-246",
@@ -2391,7 +2527,8 @@
   "price": 160,
   "nbaId": 202695,
   "name": "Kawhi Leonard",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 2
  },
  {
   "id": "kawhi-leonard-2012-13-panini-prizm-rookie-246-silver",
@@ -2410,7 +2547,8 @@
   "price": 640,
   "nbaId": 202695,
   "name": "Kawhi Leonard (Silver)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 2
  },
  {
   "id": "kawhi-leonard-2012-13-panini-prizm-rookie-246-gold",
@@ -2429,7 +2567,8 @@
   "price": 7200,
   "nbaId": 202695,
   "name": "Kawhi Leonard (Gold)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 2
  },
  {
   "id": "kawhi-leonard-2012-13-panini-prizm-rookie-246-black",
@@ -2448,7 +2587,8 @@
   "price": 25600,
   "nbaId": 202695,
   "name": "Kawhi Leonard (Black)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 2
  },
  {
   "id": "james-harden-2009-10-topps-chrome-rookie-89",
@@ -2467,7 +2607,8 @@
   "price": 140,
   "nbaId": 201935,
   "name": "James Harden",
-  "set": "2009-10 Topps Chrome"
+  "set": "2009-10 Topps Chrome",
+  "jersey": 1
  },
  {
   "id": "james-harden-2009-10-topps-chrome-rookie-89-refractor",
@@ -2486,7 +2627,8 @@
   "price": 560,
   "nbaId": 201935,
   "name": "James Harden (Refractor)",
-  "set": "2009-10 Topps Chrome"
+  "set": "2009-10 Topps Chrome",
+  "jersey": 1
  },
  {
   "id": "damian-lillard-2012-13-panini-prizm-rookie-284",
@@ -2505,7 +2647,8 @@
   "price": 120,
   "nbaId": 203081,
   "name": "Damian Lillard",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 0
  },
  {
   "id": "damian-lillard-2012-13-panini-prizm-rookie-284-silver",
@@ -2524,7 +2667,8 @@
   "price": 480,
   "nbaId": 203081,
   "name": "Damian Lillard (Silver)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 0
  },
  {
   "id": "damian-lillard-2012-13-panini-prizm-rookie-284-gold",
@@ -2543,7 +2687,8 @@
   "price": 5400,
   "nbaId": 203081,
   "name": "Damian Lillard (Gold)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 0
  },
  {
   "id": "damian-lillard-2012-13-panini-prizm-rookie-284-black",
@@ -2562,7 +2707,8 @@
   "price": 19200,
   "nbaId": 203081,
   "name": "Damian Lillard (Black)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 0
  },
  {
   "id": "kyrie-irving-2012-13-panini-prizm-rookie-228",
@@ -2581,7 +2727,8 @@
   "price": 110,
   "nbaId": 202681,
   "name": "Kyrie Irving",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 11
  },
  {
   "id": "kyrie-irving-2012-13-panini-prizm-rookie-228-silver",
@@ -2600,7 +2747,8 @@
   "price": 440,
   "nbaId": 202681,
   "name": "Kyrie Irving (Silver)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 11
  },
  {
   "id": "kyrie-irving-2012-13-panini-prizm-rookie-228-gold",
@@ -2619,7 +2767,8 @@
   "price": 4950,
   "nbaId": 202681,
   "name": "Kyrie Irving (Gold)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 11
  },
  {
   "id": "kyrie-irving-2012-13-panini-prizm-rookie-228-black",
@@ -2638,7 +2787,8 @@
   "price": 17600,
   "nbaId": 202681,
   "name": "Kyrie Irving (Black)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 11
  },
  {
   "id": "anthony-davis-2012-13-panini-prizm-rookie-236",
@@ -2657,7 +2807,8 @@
   "price": 120,
   "nbaId": 203076,
   "name": "Anthony Davis",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 3
  },
  {
   "id": "anthony-davis-2012-13-panini-prizm-rookie-236-silver",
@@ -2676,7 +2827,8 @@
   "price": 480,
   "nbaId": 203076,
   "name": "Anthony Davis (Silver)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 3
  },
  {
   "id": "anthony-davis-2012-13-panini-prizm-rookie-236-gold",
@@ -2695,7 +2847,8 @@
   "price": 5400,
   "nbaId": 203076,
   "name": "Anthony Davis (Gold)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 3
  },
  {
   "id": "anthony-davis-2012-13-panini-prizm-rookie-236-black",
@@ -2714,7 +2867,8 @@
   "price": 19200,
   "nbaId": 203076,
   "name": "Anthony Davis (Black)",
-  "set": "2012-13 Panini Prizm"
+  "set": "2012-13 Panini Prizm",
+  "jersey": 3
  },
  {
   "id": "russell-westbrook-2008-09-topps-chrome-rookie-184",
@@ -2733,7 +2887,8 @@
   "price": 90,
   "nbaId": 201566,
   "name": "Russell Westbrook",
-  "set": "2008-09 Topps Chrome"
+  "set": "2008-09 Topps Chrome",
+  "jersey": 4
  },
  {
   "id": "russell-westbrook-2008-09-topps-chrome-rookie-184-refractor",
@@ -2752,7 +2907,8 @@
   "price": 360,
   "nbaId": 201566,
   "name": "Russell Westbrook (Refractor)",
-  "set": "2008-09 Topps Chrome"
+  "set": "2008-09 Topps Chrome",
+  "jersey": 4
  },
  {
   "id": "derrick-rose-2008-09-topps-chrome-rookie-181",
@@ -2771,7 +2927,8 @@
   "price": 70,
   "nbaId": 201565,
   "name": "Derrick Rose",
-  "set": "2008-09 Topps Chrome"
+  "set": "2008-09 Topps Chrome",
+  "jersey": 1
  },
  {
   "id": "derrick-rose-2008-09-topps-chrome-rookie-181-refractor",
@@ -2790,7 +2947,8 @@
   "price": 280,
   "nbaId": 201565,
   "name": "Derrick Rose (Refractor)",
-  "set": "2008-09 Topps Chrome"
+  "set": "2008-09 Topps Chrome",
+  "jersey": 1
  },
  {
   "id": "lamelo-ball-2020-21-panini-prizm-rookie-278",
@@ -2809,7 +2967,8 @@
   "price": 80,
   "nbaId": 1630163,
   "name": "LaMelo Ball",
-  "set": "2020-21 Panini Prizm"
+  "set": "2020-21 Panini Prizm",
+  "jersey": 1
  },
  {
   "id": "lamelo-ball-2020-21-panini-prizm-rookie-278-silver",
@@ -2828,7 +2987,8 @@
   "price": 320,
   "nbaId": 1630163,
   "name": "LaMelo Ball (Silver)",
-  "set": "2020-21 Panini Prizm"
+  "set": "2020-21 Panini Prizm",
+  "jersey": 1
  },
  {
   "id": "lamelo-ball-2020-21-panini-prizm-rookie-278-gold",
@@ -2847,7 +3007,8 @@
   "price": 3600,
   "nbaId": 1630163,
   "name": "LaMelo Ball (Gold)",
-  "set": "2020-21 Panini Prizm"
+  "set": "2020-21 Panini Prizm",
+  "jersey": 1
  },
  {
   "id": "lamelo-ball-2020-21-panini-prizm-rookie-278-black",
@@ -2866,7 +3027,8 @@
   "price": 12800,
   "nbaId": 1630163,
   "name": "LaMelo Ball (Black)",
-  "set": "2020-21 Panini Prizm"
+  "set": "2020-21 Panini Prizm",
+  "jersey": 1
  },
  {
   "id": "cade-cunningham-2021-22-panini-prizm-rookie-282",
@@ -2885,7 +3047,8 @@
   "price": 70,
   "nbaId": 1630595,
   "name": "Cade Cunningham",
-  "set": "2021-22 Panini Prizm"
+  "set": "2021-22 Panini Prizm",
+  "jersey": 2
  },
  {
   "id": "cade-cunningham-2021-22-panini-prizm-rookie-282-silver",
@@ -2904,7 +3067,8 @@
   "price": 280,
   "nbaId": 1630595,
   "name": "Cade Cunningham (Silver)",
-  "set": "2021-22 Panini Prizm"
+  "set": "2021-22 Panini Prizm",
+  "jersey": 2
  },
  {
   "id": "cade-cunningham-2021-22-panini-prizm-rookie-282-gold",
@@ -2923,7 +3087,8 @@
   "price": 3150,
   "nbaId": 1630595,
   "name": "Cade Cunningham (Gold)",
-  "set": "2021-22 Panini Prizm"
+  "set": "2021-22 Panini Prizm",
+  "jersey": 2
  },
  {
   "id": "cade-cunningham-2021-22-panini-prizm-rookie-282-black",
@@ -2942,7 +3107,8 @@
   "price": 11200,
   "nbaId": 1630595,
   "name": "Cade Cunningham (Black)",
-  "set": "2021-22 Panini Prizm"
+  "set": "2021-22 Panini Prizm",
+  "jersey": 2
  },
  {
   "id": "paolo-banchero-2022-23-panini-prizm-rookie-249",
@@ -2961,7 +3127,8 @@
   "price": 70,
   "nbaId": 1631094,
   "name": "Paolo Banchero",
-  "set": "2022-23 Panini Prizm"
+  "set": "2022-23 Panini Prizm",
+  "jersey": 5
  },
  {
   "id": "paolo-banchero-2022-23-panini-prizm-rookie-249-silver",
@@ -2980,7 +3147,8 @@
   "price": 280,
   "nbaId": 1631094,
   "name": "Paolo Banchero (Silver)",
-  "set": "2022-23 Panini Prizm"
+  "set": "2022-23 Panini Prizm",
+  "jersey": 5
  },
  {
   "id": "paolo-banchero-2022-23-panini-prizm-rookie-249-gold",
@@ -2999,7 +3167,8 @@
   "price": 3150,
   "nbaId": 1631094,
   "name": "Paolo Banchero (Gold)",
-  "set": "2022-23 Panini Prizm"
+  "set": "2022-23 Panini Prizm",
+  "jersey": 5
  },
  {
   "id": "paolo-banchero-2022-23-panini-prizm-rookie-249-black",
@@ -3018,7 +3187,8 @@
   "price": 11200,
   "nbaId": 1631094,
   "name": "Paolo Banchero (Black)",
-  "set": "2022-23 Panini Prizm"
+  "set": "2022-23 Panini Prizm",
+  "jersey": 5
  },
  {
   "id": "jalen-brunson-2018-19-panini-prizm-rookie-242",
@@ -3037,7 +3207,8 @@
   "price": 60,
   "nbaId": 1628973,
   "name": "Jalen Brunson",
-  "set": "2018-19 Panini Prizm"
+  "set": "2018-19 Panini Prizm",
+  "jersey": 11
  },
  {
   "id": "jalen-brunson-2018-19-panini-prizm-rookie-242-silver",
@@ -3056,7 +3227,8 @@
   "price": 240,
   "nbaId": 1628973,
   "name": "Jalen Brunson (Silver)",
-  "set": "2018-19 Panini Prizm"
+  "set": "2018-19 Panini Prizm",
+  "jersey": 11
  },
  {
   "id": "jalen-brunson-2018-19-panini-prizm-rookie-242-gold",
@@ -3075,7 +3247,8 @@
   "price": 2700,
   "nbaId": 1628973,
   "name": "Jalen Brunson (Gold)",
-  "set": "2018-19 Panini Prizm"
+  "set": "2018-19 Panini Prizm",
+  "jersey": 11
  },
  {
   "id": "jalen-brunson-2018-19-panini-prizm-rookie-242-black",
@@ -3094,7 +3267,8 @@
   "price": 9600,
   "nbaId": 1628973,
   "name": "Jalen Brunson (Black)",
-  "set": "2018-19 Panini Prizm"
+  "set": "2018-19 Panini Prizm",
+  "jersey": 11
  },
  {
   "id": "tyrese-haliburton-2020-21-panini-prizm-rookie-259",
@@ -3113,7 +3287,8 @@
   "price": 55,
   "nbaId": 1630169,
   "name": "Tyrese Haliburton",
-  "set": "2020-21 Panini Prizm"
+  "set": "2020-21 Panini Prizm",
+  "jersey": 0
  },
  {
   "id": "tyrese-haliburton-2020-21-panini-prizm-rookie-259-silver",
@@ -3132,7 +3307,8 @@
   "price": 220,
   "nbaId": 1630169,
   "name": "Tyrese Haliburton (Silver)",
-  "set": "2020-21 Panini Prizm"
+  "set": "2020-21 Panini Prizm",
+  "jersey": 0
  },
  {
   "id": "tyrese-haliburton-2020-21-panini-prizm-rookie-259-gold",
@@ -3151,7 +3327,8 @@
   "price": 2475,
   "nbaId": 1630169,
   "name": "Tyrese Haliburton (Gold)",
-  "set": "2020-21 Panini Prizm"
+  "set": "2020-21 Panini Prizm",
+  "jersey": 0
  },
  {
   "id": "tyrese-haliburton-2020-21-panini-prizm-rookie-259-black",
@@ -3170,7 +3347,8 @@
   "price": 8800,
   "nbaId": 1630169,
   "name": "Tyrese Haliburton (Black)",
-  "set": "2020-21 Panini Prizm"
+  "set": "2020-21 Panini Prizm",
+  "jersey": 0
  },
  {
   "id": "jimmy-butler-2011-12-panini-past--present-rookie-206",
@@ -3189,6 +3367,1583 @@
   "price": 40,
   "nbaId": 202710,
   "name": "Jimmy Butler",
-  "set": "2011-12 Panini Past & Present"
+  "set": "2011-12 Panini Past & Present",
+  "jersey": 10
+ },
+ {
+  "id": "michael-jordan-vinyldex-hoops-action-1",
+  "player": "Michael Jordan",
+  "team": "Chicago Bulls",
+  "position": "G",
+  "ovr": 99,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "1",
+  "rookie": false,
+  "price": 710,
+  "nbaId": 893,
+  "name": "Michael Jordan (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 23,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Michael Jordan dunk contest February 1985.jpg",
+   "thumb": "https://upload.wikimedia.org/wikipedia/commons/a/a2/Michael_Jordan_dunk_contest_February_1985.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+   "page": "https://commons.wikimedia.org/wiki/File:Michael_Jordan_dunk_contest_February_1985.jpg",
+   "artist": "Uncredited",
+   "license": "Public domain",
+   "licenseUrl": "",
+   "focusX": 0.5,
+   "focusY": 0.5
+  }
+ },
+ {
+  "id": "lebron-james-vinyldex-hoops-action-2",
+  "player": "LeBron James",
+  "team": "Los Angeles Lakers",
+  "position": "F",
+  "ovr": 97,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "2",
+  "rookie": false,
+  "price": 630,
+  "nbaId": 2544,
+  "name": "LeBron James (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 23,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Lebron dunking (cropped).jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/11/Lebron_dunking_%28cropped%29.jpg/960px-Lebron_dunking_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Lebron_dunking_(cropped).jpg",
+   "artist": "Erik Drost",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+   "focusX": 0.42,
+   "focusY": 0.45
+  }
+ },
+ {
+  "id": "kobe-bryant-vinyldex-hoops-action-3",
+  "player": "Kobe Bryant",
+  "team": "Los Angeles Lakers",
+  "position": "G",
+  "ovr": 97,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "3",
+  "rookie": false,
+  "price": 630,
+  "nbaId": 977,
+  "name": "Kobe Bryant (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 24,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Bryant about to dunk 2008.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/aa/Bryant_about_to_dunk_2008.jpg/960px-Bryant_about_to_dunk_2008.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Bryant_about_to_dunk_2008.jpg",
+   "artist": "Keith Allison",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.55,
+   "focusY": 0.45
+  }
+ },
+ {
+  "id": "shaquille-o-neal-vinyldex-hoops-action-4",
+  "player": "Shaquille O'Neal",
+  "team": "Orlando Magic",
+  "position": "C",
+  "ovr": 96,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "4",
+  "rookie": false,
+  "price": 590,
+  "nbaId": 406,
+  "name": "Shaquille O'Neal (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 32,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:O'Neal dunks for Phoenix.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9a/O%27Neal_dunks_for_Phoenix.jpg/960px-O%27Neal_dunks_for_Phoenix.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:O%27Neal_dunks_for_Phoenix.jpg",
+   "artist": "Keith Allison",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.45,
+   "focusY": 0.45
+  }
+ },
+ {
+  "id": "tim-duncan-vinyldex-hoops-action-5",
+  "player": "Tim Duncan",
+  "team": "San Antonio Spurs",
+  "position": "F",
+  "ovr": 95,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "5",
+  "rookie": false,
+  "price": 550,
+  "nbaId": 1495,
+  "name": "Tim Duncan (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 21,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Duncan and Wallace 2.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f9/Duncan_and_Wallace_2.jpg/960px-Duncan_and_Wallace_2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Duncan_and_Wallace_2.jpg",
+   "artist": "",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+   "focusX": 0.5,
+   "focusY": 0.62
+  }
+ },
+ {
+  "id": "larry-bird-vinyldex-hoops-action-6",
+  "player": "Larry Bird",
+  "team": "Boston Celtics",
+  "position": "F",
+  "ovr": 96,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "6",
+  "rookie": false,
+  "price": 590,
+  "nbaId": 1449,
+  "name": "Larry Bird (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 33,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Larry Bird vs Adrian Dantley celtics vs pistons May 26, 1987.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7c/Larry_Bird_vs_Adrian_Dantley_celtics_vs_pistons_May_26%2C_1987.jpg/960px-Larry_Bird_vs_Adrian_Dantley_celtics_vs_pistons_May_26%2C_1987.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Larry_Bird_vs_Adrian_Dantley_celtics_vs_pistons_May_26,_1987.jpg",
+   "artist": "Peter Southwick",
+   "license": "Public domain",
+   "licenseUrl": "",
+   "focusX": 0.35,
+   "focusY": 0.5
+  }
+ },
+ {
+  "id": "magic-johnson-vinyldex-hoops-action-7",
+  "player": "Magic Johnson",
+  "team": "Los Angeles Lakers",
+  "position": "G",
+  "ovr": 96,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "7",
+  "rookie": false,
+  "price": 590,
+  "nbaId": 77142,
+  "name": "Magic Johnson (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 32,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Magic Johnson vs drexler.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e0/Magic_Johnson_vs_drexler.jpg/960px-Magic_Johnson_vs_drexler.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Magic_Johnson_vs_drexler.jpg",
+   "artist": "unknown",
+   "license": "Public domain",
+   "licenseUrl": "",
+   "focusX": 0.35,
+   "focusY": 0.62
+  }
+ },
+ {
+  "id": "kareem-abdul-jabbar-vinyldex-hoops-action-8",
+  "player": "Kareem Abdul-Jabbar",
+  "team": "Milwaukee Bucks",
+  "position": "C",
+  "ovr": 97,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "8",
+  "rookie": false,
+  "price": 630,
+  "nbaId": 76003,
+  "name": "Kareem Abdul-Jabbar (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 33,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:James Worthy attempting layup vs Houston Rockets 1986-05-17.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d3/James_Worthy_attempting_layup_vs_Houston_Rockets_1986-05-17.jpg/960px-James_Worthy_attempting_layup_vs_Houston_Rockets_1986-05-17.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:James_Worthy_attempting_layup_vs_Houston_Rockets_1986-05-17.jpg",
+   "artist": "Joe Kennedy, Los Angeles Times",
+   "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+   "focusX": 0.45,
+   "focusY": 0.35
+  }
+ },
+ {
+  "id": "allen-iverson-vinyldex-hoops-action-9",
+  "player": "Allen Iverson",
+  "team": "Philadelphia 76ers",
+  "position": "G",
+  "ovr": 93,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "9",
+  "rookie": false,
+  "price": 470,
+  "nbaId": 947,
+  "name": "Allen Iverson (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 3,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Iverson dribbling.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8f/Iverson_dribbling.jpg/960px-Iverson_dribbling.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Iverson_dribbling.jpg",
+   "artist": "Keith Allison",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.55,
+   "focusY": 0.5
+  }
+ },
+ {
+  "id": "dirk-nowitzki-vinyldex-hoops-action-10",
+  "player": "Dirk Nowitzki",
+  "team": "Dallas Mavericks",
+  "position": "F",
+  "ovr": 94,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "10",
+  "rookie": false,
+  "price": 510,
+  "nbaId": 1717,
+  "name": "Dirk Nowitzki (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 41,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:NowitzkiWizards3.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5c/NowitzkiWizards3.jpg/960px-NowitzkiWizards3.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:NowitzkiWizards3.jpg",
+   "artist": "Keith Allison",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.5,
+   "focusY": 0.35
+  }
+ },
+ {
+  "id": "dwyane-wade-vinyldex-hoops-action-11",
+  "player": "Dwyane Wade",
+  "team": "Miami Heat",
+  "position": "G",
+  "ovr": 93,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "11",
+  "rookie": false,
+  "price": 470,
+  "nbaId": 2548,
+  "name": "Dwyane Wade (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 3,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Dwyane Wade Wizards vs Heat 2010.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/47/Dwyane_Wade_Wizards_vs_Heat_2010.jpg/960px-Dwyane_Wade_Wizards_vs_Heat_2010.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Dwyane_Wade_Wizards_vs_Heat_2010.jpg",
+   "artist": "Keith Allison",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.5,
+   "focusY": 0.5
+  }
+ },
+ {
+  "id": "kevin-garnett-vinyldex-hoops-action-12",
+  "player": "Kevin Garnett",
+  "team": "Minnesota Timberwolves",
+  "position": "F",
+  "ovr": 93,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "12",
+  "rookie": false,
+  "price": 470,
+  "nbaId": 708,
+  "name": "Kevin Garnett (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 21,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Kevin Garnett palming the basketball.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f3/Kevin_Garnett_palming_the_basketball.jpg/960px-Kevin_Garnett_palming_the_basketball.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Kevin_Garnett_palming_the_basketball.jpg",
+   "artist": "Keith Allison",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.5,
+   "focusY": 0.4
+  }
+ },
+ {
+  "id": "hakeem-olajuwon-vinyldex-hoops-action-13",
+  "player": "Hakeem Olajuwon",
+  "team": "Houston Rockets",
+  "position": "C",
+  "ovr": 95,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "13",
+  "rookie": false,
+  "price": 550,
+  "nbaId": 165,
+  "name": "Hakeem Olajuwon (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 34,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Hakeem.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bd/Hakeem.jpg/960px-Hakeem.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Hakeem.jpg",
+   "artist": "University of Houston Digital Library",
+   "license": "Public domain",
+   "licenseUrl": "",
+   "focusX": 0.5,
+   "focusY": 0.45
+  }
+ },
+ {
+  "id": "charles-barkley-vinyldex-hoops-action-14",
+  "player": "Charles Barkley",
+  "team": "Philadelphia 76ers",
+  "position": "F",
+  "ovr": 93,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "14",
+  "rookie": false,
+  "price": 470,
+  "nbaId": 787,
+  "name": "Charles Barkley (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 34
+ },
+ {
+  "id": "scottie-pippen-vinyldex-hoops-action-15",
+  "player": "Scottie Pippen",
+  "team": "Chicago Bulls",
+  "position": "F",
+  "ovr": 92,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "15",
+  "rookie": false,
+  "price": 430,
+  "nbaId": 937,
+  "name": "Scottie Pippen (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 33
+ },
+ {
+  "id": "dennis-rodman-vinyldex-hoops-action-16",
+  "player": "Dennis Rodman",
+  "team": "Detroit Pistons",
+  "position": "F",
+  "ovr": 88,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "16",
+  "rookie": false,
+  "price": 270,
+  "nbaId": 23,
+  "name": "Dennis Rodman (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 10,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Dennis Rodman ToPo.jpg",
+   "thumb": "https://upload.wikimedia.org/wikipedia/commons/5/59/Dennis_Rodman_ToPo.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+   "page": "https://commons.wikimedia.org/wiki/File:Dennis_Rodman_ToPo.jpg",
+   "artist": "Tuomas Venhola",
+   "license": "CC BY-SA 1.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/1.0",
+   "focusX": 0.5,
+   "focusY": 0.42
+  }
+ },
+ {
+  "id": "patrick-ewing-vinyldex-hoops-action-17",
+  "player": "Patrick Ewing",
+  "team": "New York Knicks",
+  "position": "C",
+  "ovr": 91,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "17",
+  "rookie": false,
+  "price": 390,
+  "nbaId": 121,
+  "name": "Patrick Ewing (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 33,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Ewing on court.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5b/Ewing_on_court.jpg/960px-Ewing_on_court.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Ewing_on_court.jpg",
+   "artist": "Daveg023",
+   "license": "CC BY-SA 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "focusX": 0.45,
+   "focusY": 0.4
+  }
+ },
+ {
+  "id": "karl-malone-vinyldex-hoops-action-18",
+  "player": "Karl Malone",
+  "team": "Utah Jazz",
+  "position": "F",
+  "ovr": 93,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "18",
+  "rookie": false,
+  "price": 470,
+  "nbaId": 252,
+  "name": "Karl Malone (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 32
+ },
+ {
+  "id": "john-stockton-vinyldex-hoops-action-19",
+  "player": "John Stockton",
+  "team": "Utah Jazz",
+  "position": "G",
+  "ovr": 91,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "19",
+  "rookie": false,
+  "price": 390,
+  "nbaId": 304,
+  "name": "John Stockton (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 12
+ },
+ {
+  "id": "vince-carter-vinyldex-hoops-action-20",
+  "player": "Vince Carter",
+  "team": "Toronto Raptors",
+  "position": "G",
+  "ovr": 90,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "20",
+  "rookie": false,
+  "price": 350,
+  "nbaId": 1713,
+  "name": "Vince Carter (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 15,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Vince Carter Magic vs Spurs.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b8/Vince_Carter_Magic_vs_Spurs.jpg/960px-Vince_Carter_Magic_vs_Spurs.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Vince_Carter_Magic_vs_Spurs.jpg",
+   "artist": "Mike",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.5,
+   "focusY": 0.42
+  }
+ },
+ {
+  "id": "tracy-mcgrady-vinyldex-hoops-action-21",
+  "player": "Tracy McGrady",
+  "team": "Toronto Raptors",
+  "position": "G",
+  "ovr": 91,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "21",
+  "rookie": false,
+  "price": 390,
+  "nbaId": 1503,
+  "name": "Tracy McGrady (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 1,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Courtney Lee defending Tracy McGrady.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/Courtney_Lee_defending_Tracy_McGrady.jpg/960px-Courtney_Lee_defending_Tracy_McGrady.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Courtney_Lee_defending_Tracy_McGrady.jpg",
+   "artist": "Jim Hartney",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+   "focusX": 0.62,
+   "focusY": 0.6
+  }
+ },
+ {
+  "id": "steve-nash-vinyldex-hoops-action-22",
+  "player": "Steve Nash",
+  "team": "Phoenix Suns",
+  "position": "G",
+  "ovr": 91,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "22",
+  "rookie": false,
+  "price": 390,
+  "nbaId": 959,
+  "name": "Steve Nash (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 13,
+  "actionPhoto": {
+   "zoom": 1.4,
+   "title": "File:Lakers vs Nuggets 2013-01-06 (20).JPG",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9f/Lakers_vs_Nuggets_2013-01-06_%2820%29.JPG/960px-Lakers_vs_Nuggets_2013-01-06_%2820%29.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Lakers_vs_Nuggets_2013-01-06_(20).JPG",
+   "artist": "Holly Cheng",
+   "license": "CC BY-SA 3.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+   "focusX": 0.55,
+   "focusY": 0.5
+  }
+ },
+ {
+  "id": "yao-ming-vinyldex-hoops-action-23",
+  "player": "Yao Ming",
+  "team": "Houston Rockets",
+  "position": "C",
+  "ovr": 89,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "23",
+  "rookie": false,
+  "price": 310,
+  "nbaId": 2397,
+  "name": "Yao Ming (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 11,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Yao Ming shooting over Brad Miller 2008-02-13.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3d/Yao_Ming_shooting_over_Brad_Miller_2008-02-13.jpg/960px-Yao_Ming_shooting_over_Brad_Miller_2008-02-13.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Yao_Ming_shooting_over_Brad_Miller_2008-02-13.jpg",
+   "artist": "keithjj] on Pixabay",
+   "license": "CC0",
+   "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "focusX": 0.62,
+   "focusY": 0.4
+  }
+ },
+ {
+  "id": "carmelo-anthony-vinyldex-hoops-action-24",
+  "player": "Carmelo Anthony",
+  "team": "Denver Nuggets",
+  "position": "F",
+  "ovr": 89,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "24",
+  "rookie": false,
+  "price": 310,
+  "nbaId": 2546,
+  "name": "Carmelo Anthony (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 15,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Bradley Beal dunking.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c5/Bradley_Beal_dunking.jpg/960px-Bradley_Beal_dunking.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Bradley_Beal_dunking.jpg",
+   "artist": "Keith Allison",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.45,
+   "focusY": 0.8
+  }
+ },
+ {
+  "id": "paul-pierce-vinyldex-hoops-action-25",
+  "player": "Paul Pierce",
+  "team": "Boston Celtics",
+  "position": "F",
+  "ovr": 89,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "25",
+  "rookie": false,
+  "price": 310,
+  "nbaId": 1718,
+  "name": "Paul Pierce (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 34,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Paul Pierce Shooting Basketball.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4a/Paul_Pierce_Shooting_Basketball.jpg/960px-Paul_Pierce_Shooting_Basketball.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Paul_Pierce_Shooting_Basketball.jpg",
+   "artist": "Keith Allison",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.5,
+   "focusY": 0.4
+  }
+ },
+ {
+  "id": "ray-allen-vinyldex-hoops-action-26",
+  "player": "Ray Allen",
+  "team": "Milwaukee Bucks",
+  "position": "G",
+  "ovr": 89,
+  "legend": true,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "26",
+  "rookie": false,
+  "price": 310,
+  "nbaId": 951,
+  "name": "Ray Allen (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 34,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:JaVale McGee vs Celtics.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/45/JaVale_McGee_vs_Celtics.jpg/960px-JaVale_McGee_vs_Celtics.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:JaVale_McGee_vs_Celtics.jpg",
+   "artist": "Keith Allison from Baltimore, USA",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.55,
+   "focusY": 0.35
+  }
+ },
+ {
+  "id": "stephen-curry-vinyldex-hoops-action-27",
+  "player": "Stephen Curry",
+  "team": "Golden State Warriors",
+  "position": "G",
+  "ovr": 97,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "27",
+  "rookie": false,
+  "price": 244,
+  "nbaId": 201939,
+  "name": "Stephen Curry (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 30,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Lebron basket warriors.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/89/Lebron_basket_warriors.jpg/960px-Lebron_basket_warriors.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Lebron_basket_warriors.jpg",
+   "artist": "Erik Drost",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+   "focusX": 0.55,
+   "focusY": 0.45
+  }
+ },
+ {
+  "id": "kevin-durant-vinyldex-hoops-action-28",
+  "player": "Kevin Durant",
+  "team": "Phoenix Suns",
+  "position": "F",
+  "ovr": 95,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "28",
+  "rookie": false,
+  "price": 220,
+  "nbaId": 201142,
+  "name": "Kevin Durant (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 35,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Kevin Durant dunk.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/35/Kevin_Durant_dunk.jpg/960px-Kevin_Durant_dunk.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Kevin_Durant_dunk.jpg",
+   "artist": "Keith Allison from Owings Mills, USA",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.5,
+   "focusY": 0.42
+  }
+ },
+ {
+  "id": "giannis-antetokounmpo-vinyldex-hoops-action-29",
+  "player": "Giannis Antetokounmpo",
+  "team": "Milwaukee Bucks",
+  "position": "F",
+  "ovr": 97,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "29",
+  "rookie": false,
+  "price": 244,
+  "nbaId": 203507,
+  "name": "Giannis Antetokounmpo (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 34,
+  "actionPhoto": {
+   "zoom": 2.4,
+   "title": "File:Giannis Antetokounmpo vs Golden State Warriors 2025.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/80/Giannis_Antetokounmpo_vs_Golden_State_Warriors_2025.jpg/960px-Giannis_Antetokounmpo_vs_Golden_State_Warriors_2025.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Giannis_Antetokounmpo_vs_Golden_State_Warriors_2025.jpg",
+   "artist": "Nowoco",
+   "license": "CC0",
+   "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+   "focusX": 0.57,
+   "focusY": 0.38
+  }
+ },
+ {
+  "id": "nikola-jokic-vinyldex-hoops-action-30",
+  "player": "Nikola Jokic",
+  "team": "Denver Nuggets",
+  "position": "C",
+  "ovr": 98,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "30",
+  "rookie": false,
+  "price": 256,
+  "nbaId": 203999,
+  "name": "Nikola Jokic (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 15,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Nikola Jokic Jump Shot.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/Nikola_Jokic_Jump_Shot.jpg/960px-Nikola_Jokic_Jump_Shot.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Nikola_Jokic_Jump_Shot.jpg",
+   "artist": "Jose Garcia",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.4,
+   "focusY": 0.45
+  }
+ },
+ {
+  "id": "luka-doncic-vinyldex-hoops-action-31",
+  "player": "Luka Doncic",
+  "team": "Los Angeles Lakers",
+  "position": "G",
+  "ovr": 96,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "31",
+  "rookie": false,
+  "price": 232,
+  "nbaId": 1629029,
+  "name": "Luka Doncic (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 77,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:EuroBasket 2017 Finland vs Slovenia 32.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7a/EuroBasket_2017_Finland_vs_Slovenia_32.jpg/960px-EuroBasket_2017_Finland_vs_Slovenia_32.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:EuroBasket_2017_Finland_vs_Slovenia_32.jpg",
+   "artist": "Tuomas Vitikainen",
+   "license": "CC BY-SA 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "focusX": 0.4,
+   "focusY": 0.6
+  }
+ },
+ {
+  "id": "joel-embiid-vinyldex-hoops-action-32",
+  "player": "Joel Embiid",
+  "team": "Philadelphia 76ers",
+  "position": "C",
+  "ovr": 94,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "32",
+  "rookie": false,
+  "price": 208,
+  "nbaId": 203954,
+  "name": "Joel Embiid (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 21,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Joel Embiid layup 2019 (cropped).jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/52/Joel_Embiid_layup_2019_%28cropped%29.jpg/960px-Joel_Embiid_layup_2019_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Joel_Embiid_layup_2019_(cropped).jpg",
+   "artist": "All-Pro Reels",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.55,
+   "focusY": 0.4
+  }
+ },
+ {
+  "id": "jayson-tatum-vinyldex-hoops-action-33",
+  "player": "Jayson Tatum",
+  "team": "Boston Celtics",
+  "position": "F",
+  "ovr": 94,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "33",
+  "rookie": false,
+  "price": 208,
+  "nbaId": 1628369,
+  "name": "Jayson Tatum (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 0,
+  "actionPhoto": {
+   "zoom": 1.3,
+   "title": "File:Jayson Tatum, Olympic Games 2024.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e6/Jayson_Tatum%2C_Olympic_Games_2024.jpg/960px-Jayson_Tatum%2C_Olympic_Games_2024.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Jayson_Tatum,_Olympic_Games_2024.jpg",
+   "artist": "Clément Bardot",
+   "license": "CC BY-SA 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "focusX": 0.5,
+   "focusY": 0.42
+  }
+ },
+ {
+  "id": "victor-wembanyama-vinyldex-hoops-action-34",
+  "player": "Victor Wembanyama",
+  "team": "San Antonio Spurs",
+  "position": "C",
+  "ovr": 94,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "34",
+  "rookie": false,
+  "price": 208,
+  "nbaId": 1641705,
+  "name": "Victor Wembanyama (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 1,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Victor Wembanyama Mets 92 (2).jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e6/Victor_Wembanyama_Mets_92_%282%29.jpg/960px-Victor_Wembanyama_Mets_92_%282%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Victor_Wembanyama_Mets_92_(2).jpg",
+   "artist": "Thomas S",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.5,
+   "focusY": 0.35
+  }
+ },
+ {
+  "id": "anthony-edwards-vinyldex-hoops-action-35",
+  "player": "Anthony Edwards",
+  "team": "Minnesota Timberwolves",
+  "position": "G",
+  "ovr": 93,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "35",
+  "rookie": false,
+  "price": 196,
+  "nbaId": 1630162,
+  "name": "Anthony Edwards (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 5,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Anthony Edwards Kentavious Caldwell-Pope (51734745028).jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/11/Anthony_Edwards_Kentavious_Caldwell-Pope_%2851734745028%29.jpg/960px-Anthony_Edwards_Kentavious_Caldwell-Pope_%2851734745028%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Anthony_Edwards_Kentavious_Caldwell-Pope_(51734745028).jpg",
+   "artist": "All-Pro Reels",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.45,
+   "focusY": 0.5
+  }
+ },
+ {
+  "id": "shai-gilgeous-alexander-vinyldex-hoops-action-36",
+  "player": "Shai Gilgeous-Alexander",
+  "team": "Oklahoma City Thunder",
+  "position": "G",
+  "ovr": 96,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "36",
+  "rookie": false,
+  "price": 232,
+  "nbaId": 1628983,
+  "name": "Shai Gilgeous-Alexander (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 2,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:2023-08-09 Deutschland gegen Kanada (Basketball-Länderspiel) by Sandro Halank–125.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/2023-08-09_Deutschland_gegen_Kanada_%28Basketball-L%C3%A4nderspiel%29_by_Sandro_Halank%E2%80%93125.jpg/960px-2023-08-09_Deutschland_gegen_Kanada_%28Basketball-L%C3%A4nderspiel%29_by_Sandro_Halank%E2%80%93125.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:2023-08-09_Deutschland_gegen_Kanada_(Basketball-L%C3%A4nderspiel)_by_Sandro_Halank%E2%80%93125.jpg",
+   "artist": "Sandro Halank, Wikimedia Commons",
+   "license": "CC BY-SA 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "focusX": 0.58,
+   "focusY": 0.35
+  }
+ },
+ {
+  "id": "ja-morant-vinyldex-hoops-action-37",
+  "player": "Ja Morant",
+  "team": "Memphis Grizzlies",
+  "position": "G",
+  "ovr": 90,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "37",
+  "rookie": false,
+  "price": 160,
+  "nbaId": 1629630,
+  "name": "Ja Morant (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 12,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Giannis Antetokounmpo (51915684508).jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cf/Giannis_Antetokounmpo_%2851915684508%29.jpg/960px-Giannis_Antetokounmpo_%2851915684508%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Giannis_Antetokounmpo_(51915684508).jpg",
+   "artist": "Erik Drost",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+   "focusX": 0.5,
+   "focusY": 0.45
+  }
+ },
+ {
+  "id": "devin-booker-vinyldex-hoops-action-38",
+  "player": "Devin Booker",
+  "team": "Phoenix Suns",
+  "position": "G",
+  "ovr": 91,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "38",
+  "rookie": false,
+  "price": 172,
+  "nbaId": 1626164,
+  "name": "Devin Booker (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 1
+ },
+ {
+  "id": "zion-williamson-vinyldex-hoops-action-39",
+  "player": "Zion Williamson",
+  "team": "New Orleans Pelicans",
+  "position": "F",
+  "ovr": 88,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "39",
+  "rookie": false,
+  "price": 136,
+  "nbaId": 1629627,
+  "name": "Zion Williamson (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 1,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Zion Williamson (49488364572).jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cd/Zion_Williamson_%2849488364572%29.jpg/960px-Zion_Williamson_%2849488364572%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Zion_Williamson_(49488364572).jpg",
+   "artist": "Erik Drost",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+   "focusX": 0.55,
+   "focusY": 0.4
+  }
+ },
+ {
+  "id": "kawhi-leonard-vinyldex-hoops-action-40",
+  "player": "Kawhi Leonard",
+  "team": "LA Clippers",
+  "position": "F",
+  "ovr": 92,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "40",
+  "rookie": false,
+  "price": 184,
+  "nbaId": 202695,
+  "name": "Kawhi Leonard (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 2,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Kawhi Leonard Dunk cropped.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ab/Kawhi_Leonard_Dunk_cropped.jpg/960px-Kawhi_Leonard_Dunk_cropped.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Kawhi_Leonard_Dunk_cropped.jpg",
+   "artist": "Jose Garcia from Orlando FL, USA",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+   "focusX": 0.4,
+   "focusY": 0.4
+  }
+ },
+ {
+  "id": "james-harden-vinyldex-hoops-action-41",
+  "player": "James Harden",
+  "team": "LA Clippers",
+  "position": "G",
+  "ovr": 90,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "41",
+  "rookie": false,
+  "price": 160,
+  "nbaId": 201935,
+  "name": "James Harden (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 1,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Harden dribbling midcourt, Cavaliers vs Nets on January 17, 2022.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bd/Harden_dribbling_midcourt%2C_Cavaliers_vs_Nets_on_January_17%2C_2022.jpg/960px-Harden_dribbling_midcourt%2C_Cavaliers_vs_Nets_on_January_17%2C_2022.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Harden_dribbling_midcourt,_Cavaliers_vs_Nets_on_January_17,_2022.jpg",
+   "artist": "Erik Drost",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+   "focusX": 0.5,
+   "focusY": 0.45
+  }
+ },
+ {
+  "id": "damian-lillard-vinyldex-hoops-action-42",
+  "player": "Damian Lillard",
+  "team": "Milwaukee Bucks",
+  "position": "G",
+  "ovr": 90,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "42",
+  "rookie": false,
+  "price": 160,
+  "nbaId": 203081,
+  "name": "Damian Lillard (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 0,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Damian Lillard0.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/Damian_Lillard0.jpg/960px-Damian_Lillard0.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Damian_Lillard0.jpg",
+   "artist": "Frenchieinportland",
+   "license": "CC BY-SA 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "focusX": 0.5,
+   "focusY": 0.4
+  }
+ },
+ {
+  "id": "kyrie-irving-vinyldex-hoops-action-43",
+  "player": "Kyrie Irving",
+  "team": "Dallas Mavericks",
+  "position": "G",
+  "ovr": 90,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "43",
+  "rookie": false,
+  "price": 160,
+  "nbaId": 202681,
+  "name": "Kyrie Irving (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 11,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Kyrie Irving Pass in Traffic vs Andre Drummond.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8e/Kyrie_Irving_Pass_in_Traffic_vs_Andre_Drummond.jpg/960px-Kyrie_Irving_Pass_in_Traffic_vs_Andre_Drummond.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Kyrie_Irving_Pass_in_Traffic_vs_Andre_Drummond.jpg",
+   "artist": "Erik Drost",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+   "focusX": 0.5,
+   "focusY": 0.35
+  }
+ },
+ {
+  "id": "anthony-davis-vinyldex-hoops-action-44",
+  "player": "Anthony Davis",
+  "team": "Dallas Mavericks",
+  "position": "F",
+  "ovr": 92,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "44",
+  "rookie": false,
+  "price": 184,
+  "nbaId": 203076,
+  "name": "Anthony Davis (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 3,
+  "actionPhoto": {
+   "zoom": 1.3,
+   "title": "File:Anthony Davis, Olympic Games 2024.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/Anthony_Davis%2C_Olympic_Games_2024.jpg/960px-Anthony_Davis%2C_Olympic_Games_2024.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Anthony_Davis,_Olympic_Games_2024.jpg",
+   "artist": "Clément Bardot",
+   "license": "CC BY-SA 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "focusX": 0.5,
+   "focusY": 0.42
+  }
+ },
+ {
+  "id": "russell-westbrook-vinyldex-hoops-action-45",
+  "player": "Russell Westbrook",
+  "team": "Denver Nuggets",
+  "position": "G",
+  "ovr": 85,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "45",
+  "rookie": false,
+  "price": 100,
+  "nbaId": 201566,
+  "name": "Russell Westbrook (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 4,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Russell Westbrook shoots against Cavs (cropped).jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/06/Russell_Westbrook_shoots_against_Cavs_%28cropped%29.jpg/960px-Russell_Westbrook_shoots_against_Cavs_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Russell_Westbrook_shoots_against_Cavs_(cropped).jpg",
+   "artist": "Erik Drost from United States",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+   "focusX": 0.5,
+   "focusY": 0.4
+  }
+ },
+ {
+  "id": "derrick-rose-vinyldex-hoops-action-46",
+  "player": "Derrick Rose",
+  "team": "Chicago Bulls",
+  "position": "G",
+  "ovr": 84,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "46",
+  "rookie": false,
+  "price": 88,
+  "nbaId": 201565,
+  "name": "Derrick Rose (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 1,
+  "actionPhoto": {
+   "zoom": 2.0,
+   "title": "File:Warriors vs Bulls.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/26/Warriors_vs_Bulls.jpg/960px-Warriors_vs_Bulls.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Warriors_vs_Bulls.jpg",
+   "artist": "nikk_la",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+   "focusX": 0.36,
+   "focusY": 0.55
+  }
+ },
+ {
+  "id": "lamelo-ball-vinyldex-hoops-action-47",
+  "player": "LaMelo Ball",
+  "team": "Charlotte Hornets",
+  "position": "G",
+  "ovr": 88,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "47",
+  "rookie": false,
+  "price": 136,
+  "nbaId": 1630163,
+  "name": "LaMelo Ball (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 1,
+  "actionPhoto": {
+   "zoom": 1.6,
+   "title": "File:LaMelo Ball (51914959337).jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b3/LaMelo_Ball_%2851914959337%29.jpg/960px-LaMelo_Ball_%2851914959337%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:LaMelo_Ball_(51914959337).jpg",
+   "artist": "Erik Drost",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+   "focusX": 0.5,
+   "focusY": 0.45
+  }
+ },
+ {
+  "id": "cade-cunningham-vinyldex-hoops-action-48",
+  "player": "Cade Cunningham",
+  "team": "Detroit Pistons",
+  "position": "G",
+  "ovr": 90,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "48",
+  "rookie": false,
+  "price": 160,
+  "nbaId": 1630595,
+  "name": "Cade Cunningham (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 2,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Cade Cunningham charging against T. J. McConnell, 2024-11-29 (cropped).jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/39/Cade_Cunningham_charging_against_T._J._McConnell%2C_2024-11-29_%28cropped%29.jpg/960px-Cade_Cunningham_charging_against_T._J._McConnell%2C_2024-11-29_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Cade_Cunningham_charging_against_T._J._McConnell,_2024-11-29_(cropped).jpg",
+   "artist": "Navin75",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.62,
+   "focusY": 0.5
+  }
+ },
+ {
+  "id": "paolo-banchero-vinyldex-hoops-action-49",
+  "player": "Paolo Banchero",
+  "team": "Orlando Magic",
+  "position": "F",
+  "ovr": 89,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "49",
+  "rookie": false,
+  "price": 148,
+  "nbaId": 1631094,
+  "name": "Paolo Banchero (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 5,
+  "actionPhoto": {
+   "zoom": 1.6,
+   "title": "File:Paolo Banchero Dominating in High School.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f6/Paolo_Banchero_Dominating_in_High_School.jpg/960px-Paolo_Banchero_Dominating_in_High_School.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Paolo_Banchero_Dominating_in_High_School.jpg",
+   "artist": "PaulHamaker",
+   "license": "CC BY-SA 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+   "focusX": 0.52,
+   "focusY": 0.45
+  }
+ },
+ {
+  "id": "jalen-brunson-vinyldex-hoops-action-50",
+  "player": "Jalen Brunson",
+  "team": "New York Knicks",
+  "position": "G",
+  "ovr": 91,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "50",
+  "rookie": false,
+  "price": 172,
+  "nbaId": 1628973,
+  "name": "Jalen Brunson (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 11
+ },
+ {
+  "id": "tyrese-haliburton-vinyldex-hoops-action-51",
+  "player": "Tyrese Haliburton",
+  "team": "Indiana Pacers",
+  "position": "G",
+  "ovr": 89,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "51",
+  "rookie": false,
+  "price": 148,
+  "nbaId": 1630169,
+  "name": "Tyrese Haliburton (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 0,
+  "actionPhoto": {
+   "zoom": 1.0,
+   "title": "File:Tyrese Haliburton (51923136051) (cropped).jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/11/Tyrese_Haliburton_%2851923136051%29_%28cropped%29.jpg/960px-Tyrese_Haliburton_%2851923136051%29_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Tyrese_Haliburton_(51923136051)_(cropped).jpg",
+   "artist": "All-Pro Reels",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.4,
+   "focusY": 0.45
+  }
+ },
+ {
+  "id": "jimmy-butler-vinyldex-hoops-action-52",
+  "player": "Jimmy Butler",
+  "team": "Golden State Warriors",
+  "position": "F",
+  "ovr": 89,
+  "legend": false,
+  "year": "2026-27",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "52",
+  "rookie": false,
+  "price": 148,
+  "nbaId": 202710,
+  "name": "Jimmy Butler (Action)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 10,
+  "actionPhoto": {
+   "zoom": 1.2,
+   "title": "File:Jimmy Butler - Rio 2016.jpg",
+   "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e7/Jimmy_Butler_-_Rio_2016.jpg/960px-Jimmy_Butler_-_Rio_2016.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Jimmy_Butler_-_Rio_2016.jpg",
+   "artist": "Catherine Salaün from Mandelieu, France",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+   "focusX": 0.45,
+   "focusY": 0.4
+  }
+ },
+ {
+  "id": "michael-jordan-1988-slam-dunk-contest-free-throw-line",
+  "player": "Michael Jordan",
+  "team": "Chicago Bulls",
+  "position": "G",
+  "ovr": 99,
+  "legend": true,
+  "year": "1987-88",
+  "brand": "VinylDex Hoops",
+  "insert": "Action",
+  "parallel": null,
+  "serial": null,
+  "number": "23",
+  "rookie": false,
+  "price": 2300,
+  "nbaId": 893,
+  "name": "Michael Jordan (Slam Dunk 1988)",
+  "set": "VinylDex Hoops Action",
+  "jersey": 23,
+  "actionPhoto": {
+   "local": "jordan-1988-slam-dunk.jpg",
+   "title": "Slam Dunk Contest 1988, Chicago Stadium",
+   "artist": "autore non indicato",
+   "license": "tutti i diritti ai titolari",
+   "source": "uso didattico",
+   "focusX": 0.575,
+   "focusY": 0.45,
+   "zoom": 1.0
+  }
  }
 ]
