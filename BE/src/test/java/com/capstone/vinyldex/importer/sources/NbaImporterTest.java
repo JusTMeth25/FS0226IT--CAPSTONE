@@ -82,7 +82,7 @@ class NbaImporterTest {
     void actionCards() throws Exception {
         List<ImportedCard> cards = importer.curatedCards();
         List<ImportedCard> action = cards.stream().filter(c -> "Action".equals(c.metadata().get("insert"))).toList();
-        assertEquals(53, action.size(), "una per giocatore piu' la Slam Dunk 1988 di Jordan");
+        assertEquals(54, action.size(), "una per giocatore piu' due speciali di Jordan");
         int withPhoto = 0;
         for (ImportedCard card : action) {
             if (!(card.metadata().get("actionPhoto") instanceof java.util.Map<?, ?> photo) || photo.get("local") != null) continue;

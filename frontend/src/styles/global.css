@@ -1557,8 +1557,15 @@ input.filter-select { cursor: text; }
 .home-top > .glass-panel { display: flex; flex-direction: column; min-width: 0; }
 .home-top .panel-title { margin-bottom: var(--space-sm); }
 .home-top .daily-card-body { flex: 1; }
-.home-top .panel-featured-card { align-items: center; justify-content: flex-start; }
-.home-top .panel-featured-card .card-tile, .home-top .panel-featured-card .card-tile-slab { margin: auto 0; }
+/* La carta in evidenza riempie la colonna (alta quanto i pacchetti): piu' grande e al centro. */
+.home-top .panel-featured-card { align-items: center; justify-content: center; }
+.home-top .panel-featured-card > .panel-title { align-self: stretch; }
+.home-top .panel-featured-card .card {
+  --card-width: min(100%, 300px); --card-height: auto;
+  width: var(--card-width); height: auto; aspect-ratio: 5 / 7; margin-top: auto;
+}
+.home-top .panel-featured-card .card-tile-slab { margin-top: auto; }
+.home-top .panel-featured-card .home-featured-name { margin-bottom: auto; font-size: 1.05rem; }
 .home-featured-name { font-size: 0.9rem; }
 .home-top .free-pack-notice { margin-top: 0; width: 100%; border-style: solid; cursor: pointer; font: inherit; font-size: 0.8rem; }
 .home-top .free-pack-notice:not(.available) { cursor: default; }
@@ -1590,12 +1597,18 @@ input.filter-select { cursor: text; }
 .home-page > *:nth-child(4) { animation-delay: 0.24s; }
 .home-page > *:nth-child(5) { animation-delay: 0.32s; }
 
+/* Schermi medi: carta del giorno e carta in evidenza affiancate, i pacchetti a tutta larghezza
+   sotto (in una colonna stretta diventerebbero una striscia lunghissima). */
 @media (min-width: 900px) {
   .home-hero { grid-template-columns: 1.4fr 1fr; }
-  .home-top { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .home-top { grid-template-columns: 1.4fr 1fr; grid-template-areas: "daily featured" "packs packs"; }
+  .home-top > .daily-card { grid-area: daily; }
+  .home-top > .panel-pack { grid-area: packs; }
+  .home-top > .panel-featured-card { grid-area: featured; }
 }
-@media (min-width: 1200px) {
-  .home-top { grid-template-columns: 1.3fr 1fr 0.8fr; }
+/* Schermi larghi: tre colonne alte uguali; le due carte crescono per riempire la loro. */
+@media (min-width: 1600px) {
+  .home-top { grid-template-columns: 1.3fr 1fr 0.8fr; grid-template-areas: "daily packs featured"; }
 }
 @media (prefers-reduced-motion: reduce) {
   .home-page > * { animation: none; }
@@ -1604,6 +1617,13 @@ input.filter-select { cursor: text; }
 .home-hero-actions .btn-primary { font-size: 0.9rem; padding: 10px 18px; }
 .home-top .daily-card-img { flex-basis: 150px; }
 .home-top .daily-card-img img { width: 150px; }
+/* Da tablet in su la carta del giorno cresce con la colonna invece di lasciare spazio vuoto. */
+@media (min-width: 900px) {
+  .home-top .daily-card-body { flex-direction: column; justify-content: center; text-align: center; }
+  .home-top .daily-card-img { flex-basis: auto; }
+  .home-top .daily-card-img img { width: min(100%, 260px); margin: 0 auto; }
+  .home-top .daily-card-info { align-items: center; }
+}
 
 /* ========================================
    DESIDERI, STATISTICHE, SQUADRE, CONFRONTO, PRIMA EDIZIONE
