@@ -15,4 +15,8 @@ public final class FcCardArtControllerProbe {
     public static String render(String name, Map<String, Object> meta) {
         return FcCardArtController.render(name, meta, null);
     }
+
+    public static String renderAction(String name, java.util.Map<String, Object> meta) {
+        return FcCardArtController.renderAction(name, meta, null, null);
+    }
 }

@@ -4,6 +4,15 @@
  */
 export const NEWS = [
   {
+    date: '2026-10-09',
+    title: 'Carte Action di FC 27',
+    icon: 'ph-soccer-ball',
+    items: [
+      ['ph-camera', 'Foto vere in azione', 'Maradona, Zidane, Ronaldo, Cruyff, Maldini, Messi, Mbappé, Haaland e altre 26 stelle in foto con licenza libera (Wikimedia Commons).'],
+      ['ph-star', 'Stile anni ’80', 'La cornice delle carte NBA Action nei colori del calcio: campo verde, bande bianche e nere. Valgono il 50% in più della carta base.']
+    ]
+  },
+  {
     date: '2026-10-08',
     title: 'Carte NBA Action',
     icon: 'ph-basketball',

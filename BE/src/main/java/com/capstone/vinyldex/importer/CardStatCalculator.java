@@ -138,7 +138,7 @@ public class CardStatCalculator {
         String position = lower(str(meta, "position"));
         double special = switch (version) {
             case "icon" -> 1.0;
-            case "hero" -> 0.8;
+            case "hero", "action" -> 0.8;
             case "totw" -> 0.6;
             case "gold_rare" -> 0.3;
             default -> 0.15;

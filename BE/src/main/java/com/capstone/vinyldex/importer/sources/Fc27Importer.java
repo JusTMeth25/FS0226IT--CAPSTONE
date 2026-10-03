@@ -164,8 +164,43 @@ public class Fc27Importer extends AbstractCardImporter {
                 }
                 cards.add(card);
             }
+            cards.addAll(actionCards(cards));
             return cards;
         }
+    }
+
+    /**
+     * Carte Action (resources/fc27/action.json): una versione della carta di un giocatore con una
+     * foto vera in azione da Wikimedia Commons (licenza libera, autore e licenza sulla carta),
+     * disegnata da FcCardArtController nella cornice anni '80 delle carte NBA Action. Vale il 50%
+     * in piu' della carta base.
+     */
+    @SuppressWarnings("unchecked")
+    private List<ImportedCard> actionCards(List<ImportedCard> base) throws IOException {
+        var resource = new ClassPathResource("fc27/action.json");
+        if (!resource.exists()) return List.of();
+        Map<String, ImportedCard> byId = new HashMap<>();
+        base.forEach(c -> byId.put(c.externalId(), c));
+        List<ImportedCard> cards = new ArrayList<>();
+        try (InputStream in = resource.getInputStream()) {
+            for (JsonNode node : elements(mapper.readTree(in))) {
+                ImportedCard from = byId.get(text(node, "base"));
+                if (from == null) continue;
+                Map<String, Object> m = from.metadata();
+                int[] stats = new int[6];
+                String[] keys = {"pac", "sho", "pas", "dri", "def", "phy"};
+                for (int i = 0; i < keys.length; i++) stats[i] = m.get(keys[i]) instanceof Number n ? n.intValue() : 0;
+                Integer coins = m.get("coinPrice") instanceof Number n ? (int) Math.round(n.doubleValue() * 1.5) : null;
+                ImportedCard card = toCard("action-" + from.externalId(), from.name() + " (Action)", (String) m.get("club"),
+                        (String) m.get("nation"), (String) m.get("position"), m.get("ovr") instanceof Number n ? n.intValue() : null,
+                        stats, "action", coins, (String) m.get("photoUrl"), "stima");
+                if (m.get("cardName") != null) card.metadata().put("cardName", m.get("cardName"));
+                card.metadata().put("insert", "Action");
+                card.metadata().put("actionPhoto", mapper.convertValue(child(node, "actionPhoto"), Map.class));
+                cards.add(card);
+            }
+        }
+        return cards;
     }
 
     // ------------------------------------------------------------------ classifica EA
@@ -360,7 +395,7 @@ public class Fc27Importer extends AbstractCardImporter {
         for (int i = 0; i < keys.length; i++) metadata.put(keys[i], stats[i]);
         if (photo != null) metadata.put("photoUrl", photo);
 
-        String label = "icon".equals(version) ? "ICON" : "hero".equals(version) ? "Eroe" : "Ultimate Team";
+        String label = "icon".equals(version) ? "ICON" : "hero".equals(version) ? "Eroe" : "action".equals(version) ? "Action" : "Ultimate Team";
         return new ImportedCard(
                 id,
                 SOURCE + "-" + id,

@@ -49,7 +49,22 @@ final class NbaActionArt {
     /** Finestra della foto dentro la cornice gialla. */
     private static final double PX = 26, PY = 24, PW = 198, PH = 262;
 
+    /**
+     * Colori e scritte della cornice: le carte NBA (fondo rosso, bande blu e bianche) e quelle del
+     * calcio FC 27 (campo verde, bande bianche e nere).
+     */
+    record Style(String base, String band, String stripe, String frame, String plate, String brand, String badge,
+                 boolean shortTeam) {
+    }
+
+    static final Style HOOPS = new Style("#d7262d", "#1f5fbf", "#ffffff", "#f4c22b", "#5fb8e6", "VINYLDEX HOOPS", "HOOPS", true);
+    static final Style FOOTBALL = new Style("#0f6e3a", "#111827", "#ffffff", "#f4c22b", "#1e3a8a", "VINYLDEX FOOTBALL", "FOOTBALL", false);
+
     static String render(Map<String, Object> meta, Photo action, String headshot, String primary, String credit) {
+        return render(meta, action, headshot, primary, credit, HOOPS);
+    }
+
+    static String render(Map<String, Object> meta, Photo action, String headshot, String primary, String credit, Style style) {
         String player = text(meta, "player");
         String team = text(meta, "team");
         String year = text(meta, "year");
@@ -61,6 +76,8 @@ final class NbaActionArt {
             default -> text(meta, "position").toUpperCase(Locale.ROOT);
         };
         boolean rookie = Boolean.TRUE.equals(meta.get("rookie"));
+        // Le carte del calcio portano il ruolo gia' scritto per intero (ATTACCANTE, PORTIERE...).
+        if (meta.get("roleLabel") instanceof String label) position = label;
 
         StringBuilder s = new StringBuilder(action != null ? action.dataUri().length() + 8_000 : 60_000);
         s.append("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 250 350' width='500' height='700'>");
@@ -74,10 +91,11 @@ final class NbaActionArt {
         s.append("</defs><g clip-path='url(#card)'>");
 
         // Cornice: fondo rosso, bande blu e bianche sui lati, cornice gialla.
-        s.append("<rect width='250' height='350' fill='#d7262d'/>");
-        s.append("<rect y='112' width='250' height='42' fill='#1f5fbf'/><rect y='154' width='250' height='44' fill='#fff'/>");
-        s.append("<rect y='198' width='250' height='42' fill='#1f5fbf'/>");
-        s.append("<rect x='19' y='17' width='212' height='314' rx='17' fill='#f4c22b'/>");
+        s.append("<rect width='250' height='350' fill='").append(style.base()).append("'/>");
+        s.append("<rect y='112' width='250' height='42' fill='").append(style.band()).append("'/><rect y='154' width='250' height='44' fill='")
+                .append(style.stripe()).append("'/>");
+        s.append("<rect y='198' width='250' height='42' fill='").append(style.band()).append("'/>");
+        s.append("<rect x='19' y='17' width='212' height='314' rx='17' fill='").append(style.frame()).append("'/>");
 
         s.append("<g clip-path='url(#photo)'>");
         s.append("<rect x='26' y='24' width='198' height='262' fill='url(#arena)'/>");
@@ -93,7 +111,7 @@ final class NbaActionArt {
         // Riflesso che attraversa la foto, come sulla carta lucida.
         s.append("<rect x='-90' y='0' width='70' height='350' fill='url(#shine)' transform='skewX(-18)'>")
                 .append("<animate attributeName='x' values='-90;-90;300' keyTimes='0;0.6;1' dur='6s' repeatCount='indefinite'/></rect>");
-        badge(s);
+        badge(s, style);
         if (rookie) {
             s.append("<g transform='translate(32 30)'><rect width='30' height='18' rx='4' fill='#d7262d' stroke='#fff' stroke-width='1.5'/>")
                     .append("<text x='15' y='13' font-family='Arial Black, Arial' font-size='10' fill='#fff' text-anchor='middle'>RC</text></g>");
@@ -101,16 +119,16 @@ final class NbaActionArt {
         s.append("</g>");
 
         // Targa con nome, squadra e ruolo.
-        s.append("<rect x='26' y='289' width='198' height='36' rx='9' fill='#5fb8e6'/>");
+        s.append("<rect x='26' y='289' width='198' height='36' rx='9' fill='").append(style.plate()).append("'/>");
         // I nomi lunghi (Antetokounmpo, Gilgeous-Alexander) si stringono per restare nella targa.
         double nameSize = Math.min(14, 182 / Math.max(1, player.length() * 0.74));
         s.append("<text x='125' y='306' font-family='Arial Black, Arial' font-weight='900' font-size='").append(fmt(nameSize))
                 .append("' fill='#fff' text-anchor='middle' letter-spacing='.5'>")
                 .append(esc(player.toUpperCase(Locale.ROOT))).append("</text>");
         s.append("<text x='125' y='319' font-family='Arial' font-weight='700' font-size='8.5' fill='#fff' text-anchor='middle'>")
-                .append(esc(teamName(team).toUpperCase(Locale.ROOT))).append(" • ").append(esc(position)).append("</text>");
+                .append(esc((style.shortTeam() ? teamName(team) : team).toUpperCase(Locale.ROOT))).append(" • ").append(esc(position)).append("</text>");
         s.append("<text x='125' y='339' font-family='Arial' font-weight='700' font-size='7' fill='#fff' fill-opacity='.9' text-anchor='middle'>")
-                .append(esc("VINYLDEX HOOPS • " + year + (number.isEmpty() ? "" : " • #" + number))).append("</text>");
+                .append(esc(style.brand() + " • " + year + (number.isEmpty() ? "" : " • " + (Character.isDigit(number.charAt(0)) ? "#" : "") + number))).append("</text>");
         if (credit != null && !credit.isBlank()) {
             s.append("<text x='125' y='346.5' font-family='Arial' font-size='4.6' fill='#fff' fill-opacity='.8' text-anchor='middle'>")
                     .append(esc(credit)).append("</text>");
@@ -155,12 +173,12 @@ final class NbaActionArt {
     }
 
     /** Il marchio in alto a destra, al posto del logo del produttore. */
-    private static void badge(StringBuilder s) {
+    private static void badge(StringBuilder s, Style style) {
         s.append("<g transform='translate(160 32)'>")
-                .append("<polygon points='0,0 58,0 52,13 58,26 0,26 6,13' fill='#d7262d' stroke='#fff' stroke-width='1.2'/>")
+                .append("<polygon points='0,0 58,0 52,13 58,26 0,26 6,13' fill='").append(style.base()).append("' stroke='#fff' stroke-width='1.2'/>")
                 .append("<text x='29' y='12' font-family='Arial Black, Arial' font-weight='900' font-size='8' fill='#fff' text-anchor='middle'>VINYLDEX</text>")
                 .append("<rect x='9' y='15' width='40' height='8' rx='2' fill='#f4c22b'/>")
-                .append("<text x='29' y='21.5' font-family='Arial' font-weight='700' font-size='6' fill='#7a1a14' text-anchor='middle' letter-spacing='1.5'>HOOPS</text>")
+                .append("<text x='29' y='21.5' font-family='Arial' font-weight='700' font-size='6' fill='#7a1a14' text-anchor='middle' letter-spacing='1'>").append(style.badge()).append("</text>")
                 .append("</g>");
     }
 

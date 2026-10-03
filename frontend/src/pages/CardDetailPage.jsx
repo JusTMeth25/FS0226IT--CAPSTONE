@@ -164,7 +164,7 @@ export default function CardDetailPage() {
         )}
       </div>
 
-      {card.source === 'fc27' && <Fc27Credits />}
+      {card.source === 'fc27' && <Fc27Credits cardId={card.id} action={card.id.startsWith('fc27-action-')} />}
       {card.source === 'nikke' && <NikkeCredits />}
       <TcgplayerCredits source={card.source} cardId={card.id} />
 

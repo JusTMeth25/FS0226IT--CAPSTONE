@@ -233,4 +233,23 @@ class Fc27ImporterTest {
         assertEquals(FcCardArtControllerProbe.render("Nome Qualsiasi", Map.of()), FcCardArtControllerProbe.render("Nome Qualsiasi", Map.of()),
                 "senza look il ritratto si ricava dal nome, sempre uguale");
     }
+
+    @Test
+    @DisplayName("Carte Action: foto da Wikimedia con licenza libera, 50% in piu' della carta base, cornice anni '80")
+    void actionCards() throws Exception {
+        List<ImportedCard> cards = importer.curatedCards();
+        List<ImportedCard> action = cards.stream().filter(c -> "action".equals(c.metadata().get("version"))).toList();
+        assertTrue(action.size() >= 30, "carte Action: " + action.size());
+        ImportedCard maradona = find(cards, "Diego Maradona (Action)");
+        ImportedCard base = find(cards, "Diego Maradona");
+        assertEquals((int) Math.round(((Integer) base.metadata().get("coinPrice")) * 1.5), maradona.metadata().get("coinPrice"));
+        for (ImportedCard card : action) {
+            Map<?, ?> photo = (Map<?, ?>) card.metadata().get("actionPhoto");
+            String thumb = String.valueOf(photo.get("thumb"));
+            assertTrue(thumb.startsWith("https://upload.wikimedia.org/") || thumb.startsWith("https://thumb.wikimedia.org/"), thumb);
+            assertTrue(String.valueOf(photo.get("license")).matches("(?i)(CC BY(-SA)? [0-9.]+|CC0|Public domain)"), card.name());
+        }
+        String svg = com.capstone.vinyldex.controller.FcCardArtControllerProbe.renderAction(maradona.name(), maradona.metadata());
+        assertTrue(svg.contains("VINYLDEX FOOTBALL") && svg.contains("DIEGO MARADONA") && svg.contains("Wikimedia Commons"));
+    }
 }

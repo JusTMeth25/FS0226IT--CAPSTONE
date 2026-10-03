@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -86,13 +87,47 @@ public class FcCardArtController {
         this.apiKey = apiKey == null ? "" : apiKey.trim();
     }
 
+    /** Foto in azione delle carte Action (Wikimedia Commons). Facoltativo, cosi' i test lo possono omettere. */
+    private ActionPhotos actionPhotos;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setActionPhotos(ActionPhotos actionPhotos) {
+        this.actionPhotos = actionPhotos;
+    }
+
+    private static final Map<String, String> ROLES = Map.ofEntries(
+            Map.entry("GK", "PORTIERE"), Map.entry("CB", "DIFENSORE"), Map.entry("LB", "TERZINO"), Map.entry("RB", "TERZINO"),
+            Map.entry("LWB", "ESTERNO"), Map.entry("RWB", "ESTERNO"), Map.entry("CDM", "MEDIANO"), Map.entry("CM", "CENTROCAMPISTA"),
+            Map.entry("CAM", "TREQUARTISTA"), Map.entry("LM", "ESTERNO"), Map.entry("RM", "ESTERNO"), Map.entry("LW", "ALA"),
+            Map.entry("RW", "ALA"), Map.entry("CF", "PUNTA"), Map.entry("ST", "ATTACCANTE"));
+
+    /**
+     * Carta Action FC 27: la stessa cornice anni '80 delle carte NBA, nei colori del calcio, con
+     * una foto vera in azione (NbaActionArt). Nome, club (o nazionale per le icone) e ruolo.
+     */
+    static String renderAction(String name, Map<String, Object> meta, NbaActionArt.Photo photo, String headshot) {
+        Map<String, Object> view = new HashMap<>(meta);
+        Object cardName = meta.get("cardName");
+        view.put("player", cardName != null ? cardName : name.replace(" (Action)", ""));
+        String club = str(meta, "club", "");
+        view.put("team", "ICON".equalsIgnoreCase(club) ? str(meta, "nation", "") : club);
+        String position = str(meta, "position", "");
+        view.put("roleLabel", ROLES.getOrDefault(position, position));
+        view.put("year", str(meta, "year", "2026-27"));
+        view.put("number", "OVR " + str(meta, "ovr", ""));
+        return NbaActionArt.render(view, photo, headshot, "#0f6e3a", NbaActionArt.credit(meta), NbaActionArt.FOOTBALL);
+    }
+
     /** id e' il code pubblico della carta, come in GET /api/cards/{id}. */
     @GetMapping(value = "/cards/{id}/fc-card.svg")
     public ResponseEntity<byte[]> card(@PathVariable String id) {
         Card card = cardRepository.findByCode(id)
                 .filter(c -> Fc27Importer.SOURCE.equals(c.getSource()))
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "card_not_found"));
-        String svg = render(card.getName(), card.getMetadata(), photoOf(card));
+        Map<String, Object> meta = card.getMetadata() == null ? Map.of() : card.getMetadata();
+        String svg = "action".equals(meta.get("version"))
+                ? renderAction(card.getName(), meta, actionPhotos == null ? null : actionPhotos.of(meta), photoOf(card))
+                : render(card.getName(), card.getMetadata(), photoOf(card));
         return ResponseEntity.ok()
                 .contentType(MediaType.valueOf("image/svg+xml"))
                 .cacheControl(CacheControl.maxAge(1, TimeUnit.DAYS).cachePublic())

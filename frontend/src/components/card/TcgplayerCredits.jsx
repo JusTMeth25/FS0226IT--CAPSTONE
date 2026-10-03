@@ -19,7 +19,7 @@ const GAMES = {
 };
 
 /** Autore e licenza della foto in azione (carte NBA Action, foto da Wikimedia Commons). */
-function PhotoCredit({ cardId }) {
+export function PhotoCredit({ cardId }) {
   const { data } = useApiResource(() => cardApi.getCard(cardId), [cardId]);
   const credit = data?.card?.photoCredit;
   if (!credit) return null;

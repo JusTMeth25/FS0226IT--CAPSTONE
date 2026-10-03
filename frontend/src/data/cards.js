@@ -630,6 +630,7 @@ export const CARDS = [
     group: 'Court Legends',
     rarity: 'rare',
     img: '/assets/img/ShadowGuard.webp',
+    fullImage: true,
     stats: { fans: 72, style: 78, influence: 86, energy: 82 },
     description: 'Segue ogni movimento come un\'ombra. Superarlo significa trovare una strada che non esiste.'
   },
@@ -641,6 +642,7 @@ export const CARDS = [
     group: 'Court Legends',
     rarity: 'rare',
     img: '/assets/img/FastBreak.webp',
+    fullImage: true,
     stats: { fans: 80, style: 82, influence: 72, energy: 86 },
     description: 'Da una palla recuperata al canestro passano soltanto pochi secondi.'
   },
@@ -652,6 +654,7 @@ export const CARDS = [
     group: 'Court Legends',
     rarity: 'uncommon',
     img: '/assets/img/StreetVision.webp',
+    fullImage: true,
     stats: { fans: 72, style: 80, influence: 74, energy: 72 },
     description: 'Cresciuto sui playground, vede passaggi che gli altri scoprono soltanto quando è troppo tardi.'
   },
@@ -663,6 +666,7 @@ export const CARDS = [
     group: 'Court Legends',
     rarity: 'uncommon',
     img: '/assets/img/PaintWarrior.webp',
+    fullImage: true,
     stats: { fans: 70, style: 64, influence: 72, energy: 82 },
     description: 'Nel pitturato non arretra di un centimetro. Ogni possesso diventa una battaglia.'
   },
@@ -674,6 +678,7 @@ export const CARDS = [
     group: 'Court Legends',
     rarity: 'uncommon',
     img: '/assets/img/CornerFlame.webp',
+    fullImage: true,
     stats: { fans: 68, style: 76, influence: 70, energy: 74 },
     description: 'Aspetta nell\'angolo e colpisce appena arriva il pallone. Rapido, preciso, letale.'
   },
@@ -685,6 +690,7 @@ export const CARDS = [
     group: 'Court Legends',
     rarity: 'uncommon',
     img: '/assets/img/VerticalRush.webp',
+    fullImage: true,
     stats: { fans: 74, style: 78, influence: 66, energy: 80 },
     description: 'Un passo, uno stacco, poi soltanto aria. Vive sopra il ferro.'
   },
@@ -696,6 +702,7 @@ export const CARDS = [
     group: 'Court Legends',
     rarity: 'common',
     img: '/assets/img/BaselineKid.webp',
+    fullImage: true,
     stats: { fans: 62, style: 66, influence: 58, energy: 70 },
     description: 'Corre lungo la linea di fondo aspettando il momento giusto per sorprendere la difesa.'
   },
@@ -707,6 +714,7 @@ export const CARDS = [
     group: 'Court Legends',
     rarity: 'common',
     img: '/assets/img/CityHooper.webp',
+    fullImage: true,
     stats: { fans: 66, style: 72, influence: 60, energy: 68 },
     description: 'Asfalto, rete consumata e luci della città. È qui che ha imparato a giocare.'
   },
@@ -718,6 +726,7 @@ export const CARDS = [
     group: 'Court Legends',
     rarity: 'common',
     img: '/assets/img/QuickRelease.webp',
+    fullImage: true,
     stats: { fans: 60, style: 68, influence: 64, energy: 66 },
     description: 'Riceve, tira, segna. Nessun movimento sprecato.'
   },
@@ -729,6 +738,7 @@ export const CARDS = [
     group: 'Court Legends',
     rarity: 'common',
     img: '/assets/img/HardScreen.webp',
+    fullImage: true,
     stats: { fans: 58, style: 56, influence: 68, energy: 74 },
     description: 'Fa il lavoro che non finisce negli highlights. Un blocco alla volta apre la strada alla squadra.'
   }
