@@ -157,6 +157,25 @@ function chordNotes([root, kind]) {
   return [root, root + (kind === 'm' ? 3 : 4), root + 7, root + 12];
 }
 
+/** Dissolvenza incrociata fra un brano della radio e l'altro, e sfumata quando la radio si spegne. */
+const RADIO_FADE_MS = 3000;
+const RADIO_FADE_OUT_MS = 800;
+
+/** Porta il volume di un elemento <audio> a `to` in `ms` millisecondi. */
+function fade(audio, to, ms, done) {
+  clearInterval(audio.fadeTimer);
+  const from = audio.volume;
+  const t0 = performance.now();
+  audio.fadeTimer = setInterval(() => {
+    const k = Math.min(1, (performance.now() - t0) / ms);
+    audio.volume = Math.max(0, Math.min(1, from + (to - from) * k));
+    if (k >= 1) {
+      clearInterval(audio.fadeTimer);
+      done?.();
+    }
+  }, 40);
+}
+
 class JukeboxPlayer {
   constructor() {
     this.ctx = null;
@@ -202,36 +221,86 @@ class JukeboxPlayer {
   }
 
   stop() {
-    clearInterval(this.timer);
-    this.timer = 0;
-    if (this.audio && !this.audio.paused) this.audio.pause();
+    this.stopSynth();
+    this.stopRadio();
   }
 
-  /** Anteprima del brano vero, dal punto in cui e' arrivata la stanza. */
+  stopSynth() {
+    clearInterval(this.timer);
+    this.timer = 0;
+  }
+
+  /** La radio sfuma invece di staccare di colpo. */
+  stopRadio() {
+    for (const deck of this.decks || []) {
+      if (!deck.paused) fade(deck, 0, RADIO_FADE_OUT_MS, () => deck.pause());
+    }
+    this.live = null;
+  }
+
+  /**
+   * Anteprima del brano vero, dal punto in cui e' arrivata la stanza. Due lettori come i piatti di
+   * un DJ: il brano nuovo entra su quello libero mentre il vecchio sfuma (dissolvenza incrociata),
+   * e il lettore libero intanto carica il brano dopo, che cosi' parte senza attese.
+   */
   playRadio() {
-    if (!this.audio) {
-      this.audio = new Audio();
-      this.audio.preload = 'auto';
+    if (!this.decks) {
+      this.decks = [new Audio(), new Audio()];
+      this.decks.forEach((deck) => { deck.preload = 'auto'; });
     }
-    const audio = this.audio;
-    if (audio.dataset.src !== this.radio.preview) {
-      audio.dataset.src = this.radio.preview;
-      audio.src = this.radio.preview;
-    }
-    audio.volume = this.muted ? 0 : RADIO_VOLUME;
+    const want = this.radio.preview;
     const offset = Math.max(0, (Date.now() + this.clockOffset - this.startedAt) / 1000);
+    const volume = this.muted ? 0 : RADIO_VOLUME;
+    const live = this.live;
+    if (live && live.dataset.src === want && !live.paused) {
+      // Stesso brano: si corregge solo se e' andato fuori tempo, per non fare scatti.
+      if (live.readyState >= 1 && Math.abs(live.currentTime - offset) > 1.5 && offset < (live.duration || 30) - 0.5) live.currentTime = offset;
+      fade(live, volume, 300);
+      return;
+    }
+    // Il lettore con il brano gia' caricato, altrimenti quello che non sta suonando.
+    const deck = this.decks.find((d) => d.dataset.src === want && d !== live) || this.decks.find((d) => d !== live);
+    clearInterval(deck.fadeTimer);
+    if (deck.dataset.src !== want) {
+      deck.dataset.src = want;
+      deck.src = want;
+    }
+    deck.volume = 0;
     const start = () => {
-      if (offset < (audio.duration || 30) - 0.5) audio.currentTime = offset;
-      audio.play().catch(() => {});
+      if (this.live !== deck) return;
+      const at = Math.max(0, (Date.now() + this.clockOffset - this.startedAt) / 1000);
+      if (at < (deck.duration || 30) - 0.5) deck.currentTime = at;
+      deck.play().catch(() => {});
+      // Entrata piu' morbida se si arriva a brano iniziato (entrando nella stanza).
+      fade(deck, this.muted ? 0 : RADIO_VOLUME, offset > 2 ? 1200 : RADIO_FADE_MS);
     };
-    if (audio.readyState >= 1) start();
-    else audio.addEventListener('loadedmetadata', start, { once: true });
+    this.live = deck;
+    if (deck.readyState >= 1) start();
+    else deck.addEventListener('loadedmetadata', start, { once: true });
+    if (live && !live.paused) {
+      fade(live, 0, RADIO_FADE_MS, () => {
+        live.pause();
+        this.preloadNext();
+      });
+    } else {
+      this.preloadNext();
+    }
+  }
+
+  /** Il lettore libero carica il brano dopo. */
+  preloadNext() {
+    const next = this.radio?.nextPreview;
+    const idle = this.decks?.find((d) => d !== this.live);
+    if (!next || !idle || !idle.paused || idle.dataset.src === next) return;
+    idle.dataset.src = next;
+    idle.src = next;
+    idle.load();
   }
 
   /** Silenzio temporaneo (la gara rock ha la sua musica): il brano continua a tempo, senza volume. */
   setMuted(muted) {
     this.muted = muted;
-    if (this.audio) this.audio.volume = muted ? 0 : RADIO_VOLUME;
+    if (this.live) fade(this.live, muted ? 0 : RADIO_VOLUME, 300);
     if (this.master) this.master.gain.setTargetAtTime(muted ? 0 : 0.18, this.ctx.currentTime, 0.1);
   }
 
@@ -247,11 +316,16 @@ class JukeboxPlayer {
   }
 
   refresh() {
-    this.stop();
+    this.stopSynth();
     const enabled = soundService.isEnabled();
-    if (!this.ctx || this.track < 0 || !enabled || document.hidden) return;
-    if (this.track === RADIO_TRACK) {
-      if (this.radio?.preview) this.playRadio();
+    const radio = this.track === RADIO_TRACK && this.radio?.preview;
+    if (!radio) this.stopRadio();
+    if (!this.ctx || this.track < 0 || !enabled || document.hidden) {
+      this.stopRadio();
+      return;
+    }
+    if (radio) {
+      this.playRadio();
       return;
     }
 

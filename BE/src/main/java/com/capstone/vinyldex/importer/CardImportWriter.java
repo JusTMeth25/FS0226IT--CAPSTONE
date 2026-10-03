@@ -31,6 +31,9 @@ public class CardImportWriter {
         this.statCalculator = statCalculator;
     }
 
+    /** Fonti le cui carte senza immagine le disegna il backend (FcCardArtController, NbaCardArtController). */
+    private static final java.util.Set<String> DRAWN_BY_BACKEND = java.util.Set.of("fc27", "nba");
+
     @Transactional
     public int persist(String source, List<ImportedCard> cards, String errorMessage) {
         int imported = 0;
@@ -61,8 +64,12 @@ public class CardImportWriter {
             card.setFullImage(true);
 
             // Le carte demo non hanno un'immagine reale: restano disattivate anche se una richiesta
-            // precedente le aveva create attive, cosi' non escono mai dai pacchetti veri.
-            card.setActive(!incoming.isDemo());
+            // precedente le aveva create attive, cosi' non escono mai dai pacchetti veri. Lo stesso
+            // per le carte che la fonte pubblica senza immagine (molte promo giapponesi su
+            // TCGplayer): nei pacchetti e nei set si vedrebbe solo un riquadro vuoto. Fanno
+            // eccezione le fonti che la carta la disegna il backend (FC 27, NBA).
+            boolean hasImage = incoming.imgUrl() != null && !incoming.imgUrl().isBlank();
+            card.setActive(!incoming.isDemo() && (hasImage || DRAWN_BY_BACKEND.contains(source)));
 
             if (computeStats) applyStats(card);
 

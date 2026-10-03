@@ -24,8 +24,11 @@ final class DiscoRadio {
     private DiscoRadio() {
     }
 
-    /** Durata delle anteprime di Apple Music. */
-    static final long TRACK_MILLIS = 29_500;
+    /**
+     * Quanto suona ogni brano: le anteprime di Apple Music durano 30 secondi, il brano dopo parte
+     * un po' prima della fine cosi' i client fanno la dissolvenza incrociata sulla coda del vecchio.
+     */
+    static final long TRACK_MILLIS = 27_000;
     /** Indice del jukebox che vuol dire "radio della Disco" (i brani sintetizzati sono 0-9). */
     static final int RADIO_TRACK = 100;
 
@@ -99,6 +102,12 @@ final class DiscoRadio {
             return now - startedAt >= TRACK_MILLIS;
         }
 
+        /** Il brano che suonera' dopo (il primo del DJ successivo a fine set). */
+        Track upcoming() {
+            List<Track> tracks = currentDj().tracks();
+            return track + 1 < tracks.size() ? tracks.get(track + 1) : DJS.get((dj + 1) % DJS.size()).tracks().get(0);
+        }
+
         Map<String, Object> view() {
             Dj d = currentDj();
             Track t = current();
@@ -113,6 +122,8 @@ final class DiscoRadio {
             view.put("trackId", t.id());
             view.put("startedAt", startedAt);
             view.put("next", d.tracks().size() - track - 1);
+            // Il client lo carica in anticipo, cosi' il cambio brano e' senza attese.
+            view.put("nextPreview", upcoming().preview());
             return view;
         }
     }
