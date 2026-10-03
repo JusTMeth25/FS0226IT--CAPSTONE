@@ -31,7 +31,18 @@ public class ImportService {
         if (importer == null) {
             throw ApiException.notFound("unknown_import_source");
         }
-        return importer.importCards(request);
+        ImportResult result = importer.importCards(request);
+        // Le carte appena importate senza prezzo ricevono subito la stima.
+        if (priceBackfill != null) priceBackfill.fillMissing();
+        return result;
+    }
+
+    /** Facoltativo, cosi' i test lo possono omettere. */
+    private CardPriceBackfill priceBackfill;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPriceBackfill(CardPriceBackfill priceBackfill) {
+        this.priceBackfill = priceBackfill;
     }
 
     /** Fonti disponibili, per popolare il pannello admin senza codificarle nel frontend. */

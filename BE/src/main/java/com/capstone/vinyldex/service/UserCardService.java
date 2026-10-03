@@ -60,16 +60,6 @@ public class UserCardService {
                 .orElseThrow(() -> ApiException.badRequest("insufficient_quantity"));
 
         userCard.setQuantity(userCard.getQuantity() - quantity);
-        // Si danno via prima le copie normali: le olografiche restano finche' ce ne sono.
-        userCard.setFoilCount(Math.min(userCard.getFoilCount(), userCard.getQuantity()));
-        return userCardRepository.save(userCard);
-    }
-
-    /** Aggiunge una copia olografica (dai pacchetti). */
-    @Transactional(propagation = Propagation.MANDATORY)
-    public UserCard addFoil(User user, Card card) {
-        UserCard userCard = add(user, card, 1);
-        userCard.setFoilCount(userCard.getFoilCount() + 1);
         return userCardRepository.save(userCard);
     }
 

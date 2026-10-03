@@ -43,6 +43,8 @@ public class CardSetService {
             artist("the-rebel", "The Rebel", "Il Ribelle"),
             artist("the-showman", "The Showman", "Lo Showman"),
             artist("the-synth-master", "The Synth Master", "Il Maestro dei Synth"),
+            new SetDef("court-legends", "Court Legends", "Tutte le carte VinylDex di basket", "basketball", 400,
+                    c -> "original".equals(c.getSource()) && "Court Legends".equals(c.getGroup())),
             artist("the-virtuoso", "The Virtuoso", "Il Virtuoso"),
             new SetDef("fc27-icone-brasile", "Icone del Brasile", "Tutte le icone brasiliane di FC 27", "soccer-ball", 300,
                     c -> fc27Icon(c, "Brazil")),
@@ -189,9 +191,18 @@ public class CardSetService {
         return new HashSet<>(jdbc.queryForList("SELECT set_key FROM user_set_rewards WHERE user_id = ?", String.class, userId));
     }
 
+    /** Carte possedute; un'olografica conta come la sua carta base (e' la stessa carta, in versione speciale). */
     private Set<UUID> owned(UUID userId) {
-        return userCardRepository.findByUserIdWithCard(userId).stream()
-                .filter(uc -> uc.getQuantity() > 0).map(uc -> uc.getCard().getId()).collect(Collectors.toSet());
+        Set<UUID> owned = new HashSet<>();
+        for (var uc : userCardRepository.findByUserIdWithCard(userId)) {
+            if (uc.getQuantity() <= 0) continue;
+            if (uc.getCard().isHolo()) {
+                cardRepository.findByCode(uc.getCard().baseCode()).ifPresent(base -> owned.add(base.getId()));
+            } else {
+                owned.add(uc.getCard().getId());
+            }
+        }
+        return owned;
     }
 
     /** Tutti i set con l'avanzamento del giocatore: prima i completi da ritirare, poi i piu' avanzati. */

@@ -57,8 +57,16 @@ public class PackGenerator {
         // Pacchetto di una sola fonte (per esempio Ultimate Team): si pesca solo fra quelle carte.
         if (pack.getSource() != null && !pack.getSource().isBlank()) {
             // La fonte del pacchetto vale per tutta la sua famiglia: il Pacchetto Pokémon pesca anche
-            // le carte giapponesi (pokemonjp) e le promo (pokemonpromo).
-            allCards = allCards.stream().filter(c -> c.getSource() != null && c.getSource().startsWith(pack.getSource())).toList();
+            // le carte giapponesi (pokemonjp) e le promo (pokemonpromo). "fonte/gruppo" restringe a un
+            // gruppo di carte: "original/Court Legends" sono solo le carte VinylDex di basket.
+            String source = pack.getSource();
+            int slash = source.indexOf('/');
+            String family = slash > 0 ? source.substring(0, slash) : source;
+            String group = slash > 0 ? source.substring(slash + 1) : null;
+            allCards = allCards.stream()
+                    .filter(c -> c.getSource() != null && c.getSource().startsWith(family))
+                    .filter(c -> group == null || group.equals(c.getGroup()))
+                    .toList();
         }
         if (featured != null && !featured.isEmpty()) {
             Set<String> sources = featured.stream().map(Card::getSource).collect(Collectors.toSet());

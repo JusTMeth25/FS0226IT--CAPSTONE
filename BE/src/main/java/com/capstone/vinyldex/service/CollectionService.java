@@ -67,9 +67,12 @@ public class CollectionService {
                 .toList();
 
         // Il totale e' quello reale del catalogo, comprese le carte importate dalle API esterne.
-        long totalActiveCards = cardRepository.countByActiveTrue();
+        long totalActiveCards = cardRepository.countByActiveTrueAndHoloFalse();
+        // L'album conta le carte diverse: un'olografica e la sua carta base sono la stessa voce.
+        long distinct = userCards.stream().filter(uc -> uc.getQuantity() > 0)
+                .map(uc -> uc.getCard().baseCode()).distinct().count();
         int percent = totalActiveCards > 0
-                ? Math.round((ownedByCardId.size() * 100f) / totalActiveCards)
+                ? Math.round((distinct * 100f) / totalActiveCards)
                 : 0;
 
         return new CollectionView(entries, percent, totalActiveCards);
@@ -120,15 +123,22 @@ public class CollectionService {
         } else {
             all = sortedSource(source == null || source.isBlank() ? "original" : source);
         }
-        Map<UUID, UserCard> ownedByCardId = userCardRepository.findByUserIdWithCard(userId).stream()
-                .filter(uc -> uc.getQuantity() > 0)
+        List<UserCard> mine = userCardRepository.findByUserIdWithCard(userId).stream()
+                .filter(uc -> uc.getQuantity() > 0).toList();
+        Map<UUID, UserCard> ownedByCardId = mine.stream()
                 .collect(Collectors.toMap(uc -> uc.getCard().getId(), Function.identity(), (a, b) -> a));
+        // Le olografiche non stanno nel raccoglitore: riempiono (e fanno brillare) la tasca della carta base.
+        java.util.Set<String> holoOf = mine.stream().filter(uc -> uc.getCard().isHolo())
+                .map(uc -> uc.getCard().baseCode()).collect(Collectors.toSet());
         int from = Math.max(0, Math.min(offset, all.size()));
         int to = Math.min(all.size(), from + Math.max(1, Math.min(limit, BINDER_MAX_LIMIT)));
         List<CollectionEntryDto> page = all.subList(from, to).stream()
-                .map(card -> CollectionEntryDto.from(card, ownedByCardId.get(card.getId())))
+                .map(card -> {
+                    CollectionEntryDto entry = CollectionEntryDto.from(card, ownedByCardId.get(card.getId()));
+                    return holoOf.contains(card.getCode()) ? entry.withHoloOwned() : entry;
+                })
                 .toList();
-        long owned = all.stream().filter(c -> ownedByCardId.containsKey(c.getId())).count();
+        long owned = all.stream().filter(c -> ownedByCardId.containsKey(c.getId()) || holoOf.contains(c.getCode())).count();
         return new BinderPage(page, all.size(), owned, from);
     }
 

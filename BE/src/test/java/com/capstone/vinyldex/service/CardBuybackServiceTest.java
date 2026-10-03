@@ -71,10 +71,10 @@ class CardBuybackServiceTest {
     @DisplayName("Il prezzo sale con il valore di mercato, ma con un tetto per rarita'")
     void quotes() {
         assertEquals(0, CardBuybackService.quote(card("x", "rare", null)), "senza prezzo non si compra");
-        assertEquals(2, CardBuybackService.quote(card("c", "common", 0.2)));
-        assertEquals(3, CardBuybackService.quote(card("c2", "common", 50.0)), "tetto delle comuni");
-        assertEquals(8, CardBuybackService.quote(card("r", "rare", 5.0)));
-        assertEquals(120, CardBuybackService.quote(card("l", "legendary", 2_100_000.0)), "tetto delle leggendarie");
+        assertEquals(3, CardBuybackService.quote(card("c", "common", 0.2)));
+        assertEquals(8, CardBuybackService.quote(card("c2", "common", 50.0)), "tetto delle comuni");
+        assertEquals(16, CardBuybackService.quote(card("r", "rare", 5.0)));
+        assertEquals(400, CardBuybackService.quote(card("l", "legendary", 2_100_000.0)), "tetto delle leggendarie");
         assertTrue(CardBuybackService.quote(card("e", "epic", 100.0)) > CardBuybackService.quote(card("e2", "epic", 10.0)));
     }
 
@@ -87,7 +87,7 @@ class CardBuybackServiceTest {
         CardBuybackService.Sale sale = service.sell(anna.getId(), "rara", 2);
 
         verify(userCardService).remove(anna, rare, 2);
-        assertEquals(16, sale.earned());
+        assertEquals(32, sale.earned());
     }
 
     @Test
@@ -111,7 +111,7 @@ class CardBuybackServiceTest {
         owned(epic, 60);
         int total = 0;
         for (int i = 0; i < 5; i++) total += service.sell(anna.getId(), "epica", 10).earned();
-        assertEquals(45 * 50, total);
+        assertEquals(120 * 50, total);
     }
 
     @Test

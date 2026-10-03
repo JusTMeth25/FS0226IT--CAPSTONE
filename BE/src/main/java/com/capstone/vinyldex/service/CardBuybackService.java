@@ -27,11 +27,14 @@ import java.util.UUID;
 @Service
 public class CardBuybackService {
 
-    /** Gold per la radice quadrata del prezzo in dollari: 4 USD -> 7 gold, 100 USD -> 35 gold. */
-    static final double RATE = 3.5;
-    /** Gold al massimo per una copia, a seconda della rarita'. */
+    /** Gold per la radice quadrata del prezzo in dollari: 4 USD -> 14 gold, 100 USD -> 70 gold. */
+    static final double RATE = 7;
+    /**
+     * Gold al massimo per una copia, a seconda della rarita'. Con questi valori un pacchetto
+     * rivenduto per intero rende in media meno di quanto costa (Base ~50, Deluxe ~95, Premium ~180).
+     */
     static final Map<String, Integer> CAP = Map.of(
-            "common", 3, "uncommon", 8, "rare", 20, "epic", 45, "legendary", 120);
+            "common", 8, "uncommon", 20, "rare", 50, "epic", 120, "legendary", 400);
 
     private final UserCardRepository userCardRepository;
     private final CardRepository cardRepository;
@@ -61,12 +64,19 @@ public class CardBuybackService {
         return extras == null ? Map.of() : extras.firstEditions(userId);
     }
 
+    /** Un'olografica rende in gold questo multiplo della stessa carta normale, tetto compreso. */
+    static final int HOLO_GOLD = 2;
+
     /** Gold offerti per una copia; 0 se la carta non ha un prezzo di mercato. */
     public static int quote(Card card) {
         Double price = card.getMarketPrice();
         if (price == null || price <= 0) return 0;
+        // L'olografica si valuta come la sua carta base e poi si raddoppia: anche quando la carta
+        // normale tocca il tetto della rarita', l'olografica vale di piu'.
+        if (card.isHolo()) price = price / HoloCardService.PRICE_MULTIPLIER;
         int gold = (int) Math.round(RATE * Math.sqrt(price));
-        return Math.max(1, Math.min(CAP.getOrDefault(card.getRarity(), 3), gold));
+        int each = Math.max(1, Math.min(CAP.getOrDefault(card.getRarity(), 8), gold));
+        return card.isHolo() ? each * HOLO_GOLD : each;
     }
 
     /**
@@ -141,6 +151,7 @@ public class CardBuybackService {
         view.put("img", card.getImgUrl() == null ? "" : card.getImgUrl());
         view.put("source", card.getSource() == null ? "" : card.getSource());
         view.put("fullImage", card.isFullImage());
+        view.put("foil", card.isHolo() ? 1 : 0);
         view.put("coinPrice", com.capstone.vinyldex.dto.response.CardDto.coinPrice(card));
         view.put("grade", grade);
         return view;

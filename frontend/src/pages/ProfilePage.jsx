@@ -16,7 +16,7 @@ export default function ProfilePage() {
   const [avatarError, setAvatarError] = useState(null);
 
   // Per gli utenti autenticati il totale reale del catalogo (tutte le fonti) arriva dal server;
-  // in modalità ospite l'unico universo possibile resta il catalogo statico locale (43 carte).
+  // in modalità ospite l'unico universo possibile resta il catalogo statico locale delle carte originali.
   const totalCatalogCards = game.catalogSize ?? CARDS.length;
   const uniqueCount = useMemo(() => new Set(game.collection.map((c) => c.id)).size, [game.collection]);
   const progressPercent = totalCatalogCards > 0 ? Math.round((uniqueCount / totalCatalogCards) * 100) : 0;

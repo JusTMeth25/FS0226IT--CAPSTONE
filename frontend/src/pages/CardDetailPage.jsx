@@ -29,7 +29,7 @@ export default function CardDetailPage() {
   const { collection, favorites, toggleFavorite, gold, refreshCollection } = useGame();
   const { refreshUser } = useAuth();
 
-  // Catalogo statico locale (le 43 carte originali): copre subito il flusso "carta non ancora
+  // Catalogo statico locale (le carte originali VinylDex): copre subito il flusso "carta non ancora
   // scoperta" dell'Album. Le carte importate da API esterne non ci sono e vanno cercate lato server.
   const localCard = findCardById(id);
 
@@ -80,9 +80,11 @@ export default function CardDetailPage() {
   // intero, con in piu' il pacchetto dove e' piu' facile trovarla.
   let packHint = null;
   if (!ownedEntry) {
-    // Il pacchetto del suo gioco, se c'e', pesca da un catalogo piu' piccolo: e' il consiglio migliore.
-    const gamePack = PACKS.find((p) => p.source && p.source === referenceCard.source);
-    const candidates = gamePack ? [gamePack] : PACKS.filter((p) => !p.source);
+    // Il pacchetto del suo gruppo (Court Legends) o del suo gioco, se c'e', pesca da un catalogo piu'
+    // piccolo: e' il consiglio migliore.
+    const groupPacks = PACKS.filter((p) => p.group && p.group === referenceCard.group);
+    const gamePack = groupPacks[0] || PACKS.find((p) => p.source && !p.group && p.source === referenceCard.source);
+    const candidates = groupPacks.length ? groupPacks : gamePack ? [gamePack] : PACKS.filter((p) => !p.source);
     let bestPack = candidates[0];
     let bestRate = candidates[0].dropRates[referenceCard.rarity] || 0;
     candidates.forEach((p) => {
@@ -91,7 +93,9 @@ export default function CardDetailPage() {
     });
 
     let guaranteeText = '';
-    if (gamePack) guaranteeText = referenceCard.rarity === 'rare' ? `Garantita nel ${gamePack.name}!` : '';
+    const guaranteed = groupPacks.find((p) => p.guarantees?.[referenceCard.rarity] > 0);
+    if (guaranteed) guaranteeText = `Garantita nel ${guaranteed.name}!`;
+    else if (gamePack) guaranteeText = referenceCard.rarity === 'rare' ? `Garantita nel ${gamePack.name}!` : '';
     else if (referenceCard.rarity === 'legendary') guaranteeText = 'Garantita nei Pacchetti Premium!';
     else if (referenceCard.rarity === 'epic') guaranteeText = 'Garantita nei Pacchetti Deluxe!';
     else if (referenceCard.rarity === 'rare') guaranteeText = 'Garantita in tutti i pacchetti!';
@@ -151,7 +155,7 @@ export default function CardDetailPage() {
         )}
         <div className="card-detail-meta-item">
           <span className="meta-label">Fonte</span>
-          <span className="meta-value">{getSourceLabel(card.source)}</span>
+          <span className="meta-value">{getSourceLabel(card.source || 'original')}</span>
         </div>
         {formatCardPrice(ownedEntry) && (
           <div className="card-detail-meta-item">

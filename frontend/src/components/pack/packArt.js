@@ -37,6 +37,8 @@ export const PACK_ICON = {
   'pack-premium': 'ph-crown',
   'pack-ultimate': 'ph-soccer-ball',
   'pack-weekend': 'ph-calendar-star',
+  'pack-court': 'ph-basketball',
+  'pack-court-mvp': 'ph-basketball',
   ...gamePacks((source, [icon]) => icon)
 };
 
@@ -46,6 +48,8 @@ export const PACK_GRADIENT = {
   'pack-premium': 'linear-gradient(135deg, #FFD700, #FFA500)',
   'pack-ultimate': 'linear-gradient(135deg, #15803d, #052e1a)',
   'pack-weekend': 'linear-gradient(135deg, #f43f5e, #f59e0b 60%, #7c3aed)',
+  'pack-court': 'linear-gradient(135deg, #fb923c, #0b1e3f)',
+  'pack-court-mvp': 'linear-gradient(135deg, #fde047, #3b2a06)',
   ...gamePacks((source, [, light, dark]) => `linear-gradient(135deg, ${light}, ${dark})`)
 };
 
@@ -56,6 +60,9 @@ export const PACK_IMAGE = {
   'pack-premium': '/assets/img/PremiumPack.webp',
   // Il pacchetto del weekend: la grafica del Deluxe nei colori del tramonto, con il suo titolo.
   'pack-weekend': '/assets/img/WeekendPack.webp',
+  // Court Legends: le carte di basket VinylDex a ventaglio, con il nome gia' sulla busta.
+  'pack-court': '/assets/img/CourtPack.webp',
+  'pack-court-mvp': '/assets/img/CourtMvpPack.webp',
   // I pacchetti di un solo gioco hanno come grafica il dorso delle carte di quel gioco
   // (VinylDex Originali non ha un dorso in file: resta la grafica disegnata).
   'pack-ultimate': CARD_BACKS.fc27,
@@ -69,5 +76,10 @@ export const PACK_TILT_RARITY = {
   'pack-premium': 'legendary',
   'pack-weekend': 'epic',
   'pack-ultimate': 'epic',
+  'pack-court': 'rare',
+  'pack-court-mvp': 'legendary',
   ...gamePacks(() => 'rare')
 };
+
+/** Pacchetti la cui grafica ha gia' il nome scritto: niente etichetta sopra. */
+export const PACK_NAMED_ART = new Set(['pack-court', 'pack-court-mvp']);

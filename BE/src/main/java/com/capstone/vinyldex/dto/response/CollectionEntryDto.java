@@ -34,7 +34,7 @@ public record CollectionEntryDto(
         Instant obtainedAt,
         // Voto del perito dell'hotel (1-10), null se non gradata.
         Integer grade,
-        // Copie olografiche fra quelle possedute.
+        // 1 se la carta e' la versione olografica di un'altra (HoloCardService).
         int foil,
         // Cofanetto del perito: numero di certificato e quando e' stata gradata.
         String gradeCert,
@@ -42,6 +42,13 @@ public record CollectionEntryDto(
         // Prima edizione: numero da 1 a 10 se il giocatore e' fra i primi dieci ad averla trovata.
         Integer firstEdition
 ) {
+
+    /** Nel raccoglitore: la tasca della carta base brilla (ed e' piena) se si ha la sua olografica. */
+    public CollectionEntryDto withHoloOwned() {
+        return new CollectionEntryDto(id, name, artistClass, variant, group, rarity, img, fullImage, stats, description,
+                source, setName, setCode, number, marketPrice, coinPrice, true, quantity, favorite, obtainedAt, grade, 1,
+                gradeCert, gradedAt, firstEdition);
+    }
 
     public CollectionEntryDto withFirstEdition(Integer serial) {
         return new CollectionEntryDto(id, name, artistClass, variant, group, rarity, img, fullImage, stats, description,
@@ -60,7 +67,7 @@ public record CollectionEntryDto(
                 userCard != null && userCard.isFavorite(),
                 userCard != null ? userCard.getObtainedAt() : null,
                 userCard != null ? userCard.getGrade() : null,
-                userCard != null ? userCard.getFoilCount() : 0,
+                card.isHolo() ? 1 : 0,
                 userCard != null && userCard.getGrade() != null ? certificate(userCard) : null,
                 userCard != null ? userCard.getGradedAt() : null,
                 null

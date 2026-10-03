@@ -265,6 +265,31 @@ export const PACKS = [
     isFree: false,
     source: 'gundam'
   },
+  // Court Legends (V61): solo le carte VinylDex di basket (gruppo Court Legends).
+  {
+    id: 'pack-court',
+    name: 'Pacchetto Court Legends',
+    description: '5 carte solo Court Legends con 1 Rara garantita.',
+    price: 100,
+    cardCount: 5,
+    dropRates: { common: 0.45, uncommon: 0.30, rare: 0.15, epic: 0.07, legendary: 0.03 },
+    guarantees: { rare: 1, epic: 0, legendary: 0 },
+    isFree: false,
+    source: 'original/Court Legends',
+    group: 'Court Legends'
+  },
+  {
+    id: 'pack-court-mvp',
+    name: 'Court Legends MVP',
+    description: '5 carte solo Court Legends con 1 Leggendaria garantita.',
+    price: 300,
+    cardCount: 5,
+    dropRates: { common: 0.20, uncommon: 0.25, rare: 0.25, epic: 0.20, legendary: 0.10 },
+    guarantees: { rare: 1, epic: 0, legendary: 1 },
+    isFree: false,
+    source: 'original/Court Legends',
+    group: 'Court Legends'
+  },
   {
     id: 'pack-original',
     name: 'Pacchetto VinylDex Originali',

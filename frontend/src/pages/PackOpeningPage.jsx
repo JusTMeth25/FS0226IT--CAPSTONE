@@ -11,7 +11,7 @@ import { formatDuration } from '../hooks/useCountdown.js';
 import StarBorder from '../components/common/StarBorder.jsx';
 import CardHoloFrame from '../components/card/CardHoloFrame.jsx';
 import PackOpeningFlow from '../components/pack/PackOpeningFlow.jsx';
-import { PACK_GRADIENT, PACK_ICON, PACK_IMAGE, PACK_TILT_RARITY } from '../components/pack/packArt.js';
+import { PACK_GRADIENT, PACK_ICON, PACK_IMAGE, PACK_TILT_RARITY, PACK_NAMED_ART } from '../components/pack/packArt.js';
 
 /** Riflesso olografico + sparkle sopra la card pacchetto, stesso pattern usato per le carte. */
 // I pacchetti misti pescano da tutti i giochi; gli altri da uno solo (Ultimate Team compreso).
@@ -55,7 +55,7 @@ function PackSelectCard({ pack, gold, isFreeAvailable, cooldownRemaining, gifted
           <>
             <img loading="lazy" decoding="async" className="pack-card-art-full" src={packImage} alt={pack.name} />
             {/* La grafica dei pacchetti di un solo gioco e' il dorso delle carte: il nome va scritto. */}
-            {pack.source && <span className="pack-card-name-tag">{pack.name.replace('Pacchetto ', '')}</span>}
+            {pack.source && !PACK_NAMED_ART.has(pack.id) && <span className="pack-card-name-tag">{pack.name.replace('Pacchetto ', '')}</span>}
           </>
         ) : (
           <>

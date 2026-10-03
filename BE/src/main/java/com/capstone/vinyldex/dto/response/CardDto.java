@@ -26,7 +26,9 @@ public record CardDto(
         String number,
         Double marketPrice,
         // Solo per le carte EA FC 27: il prezzo in crediti di Ultimate Team.
-        Long coinPrice
+        Long coinPrice,
+        // 1 per la versione olografica di una carta (HoloCardService): il frontend la fa brillare.
+        int foil
 ) {
 
     public static CardDto from(Card card) {
@@ -47,7 +49,8 @@ public record CardDto(
                 card.getSetCode(),
                 card.getNumber(),
                 card.getMarketPrice(),
-                coinPrice(card)
+                coinPrice(card),
+                card.isHolo() ? 1 : 0
         );
     }
 

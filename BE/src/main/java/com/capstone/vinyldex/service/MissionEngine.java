@@ -148,7 +148,7 @@ public class MissionEngine {
         // Il totale e' quello reale del catalogo, tutte le fonti comprese. Contare gli slot di
         // AlbumCard darebbe una percentuale sopra il 100%, perche' gli album fermi al seed non
         // includono le carte importate dalle API esterne.
-        long totalActiveCards = cardRepository.countByActiveTrue();
+        long totalActiveCards = cardRepository.countByActiveTrueAndHoloFalse();
         int percent = totalActiveCards > 0 ? Math.round((uniqueCount * 100f) / totalActiveCards) : 0;
         for (Mission mission : albumMissions) {
             setValue(user, mission, percent);

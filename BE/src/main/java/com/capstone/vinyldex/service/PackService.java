@@ -48,6 +48,14 @@ public class PackService {
         this.missionEngine = missionEngine;
     }
 
+    /** Versioni olografiche delle carte. Facoltativo, cosi' i test lo possono omettere. */
+    private HoloCardService holoCardService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setHoloCardService(HoloCardService holoCardService) {
+        this.holoCardService = holoCardService;
+    }
+
     /** Vetrina. userId nullo per un visitatore non autenticato: niente pacchetti regalati. */
     @Transactional(readOnly = true)
     public PackListView listPacks(UUID userId) {
@@ -109,12 +117,15 @@ public class PackService {
 
         Map<String, Integer> rarityCounts = new HashMap<>();
         List<Boolean> foil = new java.util.ArrayList<>();
-        for (Card card : cards) {
-            // Ogni tanto la carta esce olografica: piu' spesso le leggendarie.
-            boolean shiny = FOIL_RANDOM.nextDouble() < foilChance(card.getRarity());
+        List<Card> found = new java.util.ArrayList<>();
+        for (Card drawn : cards) {
+            // Ogni tanto la carta esce olografica: piu' spesso le leggendarie. L'olografica e' una
+            // versione a se' della carta (HoloCardService), non una copia di quella normale.
+            boolean shiny = FOIL_RANDOM.nextDouble() < foilChance(drawn.getRarity());
+            Card card = shiny && holoCardService != null ? holoCardService.holoOf(drawn) : drawn;
             foil.add(shiny);
-            if (shiny) userCardService.addFoil(user, card);
-            else userCardService.add(user, card, 1);
+            found.add(card);
+            userCardService.add(user, card, 1);
             packOpeningCardRepository.save(new PackOpeningCard(opening, card, card.getRarity()));
             rarityCounts.merge(card.getRarity(), 1, Integer::sum);
         }
@@ -127,7 +138,7 @@ public class PackService {
 
         // Il saldo si rilegge dall'entita' gestita: WalletService l'ha gia' aggiornata.
         int gold = userRepository.findById(userId).map(User::getGold).orElse(user.getGold());
-        return new OpenPackResult(cards.stream().map(CardDto::from).toList(), gold, foil, user.getPackPity());
+        return new OpenPackResult(found.stream().map(CardDto::from).toList(), gold, foil, user.getPackPity());
     }
 
     /**

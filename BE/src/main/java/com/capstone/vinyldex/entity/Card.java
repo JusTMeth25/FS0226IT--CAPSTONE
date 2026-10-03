@@ -105,6 +105,21 @@ public class Card {
     @Column(name = "metadata", columnDefinition = "jsonb")
     private Map<String, Object> metadata = new HashMap<>();
 
+    /** Suffisso del codice della versione olografica: "pokemon-base1-4" -> "pokemon-base1-4-holo". */
+    public static final String HOLO_SUFFIX = "-holo";
+
+    /**
+     * Versione olografica di un'altra carta (HoloCardService): una carta a se', con il suo codice e
+     * un prezzo piu' alto, che non esce dai pacchetti come carta normale e non conta nel catalogo.
+     */
+    @Column(name = "holo", nullable = false)
+    private boolean holo = false;
+
+    /** Codice della carta base: per una olografica toglie il suffisso, per le altre e' il codice. */
+    public String baseCode() {
+        return holo && code != null && code.endsWith(HOLO_SUFFIX) ? code.substring(0, code.length() - HOLO_SUFFIX.length()) : code;
+    }
+
     /** Prezzo di mercato letto da metadata, null se l'import non lo ha fornito. */
     public Double getMarketPrice() {
         if (metadata == null) return null;

@@ -1,6 +1,7 @@
 /**
  * VinylDex - Database carte (artisti musicali IP originali)
- * 8 classi x 5 carte + alcune carte speciali affiancate al roster principale.
+ * 8 classi x 5 carte + alcune carte speciali affiancate al roster principale,
+ * piu' le Court Legends: 21 carte di basket con 12 classi loro.
  */
 export const CARDS = [
   // ============================================
@@ -485,6 +486,251 @@ export const CARDS = [
     fullImage: true,
     stats: { fans: 62, style: 68, influence: 64, energy: 66 },
     description: 'Sintetizzatore al neon. Luci aliene e suoni che vengono dal futuro.'
+  },
+  // ============================================
+  // COURT LEGENDS (basket)
+  // ============================================
+  {
+    id: 'court-legendary-001',
+    name: 'Sky Breaker',
+    artistClass: 'The MVP',
+    variant: 'Sky Breaker',
+    group: 'Court Legends',
+    rarity: 'legendary',
+    img: '/assets/img/SkyBreaker.webp',
+    fullImage: true,
+    stats: { fans: 94, style: 91, influence: 88, energy: 96 },
+    description: 'Regina del parquet. Ogni salto sfida il cielo, ogni schiacciata accende l\'arena.'
+  },
+  {
+    id: 'court-legendary-002',
+    name: 'Iron Dunk',
+    artistClass: 'The Titan',
+    variant: 'Iron Dunk',
+    group: 'Court Legends',
+    rarity: 'legendary',
+    img: '/assets/img/IronDunk.webp',
+    fullImage: true,
+    stats: { fans: 93, style: 87, influence: 89, energy: 97 },
+    description: 'Dominatore del ferro. Ogni schiacciata scuote l\'arena e lascia il pubblico senza fiato.'
+  },
+  {
+    id: 'court-legendary-003',
+    name: 'Phantom Handles',
+    artistClass: 'The Playmaker',
+    variant: 'Phantom Handles',
+    group: 'Court Legends',
+    rarity: 'legendary',
+    img: '/assets/img/PhantomHandles.webp',
+    fullImage: true,
+    stats: { fans: 91, style: 99, influence: 90, energy: 91 },
+    description: 'Il pallone scompare tra le sue mani. Ogni palleggio inganna gli occhi e riscrive il gioco.'
+  },
+  {
+    id: 'court-legendary-004',
+    name: 'Zero Gravity',
+    artistClass: 'The High Flyer',
+    variant: 'Zero Gravity',
+    group: 'Court Legends',
+    rarity: 'legendary',
+    img: '/assets/img/ZeroGravity.webp',
+    fullImage: true,
+    stats: { fans: 97, style: 95, influence: 86, energy: 94 },
+    description: 'La gravità è soltanto una regola da infrangere. In aria, il campo appartiene a lui.'
+  },
+  {
+    id: 'court-legendary-005',
+    name: 'Final Shot',
+    artistClass: 'The Closer',
+    variant: 'Final Shot',
+    group: 'Court Legends',
+    rarity: 'legendary',
+    img: '/assets/img/FinalShot.webp',
+    fullImage: true,
+    stats: { fans: 96, style: 89, influence: 95, energy: 90 },
+    description: 'Quando il tempo sta per scadere, tutti sanno chi prenderà l\'ultimo tiro.'
+  },
+  {
+    id: 'court-epic-001',
+    name: 'Neon Crossover',
+    artistClass: 'The Playmaker',
+    variant: 'Neon Crossover',
+    group: 'Court Legends',
+    rarity: 'epic',
+    img: '/assets/img/NeonCrossover.webp',
+    fullImage: true,
+    stats: { fans: 86, style: 94, influence: 82, energy: 88 },
+    description: 'Un cambio di direzione e il difensore resta indietro. Eleganza e velocità in un solo movimento.'
+  },
+  {
+    id: 'court-epic-002',
+    name: 'Rim Crusher',
+    artistClass: 'The Titan',
+    variant: 'Rim Crusher',
+    group: 'Court Legends',
+    rarity: 'epic',
+    img: '/assets/img/RimCrusher.webp',
+    fullImage: true,
+    stats: { fans: 88, style: 80, influence: 82, energy: 95 },
+    description: 'Attacca il ferro senza esitazione. Ogni schiacciata sembra voler distruggere il canestro.'
+  },
+  {
+    id: 'court-epic-003',
+    name: 'Arc Assassin',
+    artistClass: 'The Sniper',
+    variant: 'Arc Assassin',
+    group: 'Court Legends',
+    rarity: 'epic',
+    img: '/assets/img/ArcAssassin.webp',
+    fullImage: true,
+    stats: { fans: 84, style: 88, influence: 90, energy: 82 },
+    description: 'Oltre la linea dei tre punti non esiste distanza. Solo bersagli.'
+  },
+  {
+    id: 'court-epic-004',
+    name: 'Court Emperor',
+    artistClass: 'The MVP',
+    variant: 'Court Emperor',
+    group: 'Court Legends',
+    rarity: 'epic',
+    img: '/assets/img/CourtEmperor.webp',
+    fullImage: true,
+    stats: { fans: 90, style: 86, influence: 91, energy: 84 },
+    description: 'Comanda il parquet con presenza assoluta. Il ritmo della partita segue i suoi ordini.'
+  },
+  {
+    id: 'court-rare-001',
+    name: 'Blue Lightning',
+    artistClass: 'The Speedster',
+    variant: 'Blue Lightning',
+    group: 'Court Legends',
+    rarity: 'rare',
+    img: '/assets/img/BlueLightning.webp',
+    fullImage: true,
+    stats: { fans: 78, style: 84, influence: 74, energy: 90 },
+    description: 'Un lampo attraversa il campo prima che la difesa possa reagire.'
+  },
+  {
+    id: 'court-rare-002',
+    name: 'Glass Breaker',
+    artistClass: 'The Rebounder',
+    variant: 'Glass Breaker',
+    group: 'Court Legends',
+    rarity: 'rare',
+    img: '/assets/img/GlassBreaker.webp',
+    fullImage: true,
+    stats: { fans: 76, style: 70, influence: 80, energy: 88 },
+    description: 'Ogni rimbalzo è suo. Sotto canestro trasforma centimetri e forza in dominio.'
+  },
+  {
+    id: 'court-rare-003',
+    name: 'Shadow Guard',
+    artistClass: 'The Lockdown',
+    variant: 'Shadow Guard',
+    group: 'Court Legends',
+    rarity: 'rare',
+    // Immagine in arrivo: /assets/img/ShadowGuard.webp
+    stats: { fans: 72, style: 78, influence: 86, energy: 82 },
+    description: 'Segue ogni movimento come un\'ombra. Superarlo significa trovare una strada che non esiste.'
+  },
+  {
+    id: 'court-rare-004',
+    name: 'Fast Break',
+    artistClass: 'The Speedster',
+    variant: 'Fast Break',
+    group: 'Court Legends',
+    rarity: 'rare',
+    // Immagine in arrivo: /assets/img/FastBreak.webp
+    stats: { fans: 80, style: 82, influence: 72, energy: 86 },
+    description: 'Da una palla recuperata al canestro passano soltanto pochi secondi.'
+  },
+  {
+    id: 'court-uncommon-001',
+    name: 'Street Vision',
+    artistClass: 'The Playmaker',
+    variant: 'Street Vision',
+    group: 'Court Legends',
+    rarity: 'uncommon',
+    // Immagine in arrivo: /assets/img/StreetVision.webp
+    stats: { fans: 72, style: 80, influence: 74, energy: 72 },
+    description: 'Cresciuto sui playground, vede passaggi che gli altri scoprono soltanto quando è troppo tardi.'
+  },
+  {
+    id: 'court-uncommon-002',
+    name: 'Paint Warrior',
+    artistClass: 'The Titan',
+    variant: 'Paint Warrior',
+    group: 'Court Legends',
+    rarity: 'uncommon',
+    // Immagine in arrivo: /assets/img/PaintWarrior.webp
+    stats: { fans: 70, style: 64, influence: 72, energy: 82 },
+    description: 'Nel pitturato non arretra di un centimetro. Ogni possesso diventa una battaglia.'
+  },
+  {
+    id: 'court-uncommon-003',
+    name: 'Corner Flame',
+    artistClass: 'The Sniper',
+    variant: 'Corner Flame',
+    group: 'Court Legends',
+    rarity: 'uncommon',
+    // Immagine in arrivo: /assets/img/CornerFlame.webp
+    stats: { fans: 68, style: 76, influence: 70, energy: 74 },
+    description: 'Aspetta nell\'angolo e colpisce appena arriva il pallone. Rapido, preciso, letale.'
+  },
+  {
+    id: 'court-uncommon-004',
+    name: 'Vertical Rush',
+    artistClass: 'The High Flyer',
+    variant: 'Vertical Rush',
+    group: 'Court Legends',
+    rarity: 'uncommon',
+    // Immagine in arrivo: /assets/img/VerticalRush.webp
+    stats: { fans: 74, style: 78, influence: 66, energy: 80 },
+    description: 'Un passo, uno stacco, poi soltanto aria. Vive sopra il ferro.'
+  },
+  {
+    id: 'court-common-001',
+    name: 'Baseline Kid',
+    artistClass: 'The Rookie',
+    variant: 'Baseline Kid',
+    group: 'Court Legends',
+    rarity: 'common',
+    // Immagine in arrivo: /assets/img/BaselineKid.webp
+    stats: { fans: 62, style: 66, influence: 58, energy: 70 },
+    description: 'Corre lungo la linea di fondo aspettando il momento giusto per sorprendere la difesa.'
+  },
+  {
+    id: 'court-common-002',
+    name: 'City Hooper',
+    artistClass: 'The Street Baller',
+    variant: 'City Hooper',
+    group: 'Court Legends',
+    rarity: 'common',
+    // Immagine in arrivo: /assets/img/CityHooper.webp
+    stats: { fans: 66, style: 72, influence: 60, energy: 68 },
+    description: 'Asfalto, rete consumata e luci della città. È qui che ha imparato a giocare.'
+  },
+  {
+    id: 'court-common-003',
+    name: 'Quick Release',
+    artistClass: 'The Sniper',
+    variant: 'Quick Release',
+    group: 'Court Legends',
+    rarity: 'common',
+    // Immagine in arrivo: /assets/img/QuickRelease.webp
+    stats: { fans: 60, style: 68, influence: 64, energy: 66 },
+    description: 'Riceve, tira, segna. Nessun movimento sprecato.'
+  },
+  {
+    id: 'court-common-004',
+    name: 'Hard Screen',
+    artistClass: 'The Enforcer',
+    variant: 'Hard Screen',
+    group: 'Court Legends',
+    rarity: 'common',
+    // Immagine in arrivo: /assets/img/HardScreen.webp
+    stats: { fans: 58, style: 56, influence: 68, energy: 74 },
+    description: 'Fa il lavoro che non finisce negli highlights. Un blocco alla volta apre la strada alla squadra.'
   }
 ];
 

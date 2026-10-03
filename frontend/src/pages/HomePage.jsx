@@ -33,7 +33,7 @@ export default function HomePage() {
   const isFreeAvailable = game.isFreeAvailable(basePack);
 
   // Per gli utenti autenticati il totale reale del catalogo (tutte le fonti) arriva dal server;
-  // in modalità ospite l'unico universo possibile resta il catalogo statico locale (43 carte).
+  // in modalità ospite l'unico universo possibile resta il catalogo statico locale delle carte originali.
   const totalCatalogCards = game.catalogSize ?? CARDS.length;
 
   const { recentCards, featuredCard, progressPercent, ownedCount } = useMemo(() => {

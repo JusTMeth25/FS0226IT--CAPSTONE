@@ -30,22 +30,24 @@ public interface CardRepository extends JpaRepository<Card, UUID> {
 
     long countBySource(String source);
 
-    long countByActiveTrue();
+    /** Carte del catalogo (le versioni olografiche non contano: sono copie speciali di altre carte). */
+    long countByActiveTrueAndHoloFalse();
 
     /** Carte di altre fonti con statistiche esattamente uguali a quelle date (vedi CardStatsBackfill). */
     List<Card> findBySourceNotAndFansAndStyleAndInfluenceAndEnergy(String source, int fans, int style,
                                                                  int influence, int energy);
 
     /**
-     * Tutte le carte attive, dalla cache (CacheConfig): la lista e' condivisa, non va modificata,
+     * Tutte le carte attive del catalogo, olografiche escluse (pacchetti, raccoglitore, set...),
+     * dalla cache (CacheConfig): la lista e' condivisa, non va modificata,
      * e le carte sono staccate dalla sessione (si leggono, non si salvano da qui).
      */
     @Cacheable(CacheConfig.ACTIVE_CARDS)
-    @Query("SELECT c FROM Card c LEFT JOIN FETCH c.artistClass WHERE c.active = true")
+    @Query("SELECT c FROM Card c LEFT JOIN FETCH c.artistClass WHERE c.active = true AND c.holo = false")
     List<Card> findAllActiveWithArtistClass();
 
     /** La stessa lettura, sempre dal database: la usa CatalogCacheWarmer per rinfrescare la cache. */
-    @Query("SELECT c FROM Card c LEFT JOIN FETCH c.artistClass WHERE c.active = true")
+    @Query("SELECT c FROM Card c LEFT JOIN FETCH c.artistClass WHERE c.active = true AND c.holo = false")
     List<Card> loadAllActiveWithArtistClass();
 
     @Query("SELECT c FROM Card c LEFT JOIN FETCH c.artistClass WHERE c.code = :code")
@@ -73,7 +75,7 @@ public interface CardRepository extends JpaRepository<Card, UUID> {
     @Query("""
             SELECT c FROM Card c
             LEFT JOIN FETCH c.artistClass
-            WHERE c.active = true
+            WHERE c.active = true AND c.holo = false
               AND (:rarity = '' OR c.rarity = :rarity)
               AND (:source = '' OR c.source = :source)
               AND (:search = '' OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')))

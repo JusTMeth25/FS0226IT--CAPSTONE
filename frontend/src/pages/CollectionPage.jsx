@@ -13,7 +13,7 @@ export default function CollectionPage() {
   const { collection, catalogSize, stats } = useGame();
   const navigate = useNavigate();
   // Per gli utenti autenticati il totale reale del catalogo (tutte le fonti) arriva dal server;
-  // in modalità ospite l'unico universo possibile resta il catalogo statico locale (43 carte).
+  // in modalità ospite l'unico universo possibile resta il catalogo statico locale delle carte originali.
   const totalCatalogCards = catalogSize ?? CARDS.length;
 
   const { getParam, setParam, resetParams } = useFilterParams();
