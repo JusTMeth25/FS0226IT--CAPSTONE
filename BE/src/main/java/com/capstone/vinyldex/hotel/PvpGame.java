@@ -34,7 +34,7 @@ public class PvpGame {
 
     /** Carta in squadra, con le statistiche fissate all'inizio della partita. */
     public record CardInfo(String id, String name, String rarity, String img, String source, boolean fullImage,
-                           Map<String, Integer> stats) {
+                           Map<String, Integer> stats, String finish, int foil) {
         int stat(String category) {
             return stats.getOrDefault(category, 0);
         }

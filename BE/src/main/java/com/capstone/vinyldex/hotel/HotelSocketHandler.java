@@ -445,6 +445,8 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         view.put("source", card.getSource());
         view.put("rarity", card.getRarity());
         view.put("fullImage", true);
+        view.put("finish", com.capstone.vinyldex.dto.response.CardFinish.of(card));
+        view.put("foil", card.isHolo() ? 1 : 0);
         if (withName) view.put("name", card.getName());
         return view;
     }

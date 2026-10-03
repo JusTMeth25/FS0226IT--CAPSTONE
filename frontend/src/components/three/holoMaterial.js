@@ -125,16 +125,15 @@ const HoloMaterial = shaderMaterial(
         return spectrum(p.x + p.y * 0.5 - t.x) * (0.35 + 0.4 * line);
       }
       if (f < 10.5) { // rainbow
-        float glit = step(0.96, hash(floor(p * vec2(80.0, 112.0))));
-        return mix(spectrum(p.x * 1.4 - t.x * 1.5), vec3(1.0), 0.25) + glit * 0.6;
+        return mix(spectrum(p.x * 1.4 - t.x * 1.5), vec3(1.0), 0.25);
       }
       if (f < 11.5) { // secret: oro
-        float glit = hash(floor(p * vec2(90.0, 126.0) + floor(t * 6.0)));
-        return vec3(1.0, 0.78, 0.35) * (0.45 + 0.6 * step(0.8, glit)) + smoothstep(0.4, 0.0, d) * vec3(1.0, 0.9, 0.6);
+        float sweep = smoothstep(0.12, 0.0, abs(fract(p.x * 0.8 + p.y * 0.5 - t.x * 1.5) - 0.5));
+        return vec3(1.0, 0.78, 0.35) * (0.45 + 0.5 * sweep) + smoothstep(0.4, 0.0, d) * vec3(1.0, 0.9, 0.6);
       }
       if (f < 12.5) { // shiny: argento
-        float glit = hash(floor(p * vec2(100.0, 140.0) + floor(t * 8.0)));
-        return vec3(0.82, 0.88, 1.0) * (0.35 + 0.65 * step(0.82, glit)) + smoothstep(0.4, 0.0, d) * 0.5;
+        float sweep = smoothstep(0.12, 0.0, abs(fract(p.x * 0.8 + p.y * 0.5 - t.x * 1.5) - 0.5));
+        return vec3(0.82, 0.88, 1.0) * (0.35 + 0.5 * sweep) + smoothstep(0.4, 0.0, d) * 0.5;
       }
       if (f < 13.5) { // gallery: pastello
         return mix(spectrum(p.x * 0.8 + p.y * 0.3 - t.x), vec3(1.0), 0.35) * 0.8 + smoothstep(0.45, 0.0, d) * 0.4;

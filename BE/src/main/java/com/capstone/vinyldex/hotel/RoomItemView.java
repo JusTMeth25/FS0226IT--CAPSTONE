@@ -17,17 +17,19 @@ public record RoomItemView(UUID id, UUID ownerId, String type, int x, int y, int
      * gradata ci sono anche voto e certificato, cosi' vetrine e teca la mostrano nel cofanetto.
      */
     public record CardView(String id, String name, String rarity, String img, String source, boolean fullImage,
-                           Double marketPrice, Long coinPrice, Integer grade, String gradeCert, String setName, String number) {
+                           Double marketPrice, Long coinPrice, Integer grade, String gradeCert, String setName, String number,
+                           // Finitura olografica (CardFinish) e copia olografica: le stesse luci della collezione.
+                           String finish, int foil) {
 
         static CardView from(Card card) {
             if (card == null) return null;
             return new CardView(card.getCode(), card.getName(), card.getRarity(), card.getImgUrl(),
                     card.getSource(), card.isFullImage(), card.getMarketPrice(), CardDto.coinPrice(card), null, null,
-                    card.getSetName(), card.getNumber());
+                    card.getSetName(), card.getNumber(), com.capstone.vinyldex.dto.response.CardFinish.of(card), card.isHolo() ? 1 : 0);
         }
 
         CardView withGrade(Integer grade, String cert) {
-            return new CardView(id, name, rarity, img, source, fullImage, marketPrice, coinPrice, grade, cert, setName, number);
+            return new CardView(id, name, rarity, img, source, fullImage, marketPrice, coinPrice, grade, cert, setName, number, finish, foil);
         }
     }
 

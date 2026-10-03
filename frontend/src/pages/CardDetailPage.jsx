@@ -26,7 +26,7 @@ const Card3D = lazy(() => import('../components/three/Card3D.jsx'));
 export default function CardDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { collection, favorites, toggleFavorite, gold, refreshCollection } = useGame();
+  const { collection, gold, refreshCollection } = useGame();
   const { refreshUser } = useAuth();
 
   // Catalogo statico locale (le carte originali VinylDex): copre subito il flusso "carta non ancora
@@ -102,7 +102,6 @@ export default function CardDetailPage() {
     packHint = { bestPack, bestRate, guaranteeText };
   }
 
-  const isFavorite = favorites.includes(id);
 
   const card = ownedEntry || referenceCard;
   const dateStr = ownedEntry?.obtainedAt
@@ -176,9 +175,6 @@ export default function CardDetailPage() {
       {ownedEntry ? (
         <>
           <GradingBox card={card} gold={gold} onGraded={() => { refreshCollection(); refreshUser(); }} />
-          <button className={`btn ${isFavorite ? 'btn-gold' : 'btn-secondary'}`} onClick={() => toggleFavorite(id)}>
-            <i className={isFavorite ? 'ph-fill ph-star' : 'ph ph-star'} /> {isFavorite ? 'Preferita' : 'Aggiungi ai preferiti'}
-          </button>
         </>
       ) : (
         <div className="glass-panel" style={{ background: 'rgba(0,0,0,0.3)', width: '100%' }}>

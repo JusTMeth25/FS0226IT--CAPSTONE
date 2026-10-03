@@ -529,7 +529,7 @@ public class PvpService {
         Map<String, Integer> stats = Map.of("fans", card.getFans(), "style", card.getStyle(),
                 "influence", card.getInfluence(), "energy", card.getEnergy());
         return new PvpGame.CardInfo(card.getCode(), card.getName(), card.getRarity(), card.getImgUrl(),
-                card.getSource(), card.isFullImage(), stats);
+                card.getSource(), card.isFullImage(), stats, com.capstone.vinyldex.dto.response.CardFinish.of(card), card.isHolo() ? 1 : 0);
     }
 
     private static Map<String, Object> startMessage(PvpGame game, HotelUser me, HotelUser opponent, String side, long deadline) {

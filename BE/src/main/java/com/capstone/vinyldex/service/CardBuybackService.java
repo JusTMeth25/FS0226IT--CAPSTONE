@@ -152,6 +152,7 @@ public class CardBuybackService {
         view.put("source", card.getSource() == null ? "" : card.getSource());
         view.put("fullImage", card.isFullImage());
         view.put("foil", card.isHolo() ? 1 : 0);
+        view.put("finish", com.capstone.vinyldex.dto.response.CardFinish.of(card));
         view.put("coinPrice", com.capstone.vinyldex.dto.response.CardDto.coinPrice(card));
         view.put("grade", grade);
         return view;

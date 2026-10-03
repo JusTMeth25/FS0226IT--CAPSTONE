@@ -706,7 +706,7 @@ export const CARDS = [
     variant: 'City Hooper',
     group: 'Court Legends',
     rarity: 'common',
-    // Immagine in arrivo: /assets/img/CityHooper.webp
+    img: '/assets/img/CityHooper.webp',
     stats: { fans: 66, style: 72, influence: 60, energy: 68 },
     description: 'Asfalto, rete consumata e luci della città. È qui che ha imparato a giocare.'
   },

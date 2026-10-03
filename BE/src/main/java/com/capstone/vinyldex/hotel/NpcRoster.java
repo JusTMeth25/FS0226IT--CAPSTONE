@@ -280,7 +280,7 @@ public final class NpcRoster {
 
         public RoomItemView.CardView cardView() {
             return new RoomItemView.CardView(card, name, "legendary", img, "original", false,
-                    null, null, null, null, null, null);
+                    null, null, null, null, null, null, "illustration", 0);
         }
     }
 

@@ -23,7 +23,7 @@ class PvpGameTest {
 
     private static PvpGame.CardInfo card(String id, int fans, int style, int influence, int energy) {
         return new PvpGame.CardInfo(id, id, "rare", null, "original", true,
-                Map.of("fans", fans, "style", style, "influence", influence, "energy", energy));
+                Map.of("fans", fans, "style", style, "influence", influence, "energy", energy), null, 0);
     }
 
     private static final List<PvpGame.CardInfo> STRONG = List.of(

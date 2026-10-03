@@ -99,10 +99,6 @@ export default function ProfilePage() {
           <span className="profile-stat-label">Leggendarie</span>
         </div>
         <div className="glass-panel profile-stat-box">
-          <span className="profile-stat-value"><AnimatedNumber value={game.favorites.length} /></span>
-          <span className="profile-stat-label">Preferite</span>
-        </div>
-        <div className="glass-panel profile-stat-box">
           <span className="profile-stat-value"><AnimatedNumber value={game.loginStreak} /></span>
           <span className="profile-stat-label">Serie login</span>
         </div>
