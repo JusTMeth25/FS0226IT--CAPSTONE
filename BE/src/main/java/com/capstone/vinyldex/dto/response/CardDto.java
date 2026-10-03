@@ -34,7 +34,9 @@ public record CardDto(
         // Carte con una foto con licenza libera (NBA Action): autore, licenza e pagina della foto.
         Map<String, Object> photoCredit,
         // Finitura olografica (CardFinish): holo, ultra, illustration, secret; null per le carte normali.
-        String finish
+        String finish,
+        // Tipologia per i bonus di squadra in battaglia (CardKind); null per le carte VinylDex.
+        String kind
 ) {
 
     public static CardDto from(Card card) {
@@ -58,7 +60,8 @@ public record CardDto(
                 coinPrice(card),
                 card.isHolo() ? 1 : 0,
                 photoCredit(card),
-                CardFinish.of(card)
+                CardFinish.of(card),
+                CardKind.of(card)
         );
     }
 

@@ -529,7 +529,10 @@ public class PvpService {
         Map<String, Integer> stats = Map.of("fans", card.getFans(), "style", card.getStyle(),
                 "influence", card.getInfluence(), "energy", card.getEnergy());
         return new PvpGame.CardInfo(card.getCode(), card.getName(), card.getRarity(), card.getImgUrl(),
-                card.getSource(), card.isFullImage(), stats, com.capstone.vinyldex.dto.response.CardFinish.of(card), card.isHolo() ? 1 : 0);
+                card.getSource(), card.isFullImage(), stats, com.capstone.vinyldex.dto.response.CardFinish.of(card), card.isHolo() ? 1 : 0,
+                card.getArtistClass() == null ? null : card.getArtistClass().getName(),
+                com.capstone.vinyldex.dto.response.CardKind.of(card),
+                card.getSetName() != null ? card.getSetName() : card.getGroup(), 0);
     }
 
     private static Map<String, Object> startMessage(PvpGame game, HotelUser me, HotelUser opponent, String side, long deadline) {
@@ -554,6 +557,7 @@ public class PvpService {
         message.put("serverTime", System.currentTimeMillis());
         message.put("score", Map.of("you", me.score(), "opponent", opponent.score()));
         message.put("team", me.team());
+        message.put("synergies", me.synergies());
         message.put("used", List.copyOf(me.used));
         message.put("boostUsed", me.boostUsed);
         return message;

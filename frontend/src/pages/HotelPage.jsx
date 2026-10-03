@@ -488,7 +488,7 @@ export default function HotelPage() {
         setClockOffset(message.serverTime - Date.now());
         setPvp((p) => ({
           ...p, stage: 'round', round: message.round, chooser: message.chooser, category: null,
-          deadline: message.deadline || null, team: message.team, used: message.used, boostUsed: message.boostUsed,
+          deadline: message.deadline || null, team: message.team, synergies: message.synergies, used: message.used, boostUsed: message.boostUsed,
           score: message.score, picked: false, pickedIndex: null, opponentPicked: false
         }));
         break;

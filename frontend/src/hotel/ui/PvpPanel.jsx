@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useGame } from '../../hooks/useGame.js';
 import { dedupeCollection } from '../../utils/collectionUtils.js';
 import SavedTeams from '../../components/card/SavedTeams.jsx';
+import { teamSynergies } from '../../utils/battleSynergy.js';
 import { RARITIES, SOURCE_LABELS, getRarityColor, getSourceLabel, getTotalScore, resolveCardImage } from '../../utils/cardUtils.js';
 
 const CATEGORIES = [
@@ -11,6 +12,16 @@ const CATEGORIES = [
   { key: 'energy', label: 'Energy', icon: 'ph-lightning' }
 ];
 const CATEGORY_LABEL = Object.fromEntries(CATEGORIES.map((c) => [c.key, c.label]));
+
+/** Bonus di squadra (stessa classe, tipologia, set, gioco): li calcola il server, qui si mostrano. */
+function Synergies({ bonuses }) {
+  if (!bonuses?.length) return null;
+  return (
+    <ul className="battle-synergy-list compact">
+      {bonuses.map((b) => <li key={b.key}><i className={`ph-fill ${b.icon}`} /> {b.label} <strong>+{b.value}%</strong></li>)}
+    </ul>
+  );
+}
 
 /** Secondi rimasti fino a una scadenza del server, corretti per lo scarto fra i due orologi. */
 function useCountdown(deadline, clockOffset) {
@@ -35,6 +46,7 @@ function MiniCard({ card, highlight, value, boost, dim, selected, onClick }) {
     >
       <img src={resolveCardImage(card)} alt={card.name} loading="lazy" />
       <span className="pvp-card-name">{card.name}</span>
+      {card.synergy > 0 && <span className="battle-synergy-chip"><i className="ph-fill ph-link" /> +{card.synergy}%</span>}
       {highlight && (
         <span className="pvp-card-stat">{CATEGORY_LABEL[highlight]} <strong>{value ?? card.stats?.[highlight] ?? 0}</strong>{boost && ' ⚡'}</span>
       )}
@@ -160,6 +172,8 @@ export default function PvpPanel({ pvp, clockOffset, send, onClose }) {
                 {team.map((card) => <MiniCard key={card.id} card={card} selected onClick={() => toggle(card)} />)}
               </div>
             )}
+            {/* Anteprima dei bonus: stesse regole del server (battleSynergy.js / TeamSynergy.java). */}
+            {team.length > 1 && <Synergies bonuses={teamSynergies(team).bonuses} />}
             <div className="pvp-grid">
               {myCards.length === 0 && <p className="pvp-text">Nessuna carta con questi filtri.</p>}
               {myCards.slice(0, 150).map((card) => (
@@ -202,6 +216,7 @@ export default function PvpPanel({ pvp, clockOffset, send, onClose }) {
         {pvp.category && (
           <>
             <p className="pvp-text">Categoria: <strong>{CATEGORY_LABEL[pvp.category]}</strong>. {pvp.picked ? 'Carta scelta, aspetto l\'avversario…' : 'Gioca una carta.'}{pvp.opponentPicked && ' L\'avversario ha gia\' scelto.'}</p>
+            <Synergies bonuses={pvp.synergies} />
             <div className="pvp-hand">
               {(pvp.team || []).map((card, i) => (
                 <MiniCard

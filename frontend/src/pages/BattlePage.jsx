@@ -12,6 +12,7 @@ import RevealSpark from '../components/common/RevealSpark.jsx';
 import StarBorder from '../components/common/StarBorder.jsx';
 import ScrollToTopButton from '../components/common/ScrollToTopButton.jsx';
 import SavedTeams from '../components/card/SavedTeams.jsx';
+import { applySynergies, teamSynergies } from '../utils/battleSynergy.js';
 
 const CATEGORIES = ['fans', 'style', 'influence', 'energy'];
 const CATEGORY_NAMES = { fans: 'Fans', style: 'Style', influence: 'Influence', energy: 'Energy' };
@@ -47,6 +48,23 @@ function generateAiTeam(difficulty) {
   return team;
 }
 
+/** Bonus di squadra attivi (stessa classe, tipologia, set, gioco): elenco con l'aumento di ognuno. */
+function SynergyList({ team, compact = false }) {
+  const { bonuses } = teamSynergies(team);
+  if (!bonuses.length) {
+    return compact ? null : (
+      <p className="battle-synergy-empty">Nessun bonus di squadra: schiera carte della stessa classe, tipologia, set o gioco.</p>
+    );
+  }
+  return (
+    <ul className={`battle-synergy-list${compact ? ' compact' : ''}`}>
+      {bonuses.map((b) => (
+        <li key={b.key}><i className={`ph-fill ${b.icon}`} /> {b.label} <strong>+{b.value}%</strong></li>
+      ))}
+    </ul>
+  );
+}
+
 /** Riepilogo di potenza della squadra: numero animato con useCountUp + ingresso "a molla". */
 function VsScreen({ team, aiTeamLength, tournamentBadge, onStartRound }) {
   const playerTotal = team.reduce((sum, c) => sum + getTotalScore(c), 0);
@@ -71,6 +89,7 @@ function VsScreen({ team, aiTeamLength, tournamentBadge, onStartRound }) {
               ))}
             </div>
             <span className="battle-vs-power"><i className="ph-fill ph-lightning" /> {displayTotal}</span>
+            <SynergyList team={team} compact />
           </div>
 
           <div className="battle-vs-center">
@@ -180,6 +199,7 @@ function FinalScreen({ finalKind, rewards, tournamentStage, roundScores, history
 }
 
 const INITIAL_BATTLE = {
+  fightTeam: [],
   phase: 'select',
   team: [null, null, null],
   selectedSlot: 0,
@@ -285,7 +305,9 @@ export default function BattlePage() {
       ...prev,
       ...extra,
       difficulty,
-      aiTeam: generateAiTeam(difficulty),
+      // Le carte entrano in campo con i bonus di squadra; la squadra scelta resta com'e'.
+      fightTeam: applySynergies(prev.team),
+      aiTeam: applySynergies(generateAiTeam(difficulty)),
       phase: 'vs',
       currentRound: 1,
       roundScores: { player: 0, ai: 0 },
@@ -369,13 +391,13 @@ export default function BattlePage() {
 
   function playCard(index) {
     if (b.usedPlayerIndices.includes(index)) return;
-    const card = b.team[index];
+    const card = b.fightTeam[index];
     resolveRound(card, [...b.usedPlayerIndices, index], 0);
   }
 
   function playSpecialCard(index) {
     if (b.specialUsed || b.usedPlayerIndices.includes(index)) return;
-    const card = { ...b.team[index], stats: { ...b.team[index].stats } };
+    const card = { ...b.fightTeam[index], stats: { ...b.fightTeam[index].stats } };
     const value = card.stats[b.currentCategory] || 0;
     const bonus = Math.round(value * 0.25);
     card.stats[b.currentCategory] = value + bonus;
@@ -448,7 +470,7 @@ export default function BattlePage() {
   // ---------- SELECT TEAM ----------
   if (b.phase === 'select') {
     const teamTotals = { fans: 0, style: 0, influence: 0, energy: 0 };
-    b.team.forEach((c) => { if (c) CATEGORIES.forEach((k) => { teamTotals[k] += c.stats[k] || 0; }); });
+    applySynergies(b.team).forEach((c) => { if (c) CATEGORIES.forEach((k) => { teamTotals[k] += c.stats[k] || 0; }); });
     const filledCount = b.team.filter(Boolean).length;
 
     return (
@@ -497,6 +519,7 @@ export default function BattlePage() {
               ))}
             </div>
           )}
+          {filledCount > 0 && <SynergyList team={b.team} />}
         </div>
 
         <div className="battle-available glass-panel">
@@ -550,7 +573,7 @@ export default function BattlePage() {
 
   // ---------- VS SCREEN ----------
   if (b.phase === 'vs') {
-    return <VsScreen team={b.team} aiTeamLength={b.aiTeam.length} tournamentBadge={tournamentBadge} onStartRound={startRound} />;
+    return <VsScreen team={b.fightTeam} aiTeamLength={b.aiTeam.length} tournamentBadge={tournamentBadge} onStartRound={startRound} />;
   }
 
   // ---------- CATEGORY PICKER ----------
@@ -595,13 +618,14 @@ export default function BattlePage() {
           <h3>Scegli una carta per questo round:</h3>
           <div className="battle-card-options">
             {availableIndices.map((i) => {
-              const card = b.team[i];
+              const card = b.fightTeam[i];
               const statValue = card.stats[b.currentCategory] || 0;
               return (
                 <div key={i} className="battle-card-wrap">
                   <CardTile card={card} onClick={() => playCard(i)} />
                   <div className="battle-pick-meta">
                     <span className="battle-stat-highlight"><i className={`ph-fill ${CATEGORY_ICONS[b.currentCategory]}`} /> {CATEGORY_NAMES[b.currentCategory]}: <strong>{statValue}</strong></span>
+                    {card.synergy > 0 && <span className="battle-synergy-chip" title="Bonus di squadra"><i className="ph-fill ph-link" /> +{card.synergy}%</span>}
                     {!b.specialUsed && (
                       <button className="battle-special-btn-inline" onClick={(e) => { e.stopPropagation(); playSpecialCard(i); }}>
                         <i className="ph-fill ph-sparkle" /> Abilità (+25%)

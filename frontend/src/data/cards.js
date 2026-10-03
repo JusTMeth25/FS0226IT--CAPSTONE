@@ -717,7 +717,7 @@ export const CARDS = [
     variant: 'Quick Release',
     group: 'Court Legends',
     rarity: 'common',
-    // Immagine in arrivo: /assets/img/QuickRelease.webp
+    img: '/assets/img/QuickRelease.webp',
     stats: { fans: 60, style: 68, influence: 64, energy: 66 },
     description: 'Riceve, tira, segna. Nessun movimento sprecato.'
   },
@@ -728,7 +728,7 @@ export const CARDS = [
     variant: 'Hard Screen',
     group: 'Court Legends',
     rarity: 'common',
-    // Immagine in arrivo: /assets/img/HardScreen.webp
+    img: '/assets/img/HardScreen.webp',
     stats: { fans: 58, style: 56, influence: 68, energy: 74 },
     description: 'Fa il lavoro che non finisce negli highlights. Un blocco alla volta apre la strada alla squadra.'
   }

@@ -34,9 +34,16 @@ public class PvpGame {
 
     /** Carta in squadra, con le statistiche fissate all'inizio della partita. */
     public record CardInfo(String id, String name, String rarity, String img, String source, boolean fullImage,
-                           Map<String, Integer> stats, String finish, int foil) {
+                           Map<String, Integer> stats, String finish, int foil,
+                           // Per i bonus di squadra (TeamSynergy): classe, tipologia, set e bonus ottenuto.
+                           String artistClass, String kind, String setName, int synergy) {
         int stat(String category) {
             return stats.getOrDefault(category, 0);
+        }
+
+        CardInfo withStats(Map<String, Integer> boosted, int percent) {
+            return new CardInfo(id, name, rarity, img, source, fullImage, Map.copyOf(boosted), finish, foil,
+                    artistClass, kind, setName, percent);
         }
     }
 
@@ -44,6 +51,8 @@ public class PvpGame {
         final UUID userId;
         final String username;
         List<CardInfo> team;
+        /** Bonus di squadra attivi (TeamSynergy), per mostrarli al giocatore. */
+        List<TeamSynergy.Bonus> synergies = List.of();
         final Set<Integer> used = new HashSet<>();
         boolean boostUsed;
         Integer pick;
@@ -69,6 +78,10 @@ public class PvpGame {
 
         public List<CardInfo> team() {
             return team;
+        }
+
+        public List<TeamSynergy.Bonus> synergies() {
+            return synergies;
         }
     }
 
@@ -143,7 +156,10 @@ public class PvpGame {
     public boolean setTeam(UUID userId, List<CardInfo> team) {
         Player player = player(userId);
         if (player == null || phase != Phase.TEAM || team.size() != TEAM_SIZE) return false;
-        player.team = List.copyOf(team);
+        // Le carte entrano in campo con i bonus di squadra, come nella pagina Battaglie.
+        TeamSynergy.Result synergy = TeamSynergy.apply(team);
+        player.team = synergy.team();
+        player.synergies = synergy.bonuses();
         if (a.team != null && b.team != null) {
             startRound();
             return true;

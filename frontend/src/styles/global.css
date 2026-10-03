@@ -1760,3 +1760,12 @@ input.filter-select { cursor: text; }
    dallo schermo non si disegnano finche' non servono. */
 .sets-grid .glass-panel { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(14, 22, 53, 0.92); }
 .sets-grid .set-card { content-visibility: auto; contain-intrinsic-size: auto 150px; }
+
+/* Bonus di squadra in battaglia (battleSynergy.js). */
+.battle-synergy-list { list-style: none; margin: var(--space-sm) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.battle-synergy-list li { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 0.78rem; background: rgba(139, 92, 246, 0.18); border: 1px solid rgba(139, 92, 246, 0.45); }
+.battle-synergy-list li strong { color: var(--neon-gold, #ffc83c); }
+.battle-synergy-list.compact { justify-content: center; margin-top: 8px; }
+.battle-synergy-list.compact li { font-size: 0.68rem; padding: 3px 8px; }
+.battle-synergy-empty { margin: var(--space-sm) 0 0; font-size: 0.8rem; color: var(--text-muted); }
+.battle-synergy-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 700; color: var(--neon-gold, #ffc83c); }

@@ -42,20 +42,22 @@ public record CollectionEntryDto(
         // Prima edizione: numero da 1 a 10 se il giocatore e' fra i primi dieci ad averla trovata.
         Integer firstEdition,
         // Finitura olografica (CardFinish), null per le carte normali.
-        String finish
+        String finish,
+        // Tipologia per i bonus di squadra in battaglia (CardKind).
+        String kind
 ) {
 
     /** Nel raccoglitore: la tasca della carta base brilla (ed e' piena) se si ha la sua olografica. */
     public CollectionEntryDto withHoloOwned() {
         return new CollectionEntryDto(id, name, artistClass, variant, group, rarity, img, fullImage, stats, description,
                 source, setName, setCode, number, marketPrice, coinPrice, true, quantity, favorite, obtainedAt, grade, 1,
-                gradeCert, gradedAt, firstEdition, finish);
+                gradeCert, gradedAt, firstEdition, finish, kind);
     }
 
     public CollectionEntryDto withFirstEdition(Integer serial) {
         return new CollectionEntryDto(id, name, artistClass, variant, group, rarity, img, fullImage, stats, description,
                 source, setName, setCode, number, marketPrice, coinPrice, owned, quantity, favorite, obtainedAt, grade, foil,
-                gradeCert, gradedAt, serial, finish);
+                gradeCert, gradedAt, serial, finish, kind);
     }
 
     public static CollectionEntryDto from(Card card, UserCard userCard) {
@@ -73,7 +75,8 @@ public record CollectionEntryDto(
                 userCard != null && userCard.getGrade() != null ? certificate(userCard) : null,
                 userCard != null ? userCard.getGradedAt() : null,
                 null,
-                base.finish()
+                base.finish(),
+                base.kind()
         );
     }
 
