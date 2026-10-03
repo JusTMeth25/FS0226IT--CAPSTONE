@@ -1,0 +1,241 @@
+/* ========================================
+   FINITURE OLOGRAFICHE — le carte speciali brillano come le carte Pokemon da collezione.
+   Scritto da zero per VinylDex, ispirandosi alle tipologie mostrate da poke-holo.simey.me
+   (il loro codice e' GPL-3.0 e non e' stato copiato).
+
+   Un livello (.card-holo-foil) sopra l'immagine, fatto di gradienti e fusioni di colore,
+   segue il puntatore grazie alle custom property di useCardTilt: --x e --y (in percentuale)
+   e --holo-opacity (0 a riposo, 1 mentre si inclina la carta). La finitura arriva dal
+   backend (CardFinish): reverse, holo, cosmos, amazing, radiant, ultra, vmax, vstar, vfull,
+   rainbow, secret, shiny, gallery, illustration.
+
+   Sulle carte Pokemon (.holo-pokemon) alcune finiture stanno solo dentro l'illustrazione
+   (holo, cosmos) o solo fuori (reverse), come sulle carte vere.
+   ======================================== */
+
+.card-holo-foil {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: calc(var(--holo-opacity, 0) * var(--foil-strength, 0.85));
+  transition: opacity 0.35s ease;
+  mix-blend-mode: color-dodge;
+  background-repeat: no-repeat;
+  /* Posizioni ricavate dal puntatore: il foil scorre al contrario, come la luce sulla carta. */
+  --fx: calc(100% - var(--x, 50%));
+  --fy: calc(100% - var(--y, 50%));
+}
+
+/* Il vecchio arcobaleno generico lascia il posto alla finitura della carta. */
+.holo-finish .card-holo-rainbow { display: none; }
+.holo-finish .card-holo-glare {
+  mix-blend-mode: overlay;
+  background: radial-gradient(farthest-corner circle at var(--x, 50%) var(--y, 50%), rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.15) 30%, rgba(0, 0, 0, 0.35) 90%);
+  opacity: calc(var(--holo-opacity, 0) * 0.8);
+}
+
+/* Riquadro dell'illustrazione delle carte Pokemon (circa: 8-92% in larghezza, 9-52% in altezza). */
+.holo-pokemon.holo-finish-holo .card-holo-foil,
+.holo-pokemon.holo-finish-cosmos .card-holo-foil {
+  -webkit-mask: linear-gradient(#000, #000) 50% 22% / 85% 43% no-repeat;
+  mask: linear-gradient(#000, #000) 50% 22% / 85% 43% no-repeat;
+}
+.holo-pokemon.holo-finish-reverse .card-holo-foil {
+  -webkit-mask: linear-gradient(#000, #000), linear-gradient(#000, #000) 50% 22% / 85% 43% no-repeat;
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000, #000) exclude, linear-gradient(#000, #000) 50% 22% / 85% 43% no-repeat;
+}
+
+/* REVERSE — lucentezza uniforme e un arcobaleno morbido su tutta la carta. */
+.holo-finish-reverse .card-holo-foil {
+  --foil-strength: 0.7;
+  background-image:
+    radial-gradient(farthest-corner circle at var(--x, 50%) var(--y, 50%), rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 40%),
+    linear-gradient(115deg, hsl(200, 70%, 55%) 0%, hsl(300, 60%, 60%) 33%, hsl(45, 80%, 60%) 66%, hsl(160, 70%, 55%) 100%);
+  background-size: 100% 100%, 200% 200%;
+  background-position: center, var(--fx) var(--fy);
+  filter: brightness(0.38) contrast(1.8) saturate(1.1);
+}
+
+/* HOLO — le classiche barre verticali arcobaleno che scorrono nell'illustrazione. */
+.holo-finish-holo .card-holo-foil {
+  background-image:
+    repeating-linear-gradient(90deg,
+      hsl(0, 85%, 55%) 0%, hsl(40, 90%, 55%) 3%, hsl(90, 80%, 50%) 6%, hsl(170, 85%, 50%) 9%,
+      hsl(220, 85%, 60%) 12%, hsl(280, 80%, 60%) 15%, hsl(340, 85%, 55%) 18%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.35) 0 2px, rgba(0, 0, 0, 0) 2px 5px);
+  background-size: 400% 100%, 100% 100%;
+  background-position: var(--fx) 50%, center;
+  filter: brightness(0.4) contrast(2) saturate(1.3);
+}
+
+/* COSMOS — galassia: nebulose colorate e stelle su piu' piani. */
+.holo-finish-cosmos .card-holo-foil {
+  background-image:
+    radial-gradient(circle at 20% 30%, #fff 0 0.7px, transparent 1.6px),
+    radial-gradient(circle at 70% 60%, #fff 0 1px, transparent 2px),
+    radial-gradient(ellipse at 30% 40%, hsla(280, 90%, 60%, 0.9) 0%, transparent 45%),
+    radial-gradient(ellipse at 70% 70%, hsla(190, 90%, 55%, 0.9) 0%, transparent 45%),
+    radial-gradient(ellipse at 60% 20%, hsla(330, 90%, 60%, 0.8) 0%, transparent 40%);
+  background-size: 19px 23px, 37px 31px, 200% 200%, 200% 200%, 200% 200%;
+  background-repeat: repeat, repeat, no-repeat, no-repeat, no-repeat;
+  background-position:
+    calc(var(--x, 50%) * 0.2) calc(var(--y, 50%) * 0.2),
+    calc(var(--x, 50%) * -0.3) calc(var(--y, 50%) * -0.3),
+    var(--fx) var(--fy), var(--x, 50%) var(--fy), var(--fx) var(--y, 50%);
+  filter: brightness(0.5) contrast(1.8) saturate(1.4);
+}
+
+/* AMAZING — schizzi di colore arcobaleno e brillantini su tutta la carta. */
+.holo-finish-amazing .card-holo-foil {
+  background-image:
+    repeating-radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9) 0 1px, rgba(255, 255, 255, 0) 1px 9px),
+    conic-gradient(from 0deg at var(--x, 50%) var(--y, 50%),
+      hsl(0, 90%, 60%), hsl(60, 90%, 60%), hsl(120, 85%, 55%), hsl(180, 90%, 55%),
+      hsl(240, 90%, 65%), hsl(300, 90%, 60%), hsl(360, 90%, 60%));
+  background-size: 33px 33px, 100% 100%;
+  background-repeat: repeat, no-repeat;
+  background-position: var(--fx) var(--fy), center;
+  filter: brightness(0.42) contrast(1.9) saturate(1.4);
+}
+
+/* RADIANT — trama a rombi incrociati, argentata, con la luce che la attraversa. */
+.holo-finish-radiant .card-holo-foil {
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.55) 0 1px, rgba(255, 255, 255, 0) 1px 12px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.55) 0 1px, rgba(255, 255, 255, 0) 1px 12px),
+    linear-gradient(110deg, hsl(200, 60%, 55%) 0%, hsl(290, 55%, 60%) 40%, hsl(40, 70%, 60%) 80%);
+  background-size: auto, auto, 250% 250%;
+  background-repeat: repeat, repeat, no-repeat;
+  background-position: var(--fx) var(--fy), var(--x, 50%) var(--fy), var(--fx) var(--fy);
+  filter: brightness(0.45) contrast(2) saturate(1.1);
+}
+
+/* ULTRA (V, EX, GX, ex) — fasce di luce diagonali colorate su tutta la carta. */
+.holo-finish-ultra .card-holo-foil {
+  background-image:
+    repeating-linear-gradient(-45deg,
+      rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0) 2.6%,
+      rgba(255, 255, 255, 0.75) 3.2%, rgba(255, 255, 255, 0) 3.8%, rgba(255, 255, 255, 0) 7%),
+    linear-gradient(115deg,
+      hsl(200, 95%, 60%) 0%, hsl(280, 90%, 65%) 25%, hsl(340, 95%, 62%) 50%,
+      hsl(50, 100%, 60%) 75%, hsl(160, 90%, 55%) 100%);
+  background-size: 260% 260%, 220% 220%;
+  background-position: var(--x, 50%) var(--y, 50%), var(--fx) var(--y, 50%);
+  filter: brightness(0.42) contrast(2.2) saturate(1.4);
+}
+
+/* VMAX — blocchi diagonali larghi, a scaglie, con colori pieni. */
+.holo-finish-vmax .card-holo-foil {
+  background-image:
+    repeating-linear-gradient(60deg, rgba(255, 255, 255, 0.45) 0 6px, rgba(255, 255, 255, 0) 6px 22px),
+    repeating-linear-gradient(-30deg, rgba(0, 0, 0, 0.35) 0 8px, rgba(0, 0, 0, 0) 8px 26px),
+    linear-gradient(125deg, hsl(10, 95%, 60%) 0%, hsl(55, 100%, 60%) 30%, hsl(170, 90%, 55%) 60%, hsl(260, 90%, 65%) 100%);
+  background-size: auto, auto, 240% 240%;
+  background-repeat: repeat, repeat, no-repeat;
+  background-position: var(--fx) var(--fy), var(--x, 50%) var(--y, 50%), var(--fx) var(--fy);
+  filter: brightness(0.45) contrast(2) saturate(1.3);
+}
+
+/* VSTAR — righe sottilissime e luminose con un arcobaleno intenso. */
+.holo-finish-vstar .card-holo-foil {
+  --foil-strength: 0.55;
+  background-image:
+    repeating-linear-gradient(-60deg, rgba(255, 255, 255, 0.8) 0 1px, rgba(255, 255, 255, 0) 1px 4px),
+    linear-gradient(100deg, hsl(320, 95%, 62%) 0%, hsl(45, 100%, 60%) 25%, hsl(150, 90%, 55%) 50%, hsl(210, 95%, 62%) 75%, hsl(280, 90%, 65%) 100%);
+  background-size: auto, 300% 300%;
+  background-repeat: repeat, no-repeat;
+  background-position: var(--x, 50%) var(--y, 50%), var(--fx) var(--fy);
+  filter: brightness(0.42) contrast(2.2) saturate(1.5);
+}
+
+/* VFULL (Full Art) — superficie incisa a righe orizzontali fitte, arcobaleno tenue. */
+.holo-finish-vfull .card-holo-foil {
+  --foil-strength: 0.55;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.6) 0 1px, rgba(255, 255, 255, 0) 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.25) 0 1px, rgba(0, 0, 0, 0) 1px 7px),
+    linear-gradient(120deg, hsl(190, 80%, 55%) 0%, hsl(270, 75%, 62%) 35%, hsl(330, 85%, 60%) 65%, hsl(45, 90%, 60%) 100%);
+  background-size: auto, auto, 250% 250%;
+  background-repeat: repeat, repeat, no-repeat;
+  background-position: center, center, var(--fx) var(--fy);
+  filter: brightness(0.42) contrast(2) saturate(1.2);
+}
+
+/* RAINBOW — arcobaleno pastello saturo su tutta la carta, con glitter. */
+.holo-finish-rainbow .card-holo-foil {
+  --foil-strength: 0.6;
+  background-image:
+    repeating-conic-gradient(from 10deg at 50% 50%, rgba(255, 255, 255, 0.9) 0deg 8deg, rgba(255, 255, 255, 0) 8deg 30deg),
+    linear-gradient(110deg,
+      hsl(0, 100%, 70%) 0%, hsl(40, 100%, 65%) 15%, hsl(80, 90%, 65%) 30%, hsl(160, 90%, 65%) 45%,
+      hsl(210, 100%, 70%) 60%, hsl(270, 90%, 72%) 75%, hsl(320, 95%, 70%) 90%, hsl(360, 100%, 70%) 100%);
+  background-size: 6px 6px, 250% 250%;
+  background-repeat: repeat, no-repeat;
+  background-position: var(--x, 50%) var(--y, 50%), var(--fx) var(--fy);
+  filter: brightness(0.5) contrast(1.8) saturate(1.5);
+}
+
+/* SECRET (Gold, Hyper) — glitter dorato fitto con un bagliore caldo. */
+.holo-finish-secret .card-holo-foil {
+  background-image:
+    radial-gradient(farthest-corner circle at var(--x, 50%) var(--y, 50%), rgba(255, 236, 170, 0.85) 0%, rgba(255, 200, 80, 0.25) 30%, rgba(0, 0, 0, 0) 60%),
+    repeating-conic-gradient(from 20deg at 50% 50%,
+      rgba(255, 215, 120, 0.9) 0deg 9deg, rgba(120, 80, 20, 0) 9deg 21deg,
+      rgba(255, 245, 210, 0.85) 21deg 27deg, rgba(120, 80, 20, 0) 27deg 45deg),
+    linear-gradient(135deg, hsl(42, 90%, 55%) 0%, hsl(30, 85%, 40%) 50%, hsl(48, 95%, 65%) 100%);
+  background-size: 100% 100%, 7px 7px, 200% 200%;
+  background-repeat: no-repeat, repeat, no-repeat;
+  background-position: center, var(--x, 50%) var(--y, 50%), var(--fx) var(--y, 50%);
+  filter: brightness(0.45) contrast(2) saturate(1.2);
+}
+
+/* SHINY (Shiny Vault) — argento a scaglie fini che scintilla. */
+.holo-finish-shiny .card-holo-foil {
+  --foil-strength: 0.55;
+  background-image:
+    radial-gradient(farthest-corner circle at var(--x, 50%) var(--y, 50%), rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 35%),
+    repeating-conic-gradient(from 0deg at 50% 50%, rgba(230, 240, 255, 0.95) 0deg 6deg, rgba(0, 0, 0, 0) 6deg 18deg),
+    linear-gradient(135deg, hsl(210, 20%, 70%) 0%, hsl(220, 15%, 45%) 50%, hsl(200, 25%, 80%) 100%);
+  background-size: 100% 100%, 5px 5px, 200% 200%;
+  background-repeat: no-repeat, repeat, no-repeat;
+  background-position: center, var(--fx) var(--fy), var(--x, 50%) var(--y, 50%);
+  filter: brightness(0.5) contrast(1.9) saturate(1.1);
+}
+
+/* GALLERY (Trainer Gallery) — luce pastello su tutta l'illustrazione a tutta carta. */
+.holo-finish-gallery .card-holo-foil {
+  --foil-strength: 0.55;
+  background-image:
+    radial-gradient(farthest-corner circle at var(--x, 50%) var(--y, 50%), rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 40%),
+    linear-gradient(120deg, hsl(330, 80%, 75%) 0%, hsl(200, 85%, 72%) 33%, hsl(140, 70%, 70%) 66%, hsl(45, 90%, 72%) 100%);
+  background-size: 100% 100%, 230% 230%;
+  background-position: center, var(--fx) var(--fy);
+  filter: brightness(0.42) contrast(1.8) saturate(1.2);
+}
+
+/* ILLUSTRATION (Illustration Rare, leggendarie VinylDex) — stelle su tre piani e un'aurora. */
+.holo-finish-illustration .card-holo-foil {
+  background-image:
+    radial-gradient(circle at 20% 30%, #fff 0, #fff 0.6px, transparent 1.4px),
+    radial-gradient(circle at 70% 60%, #fff 0, #fff 0.9px, transparent 1.8px),
+    radial-gradient(circle at 40% 80%, #ffe9a8 0, #ffe9a8 1.2px, transparent 2.4px),
+    linear-gradient(125deg,
+      hsl(260, 85%, 45%) 0%, hsl(190, 90%, 50%) 30%, hsl(320, 85%, 55%) 60%, hsl(45, 95%, 60%) 100%);
+  background-size: 23px 29px, 41px 37px, 67px 71px, 240% 240%;
+  background-repeat: repeat, repeat, repeat, no-repeat;
+  background-position:
+    calc(var(--x, 50%) * 0.15) calc(var(--y, 50%) * 0.15),
+    calc(var(--x, 50%) * -0.25) calc(var(--y, 50%) * -0.25),
+    calc(var(--x, 50%) * 0.4) calc(var(--y, 50%) * 0.4),
+    var(--fx) var(--fy);
+  filter: brightness(0.45) contrast(1.9) saturate(1.3);
+}
+
+/* Dispositivi leggeri: niente fusioni costose, solo un velo di colore. */
+.perf-lite .card-holo-foil { mix-blend-mode: normal; filter: none; opacity: calc(var(--holo-opacity, 0) * 0.25); }
+@media (prefers-reduced-motion: reduce) {
+  .card-holo-foil { transition: none; }
+}

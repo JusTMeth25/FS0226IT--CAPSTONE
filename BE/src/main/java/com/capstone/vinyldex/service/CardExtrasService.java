@@ -72,8 +72,45 @@ public class CardExtrasService {
         return pool.get((int) Math.floorMod(seed ^ (seed >>> 17), (long) pool.size()));
     }
 
+    /** Carta del giorno gia' scelta: il giorno, quante carte c'erano fra cui scegliere e la carta. */
+    private record Daily(LocalDate day, long poolSize, Card card, long checkedAt) {
+    }
+
+    /** Ogni quanto si ricontano le carte (per accorgersi di un import). */
+    private static final long DAILY_RECHECK_MILLIS = 10 * 60_000L;
+
+    private volatile Daily daily;
+
+    /** Le carte fra cui si sceglie: attive, non olografiche, con un'immagine, non comuni. */
+    private static final String DAILY_POOL = "FROM cards WHERE is_active AND NOT holo AND img_url IS NOT NULL "
+            + "AND img_url <> '' AND rarity <> 'common'";
+
+    /**
+     * La carta del giorno si sceglie nel database (conta e posizione, ordinando per codice come
+     * pickDaily), senza aspettare il catalogo in memoria: all'avvio il catalogo impiega diversi
+     * secondi a caricarsi e la home non deve restare in attesa. Una volta al giorno, e di nuovo
+     * solo se cambia il numero di carte (import).
+     */
     private Card today() {
-        return pickDaily(cardRepository.findAllActiveWithArtistClass(), LocalDate.now(ZONE));
+        LocalDate day = LocalDate.now(ZONE);
+        Daily cached = daily;
+        long now = System.currentTimeMillis();
+        if (cached != null && cached.day().equals(day) && now - cached.checkedAt() < DAILY_RECHECK_MILLIS) return cached.card();
+        Long size = jdbc.queryForObject("SELECT count(*) " + DAILY_POOL, Long.class);
+        if (size == null || size == 0) return null;
+        if (cached != null && cached.day().equals(day) && cached.poolSize() == size) {
+            daily = new Daily(day, size, cached.card(), now);
+            return cached.card();
+        }
+        long seed = day.toEpochDay() * 2_654_435_761L;
+        long index = Math.floorMod(seed ^ (seed >>> 17), size);
+        // COLLATE "C": stesso ordine di String.compareTo, quello usato da pickDaily.
+        List<String> codes = jdbc.queryForList("SELECT code " + DAILY_POOL + " ORDER BY code COLLATE \"C\" OFFSET ? LIMIT 1",
+                String.class, index);
+        // Con la classe gia' caricata: la carta resta in memoria e si usa anche fuori transazione.
+        Card card = codes.isEmpty() ? null : cardRepository.findByCodeWithArtistClass(codes.get(0)).orElse(null);
+        daily = new Daily(day, size, card, now);
+        return card;
     }
 
     @Transactional(readOnly = true)

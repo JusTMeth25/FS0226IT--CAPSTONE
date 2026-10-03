@@ -30,7 +30,11 @@ const HoloMaterial = shaderMaterial(
     uTear: 0,
     uSeamColor: new Color('#ffffff'),
     uOpacity: 1,
-    uFoil: 0
+    uFoil: 0,
+    // Finitura olografica come nella collezione (FINISH_IDS): 0 nessuna.
+    uFinish: 0,
+    // 1 sulle carte Pokemon: holo e cosmos solo nell'illustrazione, reverse solo fuori.
+    uArtMask: 0
   },
   /* glsl */ `
     varying vec2 vUv;
@@ -58,6 +62,8 @@ const HoloMaterial = shaderMaterial(
     uniform vec3 uSeamColor;
     uniform float uOpacity;
     uniform float uFoil;
+    uniform float uFinish;
+    uniform float uArtMask;
 
     varying vec2 vUv;
     varying vec3 vNormal;
@@ -71,6 +77,72 @@ const HoloMaterial = shaderMaterial(
       float i = floor(x);
       float f = fract(x);
       return mix(hash(vec2(i, 1.7)), hash(vec2(i + 1.0, 1.7)), smoothstep(0.0, 1.0, f));
+    }
+
+    vec3 spectrum(float t) {
+      return 0.5 + 0.5 * cos(6.28318 * (t + vec3(0.0, 0.33, 0.67)));
+    }
+
+    // Disegno della finitura (stesse famiglie di holo-finish.css), tra 0 e 1 per canale.
+    // p: posizione sulla carta (0-1), t: inclinazione, l: posizione della luce.
+    vec3 finishPattern(float f, vec2 p, vec2 t, vec2 l, float time) {
+      float d = distance(p, l);
+      if (f < 1.5) { // reverse
+        return spectrum(p.x * 0.6 + p.y * 0.4 - t.x) * 0.6 + smoothstep(0.45, 0.0, d) * 0.6;
+      }
+      if (f < 2.5) { // holo: barre verticali
+        float bars = step(0.5, fract(p.y * 90.0));
+        return spectrum(p.x * 3.5 - t.x * 2.0) * (0.75 + 0.25 * bars);
+      }
+      if (f < 3.5) { // cosmos
+        vec2 c = floor((p + t * 0.1) * vec2(60.0, 84.0));
+        float star = step(0.985, hash(c));
+        return spectrum(p.x * 0.8 - p.y * 0.6 - t.x) * 0.8 + star;
+      }
+      if (f < 4.5) { // amazing
+        float a = atan(p.y - l.y, p.x - l.x) / 6.28318;
+        float glit = step(0.97, hash(floor(p * vec2(55.0, 77.0))));
+        return spectrum(a + t.x) * 0.9 + glit;
+      }
+      if (f < 5.5) { // radiant: rombi
+        float g = max(step(0.92, fract((p.x + p.y) * 22.0)), step(0.92, fract((p.x - p.y) * 22.0)));
+        return vec3(0.7, 0.75, 0.85) * g + spectrum(p.x - t.x) * 0.3;
+      }
+      if (f < 6.5) { // ultra: fasce diagonali
+        float band = smoothstep(0.82, 1.0, fract((p.x + p.y) * 7.0 + t.x * 2.0 - t.y));
+        return spectrum(p.x * 1.2 + p.y * 0.4 - t.x) * (0.45 + band);
+      }
+      if (f < 7.5) { // vmax: blocchi larghi
+        float blk = step(0.6, fract(p.x * 4.0 + p.y * 7.0 + t.x));
+        return spectrum(p.y * 1.4 - t.y * 2.0) * (0.4 + 0.6 * blk);
+      }
+      if (f < 8.5) { // vstar: righe sottili
+        float line = step(0.7, fract((p.x * 0.5 - p.y) * 70.0));
+        return spectrum(p.x * 2.0 - t.x * 2.5) * (0.5 + 0.5 * line);
+      }
+      if (f < 9.5) { // vfull: incisione orizzontale
+        float line = step(0.6, fract(p.y * 140.0));
+        return spectrum(p.x + p.y * 0.5 - t.x) * (0.35 + 0.4 * line);
+      }
+      if (f < 10.5) { // rainbow
+        float glit = step(0.96, hash(floor(p * vec2(80.0, 112.0))));
+        return mix(spectrum(p.x * 1.4 - t.x * 1.5), vec3(1.0), 0.25) + glit * 0.6;
+      }
+      if (f < 11.5) { // secret: oro
+        float glit = hash(floor(p * vec2(90.0, 126.0) + floor(t * 6.0)));
+        return vec3(1.0, 0.78, 0.35) * (0.45 + 0.6 * step(0.8, glit)) + smoothstep(0.4, 0.0, d) * vec3(1.0, 0.9, 0.6);
+      }
+      if (f < 12.5) { // shiny: argento
+        float glit = hash(floor(p * vec2(100.0, 140.0) + floor(t * 8.0)));
+        return vec3(0.82, 0.88, 1.0) * (0.35 + 0.65 * step(0.82, glit)) + smoothstep(0.4, 0.0, d) * 0.5;
+      }
+      if (f < 13.5) { // gallery: pastello
+        return mix(spectrum(p.x * 0.8 + p.y * 0.3 - t.x), vec3(1.0), 0.35) * 0.8 + smoothstep(0.45, 0.0, d) * 0.4;
+      }
+      // illustration: stelle su tre piani e aurora
+      float s1 = step(0.988, hash(floor((p + t * 0.04) * vec2(70.0, 98.0))));
+      float s2 = step(0.985, hash(floor((p - t * 0.08) * vec2(36.0, 50.0)) + 3.1));
+      return spectrum(p.x * 0.9 - p.y * 0.5 - t.x) * 0.6 + (s1 + s2) * 0.9;
     }
 
     float roundedBox(vec2 p, vec2 halfSize, float r) {
@@ -126,6 +198,20 @@ const HoloMaterial = shaderMaterial(
         col += step(0.985, h) * pow(sin(uTime * 2.3 + h * 90.0) * 0.5 + 0.5, 6.0) * uFoil * 0.45;
       }
 
+      // Finitura della carta: colori che schiariscono l'immagine (come color-dodge in CSS),
+      // un velo a riposo e piena quando la carta si inclina.
+      if (uFinish > 0.5) {
+        vec2 light = vec2(0.5) - uTilt * 0.8;
+        vec3 pat = finishPattern(uFinish, vUv, uTilt, light, uTime);
+        float inArt = step(0.08, vUv.x) * step(vUv.x, 0.92) * step(0.48, vUv.y) * step(vUv.y, 0.91);
+        float mask = 1.0;
+        if (uArtMask > 0.5 && (uFinish > 1.5 && uFinish < 3.5)) mask = inArt;
+        if (uArtMask > 0.5 && uFinish < 1.5) mask = 1.0 - inArt;
+        float strength = (0.25 + 0.55 * tiltAmount) * mask;
+        vec3 dodge = clamp(pat * strength * 0.55, 0.0, 0.85);
+        col = min(vec3(1.0), col / max(vec3(0.2), 1.0 - dodge));
+      }
+
       vec2 glarePos = vec2(0.5) - uTilt * 0.7;
       col += smoothstep(0.5, 0.0, distance(vUv, glarePos)) * 0.15 * uIntensity * tiltAmount;
 
@@ -146,6 +232,12 @@ const HoloMaterial = shaderMaterial(
 );
 
 extend({ HoloMaterial });
+
+/** Numero della finitura per lo shader (vedi finishPattern), dal nome usato in CSS. */
+export const FINISH_IDS = {
+  reverse: 1, holo: 2, cosmos: 3, amazing: 4, radiant: 5, ultra: 6, vmax: 7, vstar: 8,
+  vfull: 9, rainbow: 10, secret: 11, shiny: 12, gallery: 13, illustration: 14
+};
 
 /**
  * Scala delle coordinate texture per ottenere l'effetto "cover" su un piano di

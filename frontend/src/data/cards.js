@@ -629,7 +629,7 @@ export const CARDS = [
     variant: 'Shadow Guard',
     group: 'Court Legends',
     rarity: 'rare',
-    // Immagine in arrivo: /assets/img/ShadowGuard.webp
+    img: '/assets/img/ShadowGuard.webp',
     stats: { fans: 72, style: 78, influence: 86, energy: 82 },
     description: 'Segue ogni movimento come un\'ombra. Superarlo significa trovare una strada che non esiste.'
   },
@@ -640,7 +640,7 @@ export const CARDS = [
     variant: 'Fast Break',
     group: 'Court Legends',
     rarity: 'rare',
-    // Immagine in arrivo: /assets/img/FastBreak.webp
+    img: '/assets/img/FastBreak.webp',
     stats: { fans: 80, style: 82, influence: 72, energy: 86 },
     description: 'Da una palla recuperata al canestro passano soltanto pochi secondi.'
   },
@@ -651,7 +651,7 @@ export const CARDS = [
     variant: 'Street Vision',
     group: 'Court Legends',
     rarity: 'uncommon',
-    // Immagine in arrivo: /assets/img/StreetVision.webp
+    img: '/assets/img/StreetVision.webp',
     stats: { fans: 72, style: 80, influence: 74, energy: 72 },
     description: 'Cresciuto sui playground, vede passaggi che gli altri scoprono soltanto quando è troppo tardi.'
   },
@@ -662,7 +662,7 @@ export const CARDS = [
     variant: 'Paint Warrior',
     group: 'Court Legends',
     rarity: 'uncommon',
-    // Immagine in arrivo: /assets/img/PaintWarrior.webp
+    img: '/assets/img/PaintWarrior.webp',
     stats: { fans: 70, style: 64, influence: 72, energy: 82 },
     description: 'Nel pitturato non arretra di un centimetro. Ogni possesso diventa una battaglia.'
   },
@@ -673,7 +673,7 @@ export const CARDS = [
     variant: 'Corner Flame',
     group: 'Court Legends',
     rarity: 'uncommon',
-    // Immagine in arrivo: /assets/img/CornerFlame.webp
+    img: '/assets/img/CornerFlame.webp',
     stats: { fans: 68, style: 76, influence: 70, energy: 74 },
     description: 'Aspetta nell\'angolo e colpisce appena arriva il pallone. Rapido, preciso, letale.'
   },
@@ -684,7 +684,7 @@ export const CARDS = [
     variant: 'Vertical Rush',
     group: 'Court Legends',
     rarity: 'uncommon',
-    // Immagine in arrivo: /assets/img/VerticalRush.webp
+    img: '/assets/img/VerticalRush.webp',
     stats: { fans: 74, style: 78, influence: 66, energy: 80 },
     description: 'Un passo, uno stacco, poi soltanto aria. Vive sopra il ferro.'
   },
@@ -695,7 +695,7 @@ export const CARDS = [
     variant: 'Baseline Kid',
     group: 'Court Legends',
     rarity: 'common',
-    // Immagine in arrivo: /assets/img/BaselineKid.webp
+    img: '/assets/img/BaselineKid.webp',
     stats: { fans: 62, style: 66, influence: 58, energy: 70 },
     description: 'Corre lungo la linea di fondo aspettando il momento giusto per sorprendere la difesa.'
   },

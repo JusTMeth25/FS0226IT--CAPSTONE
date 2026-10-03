@@ -2,9 +2,9 @@ import { useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Float, Lightformer, PresentationControls, RoundedBox, Sparkles } from '@react-three/drei';
 import { CanvasTexture, DoubleSide, FrontSide, MathUtils, Quaternion, SRGBColorSpace } from 'three';
-import { getRarityColor, resolveCardImage } from '../../utils/cardUtils.js';
+import { cardFinish, getRarityColor, resolveCardImage } from '../../utils/cardUtils.js';
 import { getTier } from './rarityTiers.js';
-import { coverScale } from './holoMaterial.js';
+import { coverScale, FINISH_IDS } from './holoMaterial.js';
 import { getCardBackTexture, useSafeTexture } from './textures.js';
 import { useDocumentVisible } from './useThreeEnabled.js';
 import { BASE_URL } from '../../services/apiClient.js';
@@ -191,7 +191,9 @@ function CardModel({ card, flipped, onFlip }) {
               uRadius={CARD_RADIUS}
               uUvScale={frontScale}
               uIntensity={holo}
-              uFoil={card.foil > 0 ? 1 : 0}
+              uFoil={card.foil > 0 && !cardFinish(card) ? 1 : 0}
+              uFinish={FINISH_IDS[cardFinish(card)] || 0}
+              uArtMask={card.source?.startsWith('pokemon') ? 1 : 0}
             />
           </mesh>
         )}

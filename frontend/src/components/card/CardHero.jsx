@@ -62,7 +62,7 @@ export default function CardHero({ card, quantity = 1, hideArt = false }) {
   if (card.fullImage) {
     const imported = card.source && card.source !== 'original';
     const art = hideArt ? null : (
-      <CardHoloFrame rarity={card.rarity} className={`card-hero card-hero-full ${rarityClass}`}>
+      <CardHoloFrame rarity={card.rarity} card={card} className={`card-hero card-hero-full ${rarityClass}`}>
         <img className="card-hero-art" src={resolveCardImage(card)} alt={card.name} />
         <HoloLayers />
         {quantity > 1 && <span className="card-hero-qty-badge">×{quantity}</span>}
@@ -86,7 +86,7 @@ export default function CardHero({ card, quantity = 1, hideArt = false }) {
   return (
     <div className={`card-hero ${rarityClass}`}>
       {!hideArt && (
-        <CardHoloFrame rarity={card.rarity} className="card-hero-art-wrap">
+        <CardHoloFrame rarity={card.rarity} card={card} className="card-hero-art-wrap">
           <img className="card-hero-art" src={resolveCardImage(card)} alt={card.name} />
           <div className="card-hero-scrim" />
           <HoloLayers />

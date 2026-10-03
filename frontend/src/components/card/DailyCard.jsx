@@ -17,14 +17,26 @@ export default function DailyCard() {
     return () => { cancelled = true; };
   }, []);
 
-  if (!data?.card) return null;
+  // Mentre arriva la risposta il pannello c'e' gia' (con un segnaposto), cosi' la home non
+  // si ricompone quando compare la carta.
+  if (!data) {
+    return (
+      <div className="glass-panel daily-card daily-card-loading" aria-busy="true">
+        <h3 className="panel-title"><i className="ph-fill ph-calendar-star" /> Carta del giorno</h3>
+        <div className="daily-card-body">
+          <div className="daily-card-img"><div className="daily-card-skeleton" /></div>
+        </div>
+      </div>
+    );
+  }
+  if (!data.card) return null;
   const { card } = data;
   return (
     <div className="glass-panel daily-card" style={{ '--rarity-color': getRarityColor(card.rarity) }}>
       <h3 className="panel-title"><i className="ph-fill ph-calendar-star" /> Carta del giorno</h3>
       <div className="daily-card-body">
         <button type="button" className="daily-card-img" onClick={() => navigate(`/card/${encodeURIComponent(card.id)}`)} aria-label={`Dettagli di ${card.name}`}>
-          <img loading="lazy" decoding="async" src={resolveCardImage(card)} alt={card.name} />
+          <img fetchPriority="high" decoding="async" src={resolveCardImage(card)} alt={card.name} />
         </button>
         <div className="daily-card-info">
           <strong>{card.name}</strong>

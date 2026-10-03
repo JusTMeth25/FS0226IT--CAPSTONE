@@ -32,7 +32,9 @@ public record CardDto(
         // 1 per la versione olografica di una carta (HoloCardService): il frontend la fa brillare.
         int foil,
         // Carte con una foto con licenza libera (NBA Action): autore, licenza e pagina della foto.
-        Map<String, Object> photoCredit
+        Map<String, Object> photoCredit,
+        // Finitura olografica (CardFinish): holo, ultra, illustration, secret; null per le carte normali.
+        String finish
 ) {
 
     public static CardDto from(Card card) {
@@ -55,7 +57,8 @@ public record CardDto(
                 card.getMarketPrice(),
                 coinPrice(card),
                 card.isHolo() ? 1 : 0,
-                photoCredit(card)
+                photoCredit(card),
+                CardFinish.of(card)
         );
     }
 

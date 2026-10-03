@@ -38,7 +38,7 @@ export default function GradedSlab({ card, size = 'large', onClick }) {
       </div>
       {/* La carta nel cofanetto tiene gli stessi effetti di quando era sfusa: riflesso che segue il
           puntatore e, se olografica, l'arcobaleno che scorre. */}
-      <CardHoloFrame rarity={card.rarity} maxTilt={size === 'large' ? 6 : 4}
+      <CardHoloFrame rarity={card.rarity} card={card} maxTilt={size === 'large' ? 6 : 4}
         className={`slab-window card-rarity-${card.rarity}${card.foil > 0 ? ' is-foil' : ''}`}>
         <img src={resolveCardImage(card)} alt={card.name} loading="lazy" />
         <HoloLayers />

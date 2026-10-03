@@ -44,6 +44,7 @@ export default function CardTile({ card, quantity, onClick }) {
     return (
       <CardHoloFrame
         rarity={card.rarity}
+        card={card}
         maxTilt={8}
         className={`card ${rarityClass} card-full-image${card.foil > 0 ? ' is-foil' : ''}`}
         title={`${card.name} - ${getRarityName(card.rarity)}`}
@@ -61,6 +62,7 @@ export default function CardTile({ card, quantity, onClick }) {
   return (
     <CardHoloFrame
       rarity={card.rarity}
+      card={card}
       maxTilt={8}
       className={`card ${rarityClass}${card.foil > 0 ? ' is-foil' : ''}`}
       title={`${card.name} - ${getRarityName(card.rarity)}`}

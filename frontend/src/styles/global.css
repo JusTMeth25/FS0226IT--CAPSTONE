@@ -1350,6 +1350,10 @@ input.filter-select { cursor: text; }
 .daily-card-body { display: flex; gap: 14px; align-items: center; }
 .daily-card-img { padding: 0; border: 0; background: none; cursor: pointer; flex: 0 0 110px; }
 .daily-card-img img { width: 110px; border-radius: 10px; box-shadow: 0 0 22px var(--rarity-color, transparent); display: block; }
+.daily-card-skeleton { width: 110px; aspect-ratio: 5 / 7; border-radius: 10px; background: linear-gradient(110deg, rgba(255, 255, 255, 0.04) 30%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.04) 70%) 0 0 / 300% 100%; animation: dailySkeleton 1.4s linear infinite; }
+.home-top .daily-card-skeleton { width: 150px; }
+@media (min-width: 900px) { .home-top .daily-card-skeleton { width: min(100%, 260px); margin: 0 auto; } }
+@keyframes dailySkeleton { from { background-position: 100% 0; } to { background-position: -50% 0; } }
 .daily-card-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .daily-card-info p { margin: 0; font-size: .85rem; opacity: .85; }
 .daily-card-rarity { color: var(--rarity-color); font-size: .8rem; font-weight: 700; }

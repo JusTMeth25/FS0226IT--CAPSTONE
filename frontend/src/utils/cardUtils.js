@@ -60,6 +60,21 @@ export function getRarityData(rarity) {
   return RARITIES[rarity] || RARITIES.common;
 }
 
+/**
+ * Finitura olografica della carta (come le Holo, ex, Illustration e Secret delle carte Pokemon):
+ * la decide il backend (CardFinish); per le carte senza (catalogo locale, hotel) vale la rarita'.
+ * null per le carte normali.
+ */
+export function cardFinish(card) {
+  if (!card) return null;
+  if (card.finish !== undefined) return card.finish;
+  if (card.source === 'pokemonjp') return null;
+  const original = !card.source || card.source === 'original';
+  if (card.rarity === 'legendary') return original ? 'illustration' : 'secret';
+  if (card.rarity === 'epic') return 'ultra';
+  return card.foil > 0 ? (card.source?.startsWith('pokemon') ? 'reverse' : 'holo') : null;
+}
+
 export function getRarityColor(rarity) {
   return getRarityData(rarity).color;
 }
