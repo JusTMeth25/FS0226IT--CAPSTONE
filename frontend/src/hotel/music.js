@@ -16,7 +16,12 @@ import { GuitarRig } from './guitarSynth.js';
  * distorta vera (corde di guitarSynth.js). "guitar": x power chord lungo, m stoppata col palmo.
  *
  * I brani devono restare 10, come RoomInstance.JUKEBOX_TRACKS sul server.
+ *
+ * Il brano 100 e' la radio della Disco (DiscoRadio sul server): canzoni vere dei DJ, con le
+ * anteprime ufficiali di 30 secondi di Apple Music suonate da un elemento <audio>.
  */
+export const RADIO_TRACK = 100;
+const RADIO_VOLUME = 0.55;
 
 const midiToHz = (note) => 440 * 2 ** ((note - 69) / 12);
 
@@ -188,9 +193,10 @@ class JukeboxPlayer {
   }
 
   /** Brano da suonare secondo il server. serverTime serve a correggere l'orologio locale. */
-  set(track, startedAt, serverTime) {
+  set(track, startedAt, serverTime, radio = null) {
     this.track = track;
     this.startedAt = startedAt;
+    this.radio = track === RADIO_TRACK ? radio : null;
     if (serverTime) this.clockOffset = serverTime - Date.now();
     this.refresh();
   }
@@ -198,11 +204,34 @@ class JukeboxPlayer {
   stop() {
     clearInterval(this.timer);
     this.timer = 0;
+    if (this.audio && !this.audio.paused) this.audio.pause();
+  }
+
+  /** Anteprima del brano vero, dal punto in cui e' arrivata la stanza. */
+  playRadio() {
+    if (!this.audio) {
+      this.audio = new Audio();
+      this.audio.preload = 'auto';
+    }
+    const audio = this.audio;
+    if (audio.dataset.src !== this.radio.preview) {
+      audio.dataset.src = this.radio.preview;
+      audio.src = this.radio.preview;
+    }
+    audio.volume = this.muted ? 0 : RADIO_VOLUME;
+    const offset = Math.max(0, (Date.now() + this.clockOffset - this.startedAt) / 1000);
+    const start = () => {
+      if (offset < (audio.duration || 30) - 0.5) audio.currentTime = offset;
+      audio.play().catch(() => {});
+    };
+    if (audio.readyState >= 1) start();
+    else audio.addEventListener('loadedmetadata', start, { once: true });
   }
 
   /** Silenzio temporaneo (la gara rock ha la sua musica): il brano continua a tempo, senza volume. */
   setMuted(muted) {
     this.muted = muted;
+    if (this.audio) this.audio.volume = muted ? 0 : RADIO_VOLUME;
     if (this.master) this.master.gain.setTargetAtTime(muted ? 0 : 0.18, this.ctx.currentTime, 0.1);
   }
 
@@ -221,6 +250,10 @@ class JukeboxPlayer {
     this.stop();
     const enabled = soundService.isEnabled();
     if (!this.ctx || this.track < 0 || !enabled || document.hidden) return;
+    if (this.track === RADIO_TRACK) {
+      if (this.radio?.preview) this.playRadio();
+      return;
+    }
 
     // A che punto del giro siamo, secondo l'orario d'inizio deciso dal server.
     const song = TRACKS[this.track];

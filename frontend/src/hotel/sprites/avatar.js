@@ -1,4 +1,6 @@
 import { bake, createCanvas, mirror, px, shade } from './pixel.js';
+import { DJ_HEADS, DJ_HEAD_STYLES, HEAD_SIZE, djHeadSprite, onDjHeadReady } from './djHeads.js';
+import { GUITAR_SPRITE_SIZE, guitarSprite, onGuitarModelReady } from './guitarModels.js';
 
 /**
  * Avatar in pixel art stile Habbo, disegnati da codice a partire dal codice aspetto
@@ -54,8 +56,9 @@ export const OUTFITS = ['Nessuno', 'Completo gessato', 'Smoking', 'Abito da sera
   'Tuta firmata', 'Blazer bianco', 'Abito di paillettes', 'Trench', 'Smoking bianco', 'Giacca di velluto', 'Kimono di seta',
   'Tailleur rosa', 'Gilet borchiato', 'Maglia della band', 'Camicia di flanella', 'Tuta glam leopardata',
   'Giacca di jeans con toppe', 'Completo di pelle rossa'];
-export const GUITARS = ['Nessuna', 'Chitarra classica', 'Acustica western', 'Stratosfera rossa', 'Les Pauline sunburst',
-  'Volo V bianca', 'Esplosiva nera', 'Basso Precisione', 'Basso Jazzista', 'Doppio manico'];
+export const GUITARS = ['Nessuna', 'Chitarra classica', 'Acustica western', 'Stratosfera rossa', 'Les Pauline bianca',
+  'Volo V bianca', 'Esplosiva nera', 'Basso Precisione', 'Basso Jazzista', 'Doppio manico', 'SG da palco nera',
+  'Jaguaro azzurra'];
 export const WATCHES = ['Nessuno', 'Rolaix Submarino', 'Rolaix Daytona d\'oro', 'Patec Philippa Nautilo', 'Patec Philippa Calatrava',
   'Audemar Piguay Quercia Reale', 'Audemar Piguay Offshore Nero', 'Rolaix GMT Pepsi', 'Rolaix Day-Date Platino',
   'Patec Philippa Aquanaut Verde', 'Audemar Piguay Codice 11.59', 'Richard Milla RM Scheletrato'];
@@ -116,12 +119,14 @@ export const GUITAR_STYLES = [
   { kind: 'classical', body: '#c8904f', edge: '#7c4a1e', hole: true },
   { kind: 'acoustic', body: '#d97706', edge: '#78350f', hole: true, burst: '#451a03' },
   { kind: 'strat', body: '#c81e1e', guard: '#f5f5f5' },
-  { kind: 'lp', body: '#e0902e', burst: '#5b2c06', guard: '#1f1f1f' },
+  { kind: 'lp', body: '#f4f4f5', guard: '#1f1f1f' },
   { kind: 'v', body: '#f4f4f5', guard: '#111' },
   { kind: 'explorer', body: '#18181b', guard: '#f5f5f5' },
   { kind: 'bass', body: '#1d4ed8', guard: '#f5f5f5' },
   { kind: 'bass', body: '#b45309', burst: '#451a03', guard: '#3f2a14' },
-  { kind: 'double', body: '#9f1239', guard: '#111' }
+  { kind: 'double', body: '#9f1239', guard: '#111' },
+  { kind: 'sg', body: '#18181b', guard: '#f5f5f5' },
+  { kind: 'strat', body: '#5b8def', guard: '#3f3f46' }
 ];
 
 /** Orologi: cinturino, cassa, quadrante e ghiera. */
@@ -185,7 +190,7 @@ export const LUXURY_PARTS = [
 ];
 
 /** Ordine delle parti nel codice salvato: le prime cinque sono quelle della prima versione. */
-const CODE_ORDER = ['s', 'h', 'hc', 'sh', 'p', 't', 'f', 'a', 'b', 'o', 'w', 'r', 'n', 'e', 'g', 'k'];
+const CODE_ORDER = ['s', 'h', 'hc', 'sh', 'p', 't', 'f', 'a', 'b', 'o', 'w', 'r', 'n', 'e', 'g', 'k', 'd'];
 
 export const DEFAULT_LOOK = 's1.h1.hc0.sh0.p0.t0.f0.a0.b0';
 
@@ -195,7 +200,7 @@ export function fixLook(parts) {
 }
 
 export function parseLook(look) {
-  const parts = { s: 1, h: 1, hc: 0, sh: 0, p: 0, t: 0, f: 0, a: 0, b: 0, o: 0, w: 0, r: 0, n: 0, e: 0, g: 0, k: 0 };
+  const parts = { s: 1, h: 1, hc: 0, sh: 0, p: 0, t: 0, f: 0, a: 0, b: 0, o: 0, w: 0, r: 0, n: 0, e: 0, g: 0, k: 0, d: 0 };
   (look || DEFAULT_LOOK).split('.').forEach((part) => {
     const match = /^([a-z]+)(\d+)$/.exec(part);
     if (match && match[1] in parts) parts[match[1]] = Number(match[2]);
@@ -207,6 +212,7 @@ export function parseLook(look) {
     if (!(parts[key] >= 0 && parts[key] < names.length)) parts[key] = 0;
   });
   if (!(parts.k >= 0 && parts.k < CATS.length)) parts.k = 0;
+  if (!(parts.d >= 0 && parts.d < DJ_HEADS.length)) parts.d = 0;
   return fixLook(parts);
 }
 
@@ -219,6 +225,8 @@ export function formatLook(parts) {
   const luxury = jewels || parts.o || parts.w || parts.r;
   return CODE_ORDER.filter((key) => {
     if (key === 'k') return cat;
+    // Casco dei DJ della Disco (solo personaggi dell'hotel): si scrive solo se c'e'.
+    if (key === 'd') return parts.d;
     if (key === 'g') return guitar;
     if (key === 'n' || key === 'e') return jewels;
     return luxury || !['o', 'w', 'r'].includes(key);
@@ -1016,6 +1024,12 @@ function drawRockTorso(ctx, top, style, { skin, back }) {
  * (dx, dy) la direzione del manico.
  */
 function drawGuitarShape(ctx, x, y, style, dx, dy) {
+  // Chitarre con il modello 3D del controller vero: si incolla lo sprite gia' reso.
+  const sprite = style.index ? guitarSprite(style.index, dx, dy, style.back) : null;
+  if (sprite) {
+    ctx.drawImage(sprite, Math.round(x - GUITAR_SPRITE_SIZE / 2), Math.round(y - GUITAR_SPRITE_SIZE / 2));
+    return;
+  }
   const neckLen = style.kind === 'bass' ? 30 : style.kind === 'double' ? 26 : 24;
   const neck = (offset, color) => {
     for (let i = 3; i < neckLen; i += 1) px(ctx, Math.round(x + dx * i + offset), Math.round(y + dy * i), 2, 2, color);
@@ -1268,7 +1282,7 @@ function drawAvatar(look, { back, pose, frame, outfit, gear }) {
 
   const sleeve = style ? (style.jacket || style.color) : shirt;
   // Chitarra a tracolla: sulla schiena mentre si cammina, davanti mentre si suona.
-  const guitar = swim ? null : GUITAR_STYLES[parts.g];
+  const guitar = swim || !GUITAR_STYLES[parts.g] ? null : { ...GUITAR_STYLES[parts.g], index: parts.g, back };
   const playing = pose === 'guitar';
   if (guitar && !playing && !back) drawGuitarShape(ctx, 12, y0 + 58, guitar, 0.35, -0.94);
   // Sulla panca le mani stanno sopra la testa (piu' in alto a braccia tese); nel tiro a canestro si allungano.
@@ -1294,6 +1308,22 @@ function drawAvatar(look, { back, pose, frame, outfit, gear }) {
   const watch = swim ? null : WATCH_STYLES[parts.w];
   if (watch && !o.frontUp && !o.frontJab) drawWatch(ctx, y0, watch, o.frontArm);
 
+  // DJ con il casco (Disco): il casco 3D al posto di testa, capelli e viso.
+  const dj = DJ_HEAD_STYLES[parts.d];
+  if (dj) {
+    const sprite = djHeadSprite(parts.d, back);
+    const top = y0 + 24 - HEAD_SIZE / 2 - 2;
+    if (sprite) {
+      ctx.drawImage(sprite, 24 - HEAD_SIZE / 2, top);
+    } else {
+      // Casco provvisorio finche' il modello 3D non e' pronto.
+      blob(ctx, HEAD.cx, y0 + 23, HEAD.rx + 1, HEAD.ry + 1, dj.color, HEAD.power);
+      if (!back) px(ctx, 22, y0 + 19, 14, 6, dj.visor);
+    }
+    drawSportProp(ctx, pose, frame, y0, o);
+    outline(ctx, AVATAR_W, AVATAR_H);
+    return bake(canvas);
+  }
   drawHead(ctx, y0, { skin, back });
   const capped = outfit === 'pool';
   if (cat) drawCatHead(ctx, y0, cat, back);
@@ -1331,6 +1361,9 @@ function drawAvatar(look, { back, pose, frame, outfit, gear }) {
 }
 
 const cache = new Map();
+// Un casco 3D appena pronto: gli avatar che lo portano si ridisegnano.
+onDjHeadReady(() => cache.clear());
+onGuitarModelReady(() => cache.clear());
 
 /**
  * Sprite pronto da disegnare, in cache: lo stesso avatar nella stessa posa viene generato

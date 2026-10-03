@@ -23,7 +23,7 @@ export const INSTRUMENTS = {
 };
 
 /** Strumento delle chitarre del catalogo (indice "g" del codice aspetto). */
-export const GUITAR_SOUND = [null, 'nylon', 'steel', 'drive', 'drive', 'drive', 'drive', 'bass', 'bass', 'drive'];
+export const GUITAR_SOUND = [null, 'nylon', 'steel', 'drive', 'drive', 'drive', 'drive', 'bass', 'bass', 'drive', 'drive', 'clean'];
 
 const bufferCache = new WeakMap();
 

@@ -4,6 +4,16 @@
  */
 export const NEWS = [
   {
+    date: '2026-10-10',
+    title: 'Musica vera in Disco e chitarre di Guitar Hero',
+    icon: 'ph-vinyl-record',
+    items: [
+      ['ph-music-notes', 'Radio della Disco', 'Nella Disco anni 80 suonano brani veri: le anteprime ufficiali di 30 secondi di Apple Music, uguali per tutti nella stanza. Copertina, titolo e link per ascoltarli interi.'],
+      ['ph-headphones', 'DJ alla consolle', 'Sette DJ ispirati a Daft Punk, Marshmello, deadmau5, Avicii, David Guetta, Calvin Harris e Martin Garrix si danno il cambio. I caschi sono modelli 3D (Sketchfab, CC BY).'],
+      ['ph-guitar', 'Chitarre di Guitar Hero', 'Al Rock Store le chitarre hanno i modelli 3D dei controller veri di Guitar Hero e Rock Band, anche a tracolla dell’avatar. Due chitarre nuove: SG da palco nera e Jaguaro azzurra.']
+    ]
+  },
+  {
     date: '2026-10-09',
     title: 'Carte Action di FC 27',
     icon: 'ph-soccer-ball',

@@ -1,7 +1,10 @@
+import { useEffect, useState } from 'react';
 import { GUITAR_STYLES } from '../sprites/avatar.js';
+import { guitarPicture, hasGuitarModel, onGuitarModelReady } from '../sprites/guitarModels.js';
 
 /**
- * Chitarra disegnata in SVG per il Rock Store: forma del corpo per modello (classica, acustica,
+ * Chitarra del Rock Store: la foto del modello 3D del controller vero (Guitar Hero, Rock Band)
+ * quando c'e', altrimenti disegnata in SVG: forma del corpo per modello (classica, acustica,
  * a doppia spalla, a spalla singola, a V, a spigoli, basso, doppio manico), manico, paletta e corde.
  */
 function body(kind, color, edge) {
@@ -36,7 +39,11 @@ function body(kind, color, edge) {
 
 export default function GuitarFace({ index, big = false }) {
   const style = GUITAR_STYLES[index];
+  const [, setReady] = useState(0);
+  useEffect(() => (hasGuitarModel(index) ? onGuitarModelReady(() => setReady((n) => n + 1)) : undefined), [index]);
   if (!style) return null;
+  const photo = guitarPicture(index);
+  if (photo) return <img className={big ? 'guitar-face big' : 'lux-watch lux-guitar'} src={photo} alt="" aria-hidden="true" />;
   const bass = style.kind === 'bass';
   const neckTop = bass ? -6 : 4;
   const strings = bass ? 4 : 6;

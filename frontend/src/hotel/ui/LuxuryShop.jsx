@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { authApi } from '../../services/authApi.js';
 import { hotelApi } from '../../services/hotelApi.js';
-import { formatLook, parseLook } from '../sprites/avatar.js';
+import { GUITARS, formatLook, parseLook } from '../sprites/avatar.js';
+import { guitarModelFile } from '../sprites/guitarModels.js';
 import AvatarPreview from './AvatarPreview.jsx';
 import LuxuryArt from './LuxuryArt.jsx';
 import { tailorAdvice } from './tailor.js';
@@ -43,13 +44,17 @@ export default function LuxuryShop({ shop, look, gold, onBought, onWear, onClose
     hotelApi.luxuryMarket(shop).then((res) => { if (!cancelled) setMarket(res.listings || []); }).catch(() => { if (!cancelled) setMarket([]); });
     return () => { cancelled = true; };
   }, [tab, shop]);
-  // Crediti dei modelli 3D delle auto (Sketchfab, CC Attribution).
+  // Crediti dei modelli 3D delle auto e delle chitarre (Sketchfab, CC Attribution).
   const [credits, setCredits] = useState({});
   useEffect(() => {
-    if (shop !== 'auto') return undefined;
+    if (shop !== 'auto' && shop !== 'chitarre') return undefined;
     let cancelled = false;
-    fetch(`${import.meta.env.BASE_URL}models/cars/credits.json`).then((r) => r.json())
-      .then((data) => { if (!cancelled) setCredits(data); }).catch(() => {});
+    fetch(`${import.meta.env.BASE_URL}models/${shop === 'auto' ? 'cars' : 'guitars'}/credits.json`).then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        // Le chitarre hanno i crediti per file del modello: si riportano sulla chitarra del negozio.
+        setCredits(shop === 'auto' ? data : Object.fromEntries(GUITARS.map((_, i) => [`g${i}`, data[guitarModelFile(i)]]).filter(([, c]) => c)));
+      }).catch(() => {});
     return () => { cancelled = true; };
   }, [shop]);
   const parts = useMemo(() => parseLook(look), [look]);

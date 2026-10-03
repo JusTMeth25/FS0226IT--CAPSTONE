@@ -64,6 +64,8 @@ public class RoomInstance {
 
     /** Brano in corso (-1 = spento) e quando e' partito: i client lo suonano dallo stesso punto. */
     private int jukeboxTrack = -1;
+    /** Radio della Disco con i brani veri dei DJ (DiscoRadio); null nelle altre stanze. */
+    private DiscoRadio.State radio;
     private long jukeboxStartedAt = 0;
     private long jukeboxChangedAt = 0;
 
@@ -200,7 +202,32 @@ public class RoomInstance {
             jukeboxTrack = playlist[0];
             jukeboxStartedAt = System.currentTimeMillis();
         }
+        if ("disco".equals(data.floorStyle()) && data.publicRoom() && !DiscoRadio.DJS.isEmpty()) {
+            radio = new DiscoRadio.State(System.currentTimeMillis());
+            jukeboxTrack = DiscoRadio.RADIO_TRACK;
+        }
         spawnNpcs();
+        updateDj();
+    }
+
+    /** Alla consolle della Disco c'e' il DJ del set in corso: nome e aspetto cambiano con lui. */
+    private void updateDj() {
+        if (radio == null) return;
+        for (NpcRoster.NpcSpec spec : NpcRoster.forRoom(data.id())) {
+            if (spec.role() != NpcRoster.Role.DJ) continue;
+            Occupant occupant = occupants.get(spec.id(data.id()));
+            if (occupant == null) continue;
+            DiscoRadio.Dj dj = radio.currentDj();
+            occupant.user = new HotelUser(occupant.user.id(), dj.name(), radio.look(), 0);
+            broadcast(Map.of("type", "user_update", "user", occupant.user));
+        }
+    }
+
+    /** Brano successivo della radio (e, finito il set, DJ successivo). */
+    private void nextRadioTrack(long now) {
+        jukeboxStartedAt = now;
+        if (radio.next(now)) updateDj();
+        broadcast(jukeboxMessage());
     }
 
     /** Gli NPC della stanza entrano con lei, ognuno al suo posto. */
@@ -352,6 +379,7 @@ public class RoomInstance {
             broadcast(message);
         }
         if (now % 5_000 < TICK_CHECK_MILLIS) closeKartRace();
+        if (radio != null && jukeboxTrack == DiscoRadio.RADIO_TRACK && radio.due(now)) nextRadioTrack(now);
         if (quiz != null && now > quiz.deadline()) endQuiz(null);
         if (football != null && match.playing()) {
             TeamMatch.Outcome outcome = match.onTick(now, football.score(FootballMatch.Team.BLUE), football.score(FootballMatch.Team.RED));
@@ -1793,7 +1821,7 @@ public class RoomInstance {
     public synchronized void startParty(String theme, long endsAt) {
         partyTheme = theme;
         partyEndsAt = endsAt;
-        jukeboxTrack = PARTY_TRACKS.getOrDefault(theme, 0);
+        jukeboxTrack = radio != null ? DiscoRadio.RADIO_TRACK : PARTY_TRACKS.getOrDefault(theme, 0);
         jukeboxStartedAt = System.currentTimeMillis();
         broadcast(jukeboxMessage());
         broadcast(partyMessage());
@@ -1878,7 +1906,20 @@ public class RoomInstance {
         long now = System.currentTimeMillis();
         if (now - jukeboxChangedAt < JUKEBOX_COOLDOWN_MILLIS) return "jukebox_cooldown";
         boolean hasJukebox = items.values().stream().anyMatch(i -> "jukebox".equals(i.type()));
-        if (!hasJukebox) return "no_jukebox";
+        if (!hasJukebox && radio == null) return "no_jukebox";
+        jukeboxChangedAt = now;
+        // In Disco il jukebox chiede al DJ il brano successivo del suo set (o riaccende la radio).
+        if (radio != null) {
+            if (jukeboxTrack != DiscoRadio.RADIO_TRACK) {
+                jukeboxTrack = DiscoRadio.RADIO_TRACK;
+                radio.startedAt = now;
+                jukeboxStartedAt = now;
+                broadcast(jukeboxMessage());
+            } else {
+                nextRadioTrack(now);
+            }
+            return null;
+        }
         // In discoteca e al locale rock si gira solo fra i brani del locale.
         int[] playlist = playlist();
         if (playlist == null) {
@@ -1895,8 +1936,19 @@ public class RoomInstance {
     }
 
     private Map<String, Object> jukeboxMessage() {
-        return Map.of("type", "jukebox", "track", jukeboxTrack, "startedAt", jukeboxStartedAt,
-                "serverTime", System.currentTimeMillis());
+        Map<String, Object> message = new LinkedHashMap<>(jukeboxState());
+        message.put("type", "jukebox");
+        message.put("serverTime", System.currentTimeMillis());
+        return message;
+    }
+
+    /** Brano del jukebox; con la radio della Disco anche il brano vero (DJ, titolo, anteprima). */
+    private Map<String, Object> jukeboxState() {
+        Map<String, Object> state = new LinkedHashMap<>();
+        state.put("track", jukeboxTrack);
+        state.put("startedAt", radio != null && jukeboxTrack == DiscoRadio.RADIO_TRACK ? radio.startedAt : jukeboxStartedAt);
+        if (radio != null && jukeboxTrack == DiscoRadio.RADIO_TRACK) state.put("radio", radio.view());
+        return state;
     }
 
     /**
@@ -2099,7 +2151,7 @@ public class RoomInstance {
         state.put("users", users);
         state.put("you", you);
         state.put("items", List.copyOf(items.values()));
-        state.put("jukebox", Map.of("track", jukeboxTrack, "startedAt", jukeboxStartedAt));
+        state.put("jukebox", jukeboxState());
         if (partyActive()) state.put("party", Map.of("theme", partyTheme, "endsAt", partyEndsAt));
         if (football != null) {
             state.put("ball", Map.of("x", football.ballX(), "y", football.ballY(),

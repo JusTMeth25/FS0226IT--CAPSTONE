@@ -1405,6 +1405,7 @@ button.hotel-badge:hover:not(:disabled) { transform: translateY(-2px) scale(1.08
 .lux-item-art .hotel-avatar-preview { image-rendering: pixelated; }
 .lux-vehicle { width: 96px; height: 64px; }
 .lux-watch { width: 72px; height: 58px; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)); }
+.lux-guitar { object-fit: contain; }
 .lux-item-info small { display: block; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.65rem; color: #fbbf24; }
 .lux-item-info strong { display: block; font-size: 0.95rem; }
 .lux-item-info p { margin: 2px 0 0; font-size: 0.75rem; opacity: 0.75; }
@@ -1470,7 +1471,7 @@ button.hotel-badge:hover:not(:disabled) { transform: translateY(-2px) scale(1.08
 .guitar-tester header { display: flex; align-items: center; gap: 8px; }
 .guitar-tester header small { opacity: 0.7; flex: 1; }
 .guitar-tester-art { display: flex; justify-content: center; }
-.guitar-face.big { width: 140px; height: 150px; }
+.guitar-face.big { width: 140px; height: 150px; object-fit: contain; }
 .guitar-tester-art.strum-1 .guitar-face, .guitar-tester-art.strum-0 .guitar-face { animation: guitar-strum 0.25s ease-out; }
 @keyframes guitar-strum { 0% { transform: rotate(-3deg) scale(1.04); } 100% { transform: none; } }
 .guitar-tester-chords { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
@@ -1566,3 +1567,12 @@ button.hotel-badge:hover:not(:disabled) { transform: translateY(-2px) scale(1.08
 }
 .hotel-top-card:hover .hotel-top-card-edit, .hotel-top-card:focus-visible .hotel-top-card-edit { opacity: 1; }
 @media (hover: none) { .hotel-top-card-edit { opacity: 1; } }
+
+/* Radio della Disco: copertina, titolo, DJ in consolle e link ad Apple Music. */
+.hotel-radio { gap: 8px; max-width: min(520px, 100%); }
+.hotel-radio img { width: 34px; height: 34px; border-radius: 6px; flex: 0 0 auto; }
+.hotel-radio-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
+.hotel-radio-text strong, .hotel-radio-text small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hotel-radio-text small { opacity: 0.75; font-size: 0.7rem; }
+.hotel-radio-apple { color: #fff; font-size: 0.7rem; font-weight: 700; white-space: nowrap; text-decoration: none; padding: 2px 6px; border-radius: 6px; background: rgba(250, 45, 72, 0.85); }
+.hotel-radio-apple:hover { background: #fa2d48; }

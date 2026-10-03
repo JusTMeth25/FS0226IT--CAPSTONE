@@ -48,7 +48,7 @@ import { footprintOf, nextRotation } from '../hotel/sprites/furni.js';
 import { DEFAULT_LOOK, RIDES, formatLook, parseLook } from '../hotel/sprites/avatar.js';
 import { RIDE_WALLS } from '../hotel/sprites/vehicles.js';
 import { authApi } from '../services/authApi.js';
-import { TRACKS, getJukebox } from '../hotel/music.js';
+import { RADIO_TRACK, TRACKS, getJukebox } from '../hotel/music.js';
 import { isLiteDevice } from '../utils/perfMode.js';
 import '../hotel/hotel.css';
 
@@ -360,13 +360,13 @@ export default function HotelPage() {
         setRoom(message.room);
         setPeople(Object.fromEntries(message.users.map((u) => [u.id, u])));
         setItems(Object.fromEntries((message.items || []).map((i) => [i.id, i])));
-        setJukebox({ track: message.jukebox?.track ?? -1 });
+        setJukebox({ track: message.jukebox?.track ?? -1, radio: message.jukebox?.radio || null });
         setFootball(message.ball ? { blue: message.ball.blue, red: message.ball.red } : null);
         setMatch(message.match || null);
         setQuiz(message.quiz || null);
         setQuizResult(null);
         if (message.weather) setWeather(message.weather);
-        getJukebox().set(message.jukebox?.track ?? -1, message.jukebox?.startedAt ?? 0, message.serverTime);
+        getJukebox().set(message.jukebox?.track ?? -1, message.jukebox?.startedAt ?? 0, message.serverTime, message.jukebox?.radio);
         setPanel((current) => (current === 'trades' ? current : null));
         setSelected(null);
         setSelectedNpc(null);
@@ -419,8 +419,8 @@ export default function HotelPage() {
         setSelectedItemId((id) => (id === message.id ? null : id));
         break;
       case 'jukebox':
-        setJukebox({ track: message.track });
-        getJukebox().set(message.track, message.startedAt, message.serverTime);
+        setJukebox({ track: message.track, radio: message.radio || null });
+        getJukebox().set(message.track, message.startedAt, message.serverTime, message.radio);
         break;
       case 'respect': {
         const from = peopleRef.current[message.from]?.username || 'Qualcuno';
@@ -1071,7 +1071,26 @@ export default function HotelPage() {
                   <i className={likes.liked ? 'ph-fill ph-heart' : 'ph ph-heart'} /> {likes.likes}
                 </button>
               )}
-              {jukebox.track >= 0 && (
+              {jukebox.track === RADIO_TRACK && jukebox.radio && (
+                <span className="hotel-now-playing hotel-radio">
+                  {jukebox.radio.artwork && <img src={jukebox.radio.artwork} alt="" />}
+                  <span className="hotel-radio-text">
+                    <strong>{jukebox.radio.title}</strong>
+                    <small>{jukebox.radio.artist} · in consolle {jukebox.radio.dj} (omaggio a {jukebox.radio.tribute})</small>
+                  </span>
+                  {/* Le anteprime vengono da Apple Music: il link al brano e' obbligatorio. */}
+                  <a href={jukebox.radio.url} target="_blank" rel="noopener noreferrer" className="hotel-radio-apple" title="Ascolta il brano intero su Apple Music">
+                    <i className="ph-fill ph-apple-logo" /> Apple Music
+                  </a>
+                  {canUseJukebox && (
+                    <>
+                      <button type="button" onClick={() => send({ type: 'jukebox', on: true })} title="Brano successivo"><i className="ph-fill ph-skip-forward" /></button>
+                      <button type="button" onClick={() => send({ type: 'jukebox', on: false })} title="Spegni la musica"><i className="ph-fill ph-stop" /></button>
+                    </>
+                  )}
+                </span>
+              )}
+              {jukebox.track >= 0 && jukebox.track !== RADIO_TRACK && (
                 <span className="hotel-now-playing">
                   <i className="ph-fill ph-music-notes" /> {TRACKS[jukebox.track]?.name}
                   {canUseJukebox && (

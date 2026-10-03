@@ -92,13 +92,15 @@ public final class LuxuryCatalog {
             // Rock Store: chitarre e bassi. Si portano a tracolla e si suonano nella gara rock.
             guitar(1, "Chitarra classica", "Liuteria Vinile", 400, "Corde di nylon e cassa di cedro: arpeggi e flamenco."),
             guitar(2, "Acustica western", "Liuteria Vinile", 700, "Corde di metallo, cassa grande, suono pieno da falo'."),
-            guitar(3, "Stratosfera rossa", "Fendra", 1200, "Tre pickup, doppia spalla mancante: il suono del rock classico."),
-            guitar(4, "Les Pauline sunburst", "Gibbon", 1800, "Mogano massiccio e humbucker: il suono grosso dell'hard rock."),
-            guitar(5, "Volo V bianca", "Gibbon", 1600, "La chitarra a V degli assoli anni 80."),
-            guitar(6, "Esplosiva nera", "Gibbon", 1700, "Forma a spigoli, nera lucida, per il metal."),
+            guitar(3, "Stratosfera rossa", "Fendra", 1200, "Rossa come il controller di Rock Band 4: il suono del rock classico."),
+            guitar(4, "Les Pauline bianca", "Gibbon", 1800, "Bianca come il controller di Guitar Hero III: il suono grosso dell'hard rock."),
+            guitar(5, "Volo V bianca", "Gibbon", 1600, "La V del controller di Guitar Hero: Metallica, per gli assoli anni 80."),
+            guitar(6, "Esplosiva nera", "Gibbon", 1700, "Le ali a spigoli del controller di Guitar Hero: Warriors of Rock, per il metal."),
             guitar(7, "Basso Precisione", "Fendra", 1000, "Quattro corde, blu, il basso di tutte le band."),
             guitar(8, "Basso Jazzista", "Fendra", 1100, "Manico sottile e suono ricco, finitura sunburst."),
-            guitar(9, "Doppio manico", "Gibbon", 3000, "Dodici e sei corde insieme, per le ballate epiche."));
+            guitar(9, "Doppio manico", "Gibbon", 3000, "Dodici e sei corde insieme, per le ballate epiche."),
+            guitar(10, "SG da palco nera", "Gibbon", 2200, "Le doppie corna e i cinque tasti colorati del controller di Guitar Hero II."),
+            guitar(11, "Jaguaro azzurra", "Fendra", 1500, "Il controller di Rock Band 4: spalla sfalsata e suono pulito da surf rock."));
 
     private static final Map<String, Item> BY_KEY = ITEMS.stream().collect(Collectors.toMap(Item::key, Function.identity()));
 
@@ -107,7 +109,7 @@ public final class LuxuryCatalog {
     public static final int WATCH_COUNT = 12;
     public static final int RIDES = 10;
     public static final int NECKLACES = 7;
-    public static final int GUITAR_COUNT = 10;
+    public static final int GUITAR_COUNT = 12;
     public static final int EARRINGS = 7;
 
     private LuxuryCatalog() {
