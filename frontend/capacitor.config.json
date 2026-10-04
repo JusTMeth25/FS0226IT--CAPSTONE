@@ -13,6 +13,15 @@
     "StatusBar": {
       "style": "DARK",
       "backgroundColor": "#050816"
+    },
+    "SocialLogin": {
+      "providers": {
+        "google": true,
+        "apple": true,
+        "facebook": false,
+        "twitter": false
+      },
+      "logLevel": 1
     }
   },
   "android": {

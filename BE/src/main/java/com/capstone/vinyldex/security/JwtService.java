@@ -31,6 +31,8 @@ public class JwtService {
 
     private static final Logger log = LoggerFactory.getLogger(JwtService.class);
 
+    private static final String CHALLENGE = "2fa";
+
     private final SecretKey key;
     private final Duration expiration;
 
@@ -76,10 +78,38 @@ public class JwtService {
                 .compact();
     }
 
+    /**
+     * Token di attesa del secondo passaggio: dice solo "password giusta, manca il codice" e vale
+     * pochi minuti. Non e' un token di accesso: extractUserId lo rifiuta.
+     */
+    public String generateChallenge(UUID userId) {
+        Date now = new Date();
+        return Jwts.builder()
+                .subject(userId.toString())
+                .claim("purpose", CHALLENGE)
+                .issuedAt(now)
+                .expiration(new Date(now.getTime() + Duration.ofMinutes(10).toMillis()))
+                .signWith(key)
+                .compact();
+    }
+
+    /** Id utente di un token di attesa del secondo passaggio ancora valido, altrimenti null. */
+    public UUID extractChallengeUserId(String token) {
+        try {
+            Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+            if (!CHALLENGE.equals(claims.get("purpose", String.class))) return null;
+            return UUID.fromString(claims.getSubject());
+        } catch (JwtException | IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
     /** Id utente contenuto nel token, oppure null se il token e' scaduto, manomesso o malformato. */
     public UUID extractUserId(String token) {
         try {
             Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+            // I token con uno scopo (es. l'attesa del codice a 6 cifre) non danno accesso alle API.
+            if (claims.get("purpose") != null) return null;
             return UUID.fromString(claims.getSubject());
         } catch (JwtException | IllegalArgumentException ex) {
             log.debug("Token JWT rifiutato: {}", ex.getMessage());

@@ -48,13 +48,13 @@ public class SecurityConfig {
     }
 
     /**
-     * BCrypt con forza 10: e' lo stesso costo usato da bcryptjs nel backend Node, quindi
-     * gli hash gia' nel database restano verificabili e gli utenti non devono reimpostare
-     * la password.
+     * BCrypt con forza 12: ogni tentativo costa circa quattro volte il vecchio 10, e questo rallenta
+     * chi prova a indovinare le password da un database rubato. Gli hash a costo 10 gia' salvati
+     * restano verificabili (il costo e' scritto dentro l'hash) e si aggiornano al primo login.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(10);
+        return new BCryptPasswordEncoder(12);
     }
 
     @Bean
@@ -85,7 +85,8 @@ public class SecurityConfig {
                         // L'hotel autentica la connessione con il primo messaggio WebSocket
                         // (vedi HotelSocketHandler): l'handshake HTTP non porta il token.
                         .requestMatchers("/ws/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/social", "/api/auth/2fa/verify").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/providers").permitAll()
 
                         // Vetrine pubbliche: leggibili anche senza login. Il filtro JWT popola comunque
                         // l'utente quando il token c'e', cosi' /api/packs puo' mostrare i pacchetti regalati.

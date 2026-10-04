@@ -23,6 +23,29 @@ export function setToken(token) {
   }
 }
 
+const DEVICE_KEY = 'vinyldex_device';
+
+/**
+ * Token del dispositivo fidato (verifica in due passaggi): resta anche dopo il logout, cosi' al
+ * prossimo accesso da qui il codice a 6 cifre non serve.
+ */
+export function getDeviceToken() {
+  try {
+    return localStorage.getItem(DEVICE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setDeviceToken(token) {
+  try {
+    if (token) localStorage.setItem(DEVICE_KEY, token);
+    else localStorage.removeItem(DEVICE_KEY);
+  } catch {
+    // Senza localStorage il codice verra' chiesto di nuovo: niente di grave.
+  }
+}
+
 export class ApiError extends Error {
   constructor(message, status, payload) {
     super(message);

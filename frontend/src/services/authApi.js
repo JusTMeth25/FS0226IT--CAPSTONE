@@ -1,15 +1,50 @@
-import { apiClient, setToken } from './apiClient.js';
+import { apiClient, getDeviceToken, setDeviceToken, setToken } from './apiClient.js';
+
+/** Messaggi per i codici d'errore dell'accesso. */
+const AUTH_ERRORS = {
+  invalid_credentials: 'Email o password non corrette.',
+  user_banned: 'Questo account è stato sospeso.',
+  invalid_two_factor_code: 'Codice non valido. Controlla l\'app o usa un codice di emergenza.',
+  two_factor_locked: 'Troppi codici sbagliati: riprova fra qualche minuto.',
+  two_factor_expired: 'Troppo tempo per il codice: rifai l\'accesso.',
+  two_factor_not_started: 'Genera prima il QR code.',
+  two_factor_already_enabled: 'La verifica in due passaggi è già attiva.',
+  invalid_social_token: 'Accesso non riuscito: riprova.',
+  social_email_missing: 'Serve un\'email verificata: concedila durante l\'accesso.',
+  provider_disabled: 'Questo metodo di accesso non è attivo.',
+  email_taken: 'Email già usata da un altro account.',
+  username_taken: 'Username già in uso.',
+  weak_password: 'La password deve avere almeno 8 caratteri.'
+};
+
+export function authErrorText(err, fallback = 'Qualcosa è andato storto.') {
+  return AUTH_ERRORS[err?.code] || (err?.status === 0 ? err.message : null) || fallback;
+}
+
+/** Salva token e dispositivo fidato da una risposta di accesso. */
+function keep(res) {
+  if (res?.token) setToken(res.token);
+  if (res?.deviceToken) setDeviceToken(res.deviceToken);
+  return res;
+}
 
 export const authApi = {
   async register(username, email, password) {
-    const res = await apiClient.post('/auth/register', { username, email, password });
-    if (res?.token) setToken(res.token);
-    return res;
+    return keep(await apiClient.post('/auth/register', { username, email, password }));
   },
+  /** Con la verifica in due passaggi attiva su un dispositivo nuovo risponde { twoFactorRequired, challenge }. */
   async login(email, password) {
-    const res = await apiClient.post('/auth/login', { email, password });
-    if (res?.token) setToken(res.token);
-    return res;
+    return keep(await apiClient.post('/auth/login', { email, password, deviceToken: getDeviceToken() }));
+  },
+  async social(provider, idToken, name) {
+    return keep(await apiClient.post('/auth/social', { provider, idToken, name, deviceToken: getDeviceToken() }));
+  },
+  async verifyTwoFactor(challenge, code, remember) {
+    return keep(await apiClient.post('/auth/2fa/verify', { challenge, code, remember }));
+  },
+  /** Google/Apple attivi sul server, con i client id pubblici. */
+  async providers() {
+    return apiClient.get('/auth/providers');
   },
   async profile() {
     return apiClient.get('/auth/profile');
@@ -20,6 +55,16 @@ export const authApi = {
   /** Aspetto dell'avatar nell'hotel, dal guardaroba (es. "s1.h1.hc0.sh0.p0"). */
   async updateLook(look) {
     return apiClient.patch('/auth/look', { look });
+  },
+  twoFactor: {
+    status: () => apiClient.get('/auth/2fa'),
+    setup: () => apiClient.post('/auth/2fa/setup', {}),
+    async enable(code) {
+      return keep(await apiClient.post('/auth/2fa/enable', { code }));
+    },
+    disable: (code) => apiClient.post('/auth/2fa/disable', { code }),
+    backupCodes: (code) => apiClient.post('/auth/2fa/backup-codes', { code }),
+    forgetOtherDevices: () => apiClient.post('/auth/2fa/forget-devices', { deviceToken: getDeviceToken() })
   },
   logout() {
     setToken(null);

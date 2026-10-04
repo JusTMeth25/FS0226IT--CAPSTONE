@@ -8,6 +8,7 @@ import UserAvatar from '../components/common/UserAvatar.jsx';
 import AnimatedNumber from '../components/fx/AnimatedNumber.jsx';
 import PhotoGallery from '../components/common/PhotoGallery.jsx';
 import InstallApp from '../components/common/InstallApp.jsx';
+import TwoFactorPanel from '../components/profile/TwoFactorPanel.jsx';
 
 export default function ProfilePage() {
   const { user, logout, refreshUser } = useAuth();
@@ -103,6 +104,7 @@ export default function ProfilePage() {
           <span className="profile-stat-label">Serie login</span>
         </div>
       </div>
+      <TwoFactorPanel onChange={refreshUser} />
       <InstallApp />
       <PhotoGallery />
     </section>

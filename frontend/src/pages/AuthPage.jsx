@@ -6,6 +6,8 @@ import { CARDS } from '../data/cards.js';
 import CardTile from '../components/card/CardTile.jsx';
 import ShinyText from '../components/fx/ShinyText.jsx';
 import SplitText from '../components/fx/SplitText.jsx';
+import { authApi } from '../services/authApi.js';
+import { availableProviders, prepareSocial, socialSignIn } from '../services/socialLogin.js';
 
 /** Cosa si vede prima ancora di avere un account. */
 const HIGHLIGHTS = [
@@ -17,13 +19,29 @@ const HIGHLIGHTS = [
 export default function AuthPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, login, register } = useAuth();
+  const { isAuthenticated, login, register, socialLogin, verifyTwoFactor } = useAuth();
   const { sound } = useSound();
 
   const [tab, setTab] = useState(location.pathname === '/register' ? 'register' : 'login');
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [message, setMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  // Verifica in due passaggi: challenge del server mentre si aspetta il codice a 6 cifre.
+  const [challenge, setChallenge] = useState(null);
+  const [code, setCode] = useState('');
+  const [remember, setRemember] = useState(true);
+  const [socialConfig, setSocialConfig] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    authApi.providers().then((cfg) => {
+      if (cancelled) return;
+      setSocialConfig(cfg || {});
+      prepareSocial(cfg || {});
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+  const providers = availableProviders(socialConfig);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -37,11 +55,50 @@ export default function AuthPage() {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   }
 
+  /** Esito di un accesso: entrato, serve il codice, annullato oppure errore. */
+  function outcome(res, fallback) {
+    if (res.twoFactor) {
+      setChallenge(res.twoFactor);
+      setCode('');
+      setMessage(null);
+      return;
+    }
+    if (res.cancelled) return;
+    if (!res.ok) {
+      setMessage({ type: 'error', text: res.error || fallback });
+      sound.error();
+    } else {
+      setMessage({ type: 'success', text: 'Login effettuato' });
+      sound.success();
+    }
+  }
+
+  async function handleSocial(provider) {
+    setSubmitting(true);
+    setMessage(null);
+    const res = await socialLogin(provider, () => socialSignIn(provider, socialConfig));
+    setSubmitting(false);
+    outcome(res, provider === 'google' ? 'Accesso con Google non riuscito.' : 'Accesso con Apple non riuscito.');
+  }
+
+  async function handleTwoFactor(e) {
+    e.preventDefault();
+    setSubmitting(true);
+    const res = await verifyTwoFactor(challenge, code.trim(), remember);
+    setSubmitting(false);
+    if (!res.ok && res.code === 'two_factor_expired') setChallenge(null);
+    outcome(res, 'Codice non valido');
+  }
+
   async function handleLogin(e) {
     e.preventDefault();
     setSubmitting(true);
     const res = await login(form.email, form.password);
     setSubmitting(false);
+    if (res.twoFactor) {
+      outcome(res);
+      return;
+    }
     if (!res.ok) {
       setMessage({ type: 'error', text: res.error || 'Credenziali non valide' });
       sound.error();
@@ -68,6 +125,7 @@ export default function AuthPage() {
   function switchTab(next) {
     setTab(next);
     setMessage(null);
+    setChallenge(null);
   }
 
   // Tre carte vere del catalogo locale, scelte per rarita' e non per identificativo:
@@ -125,7 +183,26 @@ export default function AuthPage() {
           </button>
         </div>
 
-        {tab === 'login' ? (
+        {challenge ? (
+          <>
+            <h3 className="auth-form-title"><i className="ph-fill ph-shield-check" /> Verifica in due passaggi</h3>
+            <p className="auth-2fa-hint">Apri l&apos;app di autenticazione e scrivi il codice a 6 cifre di VinylDex. Hai perso il telefono? Usa uno dei codici di emergenza.</p>
+            <form className="auth-form" onSubmit={handleTwoFactor}>
+              <div className="auth-field">
+                <label className="filter-label" htmlFor="auth-2fa">Codice</label>
+                <input className="ai-input auth-2fa-code" id="auth-2fa" name="code" value={code} onChange={(e) => setCode(e.target.value)}
+                  inputMode="text" autoComplete="one-time-code" placeholder="123456" maxLength={20} autoFocus required />
+              </div>
+              <label className="auth-remember">
+                <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+                Ricorda questo dispositivo: niente codice per 30 giorni da ogni accesso
+              </label>
+              <button type="submit" className="btn btn-primary auth-submit" disabled={submitting || !code.trim()}>Verifica</button>
+              {message && <div className={`auth-message auth-message-${message.type}`}>{message.text}</div>}
+            </form>
+            <p className="auth-switch"><button type="button" className="auth-switch-link" onClick={() => { setChallenge(null); setMessage(null); }}>Torna all&apos;accesso</button></p>
+          </>
+        ) : tab === 'login' ? (
           <>
             <h3 className="auth-form-title"><i className="ph-fill ph-lock" /> Accedi</h3>
             <form className="auth-form" onSubmit={handleLogin}>
@@ -163,6 +240,21 @@ export default function AuthPage() {
             </form>
             <p className="auth-switch">Hai già un account? <button type="button" className="auth-switch-link" onClick={() => switchTab('login')}>Accedi</button></p>
           </>
+        )}
+        {!challenge && providers.length > 0 && (
+          <div className="auth-social">
+            <div className="auth-social-divider"><span>oppure</span></div>
+            {providers.includes('google') && (
+              <button type="button" className="auth-social-btn google" onClick={() => handleSocial('google')} disabled={submitting}>
+                <i className="ph-fill ph-google-logo" /> Continua con Google
+              </button>
+            )}
+            {providers.includes('apple') && (
+              <button type="button" className="auth-social-btn apple" onClick={() => handleSocial('apple')} disabled={submitting}>
+                <i className="ph-fill ph-apple-logo" /> Continua con Apple
+              </button>
+            )}
+          </div>
         )}
         </div>
       </section>

@@ -1007,6 +1007,40 @@ input.filter-select { cursor: text; }
 .auth-switch-link { background: none; border: none; padding: 0; color: var(--neon-cyan); font-weight: 700; cursor: pointer; font-size: inherit; text-decoration: none; }
 .auth-switch-link:hover { color: var(--neon-purple); text-decoration: underline; }
 
+.auth-social { display: flex; flex-direction: column; gap: var(--space-sm); margin-top: var(--space-md); }
+.auth-social-divider { display: flex; align-items: center; gap: var(--space-sm); color: var(--text-secondary); font-size: 0.8rem; }
+.auth-social-divider::before, .auth-social-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.15); }
+.auth-social-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 44px; border-radius: 10px;
+  font: inherit; font-weight: 700; cursor: pointer; border: 1px solid transparent; transition: transform 0.15s, box-shadow 0.15s; }
+.auth-social-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35); }
+.auth-social-btn:disabled { opacity: 0.6; cursor: default; }
+.auth-social-btn i { font-size: 1.2rem; }
+.auth-social-btn.google { background: #fff; color: #1f1f1f; border-color: #dadce0; }
+.auth-social-btn.apple { background: #000; color: #fff; border-color: rgba(255, 255, 255, 0.35); }
+.auth-2fa-hint { font-size: 0.85rem; color: var(--text-secondary); text-align: center; margin: 0 0 var(--space-md); }
+.auth-2fa-code { font-size: 1.4rem; letter-spacing: 0.3em; text-align: center; font-variant-numeric: tabular-nums; }
+.auth-remember { display: flex; align-items: flex-start; gap: 8px; font-size: 0.8rem; color: var(--text-secondary); cursor: pointer; }
+.auth-remember input { margin-top: 2px; accent-color: var(--neon-purple); }
+
+.twofa-panel { display: flex; flex-direction: column; gap: var(--space-sm); }
+.twofa-state { margin: 0; }
+.twofa-state b.on { color: #22c55e; }
+.twofa-state b.off { color: var(--text-secondary); }
+.twofa-hint { margin: 0; font-size: 0.85rem; color: var(--text-secondary); }
+.twofa-setup { display: flex; flex-direction: column; gap: var(--space-sm); }
+.twofa-setup ol { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; }
+.twofa-secret { font-family: ui-monospace, monospace; background: rgba(0, 0, 0, 0.35); padding: 2px 6px; border-radius: 6px; word-break: break-all; user-select: all; }
+.twofa-qr { align-self: flex-start; background: #fff; padding: 8px; border-radius: 12px; max-width: 100%; height: auto; }
+.twofa-row { display: flex; flex-wrap: wrap; gap: var(--space-sm); align-items: center; }
+.twofa-row .ai-input { flex: 1 1 180px; min-width: 0; }
+.twofa-facts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.9rem; }
+.twofa-actions { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
+.twofa-danger { color: #FF5252; }
+.twofa-backup { padding: var(--space-sm); border-radius: 12px; background: rgba(0, 0, 0, 0.3); border: 1px dashed rgba(255, 255, 255, 0.25); }
+.twofa-backup p { margin: 0 0 var(--space-sm); font-size: 0.85rem; }
+.twofa-backup ul { list-style: none; margin: 0 0 var(--space-sm); padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; }
+.twofa-backup code { font-family: ui-monospace, monospace; font-size: 0.95rem; letter-spacing: 0.05em; }
+
 .auth-message { font-size: 0.8rem; margin-top: var(--space-sm); min-height: 1.2em; text-align: center; }
 .auth-message-error { color: #FF5252; }
 .auth-message-success { color: var(--rarity-common); }

@@ -42,6 +42,21 @@ public class User {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
+    /** Verifica in due passaggi attiva (vedi TwoFactorService). */
+    @Column(name = "two_factor_enabled", nullable = false)
+    private boolean twoFactorEnabled = false;
+
+    /** Segreto TOTP cifrato con SecretBox; mai in chiaro nel database. */
+    @Column(name = "totp_secret", length = 255)
+    private String totpSecret;
+
+    /** Segreto appena generato, in attesa del primo codice che conferma l'attivazione. */
+    @Column(name = "totp_pending", length = 255)
+    private String totpPending;
+
+    @Column(name = "totp_last_step", nullable = false)
+    private long totpLastStep = 0;
+
     @Column(name = "gold", nullable = false)
     private int gold = 150;
 

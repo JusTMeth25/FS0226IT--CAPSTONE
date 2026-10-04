@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { authApi } from '../services/authApi.js';
+import { authApi, authErrorText } from '../services/authApi.js';
 import { getToken, setToken } from '../services/apiClient.js';
 import { AuthContext } from './auth-context.js';
 
@@ -29,29 +29,34 @@ export function AuthProvider({ children }) {
     return () => { cancelled = true; };
   }, []);
 
-  const login = useCallback(async (email, password) => {
+  /**
+   * Esito comune degli accessi: { ok: true } col profilo caricato, oppure { ok: false, twoFactor }
+   * quando serve il codice a 6 cifre, oppure { ok: false, error } col messaggio da mostrare.
+   */
+  const finish = useCallback(async (call) => {
     setError(null);
     try {
-      const res = await authApi.login(email, password);
+      const res = await call();
+      if (!res) return { ok: false, cancelled: true };
+      if (res.twoFactorRequired) return { ok: false, twoFactor: res.challenge };
       setUser(res.user);
       return { ok: true };
     } catch (err) {
-      setError(err.message);
-      return { ok: false, error: err.message };
+      const text = authErrorText(err, err.message);
+      setError(text);
+      return { ok: false, error: text, code: err.code };
     }
   }, []);
 
-  const register = useCallback(async (username, email, password) => {
-    setError(null);
-    try {
-      const res = await authApi.register(username, email, password);
-      setUser(res.user);
-      return { ok: true };
-    } catch (err) {
-      setError(err.message);
-      return { ok: false, error: err.message };
-    }
-  }, []);
+  const login = useCallback((email, password) => finish(() => authApi.login(email, password)), [finish]);
+  const register = useCallback((username, email, password) => finish(() => authApi.register(username, email, password)), [finish]);
+  /** {@code signIn} apre Google o Apple e restituisce { idToken, name }, oppure null se annullato. */
+  const socialLogin = useCallback((provider, signIn) => finish(async () => {
+    const got = await signIn();
+    return got ? authApi.social(provider, got.idToken, got.name) : null;
+  }), [finish]);
+  const verifyTwoFactor = useCallback((challenge, code, remember) =>
+    finish(() => authApi.verifyTwoFactor(challenge, code, remember)), [finish]);
 
   const logout = useCallback(() => {
     authApi.logout();
@@ -77,9 +82,11 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!user,
     login,
     register,
+    socialLogin,
+    verifyTwoFactor,
     logout,
     refreshUser
-  }), [user, loading, error, login, register, logout, refreshUser]);
+  }), [user, loading, error, login, register, socialLogin, verifyTwoFactor, logout, refreshUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

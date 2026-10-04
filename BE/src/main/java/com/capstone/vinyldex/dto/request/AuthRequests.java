@@ -29,10 +29,42 @@ public final class AuthRequests {
     ) {
     }
 
+    /** {@code deviceToken}: token del dispositivo fidato, se il client ne ha uno (salta il codice a 6 cifre). */
     public record LoginRequest(
             @NotBlank(message = "missing_fields") String email,
-            @NotBlank(message = "missing_fields") String password
+            @NotBlank(message = "missing_fields") String password,
+            @Size(max = 200) String deviceToken
     ) {
+        public LoginRequest(String email, String password) {
+            this(email, password, null);
+        }
+    }
+
+    /** Accesso con Google o Apple: l'ID token avuto dal fornitore e, solo da Apple al primo accesso, il nome. */
+    public record SocialLoginRequest(
+            @NotBlank(message = "missing_fields")
+            @Pattern(regexp = "google|apple", message = "provider_disabled")
+            String provider,
+            @NotBlank(message = "missing_fields") @Size(max = 8000) String idToken,
+            @Size(max = 100) String name,
+            @Size(max = 200) String deviceToken
+    ) {
+    }
+
+    /** Secondo passaggio: il challenge del login piu' il codice a 6 cifre (o di emergenza). */
+    public record TwoFactorVerifyRequest(
+            @NotBlank(message = "missing_fields") @Size(max = 2000) String challenge,
+            @NotBlank(message = "missing_fields") @Size(max = 20) String code,
+            boolean remember
+    ) {
+    }
+
+    public record TwoFactorCodeRequest(
+            @NotBlank(message = "missing_fields") @Size(max = 20) String code
+    ) {
+    }
+
+    public record ForgetDevicesRequest(@Size(max = 200) String deviceToken) {
     }
 
     public record AvatarRequest(

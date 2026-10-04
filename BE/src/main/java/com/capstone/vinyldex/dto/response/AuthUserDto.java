@@ -23,7 +23,8 @@ public record AuthUserDto(
         int loginStreak,
         int battlesWon,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        boolean twoFactorEnabled
 ) {
 
     public static AuthUserDto from(User user) {
@@ -31,6 +32,6 @@ public record AuthUserDto(
                 user.getId(), user.getUsername(), user.getEmail(), user.getGold(), user.getXp(),
                 user.getLevel(), user.getRole(), user.getAvatar(), user.getHotelLook(), user.isBanned(),
                 user.getLastLoginDate(), user.getLoginStreak(), user.getBattlesWon(),
-                user.getCreatedAt(), user.getUpdatedAt());
+                user.getCreatedAt(), user.getUpdatedAt(), user.isTwoFactorEnabled());
     }
 }
