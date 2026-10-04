@@ -75,6 +75,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     private final com.capstone.vinyldex.casino.PokerService pokerService;
     private final com.capstone.vinyldex.casino.BingoService bingoService;
     private final com.capstone.vinyldex.casino.HorseRaceService horseService;
+    private final SmokeShopService smokeShop;
     private final NpcTradeService npcTradeService;
     private final PackService packService;
     private final PackRecapService packRecapService;
@@ -90,7 +91,9 @@ public class HotelSocketHandler extends TextWebSocketHandler {
                               FishingService fishingService, ClubService clubService,
                               com.capstone.vinyldex.casino.PokerService pokerService,
                               com.capstone.vinyldex.casino.BingoService bingoService,
-                              com.capstone.vinyldex.casino.HorseRaceService horseService) {
+                              com.capstone.vinyldex.casino.HorseRaceService horseService,
+                              SmokeShopService smokeShop) {
+        this.smokeShop = smokeShop;
         this.pokerService = pokerService;
         this.bingoService = bingoService;
         this.horseService = horseService;
@@ -294,6 +297,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             case "poker_watch" -> pokerService.watch(session);
             case "bingo_watch" -> bingoService.watch(session);
             case "bingo_buy" -> reply(session, bingoService.buy(userId, session.user().username(), node.path("count").asInt(0)));
+            case "smoke_buy" -> session.send(smokeShop.buy(userId, session.user().username(), room, text(node, "item")));
             case "horse_watch" -> horseService.watch(session);
             case "horse_bet" -> {
                 int[] picks = new int[Math.min(3, node.path("horses").size())];

@@ -65,6 +65,12 @@ public class CollectionExtrasController {
         return service.deleteTeam(principal.getId(), id);
     }
 
+    /** Carte di un altro giocatore da chiedere in uno scambio (username o id). */
+    @GetMapping("/collection/of/{handle}")
+    public Map<String, Object> tradable(@CurrentUser UserPrincipal principal, @PathVariable String handle) {
+        return service.tradableCards(principal.getId(), handle);
+    }
+
     @GetMapping("/collection/compare/{userId}")
     public Map<String, Object> compare(@CurrentUser UserPrincipal principal, @PathVariable UUID userId) {
         return service.compare(principal.getId(), userId);

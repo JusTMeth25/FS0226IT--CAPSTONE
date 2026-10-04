@@ -258,6 +258,10 @@ public final class FurniCatalog {
         add(new FurniDef("poker_table", "Tavolo del Texas Hold'em", "casino", 0, 4, 2, false, false, -1, false, false));
         add(new FurniDef("bingo_table", "Banco del Bingo", "casino", 0, 3, 2, false, false, -1, false, false));
         add(new FurniDef("horse_track", "Ippodromo", "casino", 0, 4, 2, false, false, -1, false, false));
+        add(new FurniDef("tobacco_counter", "Bancone del tabaccaio", "negozi", 0, 3, 1, false, false, -1, false, false));
+        add(new FurniDef("cigar_humidor", "Teca dei sigari", "negozi", 0, 1, 1, false, false, -1, false, false));
+        add(new FurniDef("weed_counter", "Bancone del Green Shop", "negozi", 0, 3, 1, false, false, -1, false, false));
+        add(new FurniDef("weed_plant", "Pianta di canapa", "negozi", 0, 1, 1, false, false, -1, false, false));
     }
 
     private FurniCatalog() {

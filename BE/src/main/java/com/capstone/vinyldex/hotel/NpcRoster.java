@@ -48,6 +48,8 @@ public final class NpcRoster {
     public static final UUID ROCK_CLUB = UUID.fromString("00000000-0000-0000-0000-00000000a01e");
     public static final UUID ROCK_STORE = UUID.fromString("00000000-0000-0000-0000-00000000a01f");
     public static final UUID CASINO = UUID.fromString("00000000-0000-0000-0000-00000000a020");
+    public static final UUID TOBACCO = UUID.fromString("00000000-0000-0000-0000-00000000a021");
+    public static final UUID GREEN_SHOP = UUID.fromString("00000000-0000-0000-0000-00000000a022");
 
     /** Cosa fa il personaggio: da qui dipendono movimento, azioni possibili e battute. */
     public enum Role {
@@ -71,6 +73,10 @@ public final class NpcRoster {
         CLERK("Commesso", false),
         MUSICIAN("Musicista", false),
         CROUPIER("Croupier", false),
+        TOBACCONIST("Tabaccaio", false),
+        GROWER("Commesso del Green Shop", false),
+        DEALER("Tipo losco", true),
+        BOUNCER("Buttafuori", false),
         GUEST("Ospite", true);
 
         private final String title;
@@ -142,7 +148,9 @@ public final class NpcRoster {
                     worker("byte", "DJ Byte", Role.DJ, "s5.h1.hc5.sh8.p1.t1.f5.a3", 12, 2, 4),
                     walker("gio", "Gio", Role.WAITER, "s1.h0.hc1.sh7.p1.t2.f0.a0", 17, 12, 5, "cocktail", "cola", "bubble"),
                     walker("stella", "Stella", Role.GUEST, "s0.h2.hc6.sh1.p4.t4.f3.a4.b1", 12, 11, 3),
-                    walker("remo", "Remo", Role.GUEST, "s3.h4.hc0.sh9.p0.t1.f2.a3", 20, 11, 4))),
+                    walker("remo", "Remo", Role.GUEST, "s3.h4.hc0.sh9.p0.t1.f2.a3", 20, 11, 4),
+                    walker("svelto", "Lo Svelto", Role.DEALER, "s1.h0.hc1.sh2.p0.t1.f1.a3", 20, 13, 3),
+                    worker("tyson", "Tyson", Role.BOUNCER, "s5.h9.hc7.sh9.p1.t3.f0.a0", 2, 13, 2))),
             Map.entry(GARDEN, List.of(
                     worker("gigi", "Gigi", Role.ICE_CREAM, "s1.h5.hc7.sh7.p3.t0.f1.a0", 24, 16, 4, "gelato"),
                     walker("flora", "Flora", Role.GARDENER, "s3.h7.hc1.sh5.p7.t2.f4.a6.b1", 6, 15, 5),
@@ -211,7 +219,9 @@ public final class NpcRoster {
                     walker("donna", "Donna", Role.GUEST, "s0.h7.hc3.sh9.p3.t4.f3.a3.b1", 11, 9, 3),
                     walker("bobby", "Bobby", Role.GUEST, "s3.h4.hc6.sh6.p1.t3.f2.a0", 14, 11, 3),
                     walker("frankie", "Frankie", Role.GUEST, "s2.h9.hc0.sh1.p0.t4.f1.a2", 10, 12, 3),
-                    walker("annette", "Annette", Role.GUEST, "s1.h2.hc4.sh11.p3.t1.f3.a1.b1", 16, 8, 3))),
+                    walker("annette", "Annette", Role.GUEST, "s1.h2.hc4.sh11.p3.t1.f3.a1.b1", 16, 8, 3),
+                    walker("faina", "Er Faina", Role.DEALER, "s3.h5.hc6.sh2.p0.t1.f1.a3", 19, 14, 3),
+                    worker("rocco", "Rocco", Role.BOUNCER, "s4.h9.hc7.sh9.p1.t3.f0.a0", 2, 8, 2))),
             Map.entry(DISTRICT, List.of(
                     walker("enzo", "Enzo", Role.GUEST, "s2.h9.hc0.sh8.p1.t2.f0.a2.b0.o1.w3.r5", 8, 18, 7),
                     walker("lola", "Lola", Role.GUEST, "s1.h2.hc2.sh1.p1.t4.f2.a2.b1.o3.w2.r6", 28, 17, 7),
@@ -278,7 +288,13 @@ public final class NpcRoster {
                     worker("ottavio", "Ottavio", Role.CROUPIER, "s1.h1.hc0.sh9.p1.t3.f0.a0.b0.o2", 13, 16, 4),
                     worker("martini", "Martini", Role.BARISTA, "s2.h1.hc0.sh7.p1.t2.f0.a0.b0", 20, 17, 4, "cola", "juice", "bubble"),
                     walker("high_roller", "High Roller", Role.GUEST, "s0.h1.hc2.sh8.p1.t3.f0.a2.b0.o1", 8, 10, 4),
-                    walker("lady_luck", "Lady Luck", Role.GUEST, "s3.h2.hc7.sh6.p1.t3.f2.a0.b1.o8", 15, 16, 4)))
+                    walker("lady_luck", "Lady Luck", Role.GUEST, "s3.h2.hc7.sh6.p1.t3.f2.a0.b1.o8", 15, 16, 4))),
+            Map.entry(TOBACCO, List.of(
+                    worker("toto", "Toto", Role.TOBACCONIST, "s1.h6.hc8.sh8.p1.t2.f0.a1", 10, 1, 4),
+                    walker("commendatore", "Il Commendatore", Role.GUEST, "s0.h1.hc8.sh9.p1.t3.f0.a2", 10, 10, 4))),
+            Map.entry(GREEN_SHOP, List.of(
+                    worker("bob", "Bob", Role.GROWER, "s4.h5.hc0.sh5.p0.t0.f1.a0", 10, 1, 4),
+                    walker("rasta", "Rasta Joe", Role.GUEST, "s4.h5.hc1.sh2.p0.t0.f1.a0", 10, 10, 4)))
     );
 
     private NpcRoster() {

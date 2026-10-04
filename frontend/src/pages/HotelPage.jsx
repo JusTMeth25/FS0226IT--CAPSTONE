@@ -46,6 +46,7 @@ import TradesPanel from '../hotel/ui/TradesPanel.jsx';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import HotelView from '../hotel/ui/HotelView.jsx';
 import NpcCard from '../hotel/ui/NpcCard.jsx';
+import SmokeShopPanel from '../hotel/ui/SmokeShopPanel.jsx';
 import { NpcTradeOffer, NpcTradePanel } from '../hotel/ui/NpcTrade.jsx';
 import Newsstand from '../hotel/ui/Newsstand.jsx';
 import HotelPackOpening from '../hotel/ui/HotelPackOpening.jsx';
@@ -65,8 +66,14 @@ const ARENA_ID = '00000000-0000-0000-0000-00000000a002';
 /** Cosa si fa con l'oggetto in mano: il verbo del pulsante e la sua icona. */
 const CONSUME = {
   pizza: ['Mangia', 'ph-pizza'], gelato: ['Mangia', 'ph-ice-cream'], book: ['Leggi', 'ph-book-open'],
-  popcorn: ['Mangia', 'ph-popcorn'], water: ['Bevi', 'ph-drop']
+  popcorn: ['Mangia', 'ph-popcorn'], water: ['Bevi', 'ph-drop'],
+  cigarette: ['Fuma', 'ph-cigarette'], cigar: ['Fuma', 'ph-cigarette'], pipe: ['Fuma', 'ph-pipe'],
+  joint: ['Fuma', 'ph-leaf'], blunt: ['Fuma', 'ph-leaf'], bong: ['Fuma', 'ph-flask'],
+  pill: ['Prendi', 'ph-pill'], mushroom: ['Mangia', 'ph-sparkle']
 };
+
+/** Banconi della Tabaccheria e del Green Shop: aprono il negozio (SmokeShopPanel). */
+const SMOKE_COUNTERS = { tobacco_counter: 'tabacchi', weed_counter: 'green' };
 
 /** Mobili che si usano cliccandoli: bibite, cibo, jukebox. */
 const USABLE = ['bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'pizza_oven', 'jukebox',
@@ -182,6 +189,8 @@ const ERRORS = {
   pack_not_found: 'Questo pacchetto non e\' piu\' in vendita.',
   pack_not_for_sale: 'Questo pacchetto non si compra: arriva solo in regalo.',
   insufficient_gold: 'Non hai abbastanza gold.',
+  smoke_unknown: 'Questo articolo non c\'è.',
+  smoke_wrong_shop: 'Qui non si vende: cercalo nel negozio giusto.',
   server_error: 'Qualcosa e\' andato storto. Riprova.'
 };
 
@@ -306,6 +315,8 @@ export default function HotelPage() {
   const [fullscreen, setFullscreen] = useState(false);
   const [minigame, setMinigame] = useState(null);
   const [luxuryShop, setLuxuryShop] = useState('atelier');
+  const [smokeShop, setSmokeShop] = useState('tabacchi');
+  const [smokeBusy, setSmokeBusy] = useState(false);
   const [casinoGame, setCasinoGame] = useState('cashier');
   // Veicoli comprati (per il pulsante Sali/Scendi): si rileggono chiudendo un pannello.
   const [ownedRides, setOwnedRides] = useState([]);
@@ -466,6 +477,21 @@ export default function HotelPage() {
         break;
       case 'consume':
         setPeople((p) => (p[message.id] ? { ...p, [message.id]: { ...p[message.id], handLeft: message.left } } : p));
+        break;
+      case 'effect':
+        setPeople((p) => (p[message.id] ? { ...p, [message.id]: { ...p[message.id], effect: message.effect } } : p));
+        break;
+      case 'smoke_bought':
+        setSmokeBusy(false);
+        refreshUser();
+        if (message.busted) {
+          sound.error();
+          showNotice(`Beccato! Il buttafuori ti ha sequestrato: ${message.name}.`);
+        } else {
+          sound.coin();
+          setPanel(null);
+          showNotice(`${message.name} in mano: premi "${(CONSUME[message.item] || ['Fuma'])[0]}" nella barra.`);
+        }
         break;
       case 'npc_trade_offer':
         setNpcOffer(message);
@@ -839,6 +865,8 @@ export default function HotelPage() {
   const myLook = me?.look || user?.hotelLook || DEFAULT_LOOK;
   const myStatus = me ? people[me.id]?.status : null;
   const myHand = me ? people[me.id]?.handItem : null;
+  // Effetto di erba o "roba": anche lo schermo di chi l'ha presa cambia (verde e lento, o arcobaleno).
+  const myEffect = me ? people[me.id]?.effect : null;
   const isOwner = !!(room && me && room.ownerId === me.id);
   const selectedItem = selectedItemId ? items[selectedItemId] : null;
   const bagPacks = PACKS.reduce((sum, pack) => sum + (freePacks[pack.id] || 0), 0);
@@ -1047,6 +1075,11 @@ export default function HotelPage() {
       else showNotice('Questa villa e\' ancora in vendita: arreda la tua stanza e i giocatori la vedranno qui!');
       return;
     }
+    if (SMOKE_COUNTERS[item.type]) {
+      setSmokeShop(SMOKE_COUNTERS[item.type]);
+      setPanel('smoke');
+      return;
+    }
     if (LUXURY_COUNTERS[item.type]) {
       setLuxuryShop(LUXURY_COUNTERS[item.type]);
       setPanel('luxury');
@@ -1089,7 +1122,7 @@ export default function HotelPage() {
       className={`hotel-page${fullscreen ? ' is-fullscreen' : ''}${fullscreen && !canFullscreen ? ' is-pseudo-fullscreen' : ''}`}
       onPointerDown={() => getJukebox().unlock()}
     >
-      <div className="hotel-stage">
+      <div className={`hotel-stage${myEffect ? ` fx-${myEffect}` : ''}`}>
         <HotelCanvas
           ref={canvasRef}
           walkKeys={!minigame}
@@ -1256,6 +1289,7 @@ export default function HotelPage() {
             onChallenge={pvp ? null : () => { send({ type: 'challenge', userId: selectedNpc.id }); setSelectedNpc(null); }}
             onTrade={() => { setTradingNpc(selectedNpc); setSelectedNpc(null); }}
             onBuyPacks={() => { setPanel('newsstand'); setSelectedNpc(null); }}
+            onShop={(shop) => { setSmokeShop(shop); setPanel('smoke'); setSelectedNpc(null); }}
           />
         )}
 
@@ -1432,6 +1466,15 @@ export default function HotelPage() {
         )}
         {panel === 'jukebox' && (
           <JukeboxPanel jukebox={jukebox} meId={me?.id} isOwner={jukeboxManager} send={send} onClose={() => setPanel(null)} />
+        )}
+        {panel === 'smoke' && (
+          <SmokeShopPanel
+            shop={smokeShop}
+            gold={gold}
+            busy={smokeBusy}
+            onBuy={(item) => { setSmokeBusy(true); send({ type: 'smoke_buy', item }); setTimeout(() => setSmokeBusy(false), 3000); }}
+            onClose={() => setPanel(null)}
+          />
         )}
         {panel === 'luxury' && (
           <LuxuryShop

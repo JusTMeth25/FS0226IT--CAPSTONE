@@ -166,7 +166,14 @@ const HotelCanvas = forwardRef(function HotelCanvas({ walkKeys = true, zoom, onZ
     }
   };
 
-  /** Frecce: un passo nella direzione vista sullo schermo (le caselle sono in diagonale). */
+  /**
+   * Frecce (tastiera o controller): si cammina nella direzione vista sullo schermo (le caselle sono
+   * in diagonale). Tenendo premuto si allunga il percorso di una casella solo quando ne resta al
+   * massimo una da fare: cosi' il server non ricalcola il percorso a ogni ripetizione del tasto e
+   * l'avatar cammina dritto, senza scatti in avanti o passi indietro. Cambiando direzione si gira
+   * dalla casella verso cui si sta gia' andando.
+   */
+  const walk = useRef({ dir: null, target: null, sentAt: 0 });
   const onKeyDown = (event) => {
     const steps = { ArrowUp: [-1, -1], ArrowDown: [1, 1], ArrowLeft: [-1, 1], ArrowRight: [1, -1] };
     const step = steps[event.key];
@@ -176,8 +183,23 @@ const HotelCanvas = forwardRef(function HotelCanvas({ walkKeys = true, zoom, onZ
     const me = engine.users.get(engine.meId);
     if (!me) return;
     event.preventDefault();
-    const from = me.steps?.length ? me.steps[me.steps.length - 1] : me.pos;
-    callbacks.current.onTileClick?.({ x: Math.round(from.x) + step[0], y: Math.round(from.y) + step[1] });
+    const w = walk.current;
+    const queued = me.steps || [];
+    const now = performance.now();
+    const turning = w.dir !== event.key;
+    // Stessa direzione e ancora strada davanti: si aspetta.
+    if (!turning && queued.length > 1) return;
+    const base = queued.length ? (turning ? queued[0] : queued[queued.length - 1]) : me.pos;
+    const target = { x: Math.round(base.x) + step[0], y: Math.round(base.y) + step[1] };
+    // Lo stesso passo appena chiesto: si aspetta la risposta del server.
+    if (w.target && w.target.x === target.x && w.target.y === target.y && now - w.sentAt < 700) return;
+    w.dir = event.key;
+    w.target = target;
+    w.sentAt = now;
+    callbacks.current.onTileClick?.(target);
+  };
+  const onKeyUp = (event) => {
+    if (event.key === walk.current.dir) walk.current.dir = null;
   };
 
   return (
@@ -189,6 +211,7 @@ const HotelCanvas = forwardRef(function HotelCanvas({ walkKeys = true, zoom, onZ
         role="application"
         aria-label="Stanza dell'hotel: clicca o usa le frecce della tastiera per camminare"
         onKeyDown={onKeyDown}
+        onKeyUp={onKeyUp}
         className={`hotel-canvas${placement ? ' placing' : ''}`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}

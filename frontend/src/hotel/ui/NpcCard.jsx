@@ -33,15 +33,22 @@ const DESCRIPTIONS = {
   fighter: 'Sfidante dell\'Arena: gioca a carte con chiunque abbia coraggio, e scambia le sue doppie.',
   newsagent: 'Vende giornali, fumetti e i pacchetti di carte VinylDex.',
   usher: 'La maschera del cinema: ti porta popcorn e cola al posto.',
-  trainer: 'Istruttrice della palestra: ti allena e ti porta l\'acqua.'
+  trainer: 'Istruttrice della palestra: ti allena e ti porta l\'acqua.',
+  tobacconist: 'Il tabaccaio: sigarette, sigari cubani e pipe.',
+  grower: 'Al Green Shop: erba light, canne già rollate e bong.',
+  dealer: 'Gira per la sala con le mani in tasca. Ha sempre qualcosa da vendere...',
+  bouncer: 'Il buttafuori: tiene d\'occhio la sala e non ama chi spaccia.'
 };
+
+/** Chi vende da fumare (o altro): il pulsante apre il suo negozio. */
+const SHOP_OF = { tobacconist: ['tabacchi', 'Sigarette e sigari', 'ph-cigarette'], grower: ['green', 'Erba e bong', 'ph-leaf'], dealer: ['dealer', 'Cosa hai?', 'ph-detective'] };
 
 /**
  * Scheda di un NPC, aperta cliccando il suo avatar. Al posto di rispetto, scambi e sfide ci sono
  * le azioni del suo mestiere: ordinare, chiacchierare, chiedere un consiglio, ballare, musica.
  * Le stesse cose si possono chiedere anche scrivendo in chat ("un caffe' per favore, Marco").
  */
-export default function NpcCard({ npc, send, inArena, onClose, onWhisper, onChallenge, onTrade, onBuyPacks }) {
+export default function NpcCard({ npc, send, inArena, onClose, onWhisper, onChallenge, onTrade, onBuyPacks, onShop }) {
   const info = npc.npc || {};
   const act = (action, item) => send({ type: 'npc', npcId: npc.id, action, item });
   const canDance = info.role === 'guest' || info.role === 'dj';
@@ -82,6 +89,11 @@ export default function NpcCard({ npc, send, inArena, onClose, onWhisper, onChal
         {fights && onChallenge && (
           <button type="button" className="btn btn-primary btn-small" onClick={onChallenge}>
             <i className="ph-fill ph-sword" /> Sfida
+          </button>
+        )}
+        {SHOP_OF[info.role] && onShop && (
+          <button type="button" className="btn btn-gold btn-small" onClick={() => onShop(SHOP_OF[info.role][0])}>
+            <i className={`ph-fill ${SHOP_OF[info.role][2]}`} /> {SHOP_OF[info.role][1]}
           </button>
         )}
         {info.role === 'newsagent' && (

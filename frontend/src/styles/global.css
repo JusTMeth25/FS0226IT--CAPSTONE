@@ -1849,3 +1849,50 @@ input.filter-select { cursor: text; }
 @keyframes rotatePhone { 0%, 20% { transform: rotate(0deg); } 50%, 80% { transform: rotate(-90deg); } 100% { transform: rotate(0deg); } }
 .rotate-prompt-stay { background: none; border: none; color: var(--text-secondary); text-decoration: underline; font-size: 0.8rem; padding: 4px; }
 @media (prefers-reduced-motion: reduce) { .rotate-prompt-phone { animation: none; transform: rotate(-90deg); } }
+
+/* ========================================
+   SCAMBI: proposta con ricerca e filtri
+   ======================================== */
+.trade-composer { display: flex; flex-direction: column; gap: var(--space-md); }
+.trade-to-row { display: flex; gap: var(--space-sm); flex-wrap: wrap; }
+.trade-to-row .ai-input { flex: 1 1 220px; min-width: 0; }
+.trade-deal { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: var(--space-sm); align-items: stretch; }
+.trade-arrows { display: grid; place-items: center; font-size: 1.6rem; color: var(--neon-cyan); }
+.trade-side { padding: var(--space-sm); border-radius: 12px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.08); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.trade-side h4 { margin: 0; font-size: 0.95rem; }
+.trade-picked { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
+.trade-picked li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; padding: 4px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); }
+.trade-picked img { width: 28px; aspect-ratio: 5 / 7; object-fit: cover; border-radius: 3px; }
+.trade-picked-name { font-size: 0.8rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trade-qty { display: inline-flex; align-items: center; gap: 4px; }
+.trade-qty button, .trade-remove { width: 24px; height: 24px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.2); background: transparent; color: var(--text-primary); cursor: pointer; display: grid; place-items: center; padding: 0; }
+.trade-qty button:disabled { opacity: 0.4; cursor: default; }
+.trade-gold { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; color: #fbbf24; }
+.trade-gold .ai-input { width: 110px; }
+.trade-value { margin: 0; font-size: 0.8rem; color: var(--text-secondary); }
+.trade-value b { color: var(--text-primary); }
+.trade-send { align-self: center; min-width: 220px; }
+.trade-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md); }
+.trade-col-title { margin: 0 0 6px; font-size: 0.95rem; }
+.trade-chooser { display: flex; flex-direction: column; gap: 8px; }
+.trade-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; max-height: 520px; overflow-y: auto; }
+.trade-thumb { position: relative; width: 100%; display: flex; flex-direction: column; gap: 3px; padding: 4px; border-radius: 8px; border: 2px solid var(--rarity-color, #666);
+  background: rgba(0, 0, 0, 0.3); color: var(--text-primary); cursor: pointer; font: inherit; text-align: left; }
+.trade-thumb:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4); }
+.trade-thumb:disabled { opacity: 0.45; cursor: default; }
+.trade-thumb.picked { box-shadow: 0 0 0 3px #ffd700; }
+.trade-thumb img { width: 100%; aspect-ratio: 5 / 7; object-fit: cover; border-radius: 4px; }
+.trade-thumb-name { font-size: 0.68rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trade-thumb-meta { display: flex; justify-content: space-between; gap: 4px; font-size: 0.62rem; color: var(--text-secondary); }
+.trade-thumb-meta .new { color: #4ade80; }
+.trade-thumb-meta .have { color: var(--text-secondary); font-weight: 400; }
+.trade-thumb-badge { position: absolute; top: 6px; right: 6px; min-width: 20px; height: 20px; border-radius: 999px; background: #ffd700; color: #111; font-weight: 800; font-size: 0.7rem; display: grid; place-items: center; }
+.trade-empty { margin: 0; font-size: 0.8rem; color: var(--text-secondary); }
+.trade-more { align-self: center; }
+
+@media (max-width: 760px) {
+  .trade-deal { grid-template-columns: 1fr; }
+  .trade-arrows { transform: rotate(90deg); }
+  .trade-columns { grid-template-columns: 1fr; }
+  .trade-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); max-height: 420px; }
+}

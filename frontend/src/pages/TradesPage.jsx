@@ -1,17 +1,12 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useGame } from '../hooks/useGame.js';
 import { useApiResource } from '../hooks/useApiResource.js';
 import { tradeApi } from '../services/tradeApi.js';
-import { dedupeCollection } from '../utils/collectionUtils.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import CardOwnership from '../components/trade/CardOwnership.jsx';
+import TradeComposer from '../components/trade/TradeComposer.jsx';
 import { useOwnedCounts } from '../hooks/useOwnedCounts.js';
-
-function uniqueOwnedCards(collection) {
-  return dedupeCollection(collection).map((c) => ({ ...c, owned: c.quantity }));
-}
 
 const STATUS_LABELS = { pending: 'In attesa', accepted: 'Accettato', rejected: 'Rifiutato', cancelled: 'Annullato' };
 
@@ -92,44 +87,18 @@ function TradeList({ trades, loading, error, onReload, direction, onAccept, onRe
 }
 
 export default function TradesPage() {
-  const game = useGame();
   const [tab, setTab] = useState('incoming');
   const [actionError, setActionError] = useState(null);
   // Dall'hotel si arriva con ?to=nome: il destinatario e' gia' compilato.
   const [searchParams] = useSearchParams();
-  const [form, setForm] = useState(() => ({
-    toUserId: searchParams.get('to') || '', offeredCardId: searchParams.get('give') || '', offeredGold: 0,
-    requestedCardId: searchParams.get('want') || '', requestedGold: 0
-  }));
-
   const incoming = useApiResource(() => tradeApi.getIncoming(), []);
   const outgoing = useApiResource(() => tradeApi.getOutgoing(), []);
-  const ownedCards = uniqueOwnedCards(game.collection);
 
   async function act(fn, trade, reload) {
     setActionError(null);
     try {
       await fn(trade.id);
       reload();
-    } catch (err) {
-      setActionError(err.message);
-    }
-  }
-
-  async function handleCreate(e) {
-    e.preventDefault();
-    if (!form.toUserId || !form.offeredCardId) return;
-    setActionError(null);
-    try {
-      await tradeApi.createTrade({
-        toUserId: form.toUserId,
-        offeredCards: [{ cardId: form.offeredCardId, quantity: 1 }],
-        offeredGold: Number(form.offeredGold) || 0,
-        requestedCards: form.requestedCardId ? [{ cardId: form.requestedCardId, quantity: 1 }] : [],
-        requestedGold: Number(form.requestedGold) || 0
-      });
-      setForm({ toUserId: '', offeredCardId: '', offeredGold: 0, requestedCardId: '', requestedGold: 0 });
-      outgoing.reload();
     } catch (err) {
       setActionError(err.message);
     }
@@ -142,36 +111,7 @@ export default function TradesPage() {
 
       <div className="glass-panel">
         <h3 className="panel-title"><i className="ph-fill ph-plus-circle" /> Proponi uno scambio</h3>
-        {ownedCards.length === 0 ? (
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Non possiedi ancora carte da scambiare.</p>
-        ) : (
-          <form className="admin-form-row" onSubmit={handleCreate}>
-            <div className="filter-group">
-              <label className="filter-label">Username destinatario</label>
-              <input className="ai-input" value={form.toUserId} onChange={(e) => setForm((f) => ({ ...f, toUserId: e.target.value }))} placeholder="es. mario_rossi" />
-            </div>
-            <div className="filter-group">
-              <label className="filter-label">La tua carta</label>
-              <select className="filter-select" value={form.offeredCardId} onChange={(e) => setForm((f) => ({ ...f, offeredCardId: e.target.value }))}>
-                <option value="">Seleziona…</option>
-                {ownedCards.map((c) => <option key={c.id} value={c.id}>{c.name} (x{c.owned})</option>)}
-              </select>
-            </div>
-            <div className="filter-group">
-              <label className="filter-label">Carta che chiedi (codice, facoltativa)</label>
-              <input className="ai-input" value={form.requestedCardId} onChange={(e) => setForm((f) => ({ ...f, requestedCardId: e.target.value.trim() }))} placeholder="dal confronto collezioni" />
-            </div>
-            <div className="filter-group">
-              <label className="filter-label">+ Gold offerti</label>
-              <input className="ai-input" type="number" min="0" value={form.offeredGold} onChange={(e) => setForm((f) => ({ ...f, offeredGold: e.target.value }))} />
-            </div>
-            <div className="filter-group">
-              <label className="filter-label">Gold richiesti</label>
-              <input className="ai-input" type="number" min="0" value={form.requestedGold} onChange={(e) => setForm((f) => ({ ...f, requestedGold: e.target.value }))} />
-            </div>
-            <button type="submit" className="btn btn-primary">Invia proposta</button>
-          </form>
-        )}
+        <TradeComposer initialTo={searchParams.get('to') || ''} onSent={() => { outgoing.reload(); }} />
       </div>
 
       {actionError && <div className="auth-message auth-message-error">{actionError}</div>}

@@ -159,6 +159,15 @@ public final class NpcDialog {
             case CROUPIER -> pick(random, List.of("Benvenuto al casino, " + user + "! Clicca il tavolo e fai il tuo gioco.",
                     "Buonasera " + user + ". Le fiches si cambiano alla cassa, e oggi ce ne sono anche di regalo.",
                     "Ciao " + user + "! Si accettano puntate: fiches o gold, come preferisci."));
+            case TOBACCONIST -> pick(random, List.of("Buongiorno " + user + "! Sigarette, sigari o una pipa? Clicca il bancone.",
+                    "Ciao " + user + ". Il fumo fa male, eh: ma qui si fuma solo per finta!"));
+            case GROWER -> pick(random, List.of("Peace " + user + "! Erba light, canne gia' rollate e bong: scegli tu.",
+                    "Ciao " + user + ", tutto legale qui: CBD e niente pensieri."));
+            case DEALER -> pick(random, List.of("Psst... " + user + "! Vieni qua. Ho della roba che ti fa vedere i colori.",
+                    "Ehi " + user + ", non guardarmi cosi'. Cerchi qualcosa per la serata?",
+                    "Shh, " + user + "... occhio al buttafuori."));
+            case BOUNCER -> pick(random, List.of("Buonasera " + user + ". Qui si balla, niente casini.",
+                    "Ti tengo d'occhio, " + user + "."));
             case CLERK -> pick(random, List.of("Ciao " + user + "! Dai un'occhiata alla merce, il banco e' qui.",
                     "Benvenuto " + user + "! Se qualcosa ti piace, clicca il banco per comprarlo."));
             case FOOTBALLER -> pick(random, List.of("Ciao " + user + "! Passami la palla!",
@@ -337,6 +346,11 @@ public final class NpcDialog {
                     "Con lo smoking ci vuole un orologio sottile.", "Chi vuole un consiglio di stile?");
             case CROUPIER -> List.of("Fate il vostro gioco!", "Rien ne va plus.", "Il banco paga!", "Carte in tavola.",
                     "Chi tenta la fortuna stasera?", "Il rosso e' caldo, stasera.");
+            case TOBACCONIST -> List.of("Sigari cubani appena arrivati!", "Accendino in omaggio con la pipa.", "Gratta e vinci? No, solo fumo.");
+            case GROWER -> List.of("Peace and love!", "Erba light al profumo di limone.", "Il bong e' di vetro: maneggiare con cura.",
+                    "Rilassati, fratello.");
+            case DEALER -> List.of("Psst...", "Roba buona, roba buona...", "Chi vuole una pasticca arcobaleno?", "Non mi hai visto, ok?");
+            case BOUNCER -> List.of("Niente risse in pista.", "Ti tengo d'occhio.", "Qui la roba non gira.");
             case CLERK -> List.of("Arrivata merce nuova!", "Chiedete pure, sono qui per voi.", "Oggi e' il giorno giusto per un regalo.");
             case MUSICIAN -> List.of("Uno, due, tre, quattro!", "Alzate il volume!", "Chi ha il coraggio di battere il mio assolo?",
                     "Questo pezzo e' dedicato a voi!", "Rock and roll!");

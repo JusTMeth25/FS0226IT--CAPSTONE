@@ -86,10 +86,12 @@ function read(gp) {
     lt: standard ? gp.buttons[6]?.value || 0 : 0,
     rt: standard ? gp.buttons[7]?.value || 0 : 0
   };
-  if (axes.lx < -STICK) now.add('LEFT');
-  if (axes.lx > STICK) now.add('RIGHT');
-  if (axes.ly < -STICK) now.add('UP');
-  if (axes.ly > STICK) now.add('DOWN');
+  // Levetta: solo la direzione prevalente, cosi' in diagonale non si alternano due direzioni
+  // (l'avatar andrebbe a zig zag e i menu salterebbero).
+  if (Math.hypot(axes.lx, axes.ly) > STICK) {
+    if (Math.abs(axes.lx) > Math.abs(axes.ly)) now.add(axes.lx < 0 ? 'LEFT' : 'RIGHT');
+    else now.add(axes.ly < 0 ? 'UP' : 'DOWN');
+  }
   return now;
 }
 

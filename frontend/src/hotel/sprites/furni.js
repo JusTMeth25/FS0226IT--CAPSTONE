@@ -1456,6 +1456,65 @@ const DRAW = {
     c({ u: 1.85, v: 1.45, r: 0.07, z0: 36, z1: 40, color: '#fdfbf5', top: '#fdfbf5' });
     d(1.84, 1.45, 40, '#c1121f', 1, 1);
   },
+  tobacco_counter(b, { d }) {
+    // Bancone del tabaccaio 3x1: legno scuro, piano di vetro e dietro l'espositore delle sigarette
+    // con i pacchetti colorati in fila, l'insegna "T" bianca e blu dei tabacchi.
+    b({ u0: 0.05, v0: 0.2, u1: 2.95, v1: 0.95, z1: 30, color: '#4a2612', left: '#5b3a1e', right: '#3b2414' });
+    b({ u0: 0.02, v0: 0.18, u1: 2.98, v1: 0.97, z0: 30, z1: 32, color: 'rgba(186, 230, 253, 0.6)' });
+    b({ u0: 0.1, v0: 0.02, u1: 2.9, v1: 0.16, z0: 0, z1: 62, color: '#3b2414', left: '#4a2612', right: '#2b1d12' });
+    const packs = ['#dc2626', '#f8fafc', '#facc15', '#2563eb', '#16a34a', '#111827', '#ea580c'];
+    for (let row = 0; row < 4; row += 1) {
+      for (let col = 0; col < 13; col += 1) d(0.22 + col * 0.205, 0.16, 56 - row * 7, packs[(col + row * 3) % packs.length], 3, 4);
+    }
+    b({ u0: 1.25, v0: 0.04, u1: 1.75, v1: 0.14, z0: 64, z1: 76, color: '#1e3a8a' });
+    d(1.5, 0.15, 72, '#ffffff', 2, 8);
+    d(1.5, 0.15, 75, '#ffffff', 6, 2);
+    // Accendini e un sigaro sul bancone.
+    [0.5, 0.7, 0.9].forEach((u, i) => d(u, 0.6, 33, ['#ef4444', '#22c55e', '#3b82f6'][i], 2, 3));
+    b({ u0: 2.1, v0: 0.5, u1: 2.55, v1: 0.6, z0: 32, z1: 34, color: '#7c4a24' });
+  },
+  cigar_humidor(b, { d }) {
+    // Teca dei sigari 1x1: mobiletto di legno con l'anta di vetro e le scatole dentro.
+    b({ u0: 0.12, v0: 0.12, u1: 0.88, v1: 0.88, z1: 58, color: '#5b3a1e', left: '#7c4a24', right: '#4a2612' });
+    b({ u0: 0.18, v0: 0.86, u1: 0.82, v1: 0.9, z0: 6, z1: 52, color: 'rgba(186, 230, 253, 0.35)' });
+    for (let k = 0; k < 4; k += 1) d(0.5, 0.89, 46 - k * 11, k % 2 ? '#a16207' : '#ca8a04', 9, 4);
+    d(0.5, 0.89, 54, '#fde68a', 6, 1);
+  },
+  weed_counter(b, { d }) {
+    // Bancone del Green Shop 3x1: legno chiaro dipinto di verde, giallo e rosso, i barattoli di
+    // vetro con l'erba sul piano e dietro la mensola con i bong colorati.
+    b({ u0: 0.05, v0: 0.2, u1: 2.95, v1: 0.95, z1: 30, color: '#166534', left: '#15803d', right: '#14532d' });
+    b({ u0: 0.05, v0: 0.94, u1: 2.95, v1: 0.96, z0: 8, z1: 12, color: '#facc15' });
+    b({ u0: 0.05, v0: 0.94, u1: 2.95, v1: 0.96, z0: 14, z1: 18, color: '#dc2626' });
+    b({ u0: 0.02, v0: 0.18, u1: 2.98, v1: 0.97, z0: 30, z1: 32, color: '#d6b98c' });
+    [0.4, 0.95, 1.5, 2.05, 2.6].forEach((u) => {
+      b({ u0: u - 0.12, v0: 0.45, u1: u + 0.12, v1: 0.65, z0: 32, z1: 44, color: 'rgba(224, 242, 254, 0.55)' });
+      d(u, 0.62, 38, '#4d7c0f', 4, 4);
+      d(u, 0.62, 45, '#111827', 4, 1);
+    });
+    b({ u0: 0.1, v0: 0.02, u1: 2.9, v1: 0.16, z0: 44, z1: 46, color: '#d6b98c' });
+    ['#22c55e', '#a855f7', '#0ea5e9', '#f97316', '#ec4899'].forEach((color, i) => {
+      const u = 0.35 + i * 0.55;
+      b({ u0: u - 0.06, v0: 0.06, u1: u + 0.06, v1: 0.12, z0: 46, z1: 66, color: 'rgba(255, 255, 255, 0.25)' });
+      d(u, 0.13, 50, color, 4, 6);
+    });
+  },
+  weed_plant(b, { d, now }) {
+    // Pianta di canapa 1x1 in vaso: fusto e foglie a sette punte che ondeggiano piano.
+    const sway = Math.sin((now || 0) / 900) * 0.03;
+    b({ u0: 0.3, v0: 0.3, u1: 0.7, v1: 0.7, z1: 14, color: '#9a3412', left: '#b45309', right: '#7c2d12' });
+    b({ u0: 0.33, v0: 0.33, u1: 0.67, v1: 0.67, z0: 14, z1: 14, color: '#3f2a14' });
+    b({ u0: 0.47, v0: 0.47, u1: 0.53, v1: 0.53, z0: 14, z1: 58, color: '#3f6212' });
+    for (let level = 0; level < 4; level += 1) {
+      const z = 26 + level * 9;
+      const spread = 0.3 - level * 0.05;
+      for (let k = 0; k < 7; k += 1) {
+        const a = (k / 7) * Math.PI * 2 + level;
+        d(0.5 + Math.cos(a) * spread + sway, 0.5 + Math.sin(a) * spread * 0.6, z, k % 2 ? '#16a34a' : '#22c55e', 3, 2);
+      }
+    }
+    d(0.5 + sway, 0.5, 62, '#15803d', 3, 3);
+  },
   horse_track(b, { c, d, now }) {
     // Ippodromo 4x2: la corsa dei cavalli in miniatura dei vecchi casino. Mobile di legno con la
     // pista d'erba e le corsie, i cavallini colorati che avanzano, il tabellone delle quote dietro.
@@ -2292,7 +2351,8 @@ const ANIMATIONS = {
   roulette_table: { period: 120, steps: 24 },
   craps_table: { period: 500, steps: 6 },
   bingo_table: { period: 200, steps: 8 },
-  horse_track: { period: 180, steps: 16 }
+  horse_track: { period: 180, steps: 16 },
+  weed_plant: { period: 300, steps: 12 }
 };
 const DANCE_COLORS = 6;
 

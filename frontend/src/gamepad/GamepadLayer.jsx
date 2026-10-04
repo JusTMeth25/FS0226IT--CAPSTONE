@@ -19,12 +19,13 @@ import './gamepad.css';
  * I minigiochi si prendono i tasti che servono a loro (vedi usePadControls in Minigame).
  */
 
-const WALK_EVERY = 260;
 const CURSOR_SPEED = 900;
 
-function sendKey(target, key, type = 'keydown') {
-  (target || document.body).dispatchEvent(new KeyboardEvent(type, { key, code: key, bubbles: true, cancelable: true }));
+function sendKey(target, key, type = 'keydown', repeat = false) {
+  (target || document.body).dispatchEvent(new KeyboardEvent(type, { key, code: key, repeat, bubbles: true, cancelable: true }));
 }
+
+const ARROW = { UP: 'ArrowUp', DOWN: 'ArrowDown', LEFT: 'ArrowLeft', RIGHT: 'ArrowRight' };
 
 /** Evento del puntatore finto, come quello del mouse. */
 function pointer(type, el, x, y, buttons) {
@@ -46,7 +47,6 @@ export default function GamepadLayer() {
   const [cursorOn, setCursorOn] = useState(false);
   const cursorRef = useRef(null);
   const cursor = useRef({ x: 0, y: 0, down: null, hover: null });
-  const lastWalk = useRef(0);
   const lastB = useRef(0);
   const helpRef = useRef(false);
   useEffect(() => { helpRef.current = help; }, [help]);
@@ -277,6 +277,11 @@ export default function GamepadLayer() {
 
   // Navigazione principale.
   useEffect(() => gamepad.subscribe((event) => {
+    // Rilasciata una direzione sulla stanza: l'avatar finisce il passo e si ferma.
+    if (event.type === 'up' && ARROW[event.button] && document.activeElement?.matches?.('canvas.hotel-canvas')) {
+      sendKey(document.activeElement, ARROW[event.button], 'keyup');
+      return true;
+    }
     if (event.type === 'up' || event.type === 'axes') {
       if (event.type === 'axes') {
         const { rx, ry } = event.axes;
@@ -299,12 +304,9 @@ export default function GamepadLayer() {
     const inScope = active && active !== document.body && scope.contains(active);
 
     if (DIRECTIONS.includes(b)) {
-      // Nella stanza dell'hotel la croce fa camminare (un passo ogni tanto, anche tenendo premuto).
+      // Nella stanza dell'hotel la croce fa camminare: tenendo premuto si continua (vedi HotelCanvas).
       if (inScope && active.matches('canvas.hotel-canvas')) {
-        const now = performance.now();
-        if (event.type === 'repeat' && now - lastWalk.current < WALK_EVERY) return true;
-        lastWalk.current = now;
-        sendKey(active, { UP: 'ArrowUp', DOWN: 'ArrowDown', LEFT: 'ArrowLeft', RIGHT: 'ArrowRight' }[b]);
+        sendKey(active, ARROW[b], 'keydown', event.type === 'repeat');
         return true;
       }
       if (!inScope) {

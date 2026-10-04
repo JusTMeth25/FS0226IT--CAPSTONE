@@ -34,6 +34,11 @@ const SIGNS = {
   facade_guitars: { text: 'ROCK STORE', color: '#fde68a', u: 2, v: 1.7, z: 93, size: 11 }
 };
 
+/** Da fumare (tabaccheria, Green Shop): tiri massimi, per disegnarli sempre piu' corti. */
+const SMOKES = { cigarette: 5, cigar: 8, pipe: 7, joint: 6, blunt: 10, bong: 4 };
+/** La roba del tipo losco: si ingoia in un colpo. */
+const SWALLOW = new Set(['pill', 'mushroom']);
+
 const DRINK_COLORS = {
   cola: '#5b2a0e', juice: '#f97316', coffee: '#6b3e1f', bubble: '#ec4899', cocktail: '#22d3ee', tea: '#b45309', gelato: '#f9a8d4',
   pizza: '#fbbf24', book: '#8b5cf6', popcorn: '#fde68a', water: '#7dd3fc', latte: '#e9d8bd', frappe: '#c08457'
@@ -256,6 +261,11 @@ export class HotelEngine {
       case 'game_fx': this.applyFx(message, now); break;
       case 'hand_item': this.setHandItem(message.id, message.item, message.left); break;
       case 'consume': this.setConsume(message.id, message.item, message.left, now); break;
+      case 'effect': {
+        const target = this.users.get(message.id);
+        if (target) target.effect = message.effect || null;
+        break;
+      }
       case 'minigame': {
         const user = this.users.get(message.id);
         if (user) user.game = message.game;
@@ -360,6 +370,25 @@ export class HotelEngine {
   setPath(id, from, path, now) {
     const user = this.users.get(id);
     if (!user) return;
+    // Percorso che continua quello in corso (si e' allungato il cammino tenendo premuta una
+    // direzione): la casella di partenza del server e' una di quelle che l'avatar sta gia'
+    // percorrendo. Si tiene il passo in corso e si attacca il resto, senza ripartire da capo.
+    const planned = [user.pos, ...(user.steps || [])];
+    const at = planned.findIndex((p) => Math.round(p.x) === from[0] && Math.round(p.y) === from[1]);
+    const same = (p, q) => p && q && Math.round(p.x) === q[0] && Math.round(p.y) === q[1];
+    // Vale solo se da li' si prosegue come gia' previsto (o si e' alla fine): una svolta dalla
+    // casella di partenza si rifa' da capo, con la dissolvenza qui sotto.
+    if (at >= 0 && user.steps?.length && path.length && (at === planned.length - 1 || same(planned[at + 1], path[0]))) {
+      user.steps = [...user.steps.slice(0, at), ...path.map(([x, y, z]) => ({ x, y, z }))];
+      user.status = 'idle';
+      return;
+    }
+    // Il server riparte dalla sua casella, che puo' essere un passo avanti o indietro rispetto a
+    // dove si vede l'avatar: invece di farlo scattare lo si porta li' con una breve dissolvenza.
+    const seen = user.drawn;
+    if (seen && Math.hypot(seen.x - from[0], seen.y - from[1]) > 0.05 && Math.hypot(seen.x - from[0], seen.y - from[1]) < 3) {
+      user.blend = { x: seen.x, y: seen.y, z: seen.z ?? from[2], at: now };
+    }
     user.pos = { x: from[0], y: from[1], z: from[2] };
     user.steps = path.map(([x, y, z]) => ({ x, y, z }));
     user.stepStart = now;
@@ -953,7 +982,14 @@ export class HotelEngine {
     if (!user) return;
     user.handLeft = left;
     user.sipUntil = now + 900;
-    this.sips.push({ userId: id, text: item === 'book' ? 'sfoglia' : ['pizza', 'gelato', 'popcorn'].includes(item) ? 'gnam!' : 'glu glu', born: now });
+    const text = SMOKES[item] ? 'fff...' : SWALLOW.has(item) ? 'gulp!' : item === 'book' ? 'sfoglia'
+      : ['pizza', 'gelato', 'popcorn'].includes(item) ? 'gnam!' : 'glu glu';
+    this.sips.push({ userId: id, text, born: now });
+    // Un tiro: dopo un attimo dalla bocca esce la nuvola (piu' grande col bong, il sigaro e lo spinello XL).
+    if (SMOKES[item]) {
+      user.puffAt = now + 450;
+      user.puffBig = item === 'bong' || item === 'cigar' || item === 'blunt';
+    }
     if (this.sips.length > 20) this.sips.shift();
   }
 
@@ -1269,6 +1305,19 @@ export class HotelEngine {
     return cached;
   }
 
+  /** Posizione disegnata: dopo un percorso nuovo si scivola per 220 ms da dove si era a dove si e'. */
+  smoothed(user, at, now) {
+    const b = user.blend;
+    if (!b) return at;
+    const k = (now - b.at) / 220;
+    if (k >= 1) {
+      user.blend = null;
+      return at;
+    }
+    const e = k * (2 - k);
+    return { ...at, x: b.x + (at.x - b.x) * e, y: b.y + (at.y - b.y) * e, z: b.z + ((at.z ?? b.z) - b.z) * e };
+  }
+
   /** Avanza lungo il percorso: una casella ogni STEP_MS, come il tick del server (piu' veloce sui veicoli). */
   advance(user, now) {
     const stepMs = STEP_MS / (RIDE_SPEEDS[this.rideFor(user)] || 1);
@@ -1573,7 +1622,7 @@ export class HotelEngine {
 
     // Avatar e mobili in ordine di profondita': chi e' piu' in basso sullo schermo copre chi sta dietro.
     const users = [...this.users.values()];
-    users.forEach((u) => { u.drawn = this.advance(u, now); this.followPet(u, now); });
+    users.forEach((u) => { u.drawn = this.smoothed(u, this.advance(u, now), now); this.followPet(u, now); });
     const ballAt = this.ball ? this.ballAt(now) : null;
     const scene = [
       ...users.filter((user) => !this.isRacing(user, now)).map((user) => ({ kind: 'user', user, depth: this.userDepth(user) })),
@@ -1724,6 +1773,7 @@ export class HotelEngine {
       drawWeather(ctx, this.weather, this.weatherState, this.cssWidth, this.cssHeight, now, this.reducedMotion);
     }
     this.drawHearts(ctx, now);
+    this.drawSmoke(ctx, now);
     this.drawSips(ctx, now);
     const animate = !this.reducedMotion;
     // La gemma resta leggibile anche con lo zoom indietro.
@@ -2347,6 +2397,85 @@ export class HotelEngine {
   }
 
   /** Scritte dei sorsi e dei morsi ("glu glu", "gnam!") che salgono sopra chi consuma. */
+  /**
+   * Fumo ed effetti: filo di fumo dalla brace di chi tiene in mano qualcosa di acceso, nuvola dalla
+   * bocca a ogni tiro, alone verde per chi e' rilassato dall'erba e arcobaleno per chi e' in "trip".
+   * Le particelle stanno sullo schermo ma seguono la telecamera, cosi' non scivolano trascinando.
+   */
+  drawSmoke(ctx, now) {
+    if (!this.smoke) this.smoke = [];
+    const cam = this.camera;
+    this.users.forEach((user) => {
+      if (user.screenX === undefined) return;
+      if (SMOKES[user.handItem] && user.tip && now > (user.wispAt || 0) && !this.reducedMotion) {
+        user.wispAt = now + 260 + Math.random() * 200;
+        this.smoke.push({ x: user.tip.x, y: user.tip.y, cx: cam.x, cy: cam.y, born: now, life: 1600, r: 1.5, grow: 4,
+          vx: (Math.random() - 0.5) * 6, vy: -16, a: 0.35 });
+      }
+      if (user.puffAt && now > user.puffAt) {
+        const big = user.puffBig ? 2 : 1;
+        const mouthX = user.screenX + 6;
+        const mouthY = (user.headY ?? 0) + 14;
+        for (let i = 0; i < 5 * big; i += 1) {
+          this.smoke.push({ x: mouthX, y: mouthY, cx: cam.x, cy: cam.y, born: now + i * 40, life: 2200 + Math.random() * 800,
+            r: 3 * big, grow: 12 * big, vx: 6 + Math.random() * 14, vy: -10 - Math.random() * 14, a: 0.5 });
+        }
+        user.puffAt = 0;
+      }
+      if (user.effect) this.drawEffect(ctx, user, now);
+    });
+    this.smoke = this.smoke.filter((p) => now - p.born < p.life);
+    if (this.smoke.length > 400) this.smoke.splice(0, this.smoke.length - 400);
+    this.smoke.forEach((p) => {
+      const age = now - p.born;
+      if (age < 0) return;
+      const t = age / p.life;
+      const sec = age / 1000;
+      const px = p.x + (cam.x - p.cx) + p.vx * sec + Math.sin(age / 300 + p.r) * 3;
+      const py = p.y + (cam.y - p.cy) + p.vy * sec;
+      ctx.globalAlpha = p.a * (1 - t);
+      ctx.fillStyle = '#e5e7eb';
+      ctx.beginPath();
+      ctx.arc(px, py, p.r + p.grow * t, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  /** Alone dell'effetto: nuvola verde che ondeggia (erba) o anelli arcobaleno con le stelline (trip). */
+  drawEffect(ctx, user, now) {
+    const cx = user.screenX;
+    const cy = (user.headY ?? 0) + 28;
+    ctx.save();
+    if (user.effect === 'chill') {
+      const g = ctx.createRadialGradient(cx, cy, 4, cx, cy, 36);
+      g.addColorStop(0, 'rgba(74, 222, 128, 0.22)');
+      g.addColorStop(1, 'rgba(74, 222, 128, 0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, 34, 40, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.font = 'bold 12px "Segoe UI", system-ui, sans-serif';
+      ctx.fillStyle = 'rgba(187, 247, 208, 0.9)';
+      ctx.fillText('~ ~', cx + 18 + Math.sin(now / 500) * 3, (user.headY ?? 0) - 2 + Math.cos(now / 700) * 2);
+    } else {
+      const hue = (now / 8) % 360;
+      ctx.lineWidth = 3;
+      for (let k = 0; k < 3; k += 1) {
+        ctx.strokeStyle = `hsla(${(hue + k * 120) % 360}, 95%, 60%, 0.55)`;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, 20 + k * 6 + Math.sin(now / 200 + k) * 3, 30 + k * 6, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      for (let k = 0; k < 4; k += 1) {
+        const a = now / 600 + k * (Math.PI / 2);
+        ctx.fillStyle = `hsl(${(hue + k * 90) % 360}, 100%, 70%)`;
+        ctx.fillRect(cx + Math.cos(a) * 30 - 2, cy - 18 + Math.sin(a) * 16 - 2, 4, 4);
+      }
+    }
+    ctx.restore();
+  }
+
   drawSips(ctx, now) {
     this.sips = this.sips.filter((s) => now - s.born < 1_200);
     this.sips.forEach((sip) => {
@@ -2547,7 +2676,74 @@ function drawDrink(ctx, user, p, scale, view, sipping) {
     ctx.fillStyle = c;
     ctx.fillRect(x + dx * s, y + dy * s, w * s, h * s);
   };
+  const total = SMOKES[user.handItem];
+  // Sigarette, canne e sigari si accorciano tiro dopo tiro (fino a un terzo della lunghezza).
+  const burnt = total ? Math.max(0.35, (user.handLeft ?? total) / total) : 1;
+  const ember = (dx, dy) => {
+    const glow = 0.6 + Math.sin(performance.now() / 180) * 0.4;
+    rect(dx, dy, 2, 2, sipping ? '#fde047' : `rgba(249, 115, 22, ${glow})`);
+    user.tip = { x: x + (dx + 1) * s, y: y + dy * s };
+  };
+  if (!total) user.tip = null;
   switch (user.handItem) {
+    case 'cigarette': {
+      const len = Math.round(9 * burnt);
+      rect(-1, 2, len + 4, 4, '#1a1030');
+      rect(0, 3, 3, 2, '#d97706');
+      rect(3, 3, len - 1, 2, '#f8fafc');
+      ember(len + 1, 3);
+      break;
+    }
+    case 'cigar': {
+      const len = Math.round(12 * burnt);
+      rect(-1, 1, len + 4, 6, '#1a1030');
+      rect(0, 2, len + 1, 4, '#7c4a24');
+      rect(2, 2, 3, 4, '#dc2626');
+      rect(3, 3, 1, 2, '#fde68a');
+      ember(len + 1, 3);
+      break;
+    }
+    case 'pipe':
+      rect(-1, 3, 10, 3, '#1a1030');
+      rect(0, 4, 7, 1, '#3b2414');
+      rect(6, -1, 5, 7, '#1a1030');
+      rect(7, 0, 3, 5, '#7c4a24');
+      ember(7, -1);
+      break;
+    case 'joint':
+    case 'blunt': {
+      const big = user.handItem === 'blunt';
+      const len = Math.round((big ? 14 : 10) * burnt);
+      const h = big ? 4 : 3;
+      rect(-1, 2, len + 4, h + 2, '#1a1030');
+      rect(0, 3, 2, h, '#e5e7eb');
+      rect(2, 3, len, h, big ? '#8b5a2b' : '#f5f5f4');
+      ember(len + 1, 3);
+      break;
+    }
+    case 'bong':
+      rect(-1, -9, 8, 21, '#1a1030');
+      rect(1, -8, 4, 12, 'rgba(134, 239, 172, 0.55)');
+      rect(0, 4, 6, 7, 'rgba(134, 239, 172, 0.7)');
+      rect(1, 7, 4, 3, '#22c55e');
+      rect(6, 5, 4, 2, '#1a1030');
+      rect(8, 3, 3, 3, '#9ca3af');
+      ember(9, 2);
+      break;
+    case 'pill': {
+      const hue = (performance.now() / 6) % 360;
+      rect(0, 2, 6, 6, '#1a1030');
+      rect(1, 3, 4, 4, `hsl(${hue}, 90%, 60%)`);
+      rect(2, 3, 1, 1, '#ffffff');
+      break;
+    }
+    case 'mushroom':
+      rect(-1, 0, 10, 6, '#1a1030');
+      rect(0, 1, 8, 4, '#dc2626');
+      rect(2, 2, 1, 1, '#ffffff');
+      rect(5, 1, 1, 1, '#ffffff');
+      rect(2, 5, 4, 5, '#f5f5f4');
+      break;
     case 'pizza': {
       const w = 3 + left * 2;
       rect(-1, 0, w + 2, 8, '#1a1030');

@@ -1713,3 +1713,25 @@ button.hotel-badge:hover:not(:disabled) { transform: translateY(-2px) scale(1.08
   .hotel-chat-input { height: 32px; }
   .hotel-page.is-fullscreen { padding: max(4px, var(--safe-top)) max(6px, var(--safe-right)) max(4px, var(--safe-bottom)) max(6px, var(--safe-left)); }
 }
+
+/* ---------- Tabaccheria, Green Shop e tipo losco ---------- */
+.smoke-shop { width: min(440px, calc(100% - 16px)); }
+.smoke-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.smoke-items li { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); }
+.smoke-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: rgba(0, 0, 0, 0.3); font-size: 1.3rem; color: #fbbf24; }
+.smoke-green .smoke-icon { color: #4ade80; }
+.smoke-dealer .smoke-icon { color: #e879f9; }
+.smoke-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.smoke-text small { color: var(--text-secondary); font-size: 0.75rem; }
+.smoke-text .smoke-meta { color: #a5b4fc; }
+.smoke-note { margin: 10px 0 0; font-size: 0.7rem; color: var(--text-secondary); text-align: center; }
+
+/* Lo schermo di chi ha fumato erba (lento e verde) o preso la roba del tipo losco (arcobaleno). */
+.hotel-stage.fx-chill .hotel-canvas { filter: saturate(1.25) hue-rotate(-12deg) blur(0.4px); transition: filter 2s; }
+.hotel-stage.fx-trip .hotel-canvas { animation: hotel-trip 6s linear infinite; }
+@keyframes hotel-trip {
+  0% { filter: hue-rotate(0deg) saturate(1.8); }
+  50% { filter: hue-rotate(180deg) saturate(2.2) contrast(1.1); }
+  100% { filter: hue-rotate(360deg) saturate(1.8); }
+}
+@media (prefers-reduced-motion: reduce) { .hotel-stage.fx-trip .hotel-canvas { animation: none; filter: saturate(1.6); } }

@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -103,6 +104,27 @@ class RoomInstanceTest {
         room.move(bruno.id(), 4, 2);
         // La stanza ha posto per due: carla resta fuori, ma anna e' ormai arrivata.
         assertEquals(RoomInstance.JoinResult.FULL, room.join(carla.session()));
+    }
+
+    @Test
+    @DisplayName("Sigaretta in mano ed effetto della canna si portano nella stanza dopo, e li' si fuma")
+    void handItemFollowsAcrossRooms() throws Exception {
+        Client anna = client("anna");
+        room.join(anna.session());
+        room.giveHandItem(anna.id(), "joint", 6);
+        assertNull(room.consume(anna.id()));
+        room.leave(anna.id());
+
+        RoomInstance other = new RoomInstance(new RoomData(UUID.randomUUID(), "Altra", null, null, null, LAYOUT,
+                0, 1, 2, "neon", "neon", "open", 4, true));
+        other.join(anna.session());
+        JsonNode me = anna.last("room_state").path("users").get(0);
+        assertEquals("joint", me.path("handItem").asString(), "la canna e' ancora in mano");
+        assertEquals(5, me.path("handLeft").asInt(), "con i tiri rimasti");
+        assertEquals("chill", me.path("effect").asString(), "e l'effetto continua");
+        Thread.sleep(1_600);
+        assertNull(other.consume(anna.id()));
+        assertEquals(4, anna.last("consume").path("left").asInt(), "si fuma anche qui");
     }
 
     @Test

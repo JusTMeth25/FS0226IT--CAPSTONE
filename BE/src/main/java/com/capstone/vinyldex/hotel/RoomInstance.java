@@ -44,7 +44,7 @@ public class RoomInstance {
     /** Quanti messaggi di ogni conversazione NPC-giocatore si ricordano per il modello. */
     private static final int NPC_MEMORY_LINES = 12;
     /** Un oggetto in mano dura cinque minuti, o finche' non lo si finisce. */
-    private static final long DRINK_MILLIS = 5 * 60_000;
+    private static final long DRINK_MILLIS = 30 * 60_000;
     /** Sorsi o morsi per finire un oggetto, e pausa minima fra uno e l'altro. */
     static final int HAND_ITEM_SIPS = 3;
     private static final long SIP_PAUSE_MILLIS = 900;
@@ -132,6 +132,9 @@ public class RoomInstance {
         /** Quanto ne resta (sorsi, morsi, pagine) e quando si e' consumato l'ultimo. */
         int handItemLeft;
         long lastSipAt;
+        /** Effetto di erba o "roba" (SmokeShop): "chill" o "trip", fino a quando. */
+        String effect;
+        long effectUntil;
         /** Collegato ma su un'altra pagina del sito: gli altri lo vedono sbiadito. */
         boolean away;
         /** Mobile da usare appena si arriva (per esempio il bancone del bar). */
@@ -282,15 +285,54 @@ public class RoomInstance {
 
     public enum JoinResult { OK, FULL, CLOSED }
 
+    /**
+     * Quello che si porta con se' cambiando stanza: la bibita, la sigaretta o la canna in mano
+     * (con i sorsi o i tiri rimasti) e l'effetto di erba o pasticche. Si salva uscendo da una
+     * stanza e si riprende entrando nella prossima, anche dopo essersi ricollegati.
+     */
+    private record Carried(String handItem, int left, long until, String effect, long effectUntil) {
+    }
+
+    private static final Map<UUID, Carried> CARRIED = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static void carryOut(Occupant o) {
+        long now = System.currentTimeMillis();
+        boolean hand = o.handItem != null && now < o.handItemUntil;
+        boolean effect = o.effect != null && now < o.effectUntil;
+        if (hand || effect) {
+            CARRIED.put(o.user.id(), new Carried(hand ? o.handItem : null, o.handItemLeft, o.handItemUntil,
+                    effect ? o.effect : null, o.effectUntil));
+        } else {
+            CARRIED.remove(o.user.id());
+        }
+    }
+
+    private static void carryIn(Occupant o) {
+        Carried c = CARRIED.remove(o.user.id());
+        if (c == null) return;
+        long now = System.currentTimeMillis();
+        if (c.handItem() != null && now < c.until()) {
+            o.handItem = c.handItem();
+            o.handItemLeft = c.left();
+            o.handItemUntil = c.until();
+        }
+        if (c.effect() != null && now < c.effectUntil()) {
+            o.effect = c.effect();
+            o.effectUntil = c.effectUntil();
+        }
+    }
+
     public synchronized JoinResult join(HotelSession session) {
         UUID userId = session.user().id();
         boolean owner = data.isOwner(userId);
         if (!owner && "closed".equals(data.doorMode())) return JoinResult.CLOSED;
         if (!occupants.containsKey(userId) && userCount() >= data.maxUsers() && !owner) return JoinResult.FULL;
 
-        occupants.remove(userId);
+        Occupant previous = occupants.remove(userId);
+        if (previous != null) carryOut(previous);
         Occupant occupant = new Occupant(session, data.doorX(), data.doorY(),
                 Math.max(0, layout.heightAt(data.doorX(), data.doorY())), data.doorDir());
+        carryIn(occupant);
         occupants.put(userId, occupant);
         session.setRoomId(data.id());
         stepInside(occupant);
@@ -337,6 +379,7 @@ public class RoomInstance {
     public synchronized void leave(UUID userId) {
         Occupant removed = occupants.remove(userId);
         if (removed == null) return;
+        if (!removed.isNpc()) carryOut(removed);
         if (userCount() == 0) emptySince = System.currentTimeMillis();
         conversations.keySet().removeIf(key -> key.endsWith("/" + userId));
         broadcast(Map.of("type", "user_left", "id", userId));
@@ -412,6 +455,10 @@ public class RoomInstance {
             if (occupant.handItem != null && now > occupant.handItemUntil) {
                 occupant.handItem = null;
                 broadcast(handMessage(occupant));
+            }
+            if (occupant.effect != null && now > occupant.effectUntil) {
+                occupant.effect = null;
+                broadcast(effectMessage(occupant));
             }
             // Partita lasciata a meta' (pagina chiusa, giocatore distratto): il mobile si libera.
             if (occupant.game != null && now - occupant.gameStartedAt > occupant.game.maxMillis()) stopGame(occupant);
@@ -2309,6 +2356,18 @@ public class RoomInstance {
         occupant.lastSipAt = now;
         occupant.handItemLeft = Math.max(0, occupant.handItemLeft - 1);
         broadcast(Map.of("type", "consume", "id", userId, "item", occupant.handItem, "left", occupant.handItemLeft));
+        // Erba e roba del tipo losco: l'effetto dura un po' dall'ultimo tiro (il trip fa anche ballare).
+        SmokeShop.Item smoke = SmokeShop.item(occupant.handItem);
+        if (smoke != null && smoke.effect() != null) {
+            boolean changed = !smoke.effect().equals(occupant.effect);
+            if (!"trip".equals(occupant.effect) || "trip".equals(smoke.effect())) occupant.effect = smoke.effect();
+            occupant.effectUntil = Math.max(occupant.effectUntil, now + smoke.effectMillis());
+            if (changed) broadcast(effectMessage(occupant));
+            if ("trip".equals(smoke.effect()) && occupant.path.isEmpty()) {
+                occupant.status = "dance";
+                broadcast(statusMessage(occupant));
+            }
+        }
         if (occupant.handItemLeft == 0) {
             occupant.handItem = null;
             broadcast(handMessage(occupant));
@@ -2346,6 +2405,28 @@ public class RoomInstance {
             }
         }
         return best;
+    }
+
+    private static Map<String, Object> effectMessage(Occupant o) {
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put("type", "effect");
+        message.put("id", o.user.id());
+        message.put("effect", o.effect);
+        return message;
+    }
+
+    /**
+     * Comprato in tabaccheria, al Green Shop o dal tipo losco: in mano, con i suoi tiri, per mezz'ora
+     * al massimo (poi si spegne da solo).
+     */
+    public synchronized boolean giveHandItem(UUID userId, String item, int uses) {
+        Occupant occupant = occupants.get(userId);
+        if (occupant == null) return false;
+        occupant.handItem = item;
+        occupant.handItemLeft = uses;
+        occupant.handItemUntil = System.currentTimeMillis() + 30 * 60_000;
+        broadcast(handMessage(occupant));
+        return true;
     }
 
     private static Map<String, Object> handMessage(Occupant o) {
@@ -2424,6 +2505,7 @@ public class RoomInstance {
         view.put("game", o.game == null ? null : o.game.key());
         view.put("handItem", o.handItem);
         view.put("handLeft", o.handItem == null ? 0 : o.handItemLeft);
+        view.put("effect", o.effect);
         view.put("away", o.away);
         if (o.isNpc()) {
             NpcRoster.Legend legend = NpcRoster.legend(o.npc.key());

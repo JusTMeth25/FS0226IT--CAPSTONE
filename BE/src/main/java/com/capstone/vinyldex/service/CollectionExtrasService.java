@@ -222,6 +222,26 @@ public class CollectionExtrasService {
         return result;
     }
 
+    /**
+     * Carte di un altro giocatore che si possono chiedere in uno scambio (username o id), con le
+     * copie che ha: servono alla schermata degli scambi per cercarle per nome, rarita', gioco...
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> tradableCards(UUID viewerId, String handle) {
+        User other = userRepository.findByUsernameOrId(handle == null ? "" : handle.trim())
+                .filter(u -> !u.isNpc() && !u.isBanned())
+                .orElseThrow(() -> ApiException.notFound("recipient_not_found"));
+        if (other.getId().equals(viewerId)) throw ApiException.badRequest("cannot_trade_with_yourself");
+        List<com.capstone.vinyldex.dto.response.CollectionEntryDto> cards = userCardRepository.findByUserIdWithCard(other.getId()).stream()
+                .filter(uc -> uc.getQuantity() > 0 && uc.getCard().isActive())
+                .map(uc -> com.capstone.vinyldex.dto.response.CollectionEntryDto.from(uc.getCard(), uc))
+                .toList();
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("user", Map.of("id", other.getId(), "username", other.getUsername()));
+        result.put("cards", cards);
+        return result;
+    }
+
     private Map<UUID, UserCard> ownedMap(UUID userId) {
         return userCardRepository.findByUserIdWithCard(userId).stream().filter(uc -> uc.getQuantity() > 0)
                 .collect(Collectors.toMap(uc -> uc.getCard().getId(), uc -> uc, (a, b) -> a));

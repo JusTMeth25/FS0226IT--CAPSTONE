@@ -52,5 +52,7 @@ public enum WalletTransactionType {
     /** Capi, orologi e veicoli comprati nei negozi del quartiere. */
     LUXURY,
     /** Casino dell'hotel: fiches alla cassa, puntate e vincite in gold. */
-    CASINO
+    CASINO,
+    /** Tabaccheria, Green Shop e tipo losco della discoteca (SmokeShop). */
+    SHOP
 }

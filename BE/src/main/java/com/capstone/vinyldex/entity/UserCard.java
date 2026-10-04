@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -32,9 +31,12 @@ public class UserCard {
     @JoinColumn(name = "card_id", nullable = false, foreignKey = @ForeignKey(name = "fk_user_cards_card"))
     private Card card;
 
-    @CreationTimestamp
-    @Column(name = "obtained_at", nullable = false, updatable = false)
-    private Instant obtainedAt;
+    /**
+     * Ultima volta che si e' trovata la carta (pacchetto, scambio, mercato...): ogni copia nuova la
+     * sposta in avanti, cosi' "ultime pescate" mostra anche i doppioni appena usciti.
+     */
+    @Column(name = "obtained_at", nullable = false)
+    private Instant obtainedAt = Instant.now();
 
     @Column(name = "is_favorite", nullable = false)
     private boolean favorite = false;

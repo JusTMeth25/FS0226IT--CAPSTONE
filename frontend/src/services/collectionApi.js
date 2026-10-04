@@ -13,6 +13,10 @@ export const collectionApi = {
     return apiClient.get(`/collection${qs ? `?${qs}` : ''}`);
   },
   /** Raccoglitore a pagine: le carte di un gioco (source) o di un set (set) da offset, al massimo limit. */
+  /** Carte di un altro giocatore da chiedere in uno scambio (username o id). */
+  async tradable(handle) {
+    return apiClient.get(`/collection/of/${encodeURIComponent(handle)}`);
+  },
   async binder({ source, set, offset = 0, limit = 90 }) {
     const params = new URLSearchParams({ offset: String(offset), limit: String(limit) });
     if (set) params.set('set', set);
