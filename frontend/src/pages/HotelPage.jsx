@@ -47,6 +47,9 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import HotelView from '../hotel/ui/HotelView.jsx';
 import NpcCard from '../hotel/ui/NpcCard.jsx';
 import SmokeShopPanel from '../hotel/ui/SmokeShopPanel.jsx';
+import CasinoBankPanel from '../components/admin/CasinoBankPanel.jsx';
+import { adminApi } from '../services/adminApi.js';
+import { VAULT_ID } from '../hotel/vaultLoot.js';
 import { NpcTradeOffer, NpcTradePanel } from '../hotel/ui/NpcTrade.jsx';
 import Newsstand from '../hotel/ui/Newsstand.jsx';
 import HotelPackOpening from '../hotel/ui/HotelPackOpening.jsx';
@@ -74,6 +77,7 @@ const CONSUME = {
 
 /** Banconi della Tabaccheria e del Green Shop: aprono il negozio (SmokeShopPanel). */
 const SMOKE_COUNTERS = { tobacco_counter: 'tabacchi', weed_counter: 'green' };
+
 
 /** Mobili che si usano cliccandoli: bibite, cibo, jukebox. */
 const USABLE = ['bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'pizza_oven', 'jukebox',
@@ -190,6 +194,7 @@ const ERRORS = {
   pack_not_for_sale: 'Questo pacchetto non si compra: arriva solo in regalo.',
   insufficient_gold: 'Non hai abbastanza gold.',
   smoke_unknown: 'Questo articolo non c\'è.',
+  vault_admin_only: 'Porta blindata: il Caveau è riservato al gestore del casinò.',
   smoke_wrong_shop: 'Qui non si vende: cercalo nel negozio giusto.',
   server_error: 'Qualcosa e\' andato storto. Riprova.'
 };
@@ -867,6 +872,21 @@ export default function HotelPage() {
   const myHand = me ? people[me.id]?.handItem : null;
   // Effetto di erba o "roba": anche lo schermo di chi l'ha presa cambia (verde e lento, o arcobaleno).
   const myEffect = me ? people[me.id]?.effect : null;
+
+  // Caveau: il tesoro per terra segue gli incassi da riscuotere (si rilegge ogni pochi secondi).
+  const showTreasure = useCallback((bank) => {
+    const total = Math.max(0, bank?.chips?.balance || 0) + Math.max(0, bank?.gold?.balance || 0);
+    canvasRef.current?.handle({ type: 'vault_treasure', total });
+  }, []);
+  const inVault = room?.id === VAULT_ID && user?.role === 'ADMIN';
+  useEffect(() => {
+    if (!inVault) return undefined;
+    let cancelled = false;
+    const load = () => adminApi.getCasinoBank().then((bank) => { if (!cancelled) showTreasure(bank); }).catch(() => {});
+    load();
+    const id = setInterval(load, 8000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [inVault, showTreasure]);
   const isOwner = !!(room && me && room.ownerId === me.id);
   const selectedItem = selectedItemId ? items[selectedItemId] : null;
   const bagPacks = PACKS.reduce((sum, pack) => sum + (freePacks[pack.id] || 0), 0);
@@ -1073,6 +1093,17 @@ export default function HotelPage() {
     if (item.type === 'villa') {
       if (item.villa) join(item.villa.id);
       else showNotice('Questa villa e\' ancora in vendita: arreda la tua stanza e i giocatori la vedranno qui!');
+      return;
+    }
+    // Porta blindata del casino: apre il Caveau, ma solo all'admin.
+    if (item.type === 'vault_door') {
+      if (user?.role === 'ADMIN') join(VAULT_ID);
+      else showNotice('Porta blindata: il Caveau è riservato al gestore del casinò.');
+      return;
+    }
+    // Cassaforte del Caveau: gli incassi del casino.
+    if (item.type === 'vault_safe') {
+      setPanel('vault');
       return;
     }
     if (SMOKE_COUNTERS[item.type]) {
@@ -1466,6 +1497,17 @@ export default function HotelPage() {
         )}
         {panel === 'jukebox' && (
           <JukeboxPanel jukebox={jukebox} meId={me?.id} isOwner={jukeboxManager} send={send} onClose={() => setPanel(null)} />
+        )}
+        {panel === 'vault' && (
+          <div className="hotel-panel hotel-vault-panel" role="dialog" aria-label="Cassaforte degli incassi">
+            <header className="hotel-panel-header">
+              <h3><i className="ph-fill ph-vault" /> Cassaforte degli incassi</h3>
+              <button type="button" className="hotel-panel-close" onClick={() => setPanel(null)} aria-label="Chiudi"><i className="ph ph-x" /></button>
+            </header>
+            {user?.role === 'ADMIN'
+              ? <CasinoBankPanel canWithdraw onWithdrawn={(res) => { refreshUser(); sound.coin(); showTreasure(res); }} />
+              : <p className="hotel-panel-hint">La combinazione la conosce solo il gestore.</p>}
+          </div>
         )}
         {panel === 'smoke' && (
           <SmokeShopPanel

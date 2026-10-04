@@ -50,6 +50,8 @@ public final class NpcRoster {
     public static final UUID CASINO = UUID.fromString("00000000-0000-0000-0000-00000000a020");
     public static final UUID TOBACCO = UUID.fromString("00000000-0000-0000-0000-00000000a021");
     public static final UUID GREEN_SHOP = UUID.fromString("00000000-0000-0000-0000-00000000a022");
+    /** Caveau del casino: ci entra solo l'admin, che da li' riscuote gli incassi. */
+    public static final UUID VAULT = UUID.fromString("00000000-0000-0000-0000-00000000a023");
 
     /** Cosa fa il personaggio: da qui dipendono movimento, azioni possibili e battute. */
     public enum Role {
@@ -288,13 +290,18 @@ public final class NpcRoster {
                     worker("ottavio", "Ottavio", Role.CROUPIER, "s1.h1.hc0.sh9.p1.t3.f0.a0.b0.o2", 13, 16, 4),
                     worker("martini", "Martini", Role.BARISTA, "s2.h1.hc0.sh7.p1.t2.f0.a0.b0", 20, 17, 4, "cola", "juice", "bubble"),
                     walker("high_roller", "High Roller", Role.GUEST, "s0.h1.hc2.sh8.p1.t3.f0.a2.b0.o1", 8, 10, 4),
-                    walker("lady_luck", "Lady Luck", Role.GUEST, "s3.h2.hc7.sh6.p1.t3.f2.a0.b1.o8", 15, 16, 4))),
+                    walker("lady_luck", "Lady Luck", Role.GUEST, "s3.h2.hc7.sh6.p1.t3.f2.a0.b1.o8", 15, 16, 4),
+                    walker("contessa_bianca", "Contessa Bianca", Role.GUEST, "s0.h3.hc8.sh6.p1.t3.f2.a5.b1.o8", 6, 10, 3),
+                    walker("don_ciccio", "Don Ciccio", Role.GUEST, "s2.h1.hc0.sh9.p1.t3.f0.a2.b0.o1", 12, 10, 4),
+                    walker("il_barone", "Il Barone", Role.GUEST, "s1.h0.hc8.sh8.p1.t3.f0.a1.b0.o2", 14, 10, 4))),
             Map.entry(TOBACCO, List.of(
                     worker("toto", "Toto", Role.TOBACCONIST, "s1.h6.hc8.sh8.p1.t2.f0.a1", 10, 1, 4),
                     walker("commendatore", "Il Commendatore", Role.GUEST, "s0.h1.hc8.sh9.p1.t3.f0.a2", 10, 10, 4))),
             Map.entry(GREEN_SHOP, List.of(
                     worker("bob", "Bob", Role.GROWER, "s4.h5.hc0.sh5.p0.t0.f1.a0", 10, 1, 4),
-                    walker("rasta", "Rasta Joe", Role.GUEST, "s4.h5.hc1.sh2.p0.t0.f1.a0", 10, 10, 4)))
+                    walker("rasta", "Rasta Joe", Role.GUEST, "s4.h5.hc1.sh2.p0.t0.f1.a0", 10, 10, 4))),
+            Map.entry(VAULT, List.of(
+                    worker("guardiano", "Il Guardiano", Role.BOUNCER, "s4.h9.hc7.sh9.p1.t3.f0.a0", 11, 2, 4)))
     );
 
     private NpcRoster() {

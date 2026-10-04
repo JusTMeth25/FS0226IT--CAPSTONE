@@ -53,6 +53,10 @@ public class HorseRace {
     /** Chi riceve le vincite (il servizio, che le accredita). */
     public interface Listener {
         void pay(String playerId, int chips, String reason);
+
+        /** Puntate degli habitue' per la cassa del banco: poste (+) e vincite (-). */
+        default void house(int chips) {
+        }
     }
 
     record Stable(String name, String silk, int rating) {
@@ -123,6 +127,12 @@ public class HorseRace {
     private final List<Map<String, Object>> feed = new ArrayList<>();
     private final List<Map<String, Object>> history = new ArrayList<>();
     private int[] order = new int[0];
+    /** C'e' qualcuno nel casino: solo allora puntano anche gli habitue'. */
+    private volatile boolean audience = true;
+
+    public void setAudience(boolean audience) {
+        this.audience = audience;
+    }
 
     public HorseRace(Random random, Listener listener) {
         this.random = random;
@@ -143,8 +153,8 @@ public class HorseRace {
                     startRace(now);
                     return true;
                 }
-                // Gli habitue' puntano anche loro: solo per la cronaca, non toccano le quote.
-                if (random.nextInt(40) == 0 && feed.size() < 60) {
+                // Gli habitue' puntano anche loro (quando c'e' qualcuno in sala): non toccano le quote.
+                if (audience && random.nextInt(40) == 0 && feed.size() < 60) {
                     npcBet();
                     return true;
                 }
@@ -234,6 +244,7 @@ public class HorseRace {
             if (bet.paid > 0 && bet.playerId != null) {
                 listener.pay(bet.playerId, bet.paid, bet.type.label + " " + describe(bet.horses));
             }
+            if (bet.paid > 0 && bet.playerId == null) listener.house(-bet.paid);
         }
         Map<String, Object> h = new LinkedHashMap<>();
         h.put("round", round);
@@ -322,10 +333,16 @@ public class HorseRace {
             int n = byP.get(Math.min(FIELD - 1, (int) Math.floor(Math.pow(random.nextDouble(), 1.6) * FIELD))).number;
             if (!picks.contains(n)) picks.add(n);
         }
+        // Puntata vera dell'habitue': quota bloccata come per i giocatori, la posta va al banco.
+        int[] chosen = picks.stream().mapToInt(Integer::intValue).toArray();
+        int stake = (1 + random.nextInt(20)) * 10;
+        String name = PUNTERS[random.nextInt(PUNTERS.length)];
+        bets.add(new Bet(null, name, type, chosen, stake, oddsOf(type, chosen)));
+        listener.house(stake);
         Map<String, Object> f = new LinkedHashMap<>();
-        f.put("name", PUNTERS[random.nextInt(PUNTERS.length)]);
-        f.put("bet", type.label + " " + describe(picks.stream().mapToInt(Integer::intValue).toArray()));
-        f.put("stake", (1 + random.nextInt(20)) * 10);
+        f.put("name", name);
+        f.put("bet", type.label + " " + describe(chosen));
+        f.put("stake", stake);
         f.put("npc", true);
         feed.addFirst(f);
     }
@@ -389,7 +406,7 @@ public class HorseRace {
         int staked = 0;
         int won = 0;
         for (Bet b : bets) {
-            if (!b.playerId.equals(viewerId)) continue;
+            if (!viewerId.equals(b.playerId)) continue;
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("type", b.type.name());
             m.put("label", b.type.label);

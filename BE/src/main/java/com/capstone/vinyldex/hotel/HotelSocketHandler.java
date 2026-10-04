@@ -378,6 +378,11 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             session.send(error("room_not_found"));
             return;
         }
+        // Il Caveau del casino e' del gestore: entra solo l'admin.
+        if (NpcRoster.VAULT.equals(roomId) && !session.isAdmin()) {
+            session.send(error("vault_admin_only"));
+            return;
+        }
 
         // Ogni ingresso rilegge le carte in mostra: dopo un pacchetto fortunato o una battaglia basta
         // cambiare stanza.

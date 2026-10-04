@@ -1456,6 +1456,83 @@ const DRAW = {
     c({ u: 1.85, v: 1.45, r: 0.07, z0: 36, z1: 40, color: '#fdfbf5', top: '#fdfbf5' });
     d(1.84, 1.45, 40, '#c1121f', 1, 1);
   },
+  vault_door(b, { c, d }) {
+    // Porta blindata 1x1 del Caveau: lastra d'acciaio rotonda con la ruota e i bulloni, nel telaio.
+    b({ u0: 0.05, v0: 0.3, u1: 0.95, v1: 0.7, z1: 76, color: '#374151', left: '#4b5563', right: '#1f2937' });
+    c({ u: 0.5, v: 0.72, r: 0.36, z0: 8, z1: 70, color: '#9ca3af', top: '#d1d5db', tex: 'metal' });
+    c({ u: 0.5, v: 0.76, r: 0.16, z0: 32, z1: 46, color: '#d4a537', top: '#fde68a', tex: 'metal' });
+    for (let k = 0; k < 6; k += 1) {
+      const a = (k / 6) * Math.PI * 2;
+      d(0.5 + Math.cos(a) * 0.28, 0.78, 39 + Math.sin(a) * 24, '#4b5563', 2, 2);
+    }
+    d(0.18, 0.72, 66, '#ef4444', 3, 3);
+    d(0.82, 0.72, 66, '#22c55e', 3, 3);
+  },
+  vault_safe(b, { d, now }) {
+    // Cassaforte 2x1: grossa, nera e oro, con la manopola della combinazione e la luce che lampeggia.
+    const blink = Math.floor((now || 0) / 600) % 2;
+    b({ u0: 0.08, v0: 0.12, u1: 1.92, v1: 0.92, z1: 64, color: '#111827', left: '#1f2937', right: '#030712', tex: 'metal' });
+    b({ u0: 0.04, v0: 0.08, u1: 1.96, v1: 0.96, z0: 64, z1: 68, color: '#d4a537' });
+    b({ u0: 0.2, v0: 0.92, u1: 1.8, v1: 0.94, z0: 8, z1: 58, color: '#1f2937' });
+    d(0.6, 0.95, 36, '#d4a537', 12, 12);
+    d(0.6, 0.95, 36, '#111827', 6, 6);
+    d(1.3, 0.95, 40, '#d4a537', 4, 14);
+    d(1.5, 0.95, 52, blink ? '#22c55e' : '#14532d', 3, 3);
+    d(1.0, 0.95, 62, '#fde68a', 14, 2);
+  },
+  cash_pallet(b, { d }) {
+    // Bancale 2x2 pieno di mazzette di banconote verdi con la fascetta, a strati.
+    b({ u0: 0.1, v0: 0.1, u1: 1.9, v1: 1.9, z1: 6, color: '#a16207', left: '#854d0e', right: '#713f12', tex: 'wood' });
+    for (let layer = 0; layer < 5; layer += 1) {
+      const inset = 0.15 + layer * 0.05;
+      b({ u0: inset, v0: inset, u1: 2 - inset, v1: 2 - inset, z0: 6 + layer * 8, z1: 14 + layer * 8, color: layer % 2 ? '#4d7c0f' : '#65a30d', left: '#3f6212', right: '#365314' });
+      for (let k = 0; k < 4; k += 1) d(inset + 0.2 + k * 0.38, 2 - inset, 10 + layer * 8, '#fef3c7', 4, 2);
+    }
+    d(1, 1, 48, '#fde68a', 6, 2);
+  },
+  money_pile(b, { d }) {
+    // Mazzette di banconote 1x1 impilate un po' storte, con le fascette bianche.
+    [[0.2, 0.2, 0], [0.35, 0.3, 6], [0.25, 0.4, 12], [0.4, 0.25, 18]].forEach(([u, v, z], i) => {
+      b({ u0: u, v0: v, u1: u + 0.45, v1: v + 0.3, z0: z, z1: z + 6, color: i % 2 ? '#4d7c0f' : '#65a30d', left: '#3f6212', right: '#365314' });
+      d(u + 0.22, v + 0.3, z + 3, '#fef3c7', 2, 3);
+    });
+    d(0.5, 0.5, 26, '#fde68a', 3, 1);
+  },
+  gold_bars(b, { d, now }) {
+    // Lingotti d'oro 1x1 a piramide, con un luccichio che passa.
+    const shine = Math.floor((now || 0) / 250) % 8;
+    const bar = (u, v, z) => b({ u0: u, v0: v, u1: u + 0.36, v1: v + 0.2, z0: z, z1: z + 7, color: '#facc15', left: '#eab308', right: '#ca8a04', top: '#fde047' });
+    bar(0.12, 0.2, 0); bar(0.52, 0.2, 0); bar(0.12, 0.55, 0); bar(0.52, 0.55, 0);
+    bar(0.32, 0.38, 7); bar(0.32, 0.6, 7);
+    bar(0.32, 0.48, 14);
+    if (shine < 3) d(0.3 + shine * 0.15, 0.5, 21, '#ffffff', 2, 2);
+  },
+  diamond_case(b, { c, d, now }) {
+    // Teca 1x1: colonnina nera con il bordo d'oro, cuscino di velluto rosso e tre diamanti grandi
+    // che brillano a turno, piu' quattro paletti d'oro agli angoli.
+    const twinkle = Math.floor((now || 0) / 200) % 6;
+    c({ u: 0.5, v: 0.5, r: 0.3, z0: 0, z1: 30, color: '#111827', top: '#1f2937', tex: 'metal' });
+    c({ u: 0.5, v: 0.5, r: 0.32, z0: 28, z1: 31, color: '#d4a537', top: '#fde68a' });
+    b({ u0: 0.26, v0: 0.26, u1: 0.74, v1: 0.74, z0: 31, z1: 35, color: '#991b1b', left: '#7f1d1d', right: '#7f1d1d' });
+    [[0.2, 0.2], [0.8, 0.2], [0.2, 0.8], [0.8, 0.8]].forEach(([u, v]) => b({ u0: u - 0.03, v0: v - 0.03, u1: u + 0.03, v1: v + 0.03, z0: 31, z1: 50, color: '#d4a537' }));
+    [[0.4, 0.42], [0.6, 0.48], [0.48, 0.62]].forEach(([u, v], i) => {
+      // Diamante: punta in basso, corona azzurra, riflesso bianco.
+      d(u, v, 37, '#0369a1', 4, 3);
+      d(u, v, 40, '#7dd3fc', 7, 3);
+      d(u, v, 43, '#e0f2fe', 5, 2);
+      if (twinkle === i || twinkle === i + 3) {
+        d(u, v, 49, '#ffffff', 1, 5);
+        d(u, v, 47, '#ffffff', 5, 1);
+      }
+    });
+  },
+  chip_tower(b, { c, d }) {
+    // Torri di fiches 1x1 di colori diversi, alte e basse.
+    [[0.3, 0.3, '#dc2626', 40], [0.68, 0.32, '#111827', 28], [0.32, 0.68, '#2563eb', 22], [0.68, 0.68, '#16a34a', 34]].forEach(([u, v, color, h]) => {
+      c({ u, v, r: 0.14, z0: 0, z1: h, color, top: color });
+      for (let z = 3; z < h; z += 4) d(u, v + 0.14, z, '#ffffff', 3, 1);
+    });
+  },
   tobacco_counter(b, { d }) {
     // Bancone del tabaccaio 3x1: legno scuro, piano di vetro e dietro l'espositore delle sigarette
     // con i pacchetti colorati in fila, l'insegna "T" bianca e blu dei tabacchi.
@@ -1787,6 +1864,52 @@ const DRAW = {
 
   // ---------------------------------------------------------------- decorazioni della stagione
 
+  // ---- Tesoro del Caveau (vaultLoot.js): cresce con gli incassi da riscuotere.
+  loot_coins(b, { d }) {
+    // Monete d'oro sparse sul pavimento.
+    [[0.25, 0.3], [0.55, 0.22], [0.7, 0.55], [0.35, 0.65], [0.5, 0.45], [0.8, 0.3], [0.2, 0.8], [0.62, 0.78]].forEach(([u, v], i) => {
+      d(u, v, 0, '#b45309', 4, 2);
+      d(u, v, 1, i % 3 ? '#facc15' : '#fde047', 3, 2);
+    });
+  },
+  loot_cash(b, { d }) {
+    // Banconote sparse e una mazzetta.
+    [[0.25, 0.35, 0], [0.6, 0.25, 0], [0.45, 0.6, 0]].forEach(([u, v]) => {
+      b({ u0: u - 0.14, v0: v - 0.07, u1: u + 0.14, v1: v + 0.07, z0: 0, z1: 1, color: '#65a30d' });
+      d(u, v, 1, '#d9f99d', 3, 1);
+    });
+    b({ u0: 0.6, v0: 0.62, u1: 0.86, v1: 0.78, z0: 0, z1: 4, color: '#4d7c0f', left: '#3f6212', right: '#365314' });
+    d(0.73, 0.78, 2, '#fef3c7', 2, 3);
+  },
+  loot_gems(b, { d }) {
+    // Gemme di colori diversi e qualche moneta.
+    [['#38bdf8', 0.3, 0.35], ['#f43f5e', 0.62, 0.3], ['#22c55e', 0.45, 0.62], ['#a855f7', 0.75, 0.68]].forEach(([color, u, v]) => {
+      d(u, v, 0, '#0f172a', 4, 3);
+      d(u, v, 1, color, 3, 2);
+      d(u, v, 3, '#ffffff', 1, 1);
+    });
+    d(0.2, 0.75, 1, '#facc15', 3, 2);
+  },
+  loot_heap_s(b, { d }) {
+    lootHeap(b, d, 0.32, 10);
+  },
+  loot_heap_m(b, { d }) {
+    lootHeap(b, d, 0.4, 20);
+  },
+  loot_heap_l(b, { d }) {
+    lootHeap(b, d, 0.46, 34);
+  },
+  loot_bars(b) {
+    // Pila di lingotti d'oro a strati incrociati.
+    for (let layer = 0; layer < 4; layer += 1) {
+      const z = layer * 6;
+      for (let k = 0; k < 2; k += 1) {
+        const off = 0.18 + k * 0.34;
+        if (layer % 2) b({ u0: 0.15, v0: off, u1: 0.85, v1: off + 0.26, z0: z, z1: z + 6, color: '#facc15', left: '#eab308', right: '#ca8a04' });
+        else b({ u0: off, v0: 0.15, u1: off + 0.26, v1: 0.85, z0: z, z1: z + 6, color: '#facc15', left: '#eab308', right: '#ca8a04' });
+      }
+    }
+  },
   decor_leaves(b, { d }) {
     const colors = ['#b45309', '#d97706', '#dc2626', '#a16207', '#65a30d'];
     for (let i = 0; i < 9; i += 1) d(0.1 + hash(i, 3) * 0.8, 0.1 + hash(i, 5) * 0.8, 0, colors[i % colors.length], 3, 2);
@@ -2070,6 +2193,21 @@ function golfHole(n, b, c, d, now) {
 }
 
 /** Mobili senza contorno, che si fondono con i vicini dello stesso tipo. */
+/** Cumulo di monete d'oro a cono (raggio r in caselle, alto h), con qualche gemma e banconota. */
+function lootHeap(b, d, r, h) {
+  const layers = Math.max(2, Math.round(h / 5));
+  for (let i = 0; i < layers; i += 1) {
+    const rr = r * (1 - i / layers);
+    const z0 = (h * i) / layers;
+    b({ u0: 0.5 - rr, v0: 0.5 - rr, u1: 0.5 + rr, v1: 0.5 + rr, z0, z1: z0 + h / layers, color: i % 2 ? '#facc15' : '#eab308', left: '#ca8a04', right: '#a16207' });
+  }
+  [[0.42, 0.62, '#38bdf8'], [0.6, 0.5, '#f43f5e'], [0.5, 0.4, '#22c55e']].forEach(([u, v, color], i) => {
+    if (i * 8 < h) d(u, v, h * (0.25 + i * 0.2), color, 3, 3);
+  });
+  d(0.5, 0.5, h + 1, '#fef9c3', 3, 2);
+  if (h > 15) d(0.3, 0.7, 4, '#65a30d', 6, 2);
+}
+
 const SEAMLESS = new Set(['pool_water', 'sea_water', 'sea_foam', 'decor_leaves', 'decor_petals', 'decor_snow']);
 
 // ------------------------------------------------------------------ mobili a parete
@@ -2352,7 +2490,10 @@ const ANIMATIONS = {
   craps_table: { period: 500, steps: 6 },
   bingo_table: { period: 200, steps: 8 },
   horse_track: { period: 180, steps: 16 },
-  weed_plant: { period: 300, steps: 12 }
+  weed_plant: { period: 300, steps: 12 },
+  vault_safe: { period: 600, steps: 2 },
+  gold_bars: { period: 250, steps: 8 },
+  diamond_case: { period: 200, steps: 6 }
 };
 const DANCE_COLORS = 6;
 

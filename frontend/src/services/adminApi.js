@@ -1,6 +1,10 @@
 import { apiClient } from './apiClient.js';
 
 export const adminApi = {
+  // Incassi del casino (cassa del banco)
+  async getCasinoBank() { return apiClient.get('/admin/casino/bank'); },
+  async withdrawCasino(currency, amount) { return apiClient.post('/admin/casino/bank/withdraw', { currency, amount }); },
+
   // Utenti
   async getUsers() { return apiClient.get('/admin/users'); },
   async banUser(userId) { return apiClient.post(`/admin/users/${userId}/ban`); },

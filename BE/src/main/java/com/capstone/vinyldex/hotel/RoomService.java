@@ -148,6 +148,8 @@ public class RoomService {
         Map<UUID, Long> likes = socialService.likesByRoom();
         List<Map<String, Object>> publicRooms = new ArrayList<>();
         for (Room room : roomRepository.findByPublicRoomTrueOrderBySortOrderAsc()) {
+            // Il Caveau non si vede: ci si entra solo dalla porta blindata del casino.
+            if (NpcRoster.VAULT.equals(room.getId())) continue;
             publicRooms.add(summary(room, likes));
         }
 

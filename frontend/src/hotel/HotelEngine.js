@@ -7,7 +7,11 @@ import { animationState, cardImage, footprintOf, furniSprite, isFlat, wallPoint 
 import { isSolid } from './sprites/pixel.js';
 import { GEM_H, GEM_W, drawSparkle, gemSprite } from './sprites/gem.js';
 import { getRarityColor } from '../utils/cardUtils.js';
-import { DECOR_DEFS, createWeatherState, drawWeather, isOutdoor, seasonDecor } from './weather.js';
+import { DECOR_DEFS as SEASON_DECOR, createWeatherState, drawWeather, isOutdoor, seasonDecor } from './weather.js';
+import { LOOT_DEFS, VAULT_ID, vaultLoot } from './vaultLoot.js';
+
+/** Decorazioni finte: quelle di stagione e il tesoro del Caveau. */
+const DECOR_DEFS = { ...SEASON_DECOR, ...LOOT_DEFS };
 import { BALL_COLORS } from './ui/billiards.jsx';
 import { playSfx, volumeAt } from './sfx.js';
 import { PET_H, PET_SOUND, PET_W, petSprite } from './sprites/pet.js';
@@ -261,6 +265,12 @@ export class HotelEngine {
       case 'game_fx': this.applyFx(message, now); break;
       case 'hand_item': this.setHandItem(message.id, message.item, message.left); break;
       case 'consume': this.setConsume(message.id, message.item, message.left, now); break;
+      case 'vault_treasure':
+        if (message.total !== this.vaultTreasure) {
+          this.vaultTreasure = message.total;
+          this.decor = null;
+        }
+        break;
       case 'effect': {
         const target = this.users.get(message.id);
         if (target) target.effect = message.effect || null;
@@ -904,6 +914,10 @@ export class HotelEngine {
     if (!this.decor) {
       const items = [...this.items.values()].filter((item) => this.catalog.has(item.type) && !this.catalog.get(item.type).wall);
       this.decor = seasonDecor(this.layout, items, (item) => this.footprint(item), this.room?.door, this.room, this.weather);
+      // Caveau: il tesoro sparso per terra cresce con gli incassi da riscuotere.
+      if (this.room?.id === VAULT_ID && this.vaultTreasure > 0) {
+        this.decor = [...this.decor, ...vaultLoot(this.layout, items, (item) => this.footprint(item), this.room?.door, this.vaultTreasure)];
+      }
     }
     return this.decor;
   }

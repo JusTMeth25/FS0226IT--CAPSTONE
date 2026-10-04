@@ -99,6 +99,19 @@ public class BingoService implements BingoGame.Listener {
         }
     }
 
+    /** Cassa del banco: le cartelle degli NPC entrano, i loro premi escono. */
+    private CasinoBank bank;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setBank(CasinoBank bank) {
+        this.bank = bank;
+    }
+
+    @Override
+    public void house(int chips) {
+        if (bank != null) bank.record(CasinoService.Currency.CHIPS, chips);
+    }
+
     @Override
     public void pay(String playerId, int chips, String reason) {
         UUID userId = UUID.fromString(playerId);

@@ -262,6 +262,13 @@ public final class FurniCatalog {
         add(new FurniDef("cigar_humidor", "Teca dei sigari", "negozi", 0, 1, 1, false, false, -1, false, false));
         add(new FurniDef("weed_counter", "Bancone del Green Shop", "negozi", 0, 3, 1, false, false, -1, false, false));
         add(new FurniDef("weed_plant", "Pianta di canapa", "negozi", 0, 1, 1, false, false, -1, false, false));
+        add(new FurniDef("vault_door", "Porta blindata del Caveau", "casino", 0, 1, 1, false, false, -1, false, false));
+        add(new FurniDef("vault_safe", "Cassaforte degli incassi", "casino", 0, 2, 1, false, false, -1, false, false));
+        add(new FurniDef("cash_pallet", "Bancale di banconote", "casino", 0, 2, 2, false, false, -1, false, false));
+        add(new FurniDef("money_pile", "Mazzette di banconote", "casino", 0, 1, 1, false, false, -1, false, false));
+        add(new FurniDef("gold_bars", "Lingotti d'oro", "casino", 0, 1, 1, false, false, -1, false, false));
+        add(new FurniDef("diamond_case", "Teca dei diamanti", "casino", 0, 1, 1, false, false, -1, false, false));
+        add(new FurniDef("chip_tower", "Torre di fiches", "casino", 0, 1, 1, false, false, -1, false, false));
     }
 
     private FurniCatalog() {

@@ -5,6 +5,17 @@ import { SOURCE_LABELS, formatMarketPrice } from '../utils/cardUtils.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import AdminHotelTab from '../components/admin/AdminHotelTab.jsx';
+import CasinoBankPanel from '../components/admin/CasinoBankPanel.jsx';
+
+/** Cassa del banco del casino: il gestore riscuote gli incassi. */
+function CasinoTab() {
+  return (
+    <div className="glass-panel">
+      <h3 className="panel-title"><i className="ph-fill ph-poker-chip" /> Incassi del casinò</h3>
+      <CasinoBankPanel />
+    </div>
+  );
+}
 
 const TABS = [
   { key: 'users', label: 'Utenti', icon: 'ph-users' },
@@ -14,6 +25,7 @@ const TABS = [
   { key: 'missions', label: 'Missioni', icon: 'ph-target' },
   { key: 'events', label: 'Eventi', icon: 'ph-calendar-star' },
   { key: 'hotel', label: 'Hotel', icon: 'ph-buildings' },
+  { key: 'casino', label: 'Incassi casinò', icon: 'ph-poker-chip' },
   { key: 'logs', label: 'Log', icon: 'ph-list-checks' }
 ];
 
@@ -359,7 +371,7 @@ function LogsTab() {
 }
 
 const TAB_COMPONENTS = {
-  users: UsersTab, cards: CardsTab, packs: PacksTab, import: ImportTab, missions: MissionsTab, events: EventsTab, hotel: AdminHotelTab, logs: LogsTab
+  users: UsersTab, cards: CardsTab, packs: PacksTab, import: ImportTab, missions: MissionsTab, events: EventsTab, hotel: AdminHotelTab, casino: CasinoTab, logs: LogsTab
 };
 
 

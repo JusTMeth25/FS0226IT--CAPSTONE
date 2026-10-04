@@ -43,6 +43,8 @@ public class HorseRaceService implements HorseRace.Listener {
 
     private void tick() {
         try {
+            RoomInstance room = registry.get(CasinoService.CASINO_ROOM);
+            race.setAudience(room != null && !room.activePlayers().isEmpty());
             if (race.tick(System.currentTimeMillis())) broadcast();
         } catch (Exception ex) {
             log.warn("Ippodromo: errore nella corsa", ex);
@@ -89,6 +91,19 @@ public class HorseRaceService implements HorseRace.Listener {
             HotelSession session = registry.sessionOf(id);
             if (session != null) session.send(message(id));
         }
+    }
+
+    /** Cassa del banco: le poste degli habitue' entrano, le loro vincite escono. */
+    private CasinoBank bank;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setBank(CasinoBank bank) {
+        this.bank = bank;
+    }
+
+    @Override
+    public void house(int chips) {
+        if (bank != null) bank.record(CasinoService.Currency.CHIPS, chips);
     }
 
     @Override

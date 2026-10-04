@@ -50,6 +50,10 @@ public final class BingoGame {
     public interface Listener {
         /** Vincita da pagare (i giocatori veri; quelle degli NPC si ignorano). */
         void pay(String playerId, int chips, String reason);
+
+        /** Soldi degli NPC per la cassa del banco: cartelle comprate (+) e premi vinti (-). */
+        default void house(int chips) {
+        }
     }
 
     /** Cartella: tre righe da nove caselle, 0 dove non c'e' numero. */
@@ -226,6 +230,7 @@ public final class BingoGame {
             int cards = 1 + random.nextInt(MAX_CARDS);
             for (int c = 0; c < cards; c++) p.cards.add(randomCard(random));
             players.put(p.id, p);
+            listener.house(cards * CARD_PRICE);
         }
     }
 
@@ -290,6 +295,7 @@ public final class BingoGame {
             for (Player p : got) {
                 p.won += share;
                 if (!p.bot && share > 0) listener.pay(p.id, share, next.label);
+                if (p.bot && share > 0) listener.house(-share);
             }
             Map<String, Object> w = new LinkedHashMap<>();
             w.put("prize", next.name());

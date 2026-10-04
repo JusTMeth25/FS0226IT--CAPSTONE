@@ -33,11 +33,12 @@ V68 = os.path.join(MIGRATIONS_DIR, 'V68__casino_poker_table.sql')
 V69 = os.path.join(MIGRATIONS_DIR, 'V69__casino_bingo.sql')
 V71 = os.path.join(MIGRATIONS_DIR, 'V71__casino_horse_race.sql')
 V74 = os.path.join(MIGRATIONS_DIR, 'V74__hotel_smoke_shops.sql')
-LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18, 18: V19, 19: V30, 20: V44, **{n: V46 for n in range(21, 30)}, 30: V48, 31: V48, 32: V67, 33: V74, 34: V74}
+V76 = os.path.join(MIGRATIONS_DIR, 'V76__casino_vault.sql')
+LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18, 18: V19, 19: V30, 20: V44, **{n: V46 for n in range(21, 30)}, 30: V48, 31: V48, 32: V67, 33: V74, 34: V74, 35: V76}
 # Migrazione in lavorazione: le altre, gia' pubblicate, non si riscrivono piu' (Flyway ne controlla
 # il contenuto). Le stanze cambiate dopo la pubblicazione si rifanno qui (REBUILT) e gli arredi da
 # togliere si elencano in REMOVED.
-CURRENT = V74
+CURRENT = V76
 REBUILT = {16: V19, 8: V20, 12: V20}
 REMOVED = {V19: [('00000000-0000-0000-0000-00000000a00f', 'basket_hoop')]}
 # Arredi aggiunti a stanze gia' pubblicate: finiscono nella migrazione indicata (vedi Room.migration).
@@ -54,6 +55,7 @@ MIGRATION_TITLES = {
     V68: "Casino: il tavolo del Texas Hold'em, per giocare a poker con gli altri giocatori e con gli NPC.",
     V69: 'Casino: il banco del Bingo a 90 numeri, con il banditore.',
     V71: "Casino: l'ippodromo con la corsa dei cavalli e le scommesse, con l'allibratore.",
+    V76: "Il Caveau del casino, riservato all'admin: banconote, fiches, lingotti, diamanti e la cassaforte degli incassi. La porta blindata e' nel casino.",
     V74: 'Due negozi nuovi: la Tabaccheria (sigarette, sigari, pipe) e il Green Shop (erba light, canne e bong).',
     V46: 'Il Quartiere: viale con i negozi di lusso (atelier, gioielleria, skate, bici, auto), la caffetteria, '
          'il palaghiaccio, l\'arena del basket e le ville dei giocatori.',
@@ -145,12 +147,16 @@ FURNI = {
     # Tabaccheria e Green Shop.
     'tobacco_counter': (3, 1, False, False, -1), 'cigar_humidor': (1, 1, False, False, -1),
     'weed_counter': (3, 1, False, False, -1), 'weed_plant': (1, 1, False, False, -1),
+    # Caveau del casino.
+    'vault_door': (1, 1, False, False, -1), 'vault_safe': (2, 1, False, False, -1), 'cash_pallet': (2, 2, False, False, -1),
+    'money_pile': (1, 1, False, False, -1), 'gold_bars': (1, 1, False, False, -1), 'diamond_case': (1, 1, False, False, -1),
+    'chip_tower': (1, 1, False, False, -1),
     # Minigolf
     **{f'golf_hole_{n}': (3, 2, False, False, -1) for n in range(1, 7)},
 }
 
 # Mobili che si usano cliccandoli: serve una casella libera accanto.
-SERVING = {'tobacco_counter', 'weed_counter', 'horse_track', 'bingo_table', 'poker_table', 'slot_machine', 'poker_machine', 'roulette_table', 'blackjack_table', 'baccarat_table', 'craps_table', 'casino_cashier',
+SERVING = {'vault_door', 'vault_safe', 'tobacco_counter', 'weed_counter', 'horse_track', 'bingo_table', 'poker_table', 'slot_machine', 'poker_machine', 'roulette_table', 'blackjack_table', 'baccarat_table', 'craps_table', 'casino_cashier',
            'guitar_duel', 'guitar_counter', 'rock_counter', 'atelier_counter', 'watch_counter', 'skate_counter', 'bike_counter', 'car_counter', 'espresso_bar',
            'hockey_target', 'dance_contest', 'billiard_table', 'bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'pizza_oven', 'beach_bar',
            'popcorn_machine', 'water_cooler', 'newsstand', 'basket_hoop', 'bowling_lane', 'shoe_counter',
@@ -1079,6 +1085,9 @@ r.add('bingo_table', 3, 17)
 # Ippodromo (aggiunto dopo: V71): la pista in miniatura con i cavalli e lo sportello delle scommesse.
 r.migration(V71)
 r.add('horse_track', 20, 9)
+# Porta blindata del Caveau (aggiunta dopo: V76): si apre solo per l'admin.
+r.migration(V76)
+r.add('vault_door', 24, 15)
 # Croupier dietro i tavoli, la cassiera dietro la cassa, il barista al bar e qualche giocatore.
 r.worker('lucky_lou', 'Lucky Lou', 'CROUPIER', 's1.h0.hc0.sh9.p1.t3.f0.a0.b0.o2', 4, 5, 4)
 r.worker('regina', 'Regina', 'CROUPIER', 's3.h3.hc0.sh9.p1.t3.f0.a0.b1.o2', 11, 5, 4)
@@ -1093,6 +1102,10 @@ r.worker('ottavio', 'Ottavio', 'CROUPIER', 's1.h1.hc0.sh9.p1.t3.f0.a0.b0.o2', 13
 r.worker('martini', 'Martini', 'BARISTA', 's2.h1.hc0.sh7.p1.t2.f0.a0.b0', 20, 17, 4, 'cola', 'juice', 'bubble')
 r.walker('high_roller', 'High Roller', 'GUEST', 's0.h1.hc2.sh8.p1.t3.f0.a2.b0.o1', 8, 10, 4)
 r.walker('lady_luck', 'Lady Luck', 'GUEST', 's3.h2.hc7.sh6.p1.t3.f2.a0.b1.o8', 15, 16, 4)
+# Altri clienti abituali: vanno a giocare ai tavoli (CasinoPatrons) e riempiono la cassa del banco.
+r.walker('contessa_bianca', 'Contessa Bianca', 'GUEST', 's0.h3.hc8.sh6.p1.t3.f2.a5.b1.o8', 6, 10, 3)
+r.walker('don_ciccio', 'Don Ciccio', 'GUEST', 's2.h1.hc0.sh9.p1.t3.f0.a2.b0.o1', 12, 10, 4)
+r.walker('il_barone', 'Il Barone', 'GUEST', 's1.h0.hc8.sh8.p1.t3.f0.a1.b0.o2', 14, 10, 4)
 
 
 # ------------------------------------------------------------------ Tabaccheria e Green Shop
@@ -1123,6 +1136,35 @@ for x in (5, 16):
 r.add('rug_vinyl', 9, 8).add('lamp_neon', 22, 9).add('jukebox', 21, 1).add('plant_big', 22, 18)
 r.worker('bob', 'Bob', 'GROWER', 's4.h5.hc0.sh5.p0.t0.f1.a0', 10, 1, 4)
 r.walker('rasta', 'Rasta Joe', 'GUEST', 's4.h5.hc1.sh2.p0.t0.f1.a0', 10, 10, 4)
+
+
+# ------------------------------------------------------------------ Caveau del casino (solo admin)
+
+r = room(35, 'VAULT', 'Caveau',
+         "Il caveau del casino: pile di banconote, torri di fiches, lingotti d'oro e diamanti. "
+         "Dalla cassaforte il gestore riscuote gli incassi. Si entra solo dalla porta blindata del casino.",
+         20, 18, 9, 'marble', 'casino', 35)
+r.add('vault_safe', 9, 1)
+# Lingotti lungo i due muri di fondo (la porta e' a sinistra, a meta').
+for x in (2, 3, 4, 5, 6, 7, 13, 14, 15, 16, 17, 18):
+    r.add('gold_bars', x, 1)
+for y in (2, 3, 4, 5, 6, 12, 13, 14, 15, 16):
+    r.add('gold_bars', 1, y)
+# Bancali di banconote e mazzette ovunque, lasciando libero il passaggio dalla porta alla cassaforte.
+for x, y in [(4, 4), (4, 12), (14, 4), (14, 12), (9, 13), (17, 8)]:
+    r.add('cash_pallet', x, y)
+for x, y in [(7, 5), (12, 5), (7, 8), (12, 8), (7, 15), (12, 15), (3, 7), (3, 10), (16, 15), (19, 5), (19, 11), (6, 17), (13, 17), (10, 10), (16, 2)]:
+    r.add('money_pile', x, y)
+for x, y in [(20, 3), (20, 7), (20, 13), (20, 16), (9, 17), (11, 17)]:
+    r.add('diamond_case', x, y)
+for x, y in [(1, 1), (19, 1), (1, 18), (20, 18), (3, 18), (17, 18), (8, 3), (12, 3)]:
+    r.add('chip_tower', x, y)
+# Ancora oro lungo il bordo davanti e mazzette sul lato destro.
+for x in (4, 5, 6, 7, 8, 12, 13, 14, 15, 16):
+    r.add('gold_bars', x, 18)
+for x, y in [(20, 5), (20, 9), (20, 11), (18, 6), (18, 13), (5, 9), (6, 2), (14, 2)]:
+    r.add('money_pile', x, y)
+r.worker('guardiano', 'Il Guardiano', 'BOUNCER', 's4.h9.hc7.sh9.p1.t3.f0.a0', 11, 2, 4)
 
 
 # ------------------------------------------------------------------ output

@@ -9,6 +9,8 @@ import { BaccaratGame, BlackjackGame, CrapsGame, RouletteGame, SlotGame, VideoPo
 import HoldemGame from './HoldemGame.jsx';
 import BingoGame from './BingoGame.jsx';
 import HorseRaceGame from './HorseRaceGame.jsx';
+import CasinoBankPanel from '../../../components/admin/CasinoBankPanel.jsx';
+import { useAuth } from '../../../hooks/useAuth.js';
 import './casino.css';
 
 /**
@@ -49,6 +51,7 @@ function Guide({ game, onClose }) {
 }
 
 function Cashier({ wallet, onChange, setMessage }) {
+  const { user } = useAuth();
   const [amount, setAmount] = useState(100);
   const [busy, setBusy] = useState(false);
 
@@ -95,6 +98,13 @@ function Cashier({ wallet, onChange, setMessage }) {
           {wallet?.bonusReady ? 'RITIRA IL REGALO' : 'GIÀ RITIRATO OGGI'}
         </button>
       </div>
+      {user?.role === 'ADMIN' && (
+        <div className="cashier-window manager">
+          <h4>Cassa del gestore</h4>
+          <p>Gli incassi del casinò (anche quelli degli NPC ai tavoli) si riscuotono nel Caveau: porta blindata in fondo alla sala.</p>
+          <CasinoBankPanel compact />
+        </div>
+      )}
     </div>
   );
 }

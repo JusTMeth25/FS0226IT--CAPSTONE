@@ -1896,3 +1896,19 @@ input.filter-select { cursor: text; }
   .trade-columns { grid-template-columns: 1fr; }
   .trade-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); max-height: 420px; }
 }
+
+/* ---------- Incassi del casino (cassa del banco, per l'admin) ---------- */
+.casino-bank { display: flex; flex-direction: column; gap: 10px; }
+.casino-bank-row { display: flex; flex-direction: column; gap: 4px; padding: 10px; border-radius: 10px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.08); }
+.casino-bank-head { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.casino-bank-head i { color: #fbbf24; }
+.casino-bank-head b { margin-left: auto; font-size: 1.3rem; color: #fde68a; }
+.casino-bank-head b.neg { color: #f87171; }
+.casino-bank-row small { color: var(--text-secondary, #9ca3af); font-size: 0.75rem; }
+.casino-bank-actions { display: flex; gap: 8px; align-items: center; }
+.casino-bank-actions input { flex: 1; min-width: 0; height: 32px; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2); background: rgba(0, 0, 0, 0.3); color: inherit; font: inherit; }
+.casino-bank-history { list-style: none; margin: 0; padding: 0; font-size: 0.78rem; color: var(--text-secondary, #9ca3af); display: flex; flex-direction: column; gap: 2px; }
+.casino-bank-note { margin: 0; font-size: 0.72rem; color: var(--text-secondary, #9ca3af); }
+.casino-bank.compact .casino-bank-note { display: none; }
+.casino-bank-where { margin: 0; font-size: 0.8rem; color: #fde68a; display: flex; gap: 6px; align-items: center; }
+.hotel-vault-panel { width: min(440px, calc(100% - 16px)); }

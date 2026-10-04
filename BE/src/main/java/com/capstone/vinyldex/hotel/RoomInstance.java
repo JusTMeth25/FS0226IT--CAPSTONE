@@ -2293,6 +2293,37 @@ public class RoomInstance {
                 .map(o -> o.user.id()).toList();
     }
 
+    /** NPC con uno di questi mestieri fermi e liberi (non camminano, non consegnano, non giocano). */
+    public synchronized List<UUID> idleNpcs(Set<NpcRoster.Role> roles) {
+        return occupants.values().stream()
+                .filter(o -> o.isNpc() && roles.contains(o.npc.role()) && o.path.isEmpty() && o.delivery == null && o.game == null
+                        && !"dance".equals(o.status))
+                .map(o -> o.user.id()).toList();
+    }
+
+    /** Arredi della stanza di questi tipi (per esempio i tavoli del casino). */
+    public synchronized List<RoomItemView> itemsOfTypes(Set<String> types) {
+        return items.values().stream().filter(i -> types.contains(i.type())).toList();
+    }
+
+    /**
+     * Manda un NPC accanto a un mobile e lo tiene li' per {@code stayMillis} (non va a passeggiare
+     * nel frattempo). false se non c'e' posto libero accanto.
+     */
+    public synchronized boolean npcGoTo(UUID npcId, RoomItemView item, long stayMillis) {
+        Occupant npc = occupants.get(npcId);
+        if (npc == null || !npc.isNpc()) return false;
+        int[] spot = freeSpotNextTo(npcId, item);
+        if (spot == null) return false;
+        if (npc.status != null && !"idle".equals(npc.status)) {
+            npc.status = "idle";
+            broadcast(statusMessage(npc));
+        }
+        move(npcId, spot[0], spot[1]);
+        npc.nextThinkAt = System.currentTimeMillis() + stayMillis;
+        return true;
+    }
+
     /** Giocatori veri presenti e sulla pagina dell'hotel (non "assenti"). */
     public synchronized List<UUID> activePlayers() {
         return occupants.values().stream().filter(o -> !o.isNpc() && !o.away).map(o -> o.user.id()).toList();

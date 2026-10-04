@@ -150,10 +150,27 @@ public class CasinoService {
         return view;
     }
 
-    /** Fiches portate a un tavolo (poker, cartelle del bingo: delta negativo) o riportate indietro (positivo). */
+    /** Cassa del banco: facoltativa, cosi' i test che costruiscono il servizio a mano non cambiano. */
+    private CasinoBank bank;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setBank(CasinoBank bank) {
+        this.bank = bank;
+    }
+
+    /** Il banco incassa quello che il giocatore perde e paga quello che vince. */
+    private void toBank(Currency currency, int playerDelta) {
+        if (bank != null) bank.record(currency, -(long) playerDelta);
+    }
+
+    /**
+     * Fiches portate a un tavolo (poker, cartelle del bingo, puntate ai cavalli: delta negativo) o
+     * riportate indietro (vincite, rimborsi, uscita dal tavolo: positivo). Passano dalla cassa del banco.
+     */
     @Transactional
     public void tableChips(UUID userId, int delta) {
         moveChips(userId, delta);
+        toBank(Currency.CHIPS, delta);
     }
 
     private void moveChips(UUID userId, int delta) {
@@ -166,6 +183,7 @@ public class CasinoService {
 
     private void pay(UUID userId, Currency currency, int delta, String game) {
         if (delta == 0) return;
+        toBank(currency, delta);
         if (currency == Currency.GOLD) {
             walletService.adjustGold(userId, delta, WalletTransactionType.CASINO, "casino:" + game,
                     (delta < 0 ? "Puntata al casino: " : "Vincita al casino: ") + game);
