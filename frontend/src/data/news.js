@@ -4,6 +4,16 @@
  */
 export const NEWS = [
   {
+    date: '2026-10-15',
+    title: 'Si gioca col controller',
+    icon: 'ph-game-controller',
+    items: [
+      ['ph-game-controller', 'Xbox One, PS4 e PS5', 'Collega il controller (cavo o Bluetooth) e usa tutta VinylDex senza mouse: croce o levetta per spostarti, A/✕ per scegliere, B/○ per tornare indietro, dorsali per cambiare scheda. Y/△ mostra tutti i comandi.'],
+      ['ph-keyboard', 'Tastiera a schermo', 'Per la chat, la ricerca e l’accesso si scrive col controller, con scorciatoie per cancellare, lo spazio e l’invio.'],
+      ['ph-person-simple-walk', 'Hotel e minigiochi', 'Nella stanza la croce fa camminare l’avatar; View/Create apre un puntatore per toccare mobili e persone. Nei minigiochi i tasti del controller sono scritti sotto il gioco.']
+    ]
+  },
+  {
     date: '2026-10-14',
     title: 'Apre il Casinò',
     icon: 'ph-poker-chip',

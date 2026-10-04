@@ -116,7 +116,8 @@ const HotelCanvas = forwardRef(function HotelCanvas({ walkKeys = true, zoom, onZ
   const onPointerDown = (event) => {
     const p = local(event);
     touches.current.set(event.pointerId, p);
-    event.currentTarget.setPointerCapture(event.pointerId);
+    // Il puntatore finto del controller non si puo' catturare: si va avanti lo stesso.
+    try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* puntatore del controller */ }
     if (touches.current.size === 2) {
       // Seconda dita: si smette di trascinare e si comincia a pizzicare.
       const [a, b] = [...touches.current.values()];
@@ -184,6 +185,7 @@ const HotelCanvas = forwardRef(function HotelCanvas({ walkKeys = true, zoom, onZ
       <canvas
         ref={canvasRef}
         tabIndex={0}
+        data-pad-initial
         role="application"
         aria-label="Stanza dell'hotel: clicca o usa le frecce della tastiera per camminare"
         onKeyDown={onKeyDown}

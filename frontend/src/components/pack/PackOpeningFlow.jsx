@@ -141,7 +141,7 @@ export default function PackOpeningFlow({ packId, cards, actions = [], onSummary
     if (torn) return;
     dragStartX.current = e.clientX;
     setDragging(true);
-    e.currentTarget.setPointerCapture(e.pointerId);
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* puntatore del controller */ }
   }
 
   function handleTearPointerMove(e) {

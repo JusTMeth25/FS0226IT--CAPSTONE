@@ -9,6 +9,8 @@ import { disco } from './discoGame.jsx';
 import { hockey } from './hockeyGame.jsx';
 import { drums, rock } from './rockGame.jsx';
 import { street } from './streetRace.jsx';
+import { buttonLabel } from '../../gamepad/gamepad.js';
+import { padLegend, usePadControls, usePadStatus } from '../../gamepad/usePadControls.js';
 
 /**
  * Minigiochi sui mobili dell'hotel. Si gioca qui, nel browser; il server ha fatto partire la
@@ -425,6 +427,10 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
     };
   }, [phase, game, act, release]);
 
+  // Controller: i tasti del gioco mentre si gioca, Menu per uscire.
+  usePadControls(game, phase === 'play', act, release, onClose);
+  const pad = usePadStatus();
+
   if (!game) return null;
   const best = start.best;
   const seconds = Math.max(0, Math.ceil((snap?.time || 0) / 1000));
@@ -437,6 +443,14 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
         <button type="button" className="hotel-panel-close" onClick={onClose} aria-label="Chiudi"><i className="ph ph-x" /></button>
       </header>
       <p className="hotel-panel-hint">{game.help}</p>
+      {pad && game.keys && (
+        <p className="mg-pad-legend">
+          {padLegend(game).map(({ action, label, buttons }) => (
+            <span key={String(action)}>{buttons.map((b) => <b className="pad-glyph" key={b}>{buttonLabel(b, pad.kind)}</b>)} {label}</span>
+          ))}
+          <span><b className="pad-glyph">{buttonLabel('MENU', pad.kind)}</b> esci</span>
+        </p>
+      )}
       <p className="mg-record">
         <i className="ph-fill ph-crown" /> Record della stanza: {best ? `${best.score} ${start.unit} (${best.username})` : 'nessuno, fallo tu!'}
         {' · '}batterlo vale fino a 50 gold

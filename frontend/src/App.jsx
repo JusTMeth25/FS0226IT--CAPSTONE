@@ -6,6 +6,7 @@ import AdminRoute from './components/common/AdminRoute.jsx';
 import Aurora from './components/fx/Aurora.jsx';
 import Particles from './components/fx/Particles.jsx';
 import ClickSpark from './components/fx/ClickSpark.jsx';
+import GamepadLayer from './gamepad/GamepadLayer.jsx';
 
 import HomePage from './pages/HomePage.jsx';
 import AuthPage from './pages/AuthPage.jsx';
@@ -42,6 +43,8 @@ export default function App() {
       <Aurora />
       <Particles />
       <ClickSpark />
+      {/* Controller Xbox e PlayStation: navigazione, puntatore e tastiera a schermo, su ogni pagina. */}
+      <GamepadLayer />
 
       <Routes>
         {/* Fuori dal layout: niente barra laterale, barra superiore o navigazione in basso.

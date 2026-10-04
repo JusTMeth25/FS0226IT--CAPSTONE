@@ -1,0 +1,74 @@
+/* Controller: anello di selezione, puntatore libero, tastiera a schermo, aiuto e avvisi. */
+
+html.pad-mode :focus {
+  outline: 3px solid #22d3ee !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(34, 211, 238, 0.28), 0 0 22px rgba(34, 211, 238, 0.55) !important;
+  transition: outline-color 0.1s, box-shadow 0.15s;
+}
+html.pad-mode canvas.hotel-canvas:focus { outline-offset: -4px; box-shadow: inset 0 0 0 4px rgba(34, 211, 238, 0.4) !important; }
+
+.pad-layer { position: fixed; z-index: 10000; }
+
+.pad-toast {
+  left: 50%; top: calc(env(safe-area-inset-top, 0px) + 14px); transform: translateX(-50%);
+  display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px;
+  background: rgba(10, 12, 30, 0.92); color: #fff; font-weight: 700; font-size: 0.9rem;
+  border: 1px solid rgba(34, 211, 238, 0.6); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  animation: pad-in 0.3s ease-out; pointer-events: none; max-width: calc(100vw - 32px); text-align: center;
+}
+.pad-toast i { color: #22d3ee; font-size: 1.2rem; }
+
+.pad-cursor { left: 0; top: 0; pointer-events: none; z-index: 10001; will-change: transform; }
+.pad-cursor i {
+  display: block; font-size: 30px; color: #fff; transform: translate(-6px, -4px);
+  filter: drop-shadow(0 0 2px #000) drop-shadow(0 0 8px #22d3ee);
+}
+
+.pad-help {
+  left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(560px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px); overflow-y: auto; padding: 18px 20px; border-radius: 16px;
+  background: rgba(10, 12, 30, 0.97); color: #e5e7eb; border: 1px solid rgba(34, 211, 238, 0.5);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7); animation: pad-fade 0.25s ease-out;
+}
+.pad-help h3 { margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+.pad-help h3 i { color: #22d3ee; }
+.pad-help ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem; }
+.pad-help li span { display: inline-flex; gap: 4px; align-items: center; font-weight: 700; margin-right: 6px; }
+.pad-help p { margin: 12px 0 0; font-size: 0.8rem; color: #9ca3af; text-align: center; }
+.pad-glyph {
+  display: inline-grid; place-items: center; min-width: 26px; height: 24px; padding: 0 6px; border-radius: 7px;
+  background: #1f2937; border: 1px solid #4b5563; color: #fff; font-size: 0.78rem; font-weight: 800; line-height: 1;
+}
+
+.pad-keyboard {
+  left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); transform: translateX(-50%);
+  width: min(760px, calc(100vw - 16px)); padding: 10px; border-radius: 16px;
+  background: rgba(10, 12, 30, 0.97); border: 1px solid rgba(34, 211, 238, 0.5);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6); animation: pad-up 0.2s ease-out; color: #fff;
+}
+.pad-kb-preview { padding: 6px 10px 10px; }
+.pad-kb-preview small { color: #9ca3af; font-size: 0.75rem; }
+.pad-kb-text { min-height: 1.6em; font-size: 1.1rem; word-break: break-all; padding: 6px 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.06); }
+.pad-kb-caret { display: inline-block; width: 2px; height: 1.1em; vertical-align: text-bottom; background: #22d3ee; animation: pad-blink 1s steps(2) infinite; }
+.pad-kb-keys { display: flex; flex-direction: column; gap: 5px; }
+.pad-kb-row { display: flex; gap: 5px; }
+.pad-kb-key {
+  flex: 1 1 0; min-width: 0; height: clamp(30px, 6.5dvh, 44px); border-radius: 8px; border: 1px solid #374151;
+  background: #111827; color: #fff; font: inherit; font-size: 1rem; cursor: pointer; padding: 0;
+}
+.pad-kb-key.action { background: #1f2937; font-size: 0.8rem; font-weight: 700; }
+.pad-kb-key.lit { color: #22d3ee; }
+.pad-kb-key.on { background: #22d3ee; color: #0b1020; border-color: #fff; transform: scale(1.06); box-shadow: 0 0 14px rgba(34, 211, 238, 0.7); }
+.pad-kb-help { margin: 8px 0 0; font-size: 0.72rem; color: #9ca3af; text-align: center; }
+.pad-kb-help b { color: #fff; }
+
+/* Tasti del controller nei minigiochi. */
+.mg-pad-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; margin: 4px 0; font-size: 0.78rem; color: var(--text-secondary, #9ca3af); }
+.mg-pad-legend span { display: inline-flex; align-items: center; gap: 4px; }
+
+@keyframes pad-in { from { opacity: 0; transform: translate(-50%, -8px); } }
+@keyframes pad-up { from { opacity: 0; transform: translate(-50%, 20px); } }
+@keyframes pad-fade { from { opacity: 0; } }
+@keyframes pad-blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .pad-toast, .pad-help, .pad-keyboard, .pad-kb-caret { animation: none; } }
