@@ -21,6 +21,7 @@ import CasinoPanel from '../hotel/ui/casino/CasinoPanel.jsx';
 import { CASINO_FURNI } from '../hotel/ui/casino/casinoUtils.js';
 import { pokerBus } from '../hotel/ui/casino/pokerBus.js';
 import { bingoBus } from '../hotel/ui/casino/bingoBus.js';
+import { horseBus } from '../hotel/ui/casino/horseBus.js';
 import { onSpotifyQueueAdd } from '../hotel/spotify.js';
 import CardPicker from '../hotel/ui/CardPicker.jsx';
 import CardViewer from '../hotel/ui/CardViewer.jsx';
@@ -757,7 +758,18 @@ export default function HotelPage() {
           bingoBus.error(message.code);
           break;
         }
+        if (message.code?.startsWith('horse_') && panel === 'casino') {
+          horseBus.error(message.code);
+          break;
+        }
         showNotice(ERRORS[message.code] || ERRORS.server_error);
+        break;
+      case 'horse_state':
+        horseBus.state(message.horse);
+        break;
+      case 'horse_win':
+        horseBus.win(message.chips, message.bet);
+        if (panel !== 'casino') showNotice(`Ippodromo, ${message.bet}: hai vinto ${message.chips} fiches!`);
         break;
       case 'bingo_state':
         bingoBus.state(message.bingo);

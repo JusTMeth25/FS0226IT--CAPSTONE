@@ -179,6 +179,27 @@ export const casinoSound = {
     [784, 988, 1175, 1568].forEach((f, i) => tone(f, { type: 'square', dur: 0.16, vol: 0.12, at: i * 0.08 }));
     this.chipStack(8);
   },
+  // ---------------------------------------------------------------- ippodromo
+  /** Squillo di tromba della partenza (la "chiamata al post" degli ippodromi). */
+  bugle() {
+    [[392, 0.14], [523, 0.14], [659, 0.14], [784, 0.3], [659, 0.14], [784, 0.5]].reduce((at, [f, d]) => {
+      tone(f, { type: 'sawtooth', dur: d, vol: 0.08, at, attack: 0.02 });
+      tone(f * 2, { type: 'square', dur: d, vol: 0.02, at, attack: 0.02 });
+      return at + d * 0.9;
+    }, 0);
+  },
+  /** Un secondo di galoppo: quattro zoccoli per falcata, sul terreno. */
+  gallop(intensity = 1) {
+    for (let k = 0; k < 4; k += 1) {
+      const base = k * 0.25;
+      [0, 0.05, 0.1, 0.13].forEach((off) => noise({ dur: 0.05, vol: 0.12 * intensity, at: base + off, freq: 280 + Math.random() * 120, q: 2, type: 'lowpass' }));
+    }
+  },
+  /** Il pubblico che esulta all'arrivo. */
+  crowd(seconds = 2.2) {
+    noise({ dur: seconds, vol: 0.16, freq: 900, q: 0.4, sweep: 1400 });
+    noise({ dur: seconds * 0.8, vol: 0.1, at: 0.15, freq: 2200, q: 0.6, sweep: 1600 });
+  },
   /** Cassa: il cassetto dei soldi e le fiches contate. */
   register() {
     tone(1200, { type: 'sine', dur: 0.12, vol: 0.18 });

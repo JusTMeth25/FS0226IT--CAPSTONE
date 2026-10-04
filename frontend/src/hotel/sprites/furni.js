@@ -1456,6 +1456,36 @@ const DRAW = {
     c({ u: 1.85, v: 1.45, r: 0.07, z0: 36, z1: 40, color: '#fdfbf5', top: '#fdfbf5' });
     d(1.84, 1.45, 40, '#c1121f', 1, 1);
   },
+  horse_track(b, { c, d, now }) {
+    // Ippodromo 4x2: la corsa dei cavalli in miniatura dei vecchi casino. Mobile di legno con la
+    // pista d'erba e le corsie, i cavallini colorati che avanzano, il tabellone delle quote dietro.
+    const step = Math.floor((now || 0) / 180) % 16;
+    b({ u0: 0.1, v0: 0.1, u1: 3.9, v1: 1.9, z1: 28, color: '#3a1d0e', left: '#4a2612', right: '#2a1408' });
+    b({ u0: 0.05, v0: 0.05, u1: 3.95, v1: 1.95, z0: 28, z1: 31, color: '#d4a537' });
+    b({ u0: 0.15, v0: 0.5, u1: 3.85, v1: 1.85, z0: 31, z1: 31, color: '#1f7a3a', tex: 'fabric' });
+    // Corsie e traguardo a scacchi.
+    for (let lane = 1; lane < 6; lane += 1) b({ u0: 0.2, v0: 0.5 + lane * 0.22, u1: 3.8, v1: 0.51 + lane * 0.22, z0: 31, z1: 31, color: '#f6ecd2' });
+    for (let k = 0; k < 6; k += 1) d(3.55, 0.6 + k * 0.22, 31, k % 2 ? '#111' : '#fff', 2, 2);
+    const silks = ['#dc2626', '#2563eb', '#facc15', '#7c3aed', '#ea580c', '#22c55e'];
+    silks.forEach((color, lane) => {
+      const u = 0.35 + (((step * (3 + (lane % 3)) + lane * 5) % 32) / 32) * 3.1;
+      const v = 0.61 + lane * 0.22;
+      b({ u0: u, v0: v - 0.05, u1: u + 0.22, v1: v + 0.05, z0: 31, z1: 36, color: '#5b3a1e' });
+      d(u + 0.18, v, 39, '#5b3a1e', 2, 2);
+      d(u + 0.08, v, 40, color, 3, 3);
+    });
+    // Tabellone delle quote sul retro, con le lucine che corrono.
+    b({ u0: 0.3, v0: 0.12, u1: 3.7, v1: 0.42, z0: 31, z1: 62, color: '#111827', left: '#1f2937', right: '#0b1020' });
+    b({ u0: 0.25, v0: 0.1, u1: 3.75, v1: 0.44, z0: 62, z1: 65, color: '#d4a537' });
+    for (let row = 0; row < 3; row += 1) {
+      for (let col = 0; col < 16; col += 1) {
+        const lit = (col + row * 5 + step) % 7 === 0;
+        d(0.45 + col * 0.2, 0.43, 54 - row * 7, lit ? '#fde68a' : silks[(col + row) % silks.length], 2, 2);
+      }
+    }
+    c({ u: 3.85, v: 1.8, r: 0.05, z0: 31, z1: 48, color: '#d4a537', tex: 'metal' });
+    d(3.85, 1.8, 50, '#ef4444', 4, 3);
+  },
   casino_rug(b, { d }) {
     b({ u0: 0.05, v0: 0.05, u1: 2.95, v1: 2.95, z1: 1, color: '#4e0912', tex: 'fabric' });
     b({ u0: 0.2, v0: 0.2, u1: 2.8, v1: 2.8, z0: 1, z1: 1, color: '#7a0f1c', tex: 'fabric' });
@@ -2261,7 +2291,8 @@ const ANIMATIONS = {
   poker_machine: { period: 900, steps: 5 },
   roulette_table: { period: 120, steps: 24 },
   craps_table: { period: 500, steps: 6 },
-  bingo_table: { period: 200, steps: 8 }
+  bingo_table: { period: 200, steps: 8 },
+  horse_track: { period: 180, steps: 16 }
 };
 const DANCE_COLORS = 6;
 

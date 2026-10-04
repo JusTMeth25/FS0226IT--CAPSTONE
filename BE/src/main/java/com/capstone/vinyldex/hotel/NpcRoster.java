@@ -274,6 +274,7 @@ public final class NpcRoster {
                     worker("dimitri", "Dimitri", Role.CROUPIER, "s0.h0.hc3.sh9.p1.t3.f0.a0.b0.o2", 18, 12, 4),
                     worker("fortuna", "Fortuna", Role.CLERK, "s1.h8.hc2.sh4.p1.t3.f0.a0.b1.o3", 11, 1, 4),
                     worker("mago_bingo", "Mago Bingo", Role.CROUPIER, "s1.h9.hc9.sh4.p1.t3.f0.a1.b0.o1", 4, 16, 4),
+                    worker("zeno", "Zeno", Role.CROUPIER, "s0.h4.hc2.sh4.p1.t3.f0.a1.b0.o3", 22, 8, 4),
                     worker("ottavio", "Ottavio", Role.CROUPIER, "s1.h1.hc0.sh9.p1.t3.f0.a0.b0.o2", 13, 16, 4),
                     worker("martini", "Martini", Role.BARISTA, "s2.h1.hc0.sh7.p1.t2.f0.a0.b0", 20, 17, 4, "cola", "juice", "bubble"),
                     walker("high_roller", "High Roller", Role.GUEST, "s0.h1.hc2.sh8.p1.t3.f0.a2.b0.o1", 8, 10, 4),

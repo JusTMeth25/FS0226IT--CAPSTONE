@@ -9,13 +9,14 @@ export const CASINO_GAMES = {
   baccarat: { title: 'Baccarat', icon: 'ph-crown-simple' },
   craps: { title: 'Dadi', icon: 'ph-dice-five' },
   holdem: { title: 'Poker', icon: 'ph-club' },
-  bingo: { title: 'Bingo', icon: 'ph-grid-nine' }
+  bingo: { title: 'Bingo', icon: 'ph-grid-nine' },
+  horses: { title: 'Ippodromo', icon: 'ph-horse' }
 };
 
 /** Il mobile del casino cliccato -> il gioco da aprire. */
 export const CASINO_FURNI = {
   slot_machine: 'slot', poker_machine: 'poker', roulette_table: 'roulette', blackjack_table: 'blackjack',
-  baccarat_table: 'baccarat', craps_table: 'craps', casino_cashier: 'cashier', poker_table: 'holdem', bingo_table: 'bingo'
+  baccarat_table: 'baccarat', craps_table: 'craps', casino_cashier: 'cashier', poker_table: 'holdem', bingo_table: 'bingo', horse_track: 'horses'
 };
 
 /** Tagli delle fiches con i colori classici dei casino. */

@@ -74,6 +74,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     private final PvpService pvpService;
     private final com.capstone.vinyldex.casino.PokerService pokerService;
     private final com.capstone.vinyldex.casino.BingoService bingoService;
+    private final com.capstone.vinyldex.casino.HorseRaceService horseService;
     private final NpcTradeService npcTradeService;
     private final PackService packService;
     private final PackRecapService packRecapService;
@@ -88,9 +89,11 @@ public class HotelSocketHandler extends TextWebSocketHandler {
                               MinigameRewardService minigameRewardService, PetService petService,
                               FishingService fishingService, ClubService clubService,
                               com.capstone.vinyldex.casino.PokerService pokerService,
-                              com.capstone.vinyldex.casino.BingoService bingoService) {
+                              com.capstone.vinyldex.casino.BingoService bingoService,
+                              com.capstone.vinyldex.casino.HorseRaceService horseService) {
         this.pokerService = pokerService;
         this.bingoService = bingoService;
+        this.horseService = horseService;
         this.fishingService = fishingService;
         this.clubService = clubService;
         this.objectMapper = objectMapper;
@@ -291,6 +294,12 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             case "poker_watch" -> pokerService.watch(session);
             case "bingo_watch" -> bingoService.watch(session);
             case "bingo_buy" -> reply(session, bingoService.buy(userId, session.user().username(), node.path("count").asInt(0)));
+            case "horse_watch" -> horseService.watch(session);
+            case "horse_bet" -> {
+                int[] picks = new int[Math.min(3, node.path("horses").size())];
+                for (int i = 0; i < picks.length; i++) picks[i] = node.path("horses").path(i).asInt(0);
+                reply(session, horseService.bet(userId, session.user().username(), node.path("bet").asText(""), picks, node.path("stake").asInt(0)));
+            }
             case "poker_join" -> reply(session, pokerService.join(userId, session.user().username(), session.user().look(),
                     node.path("buyIn").asInt(0)));
             case "poker_leave" -> reply(session, pokerService.leave(userId));

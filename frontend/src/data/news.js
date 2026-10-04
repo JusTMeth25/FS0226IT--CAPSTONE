@@ -4,6 +4,14 @@
  */
 export const NEWS = [
   {
+    date: '2026-10-16',
+    title: 'Le corse dei cavalli',
+    icon: 'ph-horse',
+    items: [
+      ['ph-horse', 'Ippodromo al Casinò', 'Corse di otto cavalli a ciclo continuo, per tutto il server: punta vincente, piazzato, accoppiata o trio con quote fisse, segui la corsa in diretta con la cronaca e incassa all’arrivo. L’allibratore Zeno ti aspetta alla pista.']
+    ]
+  },
+  {
     date: '2026-10-15',
     title: 'Si gioca col controller',
     icon: 'ph-game-controller',

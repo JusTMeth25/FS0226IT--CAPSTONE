@@ -163,5 +163,25 @@ export const CASINO_GUIDES = {
     ],
     pays: [['Linea (una riga)', '15% del montepremi'], ['Doppia linea (due righe)', '25%'], ['Bingo (tutta la cartella)', '60%'], ['Bingo entro 45 numeri', '+ jackpot']],
     tip: 'Più cartelle hai, più possibilità hai di vincere, ma ogni cartella costa uguale: il premio atteso per cartella è sempre lo stesso. Il bello è la tensione del "manca 1!".'
+  },
+  horses: {
+    title: 'Ippodromo',
+    goal: 'Indovinare come finisce la corsa di otto cavalli: chi vince, chi arriva fra i primi tre, o l\'ordine esatto dei primi.',
+    steps: [
+      'Le corse partono da sole una dopo l\'altra: le puntate restano aperte 45 secondi, poi suona la tromba e si corre.',
+      'Scegli la scommessa sulla schedina, tocca i cavalli (o direttamente la loro quota), scegli la posta da 5 a 500 fiches e premi PUNTA. Puoi fare fino a 12 scommesse a corsa.',
+      'Segui la corsa in diretta con la cronaca: la testa cambia spesso fino alla dirittura d\'arrivo.',
+      'All\'arrivo le scommesse vincenti si pagano subito, posta compresa, anche se intanto sei uscito dal casinò.'
+    ],
+    rules: [
+      'Vincente: il tuo cavallo arriva primo. Piazzato: arriva primo, secondo o terzo.',
+      'Accoppiata: indovini il primo e il secondo nell\'ordine giusto. Trio: il primo, il secondo e il terzo nell\'ordine giusto.',
+      'Le quote sono fisse, come dal bookmaker: quella che vedi quando punti è quella che ti pagano. La vincita è posta per quota.',
+      'Ogni cavallo ha una valutazione (le stelle) e la forma del giorno (▲ in forma, ▼ giù di forma): i favoriti hanno quote basse, gli outsider quote alte.',
+      'La corsa la decide il server, con le probabilità da cui vengono le quote: il banco trattiene in media il 12%.',
+      'Gli altri giocatori e gli habitué del casinò puntano sulla stessa corsa: le loro puntate compaiono in sala ma non cambiano le quote.'
+    ],
+    pays: [['Vincente', 'quota del cavallo (es. 3,50)'], ['Piazzato', 'quota più bassa, fra i primi tre'], ['Accoppiata', 'fino a centinaia di volte'], ['Trio', 'fino a 999 volte la posta']],
+    tip: 'Con il piazzato sul favorito vinci spesso ma poco; un trio con un outsider vince di rado ma può pagare centinaia di volte la posta. In media rendono uguale: scegli quanta adrenalina vuoi.'
   }
 };
