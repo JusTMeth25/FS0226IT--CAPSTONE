@@ -7,6 +7,7 @@ import { casinoSound, outcomeSound } from './casinoSounds.js';
 import { CASINO_GUIDES } from './casinoGuides.js';
 import { BaccaratGame, BlackjackGame, CrapsGame, RouletteGame, SlotGame, VideoPokerGame } from './games.jsx';
 import HoldemGame from './HoldemGame.jsx';
+import BingoGame from './BingoGame.jsx';
 import './casino.css';
 
 /**
@@ -189,7 +190,7 @@ export default function CasinoPanel({ game: initialGame, send, onClose, onGoldCh
           </button>
         ))}
       </nav>
-      {game !== 'cashier' && game !== 'holdem' && (
+      {game !== 'cashier' && game !== 'holdem' && game !== 'bingo' && (
         <div className="casino-toolbar">
           <div className="casino-currency" role="radiogroup" aria-label="Punta in">
             <button type="button" className={currency === 'chips' ? 'active' : ''} onClick={() => setCurrency('chips')} aria-pressed={currency === 'chips'}>Fiches</button>
@@ -209,6 +210,7 @@ export default function CasinoPanel({ game: initialGame, send, onClose, onGoldCh
         {game === 'baccarat' && <BaccaratGame ctx={ctx} />}
         {game === 'craps' && <CrapsGame ctx={ctx} />}
         {game === 'holdem' && <HoldemGame ctx={ctx} wallet={wallet} send={send} />}
+        {game === 'bingo' && <BingoGame ctx={ctx} wallet={wallet} send={send} />}
       </div>
       {guide && <Guide game={game} onClose={closeGuide} />}
       {game !== 'cashier' && wallet && wallet.chips === 0 && currency === 'chips' && (

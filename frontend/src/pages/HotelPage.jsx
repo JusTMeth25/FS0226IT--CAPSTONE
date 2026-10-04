@@ -20,6 +20,7 @@ import JukeboxPanel from '../hotel/ui/JukeboxPanel.jsx';
 import CasinoPanel from '../hotel/ui/casino/CasinoPanel.jsx';
 import { CASINO_FURNI } from '../hotel/ui/casino/casinoUtils.js';
 import { pokerBus } from '../hotel/ui/casino/pokerBus.js';
+import { bingoBus } from '../hotel/ui/casino/bingoBus.js';
 import { onSpotifyQueueAdd } from '../hotel/spotify.js';
 import CardPicker from '../hotel/ui/CardPicker.jsx';
 import CardViewer from '../hotel/ui/CardViewer.jsx';
@@ -752,7 +753,18 @@ export default function HotelPage() {
           pokerBus.error(message.code);
           break;
         }
+        if (message.code?.startsWith('bingo_') && panel === 'casino') {
+          bingoBus.error(message.code);
+          break;
+        }
         showNotice(ERRORS[message.code] || ERRORS.server_error);
+        break;
+      case 'bingo_state':
+        bingoBus.state(message.bingo);
+        break;
+      case 'bingo_win':
+        bingoBus.win(message.chips, message.prize);
+        if (panel !== 'casino') showNotice(`${message.prize} al Bingo: hai vinto ${message.chips} fiches!`);
         break;
       case 'poker_state':
         pokerBus.state(message.table);

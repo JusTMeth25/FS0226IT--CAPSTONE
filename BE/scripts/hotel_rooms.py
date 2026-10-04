@@ -30,11 +30,12 @@ V46 = os.path.join(MIGRATIONS_DIR, 'V46__hotel_district.sql')
 V48 = os.path.join(MIGRATIONS_DIR, 'V48__hotel_rock.sql')
 V67 = os.path.join(MIGRATIONS_DIR, 'V67__hotel_casino.sql')
 V68 = os.path.join(MIGRATIONS_DIR, 'V68__casino_poker_table.sql')
+V69 = os.path.join(MIGRATIONS_DIR, 'V69__casino_bingo.sql')
 LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18, 18: V19, 19: V30, 20: V44, **{n: V46 for n in range(21, 30)}, 30: V48, 31: V48, 32: V67}
 # Migrazione in lavorazione: le altre, gia' pubblicate, non si riscrivono piu' (Flyway ne controlla
 # il contenuto). Le stanze cambiate dopo la pubblicazione si rifanno qui (REBUILT) e gli arredi da
 # togliere si elencano in REMOVED.
-CURRENT = V68
+CURRENT = V69
 REBUILT = {16: V19, 8: V20, 12: V20}
 REMOVED = {V19: [('00000000-0000-0000-0000-00000000a00f', 'basket_hoop')]}
 # Arredi aggiunti a stanze gia' pubblicate: finiscono nella migrazione indicata (vedi Room.migration).
@@ -49,6 +50,7 @@ MIGRATION_TITLES = {
     V48: 'Locale Rock con il palco, la band e la gara di chitarre, e il Rock Store di chitarre, bassi e abbigliamento rock.',
     V67: 'Nuova stanza pubblica: il Casino, con slot, video poker, roulette, blackjack, baccarat, dadi e la cassa delle fiches.',
     V68: "Casino: il tavolo del Texas Hold'em, per giocare a poker con gli altri giocatori e con gli NPC.",
+    V69: 'Casino: il banco del Bingo a 90 numeri, con il banditore.',
     V46: 'Il Quartiere: viale con i negozi di lusso (atelier, gioielleria, skate, bici, auto), la caffetteria, '
          'il palaghiaccio, l\'arena del basket e le ville dei giocatori.',
 }
@@ -134,13 +136,13 @@ FURNI = {
     'slot_machine': (1, 1, False, False, -1), 'poker_machine': (1, 1, False, False, -1),
     'roulette_table': (3, 2, False, False, -1), 'blackjack_table': (3, 2, False, False, -1),
     'baccarat_table': (3, 2, False, False, -1), 'craps_table': (3, 2, False, False, -1),
-    'casino_cashier': (2, 1, False, False, -1), 'casino_rug': (3, 3, False, True, -1), 'poker_table': (4, 2, False, False, -1),
+    'casino_cashier': (2, 1, False, False, -1), 'casino_rug': (3, 3, False, True, -1), 'poker_table': (4, 2, False, False, -1), 'bingo_table': (3, 2, False, False, -1),
     # Minigolf
     **{f'golf_hole_{n}': (3, 2, False, False, -1) for n in range(1, 7)},
 }
 
 # Mobili che si usano cliccandoli: serve una casella libera accanto.
-SERVING = {'poker_table', 'slot_machine', 'poker_machine', 'roulette_table', 'blackjack_table', 'baccarat_table', 'craps_table', 'casino_cashier',
+SERVING = {'bingo_table', 'poker_table', 'slot_machine', 'poker_machine', 'roulette_table', 'blackjack_table', 'baccarat_table', 'craps_table', 'casino_cashier',
            'guitar_duel', 'guitar_counter', 'rock_counter', 'atelier_counter', 'watch_counter', 'skate_counter', 'bike_counter', 'car_counter', 'espresso_bar',
            'hockey_target', 'dance_contest', 'billiard_table', 'bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'pizza_oven', 'beach_bar',
            'popcorn_machine', 'water_cooler', 'newsstand', 'basket_hoop', 'bowling_lane', 'shoe_counter',
@@ -1057,6 +1059,9 @@ r.add('sofa_vinyl', 8, 18, 0).add('coffee_table', 8, 19)
 # Tavolo del Texas Hold'em (aggiunto dopo: V68), con il suo croupier.
 r.migration(V68)
 r.add('poker_table', 12, 17)
+# Banco del Bingo (aggiunto dopo: V69), con il banditore.
+r.migration(V69)
+r.add('bingo_table', 3, 17)
 # Croupier dietro i tavoli, la cassiera dietro la cassa, il barista al bar e qualche giocatore.
 r.worker('lucky_lou', 'Lucky Lou', 'CROUPIER', 's1.h0.hc0.sh9.p1.t3.f0.a0.b0.o2', 4, 5, 4)
 r.worker('regina', 'Regina', 'CROUPIER', 's3.h3.hc0.sh9.p1.t3.f0.a0.b1.o2', 11, 5, 4)
@@ -1065,6 +1070,7 @@ r.worker('dado', 'Dado', 'CROUPIER', 's4.h9.hc7.sh9.p1.t3.f0.a0.b0.o2', 4, 12, 4
 r.worker('carmen', 'Carmen', 'CROUPIER', 's2.h2.hc7.sh9.p1.t3.f0.a0.b1.o2', 11, 12, 4)
 r.worker('dimitri', 'Dimitri', 'CROUPIER', 's0.h0.hc3.sh9.p1.t3.f0.a0.b0.o2', 18, 12, 4)
 r.worker('fortuna', 'Fortuna', 'CLERK', 's1.h8.hc2.sh4.p1.t3.f0.a0.b1.o3', 11, 1, 4)
+r.worker('mago_bingo', 'Mago Bingo', 'CROUPIER', 's1.h9.hc9.sh4.p1.t3.f0.a1.b0.o1', 4, 16, 4)
 r.worker('ottavio', 'Ottavio', 'CROUPIER', 's1.h1.hc0.sh9.p1.t3.f0.a0.b0.o2', 13, 16, 4)
 r.worker('martini', 'Martini', 'BARISTA', 's2.h1.hc0.sh7.p1.t2.f0.a0.b0', 20, 17, 4, 'cola', 'juice', 'bubble')
 r.walker('high_roller', 'High Roller', 'GUEST', 's0.h1.hc2.sh8.p1.t3.f0.a2.b0.o1', 8, 10, 4)

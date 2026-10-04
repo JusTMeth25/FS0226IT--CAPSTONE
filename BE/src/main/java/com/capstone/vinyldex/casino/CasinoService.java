@@ -150,9 +150,9 @@ public class CasinoService {
         return view;
     }
 
-    /** Fiches portate al tavolo del poker (delta negativo) o riportate indietro (positivo). */
+    /** Fiches portate a un tavolo (poker, cartelle del bingo: delta negativo) o riportate indietro (positivo). */
     @Transactional
-    public void pokerChips(UUID userId, int delta) {
+    public void tableChips(UUID userId, int delta) {
         moveChips(userId, delta);
     }
 

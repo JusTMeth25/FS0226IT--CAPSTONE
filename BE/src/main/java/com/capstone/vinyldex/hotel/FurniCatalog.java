@@ -256,6 +256,7 @@ public final class FurniCatalog {
         add(new FurniDef("casino_cashier", "Cassa delle fiches", "casino", 0, 2, 1, false, false, -1, false, false));
         add(new FurniDef("casino_rug", "Moquette del casino", "casino", 0, 3, 3, false, true, -1, false, false));
         add(new FurniDef("poker_table", "Tavolo del Texas Hold'em", "casino", 0, 4, 2, false, false, -1, false, false));
+        add(new FurniDef("bingo_table", "Banco del Bingo", "casino", 0, 3, 2, false, false, -1, false, false));
     }
 
     private FurniCatalog() {

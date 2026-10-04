@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 
 /**
- * Pannelli dell'hotel trascinabili: si prendono per la testata (.hotel-panel-header) e si spostano
- * col mouse o col dito, cosi' non coprono l'avatar o la parte di stanza che interessa.
+ * Pannelli dell'hotel trascinabili: si prendono per la testata (.hotel-panel-header, o quella del
+ * casino) e si spostano col mouse o col dito, cosi' non coprono l'avatar o la parte di stanza che interessa.
  *
  * Un solo ascoltatore per tutta la pagina: vale per ogni pannello, anche quelli aperti dopo.
  * Lo spostamento usa la proprieta' CSS `translate`, che si somma al `transform` con cui i
@@ -15,7 +15,7 @@ export default function useDraggablePanels(rootRef) {
     let drag = null;
 
     const onDown = (event) => {
-      const header = event.target.closest?.('.hotel-panel-header');
+      const header = event.target.closest?.('.hotel-panel-header, .casino-header');
       if (!header || event.button > 0) return;
       // I pulsanti della testata (chiudi, schede) restano cliccabili.
       if (event.target.closest('button, a, input, select, textarea')) return;

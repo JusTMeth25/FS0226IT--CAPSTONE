@@ -1421,6 +1421,41 @@ const DRAW = {
     c({ u: 3.2, v: 1.35, r: 0.06, z0: 36, z1: 37, color: '#fdfbf5', top: '#fdfbf5' });
     d(3.19, 1.35, 37, '#111018', 1, 1);
   },
+  bingo_table(b, { c, d, now }) {
+    // Banco del Bingo 3x2: mobile rosso e oro con il tabellone luminoso dei numeri sul davanti, la
+    // gabbia delle palline che gira in cima e le cartelle sul piano.
+    const step = Math.floor((now || 0) / 200) % 8;
+    b({ u0: 0.1, v0: 0.15, u1: 2.9, v1: 1.85, z1: 32, color: '#7a0f1c', left: '#8f1424', right: '#5a0a14' });
+    b({ u0: 0.06, v0: 0.1, u1: 2.94, v1: 1.9, z0: 32, z1: 36, color: '#d4a537' });
+    b({ u0: 0.14, v0: 0.18, u1: 2.86, v1: 1.82, z0: 36, z1: 36, color: '#0d6b34', tex: 'fabric' });
+    // Tabellone sul fianco davanti: file di lucine accese e spente.
+    for (let row = 0; row < 3; row += 1) {
+      for (let col = 0; col < 14; col += 1) {
+        const on = (row * 14 + col + step * 3) % 5 === 0;
+        d(0.25 + col * 0.18, 1.85, 26 - row * 6, on ? '#fde68a' : '#3d0710', 3, 3);
+      }
+    }
+    // Cartelle sul piano.
+    [[0.4, 0.5], [0.95, 1.1], [1.9, 0.45]].forEach(([u, v]) => {
+      b({ u0: u, v0: v, u1: u + 0.5, v1: v + 0.3, z0: 36, z1: 36, color: '#fdfbf5' });
+      for (let i = 0; i < 4; i += 1) d(u + 0.06 + i * 0.11, v + 0.12, 36, '#c1121f', 2, 2);
+    });
+    // Gabbia delle palline: supporto dorato e sfera di fili che gira.
+    c({ u: 2.35, v: 1.2, r: 0.05, z0: 36, z1: 52, color: '#d4a537', tex: 'metal' });
+    c({ u: 2.35, v: 1.2, r: 0.32, z0: 52, z1: 74, color: 'rgba(255, 255, 255, 0.12)', top: 'rgba(255, 255, 255, 0.18)' });
+    const colors = ['#ef4444', '#fbbf24', '#22c55e', '#3b82f6', '#a855f7', '#f97316'];
+    for (let i = 0; i < 6; i += 1) {
+      const a = ((i + step) / 8) * Math.PI * 2;
+      d(2.35 + Math.cos(a) * 0.2, 1.2 + Math.sin(a) * 0.2, 58 + (i % 3) * 4, colors[i], 3, 3);
+    }
+    for (let i = 0; i < 8; i += 1) {
+      const a = ((i + step * 0.5) / 8) * Math.PI * 2;
+      d(2.35 + Math.cos(a) * 0.32, 1.2 + Math.sin(a) * 0.32, 63, '#d4a537', 2, 2);
+    }
+    // Pallina appena uscita sullo scivolo.
+    c({ u: 1.85, v: 1.45, r: 0.07, z0: 36, z1: 40, color: '#fdfbf5', top: '#fdfbf5' });
+    d(1.84, 1.45, 40, '#c1121f', 1, 1);
+  },
   casino_rug(b, { d }) {
     b({ u0: 0.05, v0: 0.05, u1: 2.95, v1: 2.95, z1: 1, color: '#4e0912', tex: 'fabric' });
     b({ u0: 0.2, v0: 0.2, u1: 2.8, v1: 2.8, z0: 1, z1: 1, color: '#7a0f1c', tex: 'fabric' });
@@ -2225,7 +2260,8 @@ const ANIMATIONS = {
   slot_machine: { period: 220, steps: 6 },
   poker_machine: { period: 900, steps: 5 },
   roulette_table: { period: 120, steps: 24 },
-  craps_table: { period: 500, steps: 6 }
+  craps_table: { period: 500, steps: 6 },
+  bingo_table: { period: 200, steps: 8 }
 };
 const DANCE_COLORS = 6;
 

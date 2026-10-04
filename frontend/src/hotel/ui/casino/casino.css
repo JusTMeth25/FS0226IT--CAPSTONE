@@ -21,6 +21,8 @@
   font-family: Georgia, 'Times New Roman', serif;
 }
 
+.casino-panel:not(.full) .casino-header { cursor: grab; touch-action: none; }
+.casino-panel.is-dragging .casino-header { cursor: grabbing; }
 .casino-header { display: flex; align-items: center; gap: 12px; padding: 10px 14px;
   background: linear-gradient(180deg, #4e0912, #2a0509); border-bottom: 2px solid var(--gold); }
 .casino-brand { font-size: 1.25rem; font-weight: 700; letter-spacing: 0.25em; color: var(--gold-light);
@@ -322,6 +324,100 @@ button.casino-card { cursor: pointer; transition: transform 0.15s; }
   .holdem-log { display: none; }
   .holdem-leave { justify-self: stretch; }
 }
+
+/* ---------- Bingo: gabbia delle palline, premi, tabellone e cartelle ---------- */
+.casino-bingo { display: flex; flex-direction: column; gap: 10px; }
+.bingo-top { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 14px; align-items: center; }
+.bingo-ball-zone { position: relative; display: grid; place-items: center; height: 170px; }
+.bingo-cage { position: absolute; width: 150px; height: 150px; border-radius: 50%; border: 4px solid var(--gold);
+  background: radial-gradient(circle at 40% 35%, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.35)); box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6); }
+.bingo-cage::before, .bingo-cage::after { content: ''; position: absolute; inset: 6px; border-radius: 50%; border: 2px solid rgba(212, 165, 55, 0.5); }
+.bingo-cage::after { inset: 0; border-left-color: transparent; border-right-color: transparent; transform: rotate(45deg); }
+.bingo-cage i { position: absolute; left: calc(50% - 9px); top: calc(50% - 9px); width: 18px; height: 18px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff, hsl(calc(var(--i) * 40), 75%, 55%)); transform: rotate(calc(var(--i) * 40deg)) translate(42px); }
+.bingo-cage.spinning { animation: bingo-spin 1.1s linear infinite; }
+@keyframes bingo-spin { to { transform: rotate(360deg); } }
+.bingo-ball { position: relative; z-index: 2; width: 104px; height: 104px; border-radius: 50%; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center; padding: 8px; background: radial-gradient(circle at 35% 30%, #fff 0%, #fdfbf5 45%, #d9d2bf 100%);
+  border: 6px solid #c1121f; box-shadow: 0 8px 18px rgba(0, 0, 0, 0.6); color: #111018; animation: bingo-drop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1); }
+.bingo-ball b { font-size: 2.2rem; line-height: 1; font-weight: 900; }
+.bingo-ball small { font-size: 0.62rem; line-height: 1.1; color: #7a0f1c; font-weight: 700; }
+@keyframes bingo-drop { from { transform: translateY(-40px) scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
+.bingo-prizes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.bingo-prize { display: flex; flex-direction: column; gap: 2px; padding: 6px 10px; border-radius: 10px; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(212, 165, 55, 0.4); }
+.bingo-prize span { font-weight: 700; color: #f6ecd2; font-size: 0.85rem; }
+.bingo-prize span small { font-weight: 400; color: rgba(246, 236, 210, 0.7); }
+.bingo-prize b { color: var(--gold-light); font-size: 1.2rem; }
+.bingo-prize.live { border-color: #22c55e; box-shadow: 0 0 12px rgba(34, 197, 94, 0.5); }
+.bingo-prize.won { border-color: var(--gold-light); background: rgba(212, 165, 55, 0.18); }
+.bingo-prize.jackpot { background: linear-gradient(90deg, rgba(122, 15, 28, 0.6), rgba(212, 165, 55, 0.25)); border-color: var(--gold); }
+.bingo-who { color: #fde68a; font-size: 0.72rem; }
+.bingo-sold { grid-column: 1 / -1; color: rgba(246, 236, 210, 0.75); font-size: 0.75rem; }
+.casino-bingo { position: relative; }
+.bingo-shout { position: absolute; z-index: 5; top: 60px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center;
+  gap: 2px; padding: 10px 28px; border-radius: 16px; background: linear-gradient(180deg, #c1121f, #7a0f1c); border: 3px solid var(--gold-light);
+  box-shadow: 0 0 30px rgba(243, 210, 122, 0.7), 0 12px 30px rgba(0, 0, 0, 0.6); pointer-events: none; text-align: center; animation: bingo-shout 0.6s cubic-bezier(0.2, 1.6, 0.4, 1); }
+.bingo-shout b { font-size: 2rem; letter-spacing: 0.12em; color: #fff; text-shadow: 0 2px 0 #000, 0 0 12px var(--gold-light); text-transform: uppercase; }
+.bingo-shout span { color: #fde68a; font-weight: 700; font-size: 0.85rem; }
+.bingo-shout.big b { font-size: 3rem; }
+@keyframes bingo-shout { from { transform: translateX(-50%) scale(0.3); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
+.bingo-status { margin: 0; text-align: center; color: var(--gold-light); font-weight: 700; font-size: 0.85rem; }
+.bingo-board { display: grid; grid-template-columns: repeat(30, minmax(0, 1fr)); gap: 3px; padding: 6px; border-radius: 12px;
+  background: radial-gradient(ellipse at 50% 30%, #13894a, var(--felt) 60%, var(--felt-dark)); border: 6px solid var(--wood); box-shadow: inset 0 0 0 1px var(--gold); }
+.bingo-board-n { display: grid; place-items: center; aspect-ratio: 1; border-radius: 50%; font-size: 0.66rem; font-weight: 700; color: rgba(255, 255, 255, 0.45);
+  background: rgba(0, 0, 0, 0.25); }
+.bingo-board-n.out { color: #111018; background: radial-gradient(circle at 35% 30%, #fff, #fde68a); }
+.bingo-board-n.last { background: radial-gradient(circle at 35% 30%, #fff, #ef4444); color: #fff; box-shadow: 0 0 10px #ef4444; animation: casino-pop 0.4s ease-out; }
+.bingo-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 8px 10px; border-radius: 12px; background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(212, 165, 55, 0.4); }
+.bingo-buy { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex: 1; }
+.bingo-buy > button:not(.casino-big-btn) { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--gold); background: transparent; color: #f6ecd2;
+  cursor: pointer; font-family: inherit; font-weight: 700; }
+.bingo-buy > button.active { background: var(--gold); color: #2a0509; }
+.bingo-mine { flex: 1; color: #e7d9b4; font-size: 0.85rem; }
+.bingo-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #e7d9b4; cursor: pointer; }
+.bingo-toggle input { accent-color: var(--gold); }
+.bingo-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.bingo-card { padding: 6px; border-radius: 10px; background: #fdfbf5; border: 3px solid #c1121f; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); }
+.bingo-card.full { border-color: var(--gold); box-shadow: 0 0 18px var(--gold-light); }
+.bingo-card-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 4px; color: #7a0f1c; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.bingo-card-head small { color: #6b7280; text-transform: none; letter-spacing: 0; font-weight: 600; }
+.bingo-one { color: #fff; background: #c1121f; padding: 1px 8px; border-radius: 999px; animation: slot-blink 0.6s steps(2) infinite; }
+.bingo-grid { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 2px; }
+.bingo-cell { aspect-ratio: 1; display: grid; place-items: center; border: 1px solid #e5dcc4; border-radius: 4px; background: #fff; color: #111018;
+  font-family: inherit; font-weight: 800; font-size: 0.85rem; padding: 0; cursor: pointer; }
+.bingo-cell:disabled { cursor: default; }
+.bingo-cell.empty { background: repeating-linear-gradient(45deg, #f3ecd8 0 4px, #ebe2c8 4px 8px); border-color: transparent; }
+.bingo-cell.marked { background: radial-gradient(circle, #c1121f 0 52%, #fff 54%); color: #fff; }
+.bingo-cell.due { box-shadow: inset 0 0 0 2px #22c55e; }
+
+@media (max-width: 760px) {
+  .bingo-top { grid-template-columns: 1fr; }
+  .bingo-ball-zone { height: 140px; }
+  .bingo-cage { width: 124px; height: 124px; }
+  .bingo-ball { width: 88px; height: 88px; }
+  .bingo-board { grid-template-columns: repeat(15, minmax(0, 1fr)); }
+  .bingo-board-n { font-size: 0.6rem; }
+  .bingo-cards { grid-template-columns: 1fr; }
+  .bingo-buy > span { flex-basis: 100%; }
+  .bingo-buy .casino-big-btn { flex: 1 1 100%; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .bingo-top { grid-template-columns: 150px minmax(0, 1fr); gap: 8px; }
+  .bingo-ball-zone { height: 120px; }
+  .bingo-cage { width: 110px; height: 110px; }
+  .bingo-cage i { transform: rotate(calc(var(--i) * 40deg)) translate(30px); }
+  .bingo-ball { width: 76px; height: 76px; border-width: 4px; }
+  .bingo-ball b { font-size: 1.6rem; }
+  .bingo-prizes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .bingo-prize { padding: 4px 6px; }
+  .bingo-prize span small, .bingo-sold { display: none; }
+  .bingo-prize b { font-size: 1rem; }
+  .bingo-board { grid-template-columns: repeat(30, minmax(0, 1fr)); gap: 2px; padding: 4px; border-width: 4px; }
+  .bingo-board-n { font-size: 0.55rem; }
+  .bingo-cards { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) { .bingo-cage.spinning, .bingo-ball, .bingo-one, .bingo-shout { animation: none; } }
 
 /* Guida del gioco: sopra il tavolo, con lo stesso stile del casino. */
 .casino-panel.with-guide { overflow: hidden; min-height: min(620px, calc(100% - 16px)); }

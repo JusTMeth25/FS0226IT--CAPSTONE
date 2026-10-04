@@ -68,13 +68,13 @@ public class PokerService implements PokerTable.Listener {
         if (buyIn < PokerTable.MIN_BUY_IN || buyIn > PokerTable.MAX_BUY_IN) return "poker_bad_buy_in";
         if (table.isSeated(userId.toString())) return "poker_already_seated";
         try {
-            casino.pokerChips(userId, -buyIn);
+            casino.tableChips(userId, -buyIn);
         } catch (ApiException ex) {
             return "casino_not_enough_chips";
         }
         String error = table.sit(userId.toString(), username, look, buyIn, System.currentTimeMillis());
         if (error != null) {
-            casino.pokerChips(userId, buyIn);
+            casino.tableChips(userId, buyIn);
             return error;
         }
         broadcast();
@@ -126,7 +126,7 @@ public class PokerService implements PokerTable.Listener {
         if (playerId.startsWith("bot:")) return;
         UUID userId = UUID.fromString(playerId);
         try {
-            if (chips > 0) casino.pokerChips(userId, chips);
+            if (chips > 0) casino.tableChips(userId, chips);
         } catch (Exception ex) {
             log.error("Poker: fiches non restituite a {} ({})", playerId, chips, ex);
         }
@@ -142,7 +142,7 @@ public class PokerService implements PokerTable.Listener {
         clock.shutdownNow();
         table.humanStacks().forEach((id, chips) -> {
             try {
-                if (chips > 0) casino.pokerChips(UUID.fromString(id), chips);
+                if (chips > 0) casino.tableChips(UUID.fromString(id), chips);
             } catch (Exception ex) {
                 log.error("Poker: fiches non restituite a {} ({}) alla chiusura", id, chips, ex);
             }

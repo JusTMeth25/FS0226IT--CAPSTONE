@@ -142,5 +142,26 @@ export const CASINO_GUIDES = {
     pays: [['Scala reale (10-J-Q-K-A dello stesso seme)', '1ª'], ['Scala colore', '2ª'], ['Poker (quattro uguali)', '3ª'], ['Full (tris + coppia)', '4ª'],
       ['Colore (cinque dello stesso seme)', '5ª'], ['Scala (cinque in fila)', '6ª'], ['Tris', '7ª'], ['Doppia coppia', '8ª'], ['Coppia', '9ª'], ['Carta alta', '10ª']],
     tip: 'Le mani di partenza migliori sono le coppie alte (AA, KK, QQ) e asso-re. Con carte basse e scollegate conviene lasciare subito: le fiches si vincono scegliendo bene quando giocare.'
+  },
+  bingo: {
+    title: 'Bingo a 90 numeri',
+    goal: 'Completare per primo una riga (linea), due righe (doppia linea) o tutta la cartella (BINGO!) mentre il banditore estrae i numeri da 1 a 90.',
+    steps: [
+      'Durante la vendita scegli quante cartelle comprare (da 1 a 6, 10 fiches l\'una) e premi COMPRA. La prima cartella fa partire la vendita: dura 45 secondi.',
+      'Poi comincia l\'estrazione: una pallina ogni 3 secondi circa, con il numero, la sua smorfia napoletana ("Il 90, la paura!") e la voce del banditore.',
+      'Con "Segna da solo" i numeri usciti si segnano sulle cartelle da soli; senza, li segni tu toccandoli (quelli usciti e non segnati hanno il bordo verde).',
+      'Le vincite le controlla il banditore: appena completi una riga, due righe o la cartella il premio arriva subito fra le tue fiches.'
+    ],
+    rules: [
+      'Ogni cartella ha 3 righe e 9 colonne con 15 numeri, 5 per riga: la prima colonna va da 1 a 9, la seconda da 10 a 19 e così via, l\'ultima da 80 a 90.',
+      'I premi si vincono in ordine: prima la linea, poi la doppia linea, infine il bingo, che chiude la partita.',
+      'Chi completa alla stessa pallina divide il premio.',
+      'Il montepremi è il 90% delle cartelle in gioco: 15% alla linea, 25% alla doppia linea, 60% al bingo.',
+      'Jackpot: chi fa bingo entro 45 numeri vince anche il jackpot, che cresce a ogni partita con il 10% delle cartelle.',
+      'Con te giocano i clienti abituali del casinò (Nonna Pina, Zio Gennaro, la Signora Carmela...): anche loro comprano cartelle e possono vincere.',
+      'Se esci dal casinò durante la vendita riprendi le fiches; a estrazione cominciata le tue cartelle giocano lo stesso.'
+    ],
+    pays: [['Linea (una riga)', '15% del montepremi'], ['Doppia linea (due righe)', '25%'], ['Bingo (tutta la cartella)', '60%'], ['Bingo entro 45 numeri', '+ jackpot']],
+    tip: 'Più cartelle hai, più possibilità hai di vincere, ma ogni cartella costa uguale: il premio atteso per cartella è sempre lo stesso. Il bello è la tensione del "manca 1!".'
   }
 };
