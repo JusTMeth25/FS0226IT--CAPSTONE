@@ -81,6 +81,14 @@ public class User {
     @Column(name = "hotel_top_cards", length = 400)
     private String hotelTopCards;
 
+    /** Fiches del casino dell'hotel: si comprano e si rivendono alla cassa, 1 gold = 1 fiche. */
+    @Column(name = "casino_chips", nullable = false)
+    private int casinoChips = 0;
+
+    /** Giorno dell'ultimo regalo di fiches del casino (uno al giorno). */
+    @Column(name = "casino_bonus_day")
+    private java.time.LocalDate casinoBonusDay;
+
     /** La guida dell'hotel si e' gia' presentata (tutorial della prima visita). */
     @Column(name = "hotel_tutorial_done", nullable = false)
     private boolean hotelTutorialDone = false;

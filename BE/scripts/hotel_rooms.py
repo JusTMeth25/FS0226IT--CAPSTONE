@@ -28,11 +28,13 @@ V35 = os.path.join(MIGRATIONS_DIR, 'V35__hotel_ping_pong_darts.sql')
 V44 = os.path.join(MIGRATIONS_DIR, 'V44__hotel_disco_80.sql')
 V46 = os.path.join(MIGRATIONS_DIR, 'V46__hotel_district.sql')
 V48 = os.path.join(MIGRATIONS_DIR, 'V48__hotel_rock.sql')
-LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18, 18: V19, 19: V30, 20: V44, **{n: V46 for n in range(21, 30)}, 30: V48, 31: V48}
+V67 = os.path.join(MIGRATIONS_DIR, 'V67__hotel_casino.sql')
+V68 = os.path.join(MIGRATIONS_DIR, 'V68__casino_poker_table.sql')
+LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18, 18: V19, 19: V30, 20: V44, **{n: V46 for n in range(21, 30)}, 30: V48, 31: V48, 32: V67}
 # Migrazione in lavorazione: le altre, gia' pubblicate, non si riscrivono piu' (Flyway ne controlla
 # il contenuto). Le stanze cambiate dopo la pubblicazione si rifanno qui (REBUILT) e gli arredi da
 # togliere si elencano in REMOVED.
-CURRENT = V48
+CURRENT = V68
 REBUILT = {16: V19, 8: V20, 12: V20}
 REMOVED = {V19: [('00000000-0000-0000-0000-00000000a00f', 'basket_hoop')]}
 # Arredi aggiunti a stanze gia' pubblicate: finiscono nella migrazione indicata (vedi Room.migration).
@@ -45,6 +47,8 @@ MIGRATION_TITLES = {
     V35: 'Ping pong e freccette in sala giochi.',
     V44: 'Nuova stanza pubblica: Disco anni 80, con la pista illuminata, il DJ e la gara di ballo.',
     V48: 'Locale Rock con il palco, la band e la gara di chitarre, e il Rock Store di chitarre, bassi e abbigliamento rock.',
+    V67: 'Nuova stanza pubblica: il Casino, con slot, video poker, roulette, blackjack, baccarat, dadi e la cassa delle fiches.',
+    V68: "Casino: il tavolo del Texas Hold'em, per giocare a poker con gli altri giocatori e con gli NPC.",
     V46: 'Il Quartiere: viale con i negozi di lusso (atelier, gioielleria, skate, bici, auto), la caffetteria, '
          'il palaghiaccio, l\'arena del basket e le ville dei giocatori.',
 }
@@ -126,12 +130,18 @@ FURNI = {
     'drum_duel': (2, 2, False, False, -1), 'guitar_stand': (1, 1, False, False, -1), 'guitar_counter': (2, 1, False, False, -1), 'rock_counter': (2, 1, False, False, -1),
     'facade_rock': (5, 2, False, False, -1), 'facade_guitars': (4, 2, False, False, -1),
     'race_start': (1, 1, False, False, -1), 'taxi_stand': (1, 1, False, False, -1),
+    # Casino.
+    'slot_machine': (1, 1, False, False, -1), 'poker_machine': (1, 1, False, False, -1),
+    'roulette_table': (3, 2, False, False, -1), 'blackjack_table': (3, 2, False, False, -1),
+    'baccarat_table': (3, 2, False, False, -1), 'craps_table': (3, 2, False, False, -1),
+    'casino_cashier': (2, 1, False, False, -1), 'casino_rug': (3, 3, False, True, -1), 'poker_table': (4, 2, False, False, -1),
     # Minigolf
     **{f'golf_hole_{n}': (3, 2, False, False, -1) for n in range(1, 7)},
 }
 
 # Mobili che si usano cliccandoli: serve una casella libera accanto.
-SERVING = {'guitar_duel', 'guitar_counter', 'rock_counter', 'atelier_counter', 'watch_counter', 'skate_counter', 'bike_counter', 'car_counter', 'espresso_bar',
+SERVING = {'poker_table', 'slot_machine', 'poker_machine', 'roulette_table', 'blackjack_table', 'baccarat_table', 'craps_table', 'casino_cashier',
+           'guitar_duel', 'guitar_counter', 'rock_counter', 'atelier_counter', 'watch_counter', 'skate_counter', 'bike_counter', 'car_counter', 'espresso_bar',
            'hockey_target', 'dance_contest', 'billiard_table', 'bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'pizza_oven', 'beach_bar',
            'popcorn_machine', 'water_cooler', 'newsstand', 'basket_hoop', 'bowling_lane', 'shoe_counter',
            *[f'golf_hole_{n}' for n in range(1, 7)]}
@@ -1024,6 +1034,41 @@ r.add('plant_big', 1, 17).add('lamp_floor', 20, 17).add('poster_neon', 10, 1, 0)
 r.worker('ruggero', 'Ruggero', 'CLERK', 's1.h6.hc0.sh9.p1.t0.f0.a1.b0.o18.w0.r0.n0.e0.g3', 6, 1, 4)
 r.worker('stella', 'Stella', 'CLERK', 's0.h2.hc4.sh1.p1.t4.f2.a5.b1.o17.w0.r0', 13, 1, 4)
 r.walker('plettro', 'Plettro', 'GUEST', 's2.h5.hc2.sh2.p0.t0.f1.a3.b0.o0.w0.r0.n0.e0.g2', 10, 10, 3)
+
+
+# ------------------------------------------------------------------ Casino
+
+r = room(32, 'CASINO', 'Casinò',
+         'Moquette rossa, tavoli verdi e luci dorate: slot machine, video poker, roulette, blackjack, baccarat '
+         'e dadi. Cambia i gold in fiches alla cassa (e ogni giorno ce ne sono di regalo) e punta quanto vuoi.',
+         24, 20, 10, 'casino', 'casino', 32)
+# Slot e video poker lungo la parete di fondo, la cassa in mezzo.
+r.row('slot_machine', 2, 1, 4, dx=2)
+r.add('casino_cashier', 11, 2)
+r.row('poker_machine', 16, 1, 4, dx=2)
+# Tavoli: in alto roulette, blackjack e baccarat; in basso dadi, un altro blackjack e un'altra roulette.
+r.add('roulette_table', 3, 6).add('blackjack_table', 10, 6).add('baccarat_table', 17, 6)
+r.add('craps_table', 3, 13).add('blackjack_table', 10, 13).add('roulette_table', 17, 13)
+# Bar e salottino in fondo a destra, piante e lampade agli angoli.
+r.add('bar_counter', 21, 18).add('bar_counter', 18, 18)
+r.row('bar_stool', 18, 19, 5, rot=6)
+r.add('plant_big', 1, 1).add('plant_big', 24, 1).add('plant_big', 1, 20).add('lamp_floor', 24, 10)
+r.add('sofa_vinyl', 8, 18, 0).add('coffee_table', 8, 19)
+# Tavolo del Texas Hold'em (aggiunto dopo: V68), con il suo croupier.
+r.migration(V68)
+r.add('poker_table', 12, 17)
+# Croupier dietro i tavoli, la cassiera dietro la cassa, il barista al bar e qualche giocatore.
+r.worker('lucky_lou', 'Lucky Lou', 'CROUPIER', 's1.h0.hc0.sh9.p1.t3.f0.a0.b0.o2', 4, 5, 4)
+r.worker('regina', 'Regina', 'CROUPIER', 's3.h3.hc0.sh9.p1.t3.f0.a0.b1.o2', 11, 5, 4)
+r.worker('jean_paul', 'Jean-Paul', 'CROUPIER', 's0.h1.hc9.sh9.p1.t3.f0.a1.b0.o2', 18, 5, 4)
+r.worker('dado', 'Dado', 'CROUPIER', 's4.h9.hc7.sh9.p1.t3.f0.a0.b0.o2', 4, 12, 4)
+r.worker('carmen', 'Carmen', 'CROUPIER', 's2.h2.hc7.sh9.p1.t3.f0.a0.b1.o2', 11, 12, 4)
+r.worker('dimitri', 'Dimitri', 'CROUPIER', 's0.h0.hc3.sh9.p1.t3.f0.a0.b0.o2', 18, 12, 4)
+r.worker('fortuna', 'Fortuna', 'CLERK', 's1.h8.hc2.sh4.p1.t3.f0.a0.b1.o3', 11, 1, 4)
+r.worker('ottavio', 'Ottavio', 'CROUPIER', 's1.h1.hc0.sh9.p1.t3.f0.a0.b0.o2', 13, 16, 4)
+r.worker('martini', 'Martini', 'BARISTA', 's2.h1.hc0.sh7.p1.t2.f0.a0.b0', 20, 17, 4, 'cola', 'juice', 'bubble')
+r.walker('high_roller', 'High Roller', 'GUEST', 's0.h1.hc2.sh8.p1.t3.f0.a2.b0.o1', 8, 10, 4)
+r.walker('lady_luck', 'Lady Luck', 'GUEST', 's3.h2.hc7.sh6.p1.t3.f2.a0.b1.o8', 15, 16, 4)
 
 
 # ------------------------------------------------------------------ output

@@ -67,6 +67,33 @@ function fbm(x, y, seed = 0) {
  * caselle (con i decimali), sx e sy il pixel sullo schermo per il rumore fine.
  */
 const FLOORS = {
+  // Casino: moquette rossa con il reticolo dorato a rombi dei casino classici, un fiore blu notte
+  // al centro di ogni rombo e i rombi alterni appena piu' scuri.
+  casino: (() => {
+    const red = rgb('#7a0f1c');
+    const deep = rgb('#5e0b16');
+    const gold = rgb('#c9972f');
+    const navy = rgb('#1b2350');
+    return (X, Y, sx, sy) => {
+      // Coordinate ruotate di 45 gradi: le righe del reticolo sono X+Y e X-Y intere (ogni due caselle).
+      const a = (X + Y) / 2;
+      const b = (X - Y) / 2;
+      const fa = frac(a);
+      const fb = frac(b);
+      const line = Math.min(fa, 1 - fa) < 0.035 || Math.min(fb, 1 - fb) < 0.035;
+      let c = (Math.floor(a) + Math.floor(b)) % 2 === 0 ? red : deep;
+      if (line) c = gold;
+      else {
+        const da = Math.abs(fa - 0.5);
+        const db = Math.abs(fb - 0.5);
+        if (da + db < 0.12) c = navy;
+        else if (da + db < 0.16) c = gold;
+      }
+      const worn = smoothNoise(X * 0.7, Y * 0.7, 21);
+      return tint(c, (noise(sx, sy) - 0.5) * 0.07 - (worn > 0.7 ? 0.05 : 0));
+    };
+  })(),
+
   // Locale rock: scacchiera bianca e nera consumata, con le macchie di birra e i graffi.
   rockclub: (() => {
     const white = rgb('#d6d0c4');
@@ -514,6 +541,40 @@ const baseboard = (h, colors) => {
 };
 
 const WALLS = {
+  // Casino: tappezzeria damascata bordeaux con il fregio dorato, boiserie scura e applique accese.
+  casino: (() => {
+    const damask = rgb('#5a0f1e');
+    const pattern = rgb('#6f1626');
+    const gold = rgb('#d4a537');
+    const wood = rgb('#2a140c');
+    const lamp = rgb('#ffe9a8');
+    const board = { shadow: rgb('#0d0604'), board: rgb('#1c0d08'), trim: gold };
+    return (col, h, height, side, sy) => {
+      const bb = baseboard(h, board);
+      if (bb) return bb;
+      // Boiserie fino a meta' altezza, con le cornici dei pannelli.
+      if (h < 34) {
+        const panel = col % 24;
+        if (h === 33 || h === 12) return gold;
+        if ((panel === 2 || panel === 21) && h > 14 && h < 31) return tint(wood, 0.18);
+        return tint(wood, (noise(col, sy) - 0.5) * 0.08 + (Math.floor(col / 3) % 2 ? 0.02 : 0));
+      }
+      // Fregio dorato in alto.
+      if (h > height - 8 && h <= height - 5) return gold;
+      // Applique: un globo di luce ogni 48 pixel, con l'alone sulla tappezzeria.
+      const lx = col % 48 - 24;
+      const ly = h - (34 + (height - 42) * 0.55);
+      const dist = Math.sqrt(lx * lx + ly * ly * 2);
+      if (dist < 3) return lamp;
+      // Damasco: un motivo a goccia ripetuto, un tono sopra il fondo.
+      const mx = (col % 16) - 8;
+      const my = ((h - 34) % 22) - 11;
+      const drop = Math.abs(mx) * 1.4 + Math.abs(my) * (my < 0 ? 0.6 : 1.1) < 8;
+      const base = drop ? pattern : damask;
+      return tint(base, (noise(col, sy) - 0.5) * 0.06 + Math.max(0, 0.35 - dist / 40));
+    };
+  })(),
+
   // Locale rock: mattoni neri, locandine dei concerti incollate storte e una striscia al neon rossa.
   rockclub: (() => {
     const bricks = ['#221c1e', '#2a2226', '#1b1618'].map(rgb);

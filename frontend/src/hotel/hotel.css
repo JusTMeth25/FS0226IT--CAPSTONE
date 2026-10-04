@@ -1045,7 +1045,8 @@ button.hotel-trade-card:hover { background: var(--hp-surface-hover); }
     top: auto !important;
     width: 100% !important;
     max-width: none !important;
-    max-height: 72vh;
+    /* Mai piu' alto della stanza: sopra verrebbe tagliato. */
+    max-height: min(72vh, 100%);
     transform: none !important;
     border-radius: 16px 16px 0 0;
     overflow-y: auto;
@@ -1645,3 +1646,70 @@ button.hotel-badge:hover:not(:disabled) { transform: translateY(-2px) scale(1.08
 .jukebox-wide { width: 100%; justify-content: center; }
 .jukebox-avatar { width: 38px; height: 38px; display: grid; place-items: center; font-size: 1.3rem; border-radius: 50%; background: rgba(139, 92, 246, 0.25); }
 .jukebox-ok { color: #4ade80; font-size: 0.75rem; }
+
+/* La colonna degli strumenti esiste solo in orizzontale: altrove i pulsanti stanno nella barra
+   come prima (strumenti, chat, gesti). */
+.hotel-rail { display: contents; }
+@media (min-width: 1280px) {
+  .hotel-chat { order: 1; }
+  .hotel-emotes { order: 2; }
+}
+
+/* ---------- Telefono in orizzontale: l'hotel a tutto schermo ----------
+   Poca altezza (telefono girato): la pagina copre l'app (barra in alto e menu in basso), con i
+   margini del notch e degli angoli. Come nei giochi per telefono: la stanza a sinistra, gli
+   strumenti in una colonna a destra (tutti visibili, tre per riga, con i gold e l'uscita in
+   cima) e la chat sotto la stanza. */
+.hotel-tool-exit, .hotel-gold-pill { display: none; }
+@media (orientation: landscape) and (max-height: 520px) {
+  .hotel-page {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    height: auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas: "stage rail" "chat rail";
+    gap: 4px;
+    padding: max(4px, var(--safe-top)) max(6px, var(--safe-right)) max(4px, var(--safe-bottom)) max(6px, var(--safe-left));
+    background: #07050f;
+  }
+  .hotel-stage { grid-area: stage; border-radius: 10px; }
+  .hotel-toolbar { display: contents; }
+  .hotel-rail {
+    grid-area: rail;
+    display: grid;
+    grid-template-columns: repeat(3, 32px);
+    grid-auto-rows: 32px;
+    gap: 3px;
+    align-content: start;
+    padding: 4px;
+    border-radius: 10px;
+    background: #120d26;
+    border: 2px solid #0a0716;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .hotel-rail::-webkit-scrollbar { display: none; }
+  .hotel-emotes { display: contents; }
+  .hotel-tool { width: 32px; height: 32px; min-width: 0; padding: 0; border-radius: 7px; font-size: 0.95rem; }
+  .hotel-tool span { display: none; }
+  .hotel-tool-badge { transform: scale(0.85); }
+  .hotel-tool-exit { display: flex; }
+  .hotel-gold-pill {
+    display: flex; grid-column: span 2; align-items: center; justify-content: center; gap: 4px; border-radius: 7px;
+    background: #231a47; color: #fff; font-weight: 800; font-size: 0.75rem; font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .hotel-gold-pill i { color: #ffd700; }
+  .hotel-chat {
+    grid-area: chat;
+    padding: 4px;
+    border-radius: 10px;
+    background: #120d26;
+    border: 2px solid #0a0716;
+  }
+  .hotel-chat-input { height: 32px; }
+  .hotel-page.is-fullscreen { padding: max(4px, var(--safe-top)) max(6px, var(--safe-right)) max(4px, var(--safe-bottom)) max(6px, var(--safe-left)); }
+}

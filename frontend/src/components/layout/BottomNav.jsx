@@ -2,6 +2,31 @@ import { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth.js';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock.js';
+import { ORIENTATIONS, canLockOnWeb, getOrientationPref, isNativeApp, isTouchDevice, setOrientationPref } from '../../services/orientation.js';
+
+/**
+ * Orientamento dello schermo fuori dall'hotel (nell'hotel e' sempre orizzontale). Nell'app vale
+ * sempre; nel browser solo dove si puo' bloccare (Android), altrimenti segue il telefono.
+ */
+function OrientationPicker() {
+  const [value, setValue] = useState(getOrientationPref);
+  if (!isTouchDevice()) return null;
+  const lockable = isNativeApp || canLockOnWeb();
+  return (
+    <div className="orientation-picker">
+      <span className="orientation-picker-title"><i className="ph-fill ph-device-rotate" /> Schermo fuori dall&apos;hotel</span>
+      <div className="orientation-picker-options" role="radiogroup" aria-label="Orientamento dello schermo">
+        {ORIENTATIONS.map(([key, label, icon]) => (
+          <button key={key} type="button" role="radio" aria-checked={value === key} className={value === key ? 'active' : ''}
+            onClick={() => { setValue(key); setOrientationPref(key); }}>
+            <i className={`ph ${icon}${key === 'landscape' ? ' rotated' : ''}`} /> {label}
+          </button>
+        ))}
+      </div>
+      {!lockable && <small>Dal browser dell&apos;iPhone lo schermo segue il telefono: blocca la rotazione dal Centro di Controllo.</small>}
+    </div>
+  );
+}
 
 const TABS = [
   { to: '/home', label: 'Home', icon: 'ph-house' },
@@ -104,6 +129,7 @@ export default function BottomNav() {
                 </button>
               ))}
             </div>
+            <OrientationPicker />
             <button type="button" className="btn btn-secondary more-sheet-close" onClick={() => setMoreOpen(false)}>
               Chiudi
             </button>

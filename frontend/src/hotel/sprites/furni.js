@@ -385,6 +385,9 @@ function arenaFront(b, c, d, front, o) {
 const WOOD = '#8a5a3b';
 const WOOD_DARK = '#5b3a26';
 
+/** Numeri rossi della roulette (gli altri, tranne lo zero, sono neri). */
+const RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+
 const DRAW = {
   chair_neon(b) {
     [[0.24, 0.24], [0.24, 0.7], [0.7, 0.24], [0.7, 0.7]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.06, v1: v + 0.06, z1: 16, color: '#2a1f55' }));
@@ -1237,6 +1240,193 @@ const DRAW = {
       for (let i = 0; i < 16; i += 1) d(0.1 + i * 0.18, 0.9, 14, i % 2 ? '#ec4899' : '#22d3ee', 3, 2);
     });
   },
+  // ---------------------------------------------------------------- casino
+
+  slot_machine(b, { c, d, now, front }) {
+    // Cabinato della slot: mobile rosso e oro, tre rulli dietro il vetro, insegna luminosa e leva.
+    const step = Math.floor((now || 0) / 220) % 6;
+    b({ u0: 0.12, v0: 0.16, u1: 0.88, v1: 0.84, z1: 30, color: '#7a0f1c', left: '#8f1424', right: '#5a0a14' });
+    b({ u0: 0.1, v0: 0.14, u1: 0.9, v1: 0.86, z0: 30, z1: 33, color: '#d4a537' });
+    b({ u0: 0.14, v0: 0.24, u1: 0.86, v1: 0.84, z0: 33, z1: 76, color: '#8f1424', left: '#a3182b', right: '#5a0a14' });
+    b({ u0: 0.12, v0: 0.22, u1: 0.88, v1: 0.86, z0: 76, z1: 90, color: '#d4a537', glow: true });
+    c({ u: 0.88, v: 0.55, r: 0.03, z0: 46, z1: 70, color: '#c0c0c0', tex: 'metal' });
+    c({ u: 0.88, v: 0.55, r: 0.06, z0: 70, z1: 76, color: '#ef4444', top: '#f87171' });
+    front(() => {
+      // Vetro con i tre rulli: simboli che scorrono.
+      d(0.2, 0.84, 70, '#111018', 22, 22);
+      const symbols = ['#ef4444', '#fbbf24', '#22c55e', '#8b5cf6', '#f97316', '#ffffff'];
+      for (let r = 0; r < 3; r += 1) {
+        d(0.22 + r * 0.2, 0.84, 68, '#f8f5ec', 6, 18);
+        d(0.23 + r * 0.2, 0.84, 61, symbols[(step + r * 2) % 6], 4, 4);
+      }
+      d(0.2, 0.84, 59, '#ef4444', 22, 1);
+      // Insegna con le lucine che si rincorrono.
+      for (let i = 0; i < 6; i += 1) d(0.16 + i * 0.12, 0.86, 88, (i + step) % 2 ? '#fff7d1' : '#f59e0b', 2, 2);
+      d(0.3, 0.86, 84, '#7a0f1c', 12, 5);
+      // Pulsanti e vassoio delle monete.
+      d(0.24, 0.84, 38, '#22c55e', 3, 2);
+      d(0.44, 0.84, 38, '#fbbf24', 3, 2);
+      d(0.64, 0.84, 38, '#ef4444', 3, 2);
+      d(0.3, 0.84, 24, '#2a1408', 12, 5);
+      d(0.34, 0.84, 21, '#d4a537', 6, 1);
+    });
+  },
+  poker_machine(b, { d, now, front }) {
+    // Video poker: mobile blu notte e oro, schermo con cinque carte e la tabella delle vincite.
+    const step = Math.floor((now || 0) / 900) % 5;
+    b({ u0: 0.12, v0: 0.16, u1: 0.88, v1: 0.84, z1: 32, color: '#1b2350', left: '#232d66', right: '#141a3c' });
+    b({ u0: 0.1, v0: 0.14, u1: 0.9, v1: 0.86, z0: 32, z1: 35, color: '#d4a537' });
+    b({ u0: 0.14, v0: 0.3, u1: 0.86, v1: 0.84, z0: 35, z1: 80, color: '#232d66', left: '#2b3780', right: '#141a3c' });
+    b({ u0: 0.12, v0: 0.28, u1: 0.88, v1: 0.86, z0: 80, z1: 86, color: '#d4a537', glow: true });
+    front(() => {
+      d(0.18, 0.84, 76, '#0b3d1e', 22, 34);
+      // Tabella delle vincite in alto, cinque carte in basso (una "tenuta" si illumina).
+      for (let i = 0; i < 4; i += 1) d(0.2, 0.84, 73 - i * 3, '#fde68a', 14 - i * 2, 1);
+      for (let i = 0; i < 5; i += 1) {
+        d(0.2 + i * 0.13, 0.84, 58, i === step ? '#fff7d1' : '#ffffff', 3, 6);
+        d(0.21 + i * 0.13, 0.84, 56, i % 2 ? '#ef4444' : '#111018', 1, 2);
+      }
+      d(0.2, 0.84, 46, '#22c55e', 20, 2);
+      for (let i = 0; i < 5; i += 1) d(0.2 + i * 0.13, 0.84, 40, '#fbbf24', 3, 2);
+    });
+  },
+  roulette_table(b, { c, d, now }) {
+    // Tavolo della roulette 3x2: panno verde con il tappeto delle puntate rosse e nere, la ruota
+    // in mogano a sinistra che gira, bordo imbottito nero.
+    [[0.2, 0.25], [0.2, 1.6], [2.65, 0.25], [2.65, 1.6]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.14, v1: v + 0.14, z1: 28, color: '#2a140c', tex: 'wood' }));
+    b({ u0: 0.08, v0: 0.12, u1: 2.92, v1: 1.88, z0: 28, z1: 36, color: '#4a2511', tex: 'wood' });
+    b({ u0: 0.06, v0: 0.1, u1: 2.94, v1: 1.9, z0: 36, z1: 38, color: '#111018' });
+    b({ u0: 0.14, v0: 0.18, u1: 2.86, v1: 1.82, z0: 38, z1: 38, color: '#0d6b34', tex: 'fabric' });
+    // Tappeto delle puntate: tre file di numeri rossi e neri, lo zero verde in testa.
+    for (let col = 0; col < 12; col += 1) {
+      for (let row = 0; row < 3; row += 1) {
+        const n = col * 3 + row + 1;
+        const red = RED_NUMBERS.includes(n);
+        b({ u0: 1.2 + col * 0.13, v0: 0.4 + row * 0.38, u1: 1.31 + col * 0.13, v1: 0.75 + row * 0.38, z0: 38, z1: 38, color: red ? '#b91c1c' : '#111018' });
+      }
+    }
+    b({ u0: 1.04, v0: 0.4, u1: 1.17, v1: 1.51, z0: 38, z1: 38, color: '#15803d' });
+    // Ruota: catino di mogano, cerchio dei numeri, piatto che gira con la croce dorata.
+    c({ u: 0.58, v: 0.98, r: 0.46, z0: 38, z1: 44, color: '#5c2e15', top: '#3f1d0b', tex: 'wood' });
+    c({ u: 0.58, v: 0.98, r: 0.38, z0: 44, z1: 44, color: '#111018', top: '#111018' });
+    const turn = ((Math.floor((now || 0) / 120) % 24) / 24) * Math.PI * 2;
+    for (let i = 0; i < 18; i += 1) {
+      const a = turn + (i / 18) * Math.PI * 2;
+      d(0.58 + Math.cos(a) * 0.32, 0.98 + Math.sin(a) * 0.32, 44, i % 2 ? '#b91c1c' : '#111018', 3, 1);
+    }
+    c({ u: 0.58, v: 0.98, r: 0.2, z0: 44, z1: 46, color: '#7a4a24', top: '#9a6232' });
+    c({ u: 0.58, v: 0.98, r: 0.04, z0: 46, z1: 52, color: '#d4a537', top: '#fde68a' });
+    d(0.58 + Math.cos(-turn * 2) * 0.36, 0.98 + Math.sin(-turn * 2) * 0.36, 45, '#ffffff', 2, 2);
+    // Pile di fiches del croupier.
+    ['#ffffff', '#ef4444', '#16a34a', '#111018'].forEach((color, i) => c({ u: 2.4 + (i % 2) * 0.16, v: 0.36 + Math.floor(i / 2) * 0.18, r: 0.07, z0: 38, z1: 44, color, top: color }));
+  },
+  blackjack_table(b, { c, d }) {
+    // Tavolo del blackjack 3x2: mezzaluna di panno verde con l'arco dorato, i posti con le carte,
+    // il sabot e il rack delle fiches del banco.
+    [[0.3, 0.3], [0.3, 1.5], [2.55, 0.3], [2.55, 1.5]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.14, v1: v + 0.14, z1: 28, color: '#2a140c', tex: 'wood' }));
+    b({ u0: 0.08, v0: 0.12, u1: 2.92, v1: 1.88, z0: 28, z1: 35, color: '#4a2511', tex: 'wood' });
+    b({ u0: 0.06, v0: 1.62, u1: 2.94, v1: 1.92, z0: 35, z1: 38, color: '#111018' });
+    b({ u0: 0.14, v0: 0.18, u1: 2.86, v1: 1.62, z0: 35, z1: 35, color: '#0d6b34', tex: 'fabric' });
+    for (let i = 0; i < 24; i += 1) {
+      const a = Math.PI * (0.1 + 0.8 * (i / 23));
+      d(1.5 - Math.cos(a) * 1.05, 0.55 + Math.sin(a) * 0.62, 35, '#d4a537', 2, 1);
+    }
+    for (let i = 0; i < 5; i += 1) {
+      const a = Math.PI * (0.18 + 0.64 * (i / 4));
+      const u = 1.5 - Math.cos(a) * 1.15;
+      const v = 0.55 + Math.sin(a) * 0.82;
+      b({ u0: u - 0.07, v0: v - 0.05, u1: u + 0.07, v1: v + 0.05, z0: 35, z1: 35, color: '#f8f5ec' });
+      d(u - 0.02, v, 35, i % 2 ? '#b91c1c' : '#111018', 1, 1);
+      c({ u: u + 0.12, v: v + 0.02, r: 0.05, z0: 35, z1: 38 + (i % 3) * 2, color: ['#ef4444', '#16a34a', '#111018'][i % 3] });
+    }
+    b({ u0: 1.1, v0: 0.22, u1: 1.9, v1: 0.42, z0: 35, z1: 38, color: '#2a140c' });
+    ['#ffffff', '#ef4444', '#16a34a', '#111018', '#7c3aed'].forEach((color, i) => b({ u0: 1.14 + i * 0.15, v0: 0.24, u1: 1.26 + i * 0.15, v1: 0.4, z0: 38, z1: 40, color }));
+    b({ u0: 2.2, v0: 0.25, u1: 2.5, v1: 0.45, z0: 35, z1: 42, color: '#111018', top: '#1f2937' });
+  },
+  baccarat_table(b, { c, d }) {
+    // Tavolo del baccarat 3x2: panno bordeaux con i riquadri di PUNTO (blu), BANCO (rosso) e
+    // PAREGGIO (verde) per ogni posto, la scatola delle carte e le fiches.
+    [[0.3, 0.3], [0.3, 1.5], [2.55, 0.3], [2.55, 1.5]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.14, v1: v + 0.14, z1: 28, color: '#2a140c', tex: 'wood' }));
+    b({ u0: 0.08, v0: 0.12, u1: 2.92, v1: 1.88, z0: 28, z1: 35, color: '#4a2511', tex: 'wood' });
+    b({ u0: 0.06, v0: 0.1, u1: 2.94, v1: 1.9, z0: 35, z1: 37, color: '#d4a537' });
+    b({ u0: 0.14, v0: 0.18, u1: 2.86, v1: 1.82, z0: 37, z1: 37, color: '#6b0f1d', tex: 'fabric' });
+    for (let i = 0; i < 4; i += 1) {
+      const u = 0.35 + i * 0.6;
+      b({ u0: u, v0: 1.12, u1: u + 0.42, v1: 1.28, z0: 37, z1: 37, color: '#1d4ed8' });
+      b({ u0: u, v0: 1.32, u1: u + 0.42, v1: 1.48, z0: 37, z1: 37, color: '#b91c1c' });
+      b({ u0: u + 0.12, v0: 0.92, u1: u + 0.3, v1: 1.06, z0: 37, z1: 37, color: '#15803d' });
+      c({ u: u + 0.21, v: 1.6, r: 0.05, z0: 37, z1: 41, color: i % 2 ? '#111018' : '#f8f5ec' });
+    }
+    b({ u0: 1.3, v0: 0.3, u1: 1.7, v1: 0.5, z0: 37, z1: 37, color: '#f8f5ec' });
+    b({ u0: 1.36, v0: 0.33, u1: 1.48, v1: 0.47, z0: 37, z1: 37, color: '#ffffff' });
+    d(1.4, 0.4, 37, '#b91c1c', 1, 1);
+    b({ u0: 2.2, v0: 0.25, u1: 2.5, v1: 0.45, z0: 37, z1: 44, color: '#111018', top: '#1f2937' });
+  },
+  craps_table(b, { c, d, now }) {
+    // Tavolo dei dadi 3x2: vasca con le sponde alte, panno verde con la "pass line" gialla, i
+    // riquadri dei punti e due dadi che rotolano.
+    const step = Math.floor((now || 0) / 500) % 6;
+    [[0.2, 0.25], [0.2, 1.6], [2.65, 0.25], [2.65, 1.6]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.14, v1: v + 0.14, z1: 26, color: '#2a140c', tex: 'wood' }));
+    b({ u0: 0.06, v0: 0.1, u1: 2.94, v1: 1.9, z0: 26, z1: 30, color: '#4a2511', tex: 'wood' });
+    b({ u0: 0.14, v0: 0.18, u1: 2.86, v1: 1.82, z0: 30, z1: 30, color: '#0d6b34', tex: 'fabric' });
+    b({ u0: 0.06, v0: 0.1, u1: 2.94, v1: 0.18, z0: 30, z1: 42, color: '#111018' });
+    b({ u0: 0.06, v0: 0.1, u1: 0.14, v1: 1.9, z0: 30, z1: 42, color: '#111018' });
+    b({ u0: 2.86, v0: 0.1, u1: 2.94, v1: 1.9, z0: 30, z1: 42, color: '#111018' });
+    b({ u0: 0.3, v0: 1.55, u1: 2.7, v1: 1.65, z0: 30, z1: 30, color: '#facc15' });
+    for (let i = 0; i < 6; i += 1) b({ u0: 0.55 + i * 0.32, v0: 0.4, u1: 0.8 + i * 0.32, v1: 0.62, z0: 30, z1: 30, color: '#f8f5ec' });
+    b({ u0: 1.2, v0: 0.9, u1: 1.8, v1: 1.2, z0: 30, z1: 30, color: '#b91c1c' });
+    const du = 1.1 + (step % 3) * 0.25;
+    b({ u0: du, v0: 1.25, u1: du + 0.1, v1: 1.35, z0: 30, z1: 33, color: '#f8f5ec' });
+    b({ u0: du + 0.16, v0: 1.3, u1: du + 0.26, v1: 1.4, z0: 30, z1: 33, color: '#f8f5ec' });
+    d(du + 0.04, 1.3, 33, '#b91c1c', 1, 1);
+    d(du + 0.2, 1.35, 33, '#b91c1c', 1, 1);
+    c({ u: 2.5, v: 0.45, r: 0.06, z0: 30, z1: 36, color: '#ef4444' });
+    c({ u: 2.65, v: 0.45, r: 0.06, z0: 30, z1: 34, color: '#16a34a' });
+  },
+  casino_cashier(b, { c, d, front }) {
+    // Cassa delle fiches 2x1: bancone in mogano e oro, vetro, fiches incolonnate.
+    b({ u0: 0.05, v0: 0.2, u1: 1.95, v1: 0.9, z1: 38, color: '#4a2511', left: '#5c2e15', right: '#2e170a', tex: 'wood' });
+    b({ u0: 0.02, v0: 0.16, u1: 1.98, v1: 0.94, z0: 38, z1: 42, color: '#d4a537' });
+    b({ u0: 0.05, v0: 0.2, u1: 1.95, v1: 0.3, z0: 42, z1: 86, color: 'rgba(191, 227, 255, 0.35)', left: 'rgba(191, 227, 255, 0.35)' });
+    b({ u0: 0.02, v0: 0.16, u1: 1.98, v1: 0.34, z0: 86, z1: 94, color: '#d4a537', glow: true });
+    ['#ffffff', '#ef4444', '#16a34a', '#111018', '#7c3aed', '#facc15'].forEach((color, i) => c({ u: 0.25 + i * 0.28, v: 0.62, r: 0.08, z0: 42, z1: 50 + (i % 3) * 4, color, top: color }));
+    front(() => {
+      for (let i = 0; i < 10; i += 1) d(0.1 + i * 0.18, 0.9, 20, i % 2 ? '#d4a537' : '#fde68a', 3, 2);
+      d(0.7, 0.9, 32, '#7a0f1c', 18, 5);
+    });
+  },
+  poker_table(b, { c, d }) {
+    // Tavolo del Texas Hold'em 4x2: ovale con il bordo imbottito nero, la fascia di legno, il panno
+    // verde, le cinque carte comuni al centro, le fiches davanti ai sei posti e il bottone del mazziere.
+    [[0.5, 0.45], [0.5, 1.4], [3.35, 0.45], [3.35, 1.4], [1.9, 0.3], [1.9, 1.55]].forEach(([u, v]) => b({ u0: u, v0: v, u1: u + 0.14, v1: v + 0.14, z1: 26, color: '#2a140c', tex: 'wood' }));
+    c({ u: 1.0, v: 1.0, r: 0.92, z0: 26, z1: 34, color: '#4a2511', top: '#5c2e15', tex: 'wood' });
+    c({ u: 3.0, v: 1.0, r: 0.92, z0: 26, z1: 34, color: '#4a2511', top: '#5c2e15', tex: 'wood' });
+    b({ u0: 1.0, v0: 0.08, u1: 3.0, v1: 1.92, z0: 26, z1: 34, color: '#4a2511', tex: 'wood' });
+    c({ u: 1.0, v: 1.0, r: 0.86, z0: 34, z1: 36, color: '#111018', top: '#111018' });
+    c({ u: 3.0, v: 1.0, r: 0.86, z0: 34, z1: 36, color: '#111018', top: '#111018' });
+    b({ u0: 1.0, v0: 0.14, u1: 3.0, v1: 1.86, z0: 34, z1: 36, color: '#111018' });
+    c({ u: 1.0, v: 1.0, r: 0.72, z0: 36, z1: 36, color: '#0d6b34', top: '#0d6b34' });
+    c({ u: 3.0, v: 1.0, r: 0.72, z0: 36, z1: 36, color: '#0d6b34', top: '#0d6b34' });
+    b({ u0: 1.0, v0: 0.28, u1: 3.0, v1: 1.72, z0: 36, z1: 36, color: '#0d6b34', tex: 'fabric' });
+    // Riga dorata del tavolo e le cinque carte comuni.
+    for (let i = 0; i < 30; i += 1) d(0.6 + i * 0.095, 1.0 + Math.sin(i / 4.6) * 0.05 - 0.38, 36, '#d4a537', 2, 1);
+    for (let i = 0; i < 5; i += 1) {
+      b({ u0: 1.45 + i * 0.24, v0: 0.86, u1: 1.63 + i * 0.24, v1: 1.12, z0: 36, z1: 36, color: '#fdfbf5' });
+      d(1.5 + i * 0.24, 0.95, 36, i % 2 ? '#b91c1c' : '#111018', 2, 2);
+    }
+    // Fiches davanti ai posti.
+    [[0.55, 1.0, '#ef4444'], [1.4, 0.45, '#16a34a'], [2.6, 0.45, '#111018'], [3.45, 1.0, '#7c3aed'], [2.6, 1.55, '#ffffff'], [1.4, 1.55, '#facc15']]
+      .forEach(([u, v, color]) => c({ u, v, r: 0.07, z0: 36, z1: 40, color, top: color }));
+    // Bottone del mazziere.
+    c({ u: 3.2, v: 1.35, r: 0.06, z0: 36, z1: 37, color: '#fdfbf5', top: '#fdfbf5' });
+    d(3.19, 1.35, 37, '#111018', 1, 1);
+  },
+  casino_rug(b, { d }) {
+    b({ u0: 0.05, v0: 0.05, u1: 2.95, v1: 2.95, z1: 1, color: '#4e0912', tex: 'fabric' });
+    b({ u0: 0.2, v0: 0.2, u1: 2.8, v1: 2.8, z0: 1, z1: 1, color: '#7a0f1c', tex: 'fabric' });
+    for (let i = 0; i < 20; i += 1) d(0.2 + i * 0.13, 0.2, 1, '#d4a537', 2, 1);
+  },
+
   // ---------------------------------------------------------------- spiaggia
 
   sea_water(b, { d, now }) {
@@ -2031,7 +2221,11 @@ const ANIMATIONS = {
   rock_stage: { period: 250, steps: 4 },
   guitar_duel: { period: 200, steps: 5 },
   drum_duel: { period: 250, steps: 4 },
-  race_start: { period: 700, steps: 4 }
+  race_start: { period: 700, steps: 4 },
+  slot_machine: { period: 220, steps: 6 },
+  poker_machine: { period: 900, steps: 5 },
+  roulette_table: { period: 120, steps: 24 },
+  craps_table: { period: 500, steps: 6 }
 };
 const DANCE_COLORS = 6;
 

@@ -4,6 +4,18 @@
  */
 export const NEWS = [
   {
+    date: '2026-10-14',
+    title: 'Apre il Casinò',
+    icon: 'ph-poker-chip',
+    items: [
+      ['ph-poker-chip', 'Fiches e cassa', 'Nella nuova stanza Casinò cambi i gold in fiches (1 a 1) e le ricambi quando vuoi. Ogni giorno 200 fiches di regalo.'],
+      ['ph-cherries', 'Slot e video poker', 'Slot machine a tre rulli e video poker Jacks or Better: punta fiches o gold, tutto estratto dal server.'],
+      ['ph-spade', 'I tavoli classici', 'Roulette europea, blackjack (paga 3 a 2), baccarat e dadi, con i croupier ai tavoli. Le vincite grosse le sente tutta la sala.'],
+      ['ph-club', 'Tavolo del poker', 'Texas Hold’em No Limit con bui 5/10: siediti con le tue fiches e sfida gli altri giocatori e gli NPC del casinò (Asso Nino, Donna Picche, il Professore…). All-in, piatti laterali e showdown come al tavolo vero.'],
+      ['ph-book-open-text', 'Guide e suoni', 'Ogni gioco ha la sua guida con regole e paghe (pulsante “?”), e i suoni dei casino veri: fiches, carte, rulli, pallina della roulette e dadi.']
+    ]
+  },
+  {
     date: '2026-10-13',
     title: 'Radio, album e regia della Disco',
     icon: 'ph-radio',

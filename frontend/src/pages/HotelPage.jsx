@@ -17,6 +17,9 @@ import Shop from '../hotel/ui/Shop.jsx';
 import Inventory from '../hotel/ui/Inventory.jsx';
 import ItemMenu from '../hotel/ui/ItemMenu.jsx';
 import JukeboxPanel from '../hotel/ui/JukeboxPanel.jsx';
+import CasinoPanel from '../hotel/ui/casino/CasinoPanel.jsx';
+import { CASINO_FURNI } from '../hotel/ui/casino/casinoUtils.js';
+import { pokerBus } from '../hotel/ui/casino/pokerBus.js';
 import { onSpotifyQueueAdd } from '../hotel/spotify.js';
 import CardPicker from '../hotel/ui/CardPicker.jsx';
 import CardViewer from '../hotel/ui/CardViewer.jsx';
@@ -38,7 +41,7 @@ import RoomSettings from '../hotel/ui/RoomSettings.jsx';
 import UserCard from '../hotel/ui/UserCard.jsx';
 import PvpPanel from '../hotel/ui/PvpPanel.jsx';
 import TradesPanel from '../hotel/ui/TradesPanel.jsx';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import HotelView from '../hotel/ui/HotelView.jsx';
 import NpcCard from '../hotel/ui/NpcCard.jsx';
 import { NpcTradeOffer, NpcTradePanel } from '../hotel/ui/NpcTrade.jsx';
@@ -196,6 +199,7 @@ const STATUS_LABELS = {
  */
 export default function HotelPage() {
   const { user, refreshUser } = useAuth();
+  const navigate = useNavigate();
   const { gold, refreshCollection, freePacks, openPack, refreshPacks } = useGame();
   const { sound } = useSound();
   const canvasRef = useRef(null);
@@ -300,6 +304,7 @@ export default function HotelPage() {
   const [fullscreen, setFullscreen] = useState(false);
   const [minigame, setMinigame] = useState(null);
   const [luxuryShop, setLuxuryShop] = useState('atelier');
+  const [casinoGame, setCasinoGame] = useState('cashier');
   // Veicoli comprati (per il pulsante Sali/Scendi): si rileggono chiudendo un pannello.
   const [ownedRides, setOwnedRides] = useState([]);
   const [rideBusy, setRideBusy] = useState(false);
@@ -432,6 +437,11 @@ export default function HotelPage() {
         });
         setSelectedItemId((id) => (id === message.id ? null : id));
         break;
+      case 'casino_win': {
+        const what = message.currency === 'gold' ? 'gold' : 'fiches';
+        showNotice(`${message.by} ha vinto ${new Intl.NumberFormat('it-IT').format(message.amount)} ${what} a ${message.game}!`);
+        break;
+      }
       case 'jukebox':
         setJukebox({ track: message.track, radio: message.radio || null, queue: message.queue || null, station: message.station || null, booth: !!message.booth });
         getJukebox().set(message.track, message.startedAt, message.serverTime, message.radio, upcomingSongs(message));
@@ -737,12 +747,25 @@ export default function HotelPage() {
           else setPanel((current) => current || 'navigator');
           break;
         }
+        // Gli errori del tavolo del poker li mostra il tavolo stesso.
+        if (message.code?.startsWith('poker_') && panel === 'casino') {
+          pokerBus.error(message.code);
+          break;
+        }
         showNotice(ERRORS[message.code] || ERRORS.server_error);
+        break;
+      case 'poker_state':
+        pokerBus.state(message.table);
+        break;
+      case 'poker_cashout':
+        pokerBus.cashout(message.chips, message.reason);
+        if (panel !== 'casino') showNotice(message.reason === 'busted' ? 'Hai finito le fiches al tavolo del poker.' : `Ti sei alzato dal poker con ${message.chips} fiches.`);
+        refreshUser();
         break;
       default:
         break;
     }
-  }, [showNotice, sound, refreshUser, refreshCollection, refreshPacks, send]);
+  }, [showNotice, sound, refreshUser, refreshCollection, refreshPacks, send, panel]);
 
   // Iscrizione ai messaggi dell'hotel finche' la pagina e' aperta. La connessione resta del
   // provider: uscendo si resta nella stanza, segnati come assenti; tornando si chiede lo stato
@@ -961,6 +984,12 @@ export default function HotelPage() {
     if (isOwner && buildMode) {
       setSelected(null);
       setSelectedItemId(item.id);
+      return;
+    }
+    // Casino: tavoli, slot e cassa aprono il gioco.
+    if (CASINO_FURNI[item.type]) {
+      setCasinoGame(CASINO_FURNI[item.type]);
+      setPanel('casino');
       return;
     }
     // Nelle stanze dei giocatori jukebox e giradischi aprono la scelta delle canzoni vere.
@@ -1374,6 +1403,9 @@ export default function HotelPage() {
           />
         )}
         {travel && <TravelOverlay mode={travel.mode} to={travel.to} />}
+        {panel === 'casino' && (
+          <CasinoPanel key={casinoGame} game={casinoGame} send={send} onClose={() => setPanel(null)} onGoldChange={() => refreshUser()} />
+        )}
         {panel === 'jukebox' && (
           <JukeboxPanel jukebox={jukebox} meId={me?.id} isOwner={jukeboxManager} send={send} onClose={() => setPanel(null)} />
         )}
@@ -1460,6 +1492,13 @@ export default function HotelPage() {
       )}
 
       <div className="hotel-toolbar">
+        {/* Strumenti: in riga sotto la stanza, o in colonna a destra con il telefono in orizzontale. */}
+        <div className="hotel-rail">
+        {/* Telefono in orizzontale: l'hotel copre tutto lo schermo, qui si esce e si vedono i gold. */}
+        <button type="button" className="hotel-tool hotel-tool-exit" onClick={() => navigate('/home')} title="Esci dall'hotel">
+          <i className="ph-fill ph-house" />
+        </button>
+        <span className="hotel-gold-pill" title="I tuoi gold"><i className="ph-fill ph-coin" /> {new Intl.NumberFormat('it-IT').format(user?.gold ?? 0)}</span>
         <button type="button" className={`hotel-tool${panel === 'navigator' ? ' active' : ''}`} onClick={() => setPanel(panel === 'navigator' ? null : 'navigator')} title="Navigatore">
           <i className="ph-fill ph-compass" /><span>Stanze</span>
         </button>
@@ -1512,7 +1551,6 @@ export default function HotelPage() {
           </button>
         )}
 
-        <ChatBar send={send} whisperTo={whisperTo} onClearWhisper={() => setWhisperTo(null)} disabled={!online || !room} />
 
         <div className="hotel-emotes">
           {myHand && (
@@ -1548,6 +1586,9 @@ export default function HotelPage() {
             <i className={`ph-fill ${fullscreen ? 'ph-corners-in' : 'ph-corners-out'}`} />
           </button>
         </div>
+        </div>
+
+        <ChatBar send={send} whisperTo={whisperTo} onClearWhisper={() => setWhisperTo(null)} disabled={!online || !room} />
       </div>
     </section>
   );

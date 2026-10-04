@@ -47,6 +47,7 @@ public final class NpcRoster {
     public static final UUID BASKET_ARENA = UUID.fromString("00000000-0000-0000-0000-00000000a01d");
     public static final UUID ROCK_CLUB = UUID.fromString("00000000-0000-0000-0000-00000000a01e");
     public static final UUID ROCK_STORE = UUID.fromString("00000000-0000-0000-0000-00000000a01f");
+    public static final UUID CASINO = UUID.fromString("00000000-0000-0000-0000-00000000a020");
 
     /** Cosa fa il personaggio: da qui dipendono movimento, azioni possibili e battute. */
     public enum Role {
@@ -69,6 +70,7 @@ public final class NpcRoster {
         TAILOR("Sarto", false),
         CLERK("Commesso", false),
         MUSICIAN("Musicista", false),
+        CROUPIER("Croupier", false),
         GUEST("Ospite", true);
 
         private final String title;
@@ -262,7 +264,19 @@ public final class NpcRoster {
             Map.entry(ROCK_STORE, List.of(
                     worker("ruggero", "Ruggero", Role.CLERK, "s1.h6.hc0.sh9.p1.t0.f0.a1.b0.o18.w0.r0.n0.e0.g3", 6, 1, 4),
                     worker("stella", "Stella", Role.CLERK, "s0.h2.hc4.sh1.p1.t4.f2.a5.b1.o17.w0.r0", 13, 1, 4),
-                    walker("plettro", "Plettro", Role.GUEST, "s2.h5.hc2.sh2.p0.t0.f1.a3.b0.o0.w0.r0.n0.e0.g2", 10, 10, 3)))
+                    walker("plettro", "Plettro", Role.GUEST, "s2.h5.hc2.sh2.p0.t0.f1.a3.b0.o0.w0.r0.n0.e0.g2", 10, 10, 3))),
+            Map.entry(CASINO, List.of(
+                    worker("lucky_lou", "Lucky Lou", Role.CROUPIER, "s1.h0.hc0.sh9.p1.t3.f0.a0.b0.o2", 4, 5, 4),
+                    worker("regina", "Regina", Role.CROUPIER, "s3.h3.hc0.sh9.p1.t3.f0.a0.b1.o2", 11, 5, 4),
+                    worker("jean_paul", "Jean-Paul", Role.CROUPIER, "s0.h1.hc9.sh9.p1.t3.f0.a1.b0.o2", 18, 5, 4),
+                    worker("dado", "Dado", Role.CROUPIER, "s4.h9.hc7.sh9.p1.t3.f0.a0.b0.o2", 4, 12, 4),
+                    worker("carmen", "Carmen", Role.CROUPIER, "s2.h2.hc7.sh9.p1.t3.f0.a0.b1.o2", 11, 12, 4),
+                    worker("dimitri", "Dimitri", Role.CROUPIER, "s0.h0.hc3.sh9.p1.t3.f0.a0.b0.o2", 18, 12, 4),
+                    worker("fortuna", "Fortuna", Role.CLERK, "s1.h8.hc2.sh4.p1.t3.f0.a0.b1.o3", 11, 1, 4),
+                    worker("ottavio", "Ottavio", Role.CROUPIER, "s1.h1.hc0.sh9.p1.t3.f0.a0.b0.o2", 13, 16, 4),
+                    worker("martini", "Martini", Role.BARISTA, "s2.h1.hc0.sh7.p1.t2.f0.a0.b0", 20, 17, 4, "cola", "juice", "bubble"),
+                    walker("high_roller", "High Roller", Role.GUEST, "s0.h1.hc2.sh8.p1.t3.f0.a2.b0.o1", 8, 10, 4),
+                    walker("lady_luck", "Lady Luck", Role.GUEST, "s3.h2.hc7.sh6.p1.t3.f2.a0.b1.o8", 15, 16, 4)))
     );
 
     private NpcRoster() {

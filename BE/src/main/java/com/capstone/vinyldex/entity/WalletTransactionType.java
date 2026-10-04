@@ -50,5 +50,7 @@ public enum WalletTransactionType {
     /** Premio di fine stagione sportiva. */
     SEASON_REWARD,
     /** Capi, orologi e veicoli comprati nei negozi del quartiere. */
-    LUXURY
+    LUXURY,
+    /** Casino dell'hotel: fiches alla cassa, puntate e vincite in gold. */
+    CASINO
 }

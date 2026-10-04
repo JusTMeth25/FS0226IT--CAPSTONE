@@ -1769,3 +1769,49 @@ input.filter-select { cursor: text; }
 .battle-synergy-list.compact li { font-size: 0.68rem; padding: 3px 8px; }
 .battle-synergy-empty { margin: var(--space-sm) 0 0; font-size: 0.8rem; color: var(--text-muted); }
 .battle-synergy-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 700; color: var(--neon-gold, #ffc83c); }
+
+/* ========================================
+   ORIENTAMENTO — telefoni in orizzontale, invito a girare il telefono, scelta dello schermo
+   ======================================== */
+/* In orizzontale il notch e gli angoli arrotondati stanno ai lati: niente contenuto sotto. */
+.app-content { padding-left: var(--safe-left); padding-right: var(--safe-right); }
+.bottom-nav { padding-left: var(--safe-left); padding-right: var(--safe-right); }
+
+/* Telefono in orizzontale (poca altezza): barra in alto e in basso piu' basse, piu' spazio alla pagina. */
+@media (orientation: landscape) and (max-height: 520px) {
+  :root { --bottom-nav-h: 50px; }
+  .header-inner { padding-top: 4px; padding-bottom: 4px; }
+  .bottom-nav-item { flex-direction: row; gap: 6px; font-size: 0.7rem; }
+  .bottom-nav-item i { font-size: 1.15rem; }
+  .more-sheet { max-height: calc(100dvh - 16px); }
+  .more-sheet-grid { grid-template-columns: repeat(5, 1fr); }
+  .more-sheet-item { padding: var(--space-sm) var(--space-xs); }
+}
+
+.orientation-picker { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--space-md); }
+.orientation-picker-title { font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; }
+.orientation-picker-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-xs); }
+.orientation-picker-options button {
+  display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 6px; border-radius: var(--radius-md);
+  background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.75rem; font-weight: 700;
+}
+.orientation-picker-options button.active { border-color: var(--neon-purple); color: var(--text-primary); background: rgba(139, 92, 246, 0.18); }
+.orientation-picker-options i.rotated { transform: rotate(90deg); }
+.orientation-picker small { color: var(--text-secondary); font-size: 0.7rem; }
+
+.rotate-prompt {
+  position: fixed; inset: 0; z-index: 3000; display: grid; place-items: center;
+  padding: calc(var(--safe-top) + 16px) calc(var(--safe-right) + 16px) calc(var(--safe-bottom) + 16px) calc(var(--safe-left) + 16px);
+  background: rgba(5, 8, 22, 0.92); backdrop-filter: blur(8px);
+}
+.rotate-prompt-card {
+  width: min(340px, 100%); padding: var(--space-lg); border-radius: var(--radius-lg); text-align: center;
+  background: var(--bg-secondary); border: 1px solid var(--glass-border); display: flex; flex-direction: column; align-items: center; gap: var(--space-sm);
+}
+.rotate-prompt-card h2 { margin: 0; font-size: 1.2rem; }
+.rotate-prompt-card p { margin: 0; color: var(--text-secondary); font-size: 0.9rem; }
+.rotate-prompt-hint { font-size: 0.8rem !important; }
+.rotate-prompt-phone { font-size: 3.4rem; color: var(--neon-purple); animation: rotatePhone 2.2s ease-in-out infinite; }
+@keyframes rotatePhone { 0%, 20% { transform: rotate(0deg); } 50%, 80% { transform: rotate(-90deg); } 100% { transform: rotate(0deg); } }
+.rotate-prompt-stay { background: none; border: none; color: var(--text-secondary); text-decoration: underline; font-size: 0.8rem; padding: 4px; }
+@media (prefers-reduced-motion: reduce) { .rotate-prompt-phone { animation: none; transform: rotate(-90deg); } }

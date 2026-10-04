@@ -246,6 +246,16 @@ public final class FurniCatalog {
         add(new FurniDef("rock_counter", "Banco del merchandising", "negozi", 0, 2, 1, false, false, -1, false, false));
         add(new FurniDef("facade_rock", "Locale rock", "quartiere", 0, 5, 2, false, false, -1, false, false));
         add(new FurniDef("facade_guitars", "Rock Store", "quartiere", 0, 4, 2, false, false, -1, false, false));
+        // Casino: tavoli verdi, slot e video poker, cassa delle fiches. Si gioca cliccandoli (CasinoService).
+        add(new FurniDef("slot_machine", "Slot machine", "casino", 0, 1, 1, false, false, -1, false, false));
+        add(new FurniDef("poker_machine", "Video poker", "casino", 0, 1, 1, false, false, -1, false, false));
+        add(new FurniDef("roulette_table", "Tavolo della roulette", "casino", 0, 3, 2, false, false, -1, false, false));
+        add(new FurniDef("blackjack_table", "Tavolo del blackjack", "casino", 0, 3, 2, false, false, -1, false, false));
+        add(new FurniDef("baccarat_table", "Tavolo del baccarat", "casino", 0, 3, 2, false, false, -1, false, false));
+        add(new FurniDef("craps_table", "Tavolo dei dadi", "casino", 0, 3, 2, false, false, -1, false, false));
+        add(new FurniDef("casino_cashier", "Cassa delle fiches", "casino", 0, 2, 1, false, false, -1, false, false));
+        add(new FurniDef("casino_rug", "Moquette del casino", "casino", 0, 3, 3, false, true, -1, false, false));
+        add(new FurniDef("poker_table", "Tavolo del Texas Hold'em", "casino", 0, 4, 2, false, false, -1, false, false));
     }
 
     private FurniCatalog() {

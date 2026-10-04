@@ -72,6 +72,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     private final FishingService fishingService;
     private final ClubService clubService;
     private final PvpService pvpService;
+    private final com.capstone.vinyldex.casino.PokerService pokerService;
     private final NpcTradeService npcTradeService;
     private final PackService packService;
     private final PackRecapService packRecapService;
@@ -84,7 +85,9 @@ public class HotelSocketHandler extends TextWebSocketHandler {
                               HotelSocialService socialService, PvpService pvpService, NpcTradeService npcTradeService,
                               PackService packService, PackRecapService packRecapService,
                               MinigameRewardService minigameRewardService, PetService petService,
-                              FishingService fishingService, ClubService clubService) {
+                              FishingService fishingService, ClubService clubService,
+                              com.capstone.vinyldex.casino.PokerService pokerService) {
+        this.pokerService = pokerService;
         this.fishingService = fishingService;
         this.clubService = clubService;
         this.objectMapper = objectMapper;
@@ -154,7 +157,11 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         HotelSession session = sessions.remove(raw.getId());
         if (session == null) return;
         // Chi si disconnette durante una sfida la perde a tavolino.
-        if (session.user() != null) pvpService.userLeft(session.user().id());
+        if (session.user() != null) {
+            pvpService.userLeft(session.user().id());
+            // Chi si disconnette si alza dal tavolo del poker (le fiches tornano nel portafoglio).
+            pokerService.userLeft(session.user().id());
+        }
         registry.unregister(session);
     }
 
@@ -190,10 +197,12 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             case "join" -> {
                 // Cambiare stanza durante una sfida vale come abbandono.
                 pvpService.userLeft(userId);
+                pokerService.userLeft(userId);
                 join(session, text(node, "roomId"));
             }
             case "leave" -> {
                 pvpService.userLeft(userId);
+                pokerService.userLeft(userId);
                 registry.leaveRoom(session);
             }
             case "move" -> {
@@ -273,6 +282,11 @@ public class HotelSocketHandler extends TextWebSocketHandler {
             case "jukebox_remove" -> {
                 if (room != null) reply(session, room.removeSong(userId, text(node, "songId")));
             }
+            case "poker_watch" -> pokerService.watch(session);
+            case "poker_join" -> reply(session, pokerService.join(userId, session.user().username(), session.user().look(),
+                    node.path("buyIn").asInt(0)));
+            case "poker_leave" -> reply(session, pokerService.leave(userId));
+            case "poker_action" -> reply(session, pokerService.action(userId, text(node, "action"), node.path("amount").asInt(0)));
             case "jukebox_radio" -> {
                 if (room != null) reply(session, room.setStation(userId, text(node, "name"), node.path("tracks"),
                         node.path("append").asBoolean(false)));

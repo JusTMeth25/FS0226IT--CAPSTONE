@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Suspense } from 'react';
 import { useLocation, Outlet } from 'react-router-dom';
 import LoadingSpinner from '../common/LoadingSpinner.jsx';
@@ -12,6 +12,8 @@ import { useScrollRestoration } from '../../hooks/useScrollRestoration.js';
 import HotelProvider from '../../hotel/HotelProvider.jsx';
 import PageTour from '../common/PageTour.jsx';
 import { useFreePackNotifier } from '../../hooks/useFreePackNotifier.js';
+import RotatePrompt from './RotatePrompt.jsx';
+import { applyOrientation, onOrientationPref } from '../../services/orientation.js';
 
 export default function AppLayout() {
   const location = useLocation();
@@ -27,11 +29,20 @@ export default function AppLayout() {
   // invece di ripartire dall'inizio dell'elenco.
   useScrollRestoration();
 
+  // Orientamento dello schermo: orizzontale nell'hotel, altrimenti quello scelto dal giocatore.
+  const inHotel = location.pathname.startsWith('/hotel');
+  useEffect(() => {
+    applyOrientation(inHotel);
+    document.body.classList.toggle('in-hotel', inHotel);
+    return onOrientationPref(() => applyOrientation(inHotel));
+  }, [inHotel]);
+
   return (
     // La connessione all'hotel vive qui e non nella sua pagina: cambiando sezione si resta
     // nella stanza e si ricevono sfide e scambi.
     <HotelProvider>
       <GoldFlight />
+      {inHotel && <RotatePrompt />}
       <PageTour key={location.pathname} path={location.pathname} />
 
       <div className="app-shell">
