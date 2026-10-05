@@ -905,7 +905,10 @@ export default function HotelPage() {
     if (room?.id !== DISTRICT_ID) return undefined;
     let cancelled = false;
     roomApi.navigator().then((res) => {
-      if (!cancelled) canvasRef.current?.setVillas((res.userRooms || []).filter((r) => r.ownerName));
+      if (cancelled) return;
+      canvasRef.current?.setVillas((res.userRooms || []).filter((r) => r.ownerName));
+      // Un palazzo per ogni stanza pubblica, nell'ordine del navigatore (anche quelle che verranno).
+      canvasRef.current?.setPlots((res.publicRooms || []).filter((r) => r.id !== DISTRICT_ID));
     }).catch(() => {});
     return () => { cancelled = true; };
   }, [room?.id]);
@@ -1090,6 +1093,12 @@ export default function HotelPage() {
       setPanel('travel');
       return;
     }
+    // Quartiere: ogni palazzo porta dentro la sua stanza; i cantieri sono lotti ancora liberi.
+    if (item.type === 'building') {
+      if (item.plot) join(item.plot.id);
+      else showNotice('Cantiere: qui aprirà una stanza nuova.');
+      return;
+    }
     if (item.type === 'villa') {
       if (item.villa) join(item.villa.id);
       else showNotice('Questa villa e\' ancora in vendita: arreda la tua stanza e i giocatori la vedranno qui!');
@@ -1206,7 +1215,7 @@ export default function HotelPage() {
               </span>
             )}
             <div className="hotel-room-info-actions">
-              {DISTRICT_ROOMS.has(room.id) && (
+              {(DISTRICT_ROOMS.has(room.id) || (!room.ownerId && room.id !== DISTRICT_ID)) && (
                 <button type="button" className="hotel-like" onClick={() => join(DISTRICT_ID)} title="Esci in strada">
                   <i className="ph-fill ph-road-horizon" /> Quartiere
                 </button>

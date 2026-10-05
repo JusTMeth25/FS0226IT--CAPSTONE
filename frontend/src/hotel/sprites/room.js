@@ -1311,6 +1311,84 @@ FLOOR_FACTORIES.street = (layout) => {
 };
 
 /**
+ * Citta' del Quartiere (BE/scripts/hotel_rooms.py, CITY_ROWS e CITY_COL): quattro viali
+ * orizzontali larghi 4 caselle, una via verticale fra il primo e l'ultimo, marciapiedi, la fila dei
+ * palazzi sopra ogni viale, giardini fra un viale e la fila dopo, la piazza in alto e le ville in
+ * fondo, nei lotti con la siepe.
+ */
+export const CITY_PLAN = { rows: [9, 20, 31, 42], col: 24 };
+
+FLOOR_FACTORIES.city = () => {
+  const { rows, col } = CITY_PLAN;
+  const asphalt = rgb('#34363d');
+  const walk = ['#b9b4aa', '#c4bfb4'].map(rgb);
+  const curb = rgb('#8d8a84');
+  const white = rgb('#eef0f2');
+  const yellow = rgb('#f2c230');
+  const paver = ['#d8c9ad', '#cdbb9b', '#e1d4ba'].map(rgb);
+  const grass = ['#4f9a3f', '#58a547'].map(rgb);
+  const path = rgb('#d9c9a3');
+  const hedge = rgb('#2f6f2a');
+  const first = rows[0];
+  const last = rows[rows.length - 1];
+  const avenueOf = (ty) => rows.find((s) => ty >= s && ty <= s + 3);
+  return (X, Y, sx, sy) => {
+    const n = noise(sx, sy);
+    const tx = Math.floor(X);
+    const ty = Math.floor(Y);
+    const av = avenueOf(ty);
+    const onAvenue = av !== undefined;
+    const onStreet = tx >= col && tx <= col + 3 && ty >= first && ty <= last + 3;
+    if (onAvenue || onStreet) {
+      const zebraAv = onAvenue && (tx === col - 1 || tx === col + 4);
+      const zebraSt = onStreet && !onAvenue && (avenueOf(ty - 1) !== undefined || avenueOf(ty + 1) !== undefined);
+      if (zebraAv && frac(Y * 2) < 0.55) return tint(white, (n - 0.5) * 0.06);
+      if (zebraSt && frac(X * 2) < 0.55) return tint(white, (n - 0.5) * 0.06);
+      if (onAvenue && !onStreet && !zebraAv) {
+        const mid = av + 2;
+        if (Math.abs(Y - mid + 0.06) < 0.025 || Math.abs(Y - mid - 0.06) < 0.025) return yellow;
+        if ((Math.abs(Y - (av + 1)) < 0.03 || Math.abs(Y - (av + 3)) < 0.03) && frac(X / 2) < 0.5) return white;
+      }
+      if (onStreet && !onAvenue && !zebraSt) {
+        const mid = col + 2;
+        if (Math.abs(X - mid + 0.06) < 0.025 || Math.abs(X - mid - 0.06) < 0.025) return yellow;
+      }
+      return tint(asphalt, (n - 0.5) * 0.09 + (hashDot(sx, sy) ? 0.1 : 0));
+    }
+    // Marciapiedi: la riga sopra e sotto ogni viale e le colonne ai lati della via.
+    const sideAv = rows.some((s) => ty === s - 1 || ty === s + 4);
+    const sideSt = (tx === col - 1 || tx === col + 4) && ty >= first && ty <= last + 3;
+    if (sideAv || sideSt) {
+      if (rows.some((s) => (ty === s - 1 && frac(Y) > 0.9) || (ty === s + 4 && frac(Y) < 0.1))) return curb;
+      if ((tx === col - 1 && frac(X) > 0.9) || (tx === col + 4 && frac(X) < 0.1)) return curb;
+      const tile = (Math.floor(X * 2) + Math.floor(Y * 2)) % 2;
+      if (frac(X * 2) < 0.04 || frac(Y * 2) < 0.04) return tint(walk[0], -0.12);
+      return tint(walk[tile], (n - 0.5) * 0.05);
+    }
+    // Ville in fondo: prato con le siepi fra un lotto e l'altro e il vialetto d'ingresso.
+    if (ty > last + 4) {
+      const lot = Math.floor((X - 1) / 6);
+      const inLot = (X - 1) - lot * 6;
+      if (inLot < 0.12) return tint(hedge, (n - 0.5) * 0.1);
+      if (Math.abs(inLot - 2.5) < 0.45 && ty < last + 8) return tint(path, (n - 0.5) * 0.08);
+      return tint(grass[(Math.floor(X * 2) + Math.floor(Y * 2)) % 2], (n - 0.5) * 0.07);
+    }
+    // Fila dei palazzi (le tre righe sopra il marciapiede) e piazza in alto: cubetti a spina.
+    const buildingRow = rows.some((s) => ty >= s - 4 && ty <= s - 2);
+    if (buildingRow || ty < first - 4) {
+      const bx = Math.floor(X * 3);
+      const by = Math.floor(Y * 3);
+      if (frac(X * 3) < 0.08 || frac(Y * 3) < 0.08) return tint(paver[0], -0.2);
+      return tint(paver[(bx * 7 + by * 3) % 3], (n - 0.5) * 0.06);
+    }
+    // Giardini fra un viale e la fila dopo: prato con il vialetto in mezzo.
+    const garden = rows.find((s) => ty >= s + 5 && ty <= s + 7);
+    if (garden !== undefined && Math.abs(Y - (garden + 6.5)) < 0.4) return tint(path, (n - 0.5) * 0.08);
+    return tint(grass[(Math.floor(X) + Math.floor(Y)) % 2], (n - 0.5) * 0.08 + ((sx + sy) % 5 === 0 ? 0.05 : 0));
+  };
+};
+
+/**
  * Palaghiaccio: la pista sta due caselle dentro i bordi (come il campo da calcio), ghiaccio
  * bianco con i graffi dei pattini, linea rossa a meta', linee blu, cerchi d'ingaggio e aree
  * delle porte. Fuori dalla balaustra un pavimento di gomma scura.

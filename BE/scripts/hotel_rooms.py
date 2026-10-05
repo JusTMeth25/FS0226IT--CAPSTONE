@@ -34,12 +34,13 @@ V69 = os.path.join(MIGRATIONS_DIR, 'V69__casino_bingo.sql')
 V71 = os.path.join(MIGRATIONS_DIR, 'V71__casino_horse_race.sql')
 V74 = os.path.join(MIGRATIONS_DIR, 'V74__hotel_smoke_shops.sql')
 V76 = os.path.join(MIGRATIONS_DIR, 'V76__casino_vault.sql')
+V77 = os.path.join(MIGRATIONS_DIR, 'V77__district_city.sql')
 LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18, 18: V19, 19: V30, 20: V44, **{n: V46 for n in range(21, 30)}, 30: V48, 31: V48, 32: V67, 33: V74, 34: V74, 35: V76}
 # Migrazione in lavorazione: le altre, gia' pubblicate, non si riscrivono piu' (Flyway ne controlla
 # il contenuto). Le stanze cambiate dopo la pubblicazione si rifanno qui (REBUILT) e gli arredi da
 # togliere si elencano in REMOVED.
-CURRENT = V76
-REBUILT = {16: V19, 8: V20, 12: V20}
+CURRENT = V77
+REBUILT = {16: V19, 8: V20, 12: V20, 21: V77}
 REMOVED = {V19: [('00000000-0000-0000-0000-00000000a00f', 'basket_hoop')]}
 # Arredi aggiunti a stanze gia' pubblicate: finiscono nella migrazione indicata (vedi Room.migration).
 MIGRATION_TITLES = {
@@ -55,6 +56,7 @@ MIGRATION_TITLES = {
     V68: "Casino: il tavolo del Texas Hold'em, per giocare a poker con gli altri giocatori e con gli NPC.",
     V69: 'Casino: il banco del Bingo a 90 numeri, con il banditore.',
     V71: "Casino: l'ippodromo con la corsa dei cavalli e le scommesse, con l'allibratore.",
+    V77: "Il Quartiere diventa una citta': viali, giardini e un palazzo per ogni stanza dell'hotel, con la sua facciata.",
     V76: "Il Caveau del casino, riservato all'admin: banconote, fiches, lingotti, diamanti e la cassaforte degli incassi. La porta blindata e' nel casino.",
     V74: 'Due negozi nuovi: la Tabaccheria (sigarette, sigari, pipe) e il Green Shop (erba light, canne e bong).',
     V46: 'Il Quartiere: viale con i negozi di lusso (atelier, gioielleria, skate, bici, auto), la caffetteria, '
@@ -148,6 +150,7 @@ FURNI = {
     'tobacco_counter': (3, 1, False, False, -1), 'cigar_humidor': (1, 1, False, False, -1),
     'weed_counter': (3, 1, False, False, -1), 'weed_plant': (1, 1, False, False, -1),
     # Caveau del casino.
+    'building': (4, 3, False, False, -1),
     'vault_door': (1, 1, False, False, -1), 'vault_safe': (2, 1, False, False, -1), 'cash_pallet': (2, 2, False, False, -1),
     'money_pile': (1, 1, False, False, -1), 'gold_bars': (1, 1, False, False, -1), 'diamond_case': (1, 1, False, False, -1),
     'chip_tower': (1, 1, False, False, -1),
@@ -854,51 +857,59 @@ r.worker('rocco', 'Rocco', 'BOUNCER', 's4.h9.hc7.sh9.p1.t3.f0.a0', 2, 8, 2)
 
 # ------------------------------------------------------------------ Quartiere
 
-# Viale e via come li disegna il pavimento "street" (src/hotel/sprites/room.js, streetPlan): il
-# viale occupa le righe AY0..AY0+3, la via le colonne SX0..SX0+3, con i marciapiedi intorno.
-DW, DH = 36, 34
-AY0, SX0 = DH // 2 - 1, DW // 2 - 1
+# Citta' a griglia come la disegna il pavimento "city" (src/hotel/sprites/room.js, CITY_PLAN):
+# quattro viali orizzontali (righe da CITY_ROWS a +3) e una via verticale (colonne CITY_COL..+3)
+# fra il primo e l'ultimo viale. Sopra ogni viale, oltre il marciapiede, una fila di palazzi che
+# guardano la strada: ogni lotto ("building") mostra fuori una stanza pubblica, assegnata dal
+# client nell'ordine del navigatore (anche quelle che verranno: i lotti liberi sono di scorta).
+# Fra un viale e la fila dopo c'e' un giardino; in alto la piazza, in basso le ville.
+DW, DH = 52, 53
+CITY_ROWS = (9, 20, 31, 42)
+CITY_COL = 24
 r = room(21, 'DISTRICT', 'Quartiere',
-         'Il viale dei negozi di lusso: atelier, gioielleria, skate, bici e auto sportive, la caffetteria, '
-         'il palaghiaccio, l\'arena del basket e le ville dei giocatori. Si gira anche in skate, in bici e in auto!',
-         DW, DH, AY0 + 1, 'street', 'street', 21)
-# In alto a sinistra: atelier, gioielleria e caffetteria; il palaghiaccio lungo il muro sinistro.
-r.add('facade_atelier', 2, 1).add('facade_watches', 7, 1).add('facade_cafe', 12, 1)
-r.add('arena_hockey', 1, 4, 2)
-# In alto a destra: skate shop, bici e concessionaria.
-r.add('facade_skate', 22, 1).add('facade_bikes', 26, 1).add('facade_cars', 30, 1)
-# Piazze: alberi, panchine, lampioni, idranti.
-for x, y in [(8, 6), (13, 6), (25, 7), (31, 7), (8, 11), (29, 11)]:
-    r.add('street_tree', x, y)
-r.add('bench', 10, 8, 0).add('bench', 27, 9, 0).add('fountain', 34, 8)
-for x in (6, 11, 15, 24, 30, 35):
-    r.add('street_lamp', x, AY0 - 2)
-r.add('hydrant', 14, AY0 - 2).add('hydrant', 23, AY0 + 5)
-r.add('traffic_light', SX0 - 1, AY0 - 1).add('traffic_light', SX0 + 4, AY0 + 4)
-# In basso a sinistra il parco con l'arena del basket e la fermata dell'autobus.
-r.add('arena_basket', 1, AY0 + 7, 2)
-r.add('bus_stop', 9, AY0 + 5).add('fountain', 9, AY0 + 10).add('flower_bed', 7, AY0 + 9).add('flower_bed', 12, AY0 + 9)
-for x, y in [(6, AY0 + 6), (13, AY0 + 6), (6, AY0 + 14), (13, AY0 + 14), (15, AY0 + 17)]:
-    r.add('street_tree', x, y)
-r.add('bench', 10, AY0 + 14, 0).add('street_lamp', 15, AY0 + 5)
-# In basso a destra le ville dei giocatori: tre file da due, ognuna nel suo lotto con la siepe.
-for y in (AY0 + 6, AY0 + 11, AY0 + 16):
-    for x in (SX0 + 6, SX0 + 12):
-        r.add('villa', x, y)
-for y in (AY0 + 8, AY0 + 13):
-    r.add('street_lamp', SX0 + 11, y)
-# Personaggi: chi va in auto sul viale, chi in skate o in bici, chi passeggia vestito elegante.
-r.walker('enzo', 'Enzo', 'GUEST', 's2.h9.hc0.sh8.p1.t2.f0.a2.b0.o1.w3.r5', 8, AY0 + 2, 7)
-r.walker('lola', 'Lola', 'GUEST', 's1.h2.hc2.sh1.p1.t4.f2.a2.b1.o3.w2.r6', 28, AY0 + 1, 7)
-r.walker('kiko', 'Kiko', 'GUEST', 's3.h5.hc6.sh2.p0.t1.f1.a3.b0.o0.w0.r1', 10, 9, 5)
-r.walker('bea', 'Bea', 'GUEST', 's0.h7.hc4.sh5.p6.t0.f1.a0.b1.o0.w0.r4', SX0 + 1, AY0 + 10, 6)
-r.walker('gigio', 'Gigio', 'GUEST', 's4.h4.hc0.sh10.p0.t1.f5.a6.b0.o0.w0.r3', 28, 8, 5)
-# Il Locale Rock e il Rock Store (facciate nel parco) li aggiunge la V49 a mano: la V46 e' pubblicata.
-r.walker('contessa', 'Contessa', 'GUEST', 's1.h3.hc3.sh7.p1.t2.f0.a5.b1.o8.w4.r0', 8, AY0 + 13, 3)
-r.walker('max', 'Max', 'GUEST', 's2.h0.hc1.sh9.p1.t3.f0.a2.b0.o7.w1.r7', 30, AY0 + 2, 6)
+         "La citta' di VinylDex: ogni palazzo e' una stanza dell'hotel, con la sua facciata (stadio, cinema, "
+         "casino, piscina, negozi...). Cammina per i viali e entra dove vuoi; in fondo le ville dei giocatori. "
+         'Si gira anche in skate, in bici e in auto!',
+         DW, DH, CITY_ROWS[0] + 1, 'city', 'street', 21)
+for s in CITY_ROWS:
+    # Palazzi sopra il viale (4x3, la facciata guarda il viale), interrotti dalla via verticale.
+    for x in (1, 5, 9, 13, 17, 28, 32, 36, 40, 44, 48):
+        r.add('building', x, s - 4)
+    # Lampioni sul marciapiede fra i palazzi e idranti agli incroci.
+    for x in (21, 22, 52):
+        r.add('street_lamp', x, s - 1)
+    r.add('traffic_light', CITY_COL - 1, s + 4).add('traffic_light', CITY_COL + 4, s - 1)
+    # Giardino fra il viale e la fila dopo: alberi, panchine, aiuole.
+    if s != CITY_ROWS[-1]:
+        g = s + 6
+        for x in (3, 9, 15, 20, 31, 37, 43, 49):
+            r.add('street_tree', x, g)
+        for x in (6, 12, 34, 46):
+            r.add('bench', x, g, 0)
+        for x in (18, 40):
+            r.add('flower_bed', x, g)
+r.add('hydrant', 23, CITY_ROWS[1] - 1).add('hydrant', 29, CITY_ROWS[2] + 4)
+r.add('bus_stop', 30, CITY_ROWS[0] + 4)
+# Piazza in alto: fontana, alberi e lampioni.
+r.add('fountain', 25, 2)
+for x in (8, 16, 34, 42):
+    r.add('street_tree', x, 2)
+for x in (12, 20, 30, 38, 46):
+    r.add('street_lamp', x, 1)
+# In fondo le ville dei giocatori, nei loro lotti.
+for x in (2, 8, 14, 30, 36, 42, 48):
+    r.add('villa', x, 48)
+for x in (6, 12, 18, 34, 40, 46):
+    r.add('street_tree', x, 52)
+# Personaggi: chi va in auto sui viali, chi in skate o in bici, chi passeggia vestito elegante.
+r.walker('enzo', 'Enzo', 'GUEST', 's2.h9.hc0.sh8.p1.t2.f0.a2.b0.o1.w3.r5', 8, CITY_ROWS[0] + 2, 7)
+r.walker('lola', 'Lola', 'GUEST', 's1.h2.hc2.sh1.p1.t4.f2.a2.b1.o3.w2.r6', 38, CITY_ROWS[1] + 1, 7)
+r.walker('kiko', 'Kiko', 'GUEST', 's3.h5.hc6.sh2.p0.t1.f1.a3.b0.o0.w0.r1', 12, CITY_ROWS[1] + 2, 5)
+r.walker('bea', 'Bea', 'GUEST', 's0.h7.hc4.sh5.p6.t0.f1.a0.b1.o0.w0.r4', CITY_COL + 1, 26, 6)
+r.walker('gigio', 'Gigio', 'GUEST', 's4.h4.hc0.sh10.p0.t1.f5.a6.b0.o0.w0.r3', 40, CITY_ROWS[2] + 2, 5)
+r.walker('contessa', 'Contessa', 'GUEST', 's1.h3.hc3.sh7.p1.t2.f0.a5.b1.o8.w4.r0', 25, 6, 3)
+r.walker('max', 'Max', 'GUEST', 's2.h0.hc1.sh9.p1.t3.f0.a2.b0.o7.w1.r7', 30, CITY_ROWS[3] + 2, 6)
 
-
-# ------------------------------------------------------------------ Negozi del quartiere
 
 r = room(22, 'ATELIER', 'Atelier di sartoria',
          'Completi su misura, abiti da sera e cappotti: provali allo specchio e chiedi un consiglio al sarto.',

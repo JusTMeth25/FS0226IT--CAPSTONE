@@ -1,4 +1,5 @@
 import { HALF_H, HALF_W } from '../iso.js';
+import { drawBuilding } from './cityBuildings.js';
 import { bake, createCanvas, shade } from './pixel.js';
 import { getRarityColor, resolveCardImage } from '../../utils/cardUtils.js';
 import { BASE_URL } from '../../services/apiClient.js';
@@ -294,6 +295,7 @@ function filmPixel(x, z, step, scene) {
 
 /** Mobili piu' alti del solito (palazzi del quartiere): spazio in piu' sopra lo sprite. */
 const TALL = {
+  building: 280,
   facade_atelier: 170, facade_watches: 170, facade_skate: 150, facade_bikes: 150, facade_cars: 160, facade_cafe: 160,
   arena_hockey: 200, arena_basket: 200, villa: 150, facade_rock: 170, facade_guitars: 160
 };
@@ -1456,6 +1458,7 @@ const DRAW = {
     c({ u: 1.85, v: 1.45, r: 0.07, z0: 36, z1: 40, color: '#fdfbf5', top: '#fdfbf5' });
     d(1.84, 1.45, 40, '#c1121f', 1, 1);
   },
+  building: drawBuilding,
   vault_door(b, { c, d }) {
     // Porta blindata 1x1 del Caveau: lastra d'acciaio rotonda con la ruota e i bulloni, nel telaio.
     b({ u0: 0.05, v0: 0.3, u1: 0.95, v1: 0.7, z1: 76, color: '#374151', left: '#4b5563', right: '#1f2937' });

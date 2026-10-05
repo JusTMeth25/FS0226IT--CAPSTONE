@@ -9,6 +9,7 @@ import { GEM_H, GEM_W, drawSparkle, gemSprite } from './sprites/gem.js';
 import { getRarityColor } from '../utils/cardUtils.js';
 import { DECOR_DEFS as SEASON_DECOR, createWeatherState, drawWeather, isOutdoor, seasonDecor } from './weather.js';
 import { LOOT_DEFS, VAULT_ID, vaultLoot } from './vaultLoot.js';
+import { SIGN_COLORS, themeOf } from './sprites/cityBuildings.js';
 
 /** Decorazioni finte: quelle di stagione e il tesoro del Caveau. */
 const DECOR_DEFS = { ...SEASON_DECOR, ...LOOT_DEFS };
@@ -335,6 +336,7 @@ export class HotelEngine {
     this.bubbles = [];
     this.items = new Map((message.items || []).map((item) => [item.id, item]));
     this.assignVillas();
+    this.assignPlots();
     this.rink = null;
     this.waterTiles = null;
     this.jukeboxOn = (message.jukebox?.track ?? -1) >= 0;
@@ -1246,7 +1248,7 @@ export class HotelEngine {
     const playing = item.type === 'dance_tile' || item.type === 'fever_tile' ? this.jukeboxOn : !!item.playing;
     const anim = animationState(item, now, { playing, still: this.reducedMotion });
     // Chiave per aspetto, non per mobile: stesse sedie o stesse piastrelle condividono lo sprite.
-    const key = `${item.type}|${item.rot}|${item.card?.id || ''}|${item.card?.grade || 0}|${playing ? 1 : 0}|${anim.key}`;
+    const key = `${item.type}|${item.rot}|${item.theme || ''}|${item.plot?.name || ''}|${item.card?.id || ''}|${item.card?.grade || 0}|${playing ? 1 : 0}|${anim.key}`;
     let cached = this.spriteCache.get(key);
     if (!cached) {
       cached = furniSprite({ ...item, playing, colorIndex: anim.colorIndex, lit: anim.lit }, def, {
@@ -1614,6 +1616,9 @@ export class HotelEngine {
       else if (item.type === 'car_display' || item.type.startsWith('showcar_')) this.drawCarDisplay(ctx, item, now, toScreen, scale);
       if (SIGNS[item.type]) this.drawSign(ctx, item, SIGNS[item.type], toScreen, scale);
       else if (item.type === 'villa') this.drawVillaPlate(ctx, item, toScreen, scale);
+      else if (item.type === 'building' && item.plot) {
+        this.drawSign(ctx, item, { text: item.plot.name.toUpperCase(), color: SIGN_COLORS[item.theme] || '#ffffff', u: 2, v: 2.92, z: 52, size: item.plot.name.length > 14 ? 9 : 12 }, toScreen, scale);
+      }
     };
     const items = [...this.items.values()].filter((item) => this.catalog.has(item.type));
     const backItems = items.filter((item) => this.itemDepth(item) < -100).sort((a, b) => this.itemDepth(a) - this.itemDepth(b));
@@ -2220,6 +2225,25 @@ export class HotelEngine {
   }
 
   /** Ville del quartiere: a chi appartengono (le stanze dei giocatori piu' frequentate e amate). */
+  /**
+   * Quartiere: ogni lotto "building" mostra una stanza pubblica, nell'ordine del navigatore (righe
+   * dall'alto, da sinistra). Le stanze nuove prendono da sole i lotti liberi; quelli che restano
+   * sono cantieri.
+   */
+  setPlots(rooms) {
+    this.plotRooms = rooms || [];
+    this.assignPlots();
+  }
+
+  assignPlots() {
+    const plots = [...this.items.values()].filter((i) => i.type === 'building').sort((a, b) => a.y - b.y || a.x - b.x);
+    plots.forEach((plot, i) => {
+      const room = this.plotRooms?.[i] || null;
+      plot.plot = room ? { id: room.id, name: room.name } : null;
+      plot.theme = themeOf(room);
+    });
+  }
+
   setVillas(rooms) {
     // Una villa per giocatore: di chi ha piu' stanze si tiene la prima (la piu' frequentata).
     const seen = new Set();

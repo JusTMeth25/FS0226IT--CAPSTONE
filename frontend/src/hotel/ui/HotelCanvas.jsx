@@ -29,6 +29,7 @@ const HotelCanvas = forwardRef(function HotelCanvas({ walkKeys = true, zoom, onZ
     pulse: () => engineRef.current?.pulse(),
     setMaxFps: (fps) => engineRef.current?.setMaxFps(fps),
     setVillas: (rooms) => engineRef.current?.setVillas(rooms),
+    setPlots: (rooms) => engineRef.current?.setPlots(rooms),
     snapshot: () => {
       const source = canvasRef.current;
       if (!source) return null;
