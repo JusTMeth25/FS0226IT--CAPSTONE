@@ -11,12 +11,19 @@
  * Le decorazioni sono solo grafica: non occupano caselle e non si cliccano.
  */
 
-/** Pareti delle stanze all'aperto. */
-// Stanze all'aperto: meteo e luce del giorno.
-const OUTDOOR_WALLS = new Set(['hedge', 'skyline', 'seaside', 'stadium', 'street']);
+/** Pareti che stanno sempre all'aperto (giardino, spiaggia, quartiere). */
+const OUTDOOR_WALLS = new Set(['hedge', 'seaside', 'street']);
+/**
+ * Skyline e tribune servono anche ai locali al chiuso (Wall Street, palazzetti): li' si e' fuori
+ * solo col pavimento da esterno (terrazza, campo, pista).
+ */
+const OPEN_WALLS = new Set(['skyline', 'stadium']);
+const OUTDOOR_FLOORS = new Set(['wooddeck', 'pitch', 'kart', 'grass', 'sand']);
 
+/** Stanza all'aperto: meteo e luce del giorno (come RoomInstance.outdoor sul server). */
 export function isOutdoor(room) {
-  return !!room && OUTDOOR_WALLS.has(room.wallStyle);
+  if (!room) return false;
+  return OUTDOOR_WALLS.has(room.wallStyle) || (OPEN_WALLS.has(room.wallStyle) && OUTDOOR_FLOORS.has(room.floorStyle));
 }
 
 /** Icona Phosphor per la condizione del cielo. */

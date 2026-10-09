@@ -1947,11 +1947,19 @@ public class RoomInstance {
         return message;
     }
 
-    /** Stanze all'aperto dove si va in skate, bici o auto (non negli stadi): come RIDE_WALLS in src/hotel/HotelEngine.js. */
-    static final java.util.Set<String> RIDE_WALLS = java.util.Set.of("hedge", "skyline", "seaside", "street");
+    /** Pareti sempre all'aperto; skyline e tribune lo sono solo col pavimento da esterno (come isOutdoor in src/hotel/weather.js). */
+    static final java.util.Set<String> OUTDOOR_WALLS = java.util.Set.of("hedge", "seaside", "street");
+    static final java.util.Set<String> OPEN_WALLS = java.util.Set.of("skyline", "stadium");
+    static final java.util.Set<String> OUTDOOR_FLOORS = java.util.Set.of("wooddeck", "pitch", "kart", "grass", "sand");
 
+    boolean outdoor() {
+        return OUTDOOR_WALLS.contains(data.wallStyle())
+                || (OPEN_WALLS.contains(data.wallStyle()) && OUTDOOR_FLOORS.contains(data.floorStyle()));
+    }
+
+    /** Stanze dove si va in skate, bici o auto: all'aperto ma non negli stadi (come canRide in src/hotel/sprites/vehicles.js). */
     boolean rideable() {
-        return RIDE_WALLS.contains(data.wallStyle());
+        return outdoor() && !"stadium".equals(data.wallStyle());
     }
 
     /** Caselle per tick: il veicolo del codice aspetto, solo all'aperto e mentre non si gioca. */

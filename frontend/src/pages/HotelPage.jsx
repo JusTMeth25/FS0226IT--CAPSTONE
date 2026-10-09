@@ -58,7 +58,7 @@ import Minigame from '../hotel/ui/Minigame.jsx';
 import { PACKS } from '../data/packs.js';
 import { footprintOf, nextRotation } from '../hotel/sprites/furni.js';
 import { DEFAULT_LOOK, RIDES, formatLook, parseLook } from '../hotel/sprites/avatar.js';
-import { RIDE_WALLS } from '../hotel/sprites/vehicles.js';
+import { canRide } from '../hotel/sprites/vehicles.js';
 import { authApi } from '../services/authApi.js';
 import { QUEUE_TRACK, RADIO_TRACK, TRACKS, getJukebox } from '../hotel/music.js';
 import { isLiteDevice } from '../utils/perfMode.js';
@@ -1665,7 +1665,7 @@ export default function HotelPage() {
           <i className="ph-fill ph-package" /><span>Borsa</span>
           {bagPacks > 0 && <b className="hotel-tool-badge">{bagPacks}</b>}
         </button>
-        {ownedRides.length > 0 && RIDE_WALLS.has(room?.wallStyle) && (
+        {ownedRides.length > 0 && canRide(room) && (
           <button type="button" className={`hotel-tool${currentRide ? ' active' : ''}`} onClick={toggleRide} disabled={rideBusy}
             title={currentRide ? `Scendi da: ${RIDES[currentRide]}` : 'Sali sul tuo veicolo'}>
             <i className={`ph-fill ${currentRide ? 'ph-person-simple-walk' : 'ph-car-profile'}`} /><span>{currentRide ? 'Scendi' : 'Guida'}</span>

@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,6 +65,25 @@ class RoomInstanceTest {
     void setUp() {
         room = new RoomInstance(new RoomData(UUID.randomUUID(), "Test", null, null, null, LAYOUT,
                 0, 1, 2, "neon", "neon", "open", 2, true));
+    }
+
+    private static RoomInstance styled(String floor, String wall) {
+        return new RoomInstance(new RoomData(UUID.randomUUID(), "Stile", null, null, null, LAYOUT,
+                0, 1, 2, floor, wall, "open", 2, true));
+    }
+
+    @Test
+    @DisplayName("Veicoli solo all'aperto: non a Wall Street, nei palazzetti o nei locali")
+    void ridesOnlyOutdoors() {
+        assertTrue(styled("wooddeck", "skyline").rideable(), "terrazza sul tetto");
+        assertTrue(styled("city", "street").rideable(), "quartiere");
+        assertTrue(styled("grass", "hedge").rideable(), "giardino");
+        assertFalse(styled("marble", "skyline").rideable(), "Wall Street");
+        assertFalse(styled("parquet", "skyline").outdoor(), "piano dirigenti");
+        assertFalse(styled("ice", "stadium").outdoor(), "palaghiaccio");
+        assertTrue(styled("pitch", "stadium").outdoor(), "stadio");
+        assertFalse(styled("pitch", "stadium").rideable(), "in campo si va a piedi");
+        assertFalse(styled("neon", "neon").rideable());
     }
 
     @Test

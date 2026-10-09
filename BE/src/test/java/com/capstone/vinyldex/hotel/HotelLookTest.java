@@ -37,6 +37,10 @@ class HotelLookTest {
     void luxuryParts() {
         String look = "s1.h1.hc0.sh0.p0.t0.f0.a0.b0.o2.w3.r5";
         assertTrue(HotelLook.isValid(look));
+        for (int g = 1; g < LuxuryCatalog.GUITAR_COUNT; g++) {
+            assertTrue(HotelLook.isValid(look + ".n0.e0.g" + g), "chitarra " + g);
+        }
+        assertFalse(HotelLook.isValid(look + ".n0.e0.g" + LuxuryCatalog.GUITAR_COUNT), "chitarra che non esiste");
         assertFalse(HotelLook.isValid("s1.h1.hc0.sh0.p0.t0.f0.a0.b0.o2"), "le parti del quartiere vanno insieme");
         assertFalse(HotelLook.isValid("s1.h1.hc0.sh0.p0.t0.f0.a0.b0.o20.w0.r0"), "capo che non esiste");
         assertEquals(2, HotelLook.part(look, "o"));

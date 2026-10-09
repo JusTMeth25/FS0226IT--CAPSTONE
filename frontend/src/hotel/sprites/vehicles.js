@@ -1,4 +1,5 @@
 import { HALF_H, HALF_W } from '../iso.js';
+import { isOutdoor } from '../weather.js';
 
 /**
  * Veicoli del quartiere (LuxuryCatalog.java, parte "r" del codice aspetto): skateboard, bici e
@@ -10,8 +11,10 @@ import { HALF_H, HALF_W } from '../iso.js';
  * (carrozzeria, parabrezza) dopo, cosi' chi guida sembra seduto dentro l'auto.
  */
 
-/** Stanze all'aperto dove si va in skate, bici o auto: non gli stadi (RoomInstance.RIDE_WALLS). */
-export const RIDE_WALLS = new Set(['hedge', 'skyline', 'seaside', 'street']);
+/** Stanze dove si va in skate, bici o auto: all'aperto ma non negli stadi (RoomInstance.rideable). */
+export function canRide(room) {
+  return isOutdoor(room) && room.wallStyle !== 'stadium';
+}
 
 /** Caselle per passo (come LuxuryCatalog.speed): a piedi 1. */
 export const RIDE_SPEEDS = [1, 2, 2, 2, 3, 4, 4, 4, 5, 4];

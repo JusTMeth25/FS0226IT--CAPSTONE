@@ -1,6 +1,6 @@
 import { DETAIL, HALF_W, STEP_MS, TILE_H, TILE_W, directionBetween, insideDiamond, parseLayout, tileCenter, tileTop, viewForDirection } from './iso.js';
 import { AVATAR_FOOT_X, AVATAR_FOOT_Y, AVATAR_H, AVATAR_SCALE, AVATAR_W, avatarSprite, rideOf } from './sprites/avatar.js';
-import { RIDE_POSE, RIDE_SPEEDS, RIDE_WALLS, drawVehicle } from './sprites/vehicles.js';
+import { RIDE_POSE, RIDE_SPEEDS, canRide, drawVehicle } from './sprites/vehicles.js';
 import { hoverTileSprite, kartPoint, kartTrack, renderRoom } from './sprites/room.js';
 import { lapDelta } from './kartTrack.js';
 import { animationState, cardImage, footprintOf, furniSprite, isFlat, wallPoint } from './sprites/furni.js';
@@ -1311,7 +1311,7 @@ export class HotelEngine {
    * mentre e' seduto o gioca a un minigioco (come RoomInstance.rideSpeed sul server).
    */
   rideFor(user) {
-    if (!RIDE_WALLS.has(this.room?.wallStyle) || user.status === 'sit' || user.game) return 0;
+    if (!canRide(this.room) || user.status === 'sit' || user.game) return 0;
     let cached = this.rideCache?.get(user.look);
     if (cached === undefined) {
       this.rideCache ??= new Map();
