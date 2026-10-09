@@ -52,6 +52,11 @@ public final class NpcRoster {
     public static final UUID GREEN_SHOP = UUID.fromString("00000000-0000-0000-0000-00000000a022");
     /** Caveau del casino: ci entra solo l'admin, che da li' riscuote gli incassi. */
     public static final UUID VAULT = UUID.fromString("00000000-0000-0000-0000-00000000a023");
+    /** Grattacielo di Wall Street: sala della borsa e i tre piani alti (solo con l'ascensore). */
+    public static final UUID WALL_STREET = UUID.fromString("00000000-0000-0000-0000-00000000a024");
+    public static final UUID WS_OFFICES = UUID.fromString("00000000-0000-0000-0000-00000000a025");
+    public static final UUID WS_EXECUTIVE = UUID.fromString("00000000-0000-0000-0000-00000000a026");
+    public static final UUID WS_BOARD = UUID.fromString("00000000-0000-0000-0000-00000000a027");
 
     /** Cosa fa il personaggio: da qui dipendono movimento, azioni possibili e battute. */
     public enum Role {
@@ -75,6 +80,10 @@ public final class NpcRoster {
         CLERK("Commesso", false),
         MUSICIAN("Musicista", false),
         CROUPIER("Croupier", false),
+        TRADER("Trader", true),
+        EMPLOYEE("Impiegato", false),
+        EXECUTIVE("Dirigente", false),
+        ADMINISTRATOR("Amministratore", false),
         TOBACCONIST("Tabaccaio", false),
         GROWER("Commesso del Green Shop", false),
         DEALER("Tipo losco", true),
@@ -301,7 +310,26 @@ public final class NpcRoster {
                     worker("bob", "Bob", Role.GROWER, "s4.h5.hc0.sh5.p0.t0.f1.a0", 10, 1, 4),
                     walker("rasta", "Rasta Joe", Role.GUEST, "s4.h5.hc1.sh2.p0.t0.f1.a0", 10, 10, 4))),
             Map.entry(VAULT, List.of(
-                    worker("guardiano", "Il Guardiano", Role.BOUNCER, "s4.h9.hc7.sh9.p1.t3.f0.a0", 11, 2, 4)))
+                    worker("guardiano", "Il Guardiano", Role.BOUNCER, "s4.h9.hc7.sh9.p1.t3.f0.a0", 11, 2, 4))),
+            Map.entry(WALL_STREET, List.of(
+                    worker("il_lupo", "Il Lupo", Role.TRADER, "s1.h1.hc0.sh9.p1.t3.f0.a2.b0.o1", 12, 12, 5),
+                    walker("miss_dow", "Miss Dow", Role.TRADER, "s0.h2.hc5.sh9.p1.t3.f2.a0.b1.o2", 6, 10, 5),
+                    walker("gordon", "Gordon G.", Role.TRADER, "s0.h0.hc8.sh8.p1.t3.f0.a1.b0.o1", 17, 10, 5),
+                    worker("banditore", "Il Banditore", Role.TRADER, "s2.h9.hc0.sh9.p1.t3.f0.a0.b0.o2", 10, 3, 4))),
+            Map.entry(WS_OFFICES, List.of(
+                    worker("impiegata_anna", "Anna", Role.EMPLOYEE, "s0.h7.hc4.sh9.p1.t3.f2.a0.b1", 4, 7, 4),
+                    worker("impiegato_beppe", "Beppe", Role.EMPLOYEE, "s2.h4.hc0.sh8.p1.t3.f0.a1.b0", 12, 7, 4),
+                    worker("impiegata_carla", "Carla", Role.EMPLOYEE, "s1.h2.hc7.sh9.p1.t3.f2.a0.b1", 8, 11, 4),
+                    worker("impiegato_dario", "Dario", Role.EMPLOYEE, "s3.h0.hc1.sh8.p1.t3.f0.a0.b0", 16, 11, 4),
+                    walker("fattorino", "Il Fattorino", Role.EMPLOYEE, "s2.h5.hc6.sh2.p0.t1.f1.a3.b0", 10, 15, 5))),
+            Map.entry(WS_EXECUTIVE, List.of(
+                    worker("dir_ferri", "Dott.ssa Ferri", Role.EXECUTIVE, "s0.h3.hc8.sh9.p1.t3.f2.a5.b1.o8", 4, 2, 4),
+                    worker("dir_conti", "Dott. Conti", Role.EXECUTIVE, "s1.h1.hc8.sh9.p1.t3.f0.a2.b0.o1", 12, 2, 4),
+                    worker("segretaria", "La Segretaria", Role.EMPLOYEE, "s1.h8.hc2.sh9.p1.t3.f2.a0.b1", 9, 8, 4))),
+            Map.entry(WS_BOARD, List.of(
+                    worker("presidente", "Il Presidente", Role.ADMINISTRATOR, "s1.h0.hc8.sh9.p1.t3.f0.a1.b0.o2", 4, 2, 4),
+                    worker("amm_rossi", "Amm. Rossi", Role.ADMINISTRATOR, "s0.h1.hc0.sh9.p1.t3.f0.a2.b0.o1", 7, 9, 2),
+                    worker("amm_greco", "Amm. Greco", Role.ADMINISTRATOR, "s2.h3.hc8.sh9.p1.t3.f2.a5.b1.o8", 13, 9, 6)))
     );
 
     private NpcRoster() {

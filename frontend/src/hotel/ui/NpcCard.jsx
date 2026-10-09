@@ -37,7 +37,11 @@ const DESCRIPTIONS = {
   tobacconist: 'Il tabaccaio: sigarette, sigari cubani e pipe.',
   grower: 'Al Green Shop: erba light, canne già rollate e bong.',
   dealer: 'Gira per la sala con le mani in tasca. Ha sempre qualcosa da vendere...',
-  bouncer: 'Il buttafuori: tiene d\'occhio la sala e non ama chi spaccia.'
+  bouncer: 'Il buttafuori: tiene d\'occhio la sala e non ama chi spaccia.',
+  trader: 'Trader di Wall Street: compra, vende e urla le quotazioni. Clicca il tabellone per la borsa.',
+  employee: 'Impiegato del grattacielo: report, telefonate e caffè alla macchinetta.',
+  executive: 'Dirigente: decide le strategie dell\'azienda dal suo ufficio al 50° piano.',
+  administrator: 'Membro del consiglio di amministrazione: siede al tavolo dell\'attico.'
 };
 
 /** Chi vende da fumare (o altro): il pulsante apre il suo negozio. */

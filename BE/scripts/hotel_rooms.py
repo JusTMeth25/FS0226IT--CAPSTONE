@@ -35,11 +35,12 @@ V71 = os.path.join(MIGRATIONS_DIR, 'V71__casino_horse_race.sql')
 V74 = os.path.join(MIGRATIONS_DIR, 'V74__hotel_smoke_shops.sql')
 V76 = os.path.join(MIGRATIONS_DIR, 'V76__casino_vault.sql')
 V77 = os.path.join(MIGRATIONS_DIR, 'V77__district_city.sql')
-LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18, 18: V19, 19: V30, 20: V44, **{n: V46 for n in range(21, 30)}, 30: V48, 31: V48, 32: V67, 33: V74, 34: V74, 35: V76}
+V79 = os.path.join(MIGRATIONS_DIR, 'V79__wall_street.sql')
+LATER_MIGRATIONS = {15: V17, 16: V18, 17: V18, 18: V19, 19: V30, 20: V44, **{n: V46 for n in range(21, 30)}, 30: V48, 31: V48, 32: V67, 33: V74, 34: V74, 35: V76, 36: V79, 37: V79, 38: V79, 39: V79}
 # Migrazione in lavorazione: le altre, gia' pubblicate, non si riscrivono piu' (Flyway ne controlla
 # il contenuto). Le stanze cambiate dopo la pubblicazione si rifanno qui (REBUILT) e gli arredi da
 # togliere si elencano in REMOVED.
-CURRENT = V77
+CURRENT = V79
 REBUILT = {16: V19, 8: V20, 12: V20, 21: V77}
 REMOVED = {V19: [('00000000-0000-0000-0000-00000000a00f', 'basket_hoop')]}
 # Arredi aggiunti a stanze gia' pubblicate: finiscono nella migrazione indicata (vedi Room.migration).
@@ -56,6 +57,7 @@ MIGRATION_TITLES = {
     V68: "Casino: il tavolo del Texas Hold'em, per giocare a poker con gli altri giocatori e con gli NPC.",
     V69: 'Casino: il banco del Bingo a 90 numeri, con il banditore.',
     V71: "Casino: l'ippodromo con la corsa dei cavalli e le scommesse, con l'allibratore.",
+    V79: "Wall Street: il grattacielo della borsa con la sala dei trader, gli uffici, il piano dirigenti e l'attico del consiglio.",
     V77: "Il Quartiere diventa una citta': viali, giardini e un palazzo per ogni stanza dell'hotel, con la sua facciata.",
     V76: "Il Caveau del casino, riservato all'admin: banconote, fiches, lingotti, diamanti e la cassaforte degli incassi. La porta blindata e' nel casino.",
     V74: 'Due negozi nuovi: la Tabaccheria (sigarette, sigari, pipe) e il Green Shop (erba light, canne e bong).',
@@ -151,6 +153,10 @@ FURNI = {
     'weed_counter': (3, 1, False, False, -1), 'weed_plant': (1, 1, False, False, -1),
     # Caveau del casino.
     'building': (4, 3, False, False, -1),
+    # Wall Street.
+    'stock_board': (4, 1, False, False, -1), 'trading_desk': (2, 1, False, False, -1), 'office_desk': (2, 1, False, False, -1),
+    'office_chair': (1, 1, False, False, 4), 'elevator': (2, 1, False, False, -1), 'board_table': (4, 2, False, False, -1),
+    'ceo_desk': (3, 1, False, False, -1), 'bull_statue': (2, 2, False, False, -1), 'filing_cabinet': (1, 1, False, False, -1),
     'vault_door': (1, 1, False, False, -1), 'vault_safe': (2, 1, False, False, -1), 'cash_pallet': (2, 2, False, False, -1),
     'money_pile': (1, 1, False, False, -1), 'gold_bars': (1, 1, False, False, -1), 'diamond_case': (1, 1, False, False, -1),
     'chip_tower': (1, 1, False, False, -1),
@@ -159,7 +165,7 @@ FURNI = {
 }
 
 # Mobili che si usano cliccandoli: serve una casella libera accanto.
-SERVING = {'vault_door', 'vault_safe', 'tobacco_counter', 'weed_counter', 'horse_track', 'bingo_table', 'poker_table', 'slot_machine', 'poker_machine', 'roulette_table', 'blackjack_table', 'baccarat_table', 'craps_table', 'casino_cashier',
+SERVING = {'elevator', 'trading_desk', 'stock_board', 'vault_door', 'vault_safe', 'tobacco_counter', 'weed_counter', 'horse_track', 'bingo_table', 'poker_table', 'slot_machine', 'poker_machine', 'roulette_table', 'blackjack_table', 'baccarat_table', 'craps_table', 'casino_cashier',
            'guitar_duel', 'guitar_counter', 'rock_counter', 'atelier_counter', 'watch_counter', 'skate_counter', 'bike_counter', 'car_counter', 'espresso_bar',
            'hockey_target', 'dance_contest', 'billiard_table', 'bar_counter', 'cafe_counter', 'coffee_machine', 'icecream_cart', 'pizza_oven', 'beach_bar',
            'popcorn_machine', 'water_cooler', 'newsstand', 'basket_hoop', 'bowling_lane', 'shoe_counter',
@@ -1176,6 +1182,81 @@ for x in (4, 5, 6, 7, 8, 12, 13, 14, 15, 16):
 for x, y in [(20, 5), (20, 9), (20, 11), (18, 6), (18, 13), (5, 9), (6, 2), (14, 2)]:
     r.add('money_pile', x, y)
 r.worker('guardiano', 'Il Guardiano', 'BOUNCER', 's4.h9.hc7.sh9.p1.t3.f0.a0', 11, 2, 4)
+
+
+# ------------------------------------------------------------------ Wall Street (grattacielo)
+
+# Quattro piani collegati dall'ascensore: la sala della borsa al piano terra (e' lei ad avere il
+# palazzo nel Quartiere), gli uffici, il piano dei dirigenti e l'attico del consiglio. I piani alti
+# non stanno nel navigatore: ci si sale con l'ascensore.
+r = room(36, 'WALL_STREET', 'Wall Street',
+         'La sala della borsa: il tabellone con le quotazioni dei giochi di carte, le postazioni dei trader '
+         "e il toro di bronzo. Compra e vendi azioni coi gold; con l'ascensore si sale agli uffici, ai "
+         "dirigenti e all'attico del consiglio.",
+         24, 20, 10, 'marble', 'skyline', 36)
+for x in (3, 9, 15):
+    r.add('stock_board', x, 1)
+r.add('elevator', 21, 1)
+r.add('bull_statue', 11, 9)
+for y in (5, 14):
+    for x in (3, 7, 15, 19):
+        r.add('trading_desk', x, y)
+        r.add('office_chair', x, y + 1, 4).add('office_chair', x + 1, y + 1, 4)
+r.add('plant_big', 1, 1).add('plant_big', 24, 20).add('plant_big', 1, 20).add('water_cooler', 24, 9)
+r.worker('il_lupo', 'Il Lupo', 'TRADER', 's1.h1.hc0.sh9.p1.t3.f0.a2.b0.o1', 12, 12, 5)
+r.walker('miss_dow', 'Miss Dow', 'TRADER', 's0.h2.hc5.sh9.p1.t3.f2.a0.b1.o2', 6, 10, 5)
+r.walker('gordon', 'Gordon G.', 'TRADER', 's0.h0.hc8.sh8.p1.t3.f0.a1.b0.o1', 17, 10, 5)
+r.worker('banditore', 'Il Banditore', 'TRADER', 's2.h9.hc0.sh9.p1.t3.f0.a0.b0.o2', 10, 3, 4)
+
+r = room(37, 'WS_OFFICES', 'Uffici di Wall Street',
+         'Open space al 30° piano: scrivanie, telefoni che squillano, archivi e la macchinetta del caffe\'. '
+         'Gli impiegati lavorano per i dirigenti dei piani di sopra.',
+         22, 18, 9, 'carpet', 'windows', 37)
+r.add('elevator', 19, 1)
+for y in (4, 8, 12):
+    for x in (3, 7, 11, 15):
+        r.add('office_desk', x, y)
+        r.add('office_chair', x, y + 1, 4)
+for x in (2, 3, 4, 5, 6):
+    r.add('filing_cabinet', x, 1)
+r.add('water_cooler', 22, 6).add('coffee_machine', 22, 10).add('plant_big', 1, 18).add('plant_big', 22, 18)
+r.worker('impiegata_anna', 'Anna', 'EMPLOYEE', 's0.h7.hc4.sh9.p1.t3.f2.a0.b1', 4, 7, 4)
+r.worker('impiegato_beppe', 'Beppe', 'EMPLOYEE', 's2.h4.hc0.sh8.p1.t3.f0.a1.b0', 12, 7, 4)
+r.worker('impiegata_carla', 'Carla', 'EMPLOYEE', 's1.h2.hc7.sh9.p1.t3.f2.a0.b1', 8, 11, 4)
+r.worker('impiegato_dario', 'Dario', 'EMPLOYEE', 's3.h0.hc1.sh8.p1.t3.f0.a0.b0', 16, 11, 4)
+r.walker('fattorino', 'Il Fattorino', 'EMPLOYEE', 's2.h5.hc6.sh2.p0.t1.f1.a3.b0', 10, 15, 5)
+
+r = room(38, 'WS_EXECUTIVE', 'Piano dirigenti',
+         'Al 50° piano: gli uffici dei dirigenti con le scrivanie di mogano, le poltrone e la vista sulla '
+         'citta\'. Qui si decide dove va il mercato.',
+         20, 18, 9, 'parquet', 'skyline', 38)
+r.add('elevator', 17, 1)
+for x in (3, 11):
+    r.add('ceo_desk', x, 3)
+    r.add('armchair', x + 1, 2, 4)
+    r.add('armchair', x, 5, 0).add('armchair', x + 2, 5, 0)
+r.add('stock_board', 7, 1)
+r.add('sofa_vinyl', 4, 12, 0).add('coffee_table', 4, 13).add('sofa_vinyl', 4, 14, 4)
+r.add('record_shelf', 1, 8).add('record_shelf', 1, 10).add('plant_big', 20, 18).add('plant_big', 1, 18).add('water_cooler', 20, 8)
+r.worker('dir_ferri', 'Dott.ssa Ferri', 'EXECUTIVE', 's0.h3.hc8.sh9.p1.t3.f2.a5.b1.o8', 4, 2, 4)
+r.worker('dir_conti', 'Dott. Conti', 'EXECUTIVE', 's1.h1.hc8.sh9.p1.t3.f0.a2.b0.o1', 12, 2, 4)
+r.worker('segretaria', 'La Segretaria', 'EMPLOYEE', 's1.h8.hc2.sh9.p1.t3.f2.a0.b1', 9, 8, 4)
+
+r = room(39, 'WS_BOARD', 'Attico del CdA',
+         'In cima al grattacielo: il tavolo del consiglio di amministrazione, il tabellone della borsa e '
+         'la vista su tutto il Quartiere. Qui siedono il Presidente e gli amministratori.',
+         20, 18, 9, 'marble', 'skyline', 39)
+r.add('elevator', 17, 1)
+r.add('stock_board', 7, 1)
+r.add('board_table', 8, 8)
+for x in (8, 9, 10, 11):
+    r.add('office_chair', x, 7, 4).add('office_chair', x, 10, 0)
+r.add('ceo_desk', 3, 3).add('armchair', 4, 2, 4)
+r.add('bull_statue', 15, 13)
+r.add('plant_big', 1, 18).add('plant_big', 20, 18).add('plant_big', 1, 1)
+r.worker('presidente', 'Il Presidente', 'ADMINISTRATOR', 's1.h0.hc8.sh9.p1.t3.f0.a1.b0.o2', 4, 2, 4)
+r.worker('amm_rossi', 'Amm. Rossi', 'ADMINISTRATOR', 's0.h1.hc0.sh9.p1.t3.f0.a2.b0.o1', 7, 9, 2)
+r.worker('amm_greco', 'Amm. Greco', 'ADMINISTRATOR', 's2.h3.hc8.sh9.p1.t3.f2.a5.b1.o8', 13, 9, 6)
 
 
 # ------------------------------------------------------------------ output

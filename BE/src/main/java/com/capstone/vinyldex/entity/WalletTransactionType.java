@@ -54,5 +54,7 @@ public enum WalletTransactionType {
     /** Casino dell'hotel: fiches alla cassa, puntate e vincite in gold. */
     CASINO,
     /** Tabaccheria, Green Shop e tipo losco della discoteca (SmokeShop). */
-    SHOP
+    SHOP,
+    /** Borsa di Wall Street: azioni comprate e vendute. */
+    STOCK
 }

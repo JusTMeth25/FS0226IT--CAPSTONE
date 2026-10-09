@@ -159,6 +159,14 @@ public final class NpcDialog {
             case CROUPIER -> pick(random, List.of("Benvenuto al casino, " + user + "! Clicca il tavolo e fai il tuo gioco.",
                     "Buonasera " + user + ". Le fiches si cambiano alla cassa, e oggi ce ne sono anche di regalo.",
                     "Ciao " + user + "! Si accettano puntate: fiches o gold, come preferisci."));
+            case TRADER -> pick(random, List.of("Ehi " + user + "! Compra basso, vendi alto: clicca il tabellone o una postazione.",
+                    "Il mercato non dorme mai, " + user + ". Sei long o short?", "Hai visto il PKMN oggi, " + user + "? Vola!"));
+            case EMPLOYEE -> pick(random, List.of("Buongiorno " + user + ", scusa, ho tre report da consegnare entro le cinque.",
+                    "Ciao " + user + "! Il caffe' e' alla macchinetta, l'ascensore in fondo."));
+            case EXECUTIVE -> pick(random, List.of("Buongiorno " + user + ". Ha un appuntamento?",
+                    "Il trimestre e' andato bene, " + user + ": dividendi per tutti. Quasi."));
+            case ADMINISTRATOR -> pick(random, List.of("Benvenuto nell'attico, " + user + ". Il consiglio e' in seduta.",
+                    "Qui si decide il futuro della borsa, " + user + ". Si accomodi."));
             case TOBACCONIST -> pick(random, List.of("Buongiorno " + user + "! Sigarette, sigari o una pipa? Clicca il bancone.",
                     "Ciao " + user + ". Il fumo fa male, eh: ma qui si fuma solo per finta!"));
             case GROWER -> pick(random, List.of("Peace " + user + "! Erba light, canne gia' rollate e bong: scegli tu.",
@@ -346,6 +354,10 @@ public final class NpcDialog {
                     "Con lo smoking ci vuole un orologio sottile.", "Chi vuole un consiglio di stile?");
             case CROUPIER -> List.of("Fate il vostro gioco!", "Rien ne va plus.", "Il banco paga!", "Carte in tavola.",
                     "Chi tenta la fortuna stasera?", "Il rosso e' caldo, stasera.");
+            case TRADER -> List.of("Compro! Compro!", "Vendo tutto!", "Il toro e' tornato!", "Occhio all'orso!", "Buy the dip!", "Che volatilita' oggi!");
+            case EMPLOYEE -> List.of("Chi ha preso la mia pinzatrice?", "Riunione alle tre.", "Il report e' quasi pronto.", "Ancora straordinari...");
+            case EXECUTIVE -> List.of("Dobbiamo massimizzare il valore per gli azionisti.", "Fissatemi una call.", "Sinergie, sinergie!");
+            case ADMINISTRATOR -> List.of("Il consiglio approva.", "Si mette ai voti.", "Il bilancio e' in attivo.", "Aumentiamo il dividendo?");
             case TOBACCONIST -> List.of("Sigari cubani appena arrivati!", "Accendino in omaggio con la pipa.", "Gratta e vinci? No, solo fumo.");
             case GROWER -> List.of("Peace and love!", "Erba light al profumo di limone.", "Il bong e' di vetro: maneggiare con cura.",
                     "Rilassati, fratello.");

@@ -1459,6 +1459,106 @@ const DRAW = {
     d(1.84, 1.45, 40, '#c1121f', 1, 1);
   },
   building: drawBuilding,
+  stock_board(b, { d, now }) {
+    // Tabellone della borsa 4x1: schermo nero su due gambe, grafico a candele verdi e rosse che
+    // scorre e il nastro delle quotazioni in basso.
+    const step = Math.floor((now || 0) / 400) % 8;
+    [0.3, 3.7].forEach((u) => b({ u0: u - 0.08, v0: 0.35, u1: u + 0.08, v1: 0.55, z1: 30, color: '#1f2937', tex: 'metal' }));
+    b({ u0: 0.05, v0: 0.4, u1: 3.95, v1: 0.6, z0: 30, z1: 96, color: '#0b1020', left: '#111827', right: '#030712' });
+    b({ u0: 0.02, v0: 0.38, u1: 3.98, v1: 0.62, z0: 96, z1: 99, color: '#d4a537' });
+    let level = 62;
+    for (let k = 0; k < 18; k += 1) {
+      const up = ((k * 7 + step * 3) % 5) > 1;
+      const h = 4 + ((k * 13 + step) % 9);
+      level = Math.max(44, Math.min(84, level + (up ? 2 : -2)));
+      const u = 0.25 + k * 0.2;
+      d(u, 0.62, level + h, up ? '#22c55e' : '#ef4444', 3, h);
+      d(u + 0.03, 0.62, level + h + 2, up ? '#86efac' : '#fca5a5', 1, h + 4);
+    }
+    // Nastro delle quotazioni.
+    b({ u0: 0.1, v0: 0.6, u1: 3.9, v1: 0.62, z0: 32, z1: 40, color: '#111827' });
+    for (let k = 0; k < 14; k += 1) d(0.2 + ((k * 0.27 + step * 0.1) % 3.6), 0.63, 38, k % 3 ? '#22c55e' : '#fbbf24', 5, 2);
+  },
+  trading_desk(b, { d, now }) {
+    // Postazione 2x1: scrivania scura con tre monitor (grafici, numeri) e la tastiera.
+    const blink = Math.floor((now || 0) / 500) % 4;
+    b({ u0: 0.05, v0: 0.15, u1: 1.95, v1: 0.85, z1: 26, color: '#1f2937', left: '#111827', right: '#0b1020', tex: 'wood' });
+    [0.3, 0.85, 1.4].forEach((u, i) => {
+      b({ u0: u, v0: 0.2, u1: u + 0.45, v1: 0.3, z0: 30, z1: 50, color: '#0b1020' });
+      d(u + 0.1, 0.31, 46 - ((i + blink) % 3) * 3, i === blink % 3 ? '#ef4444' : '#22c55e', 8, 2);
+      d(u + 0.1, 0.31, 40, '#38bdf8', 10, 1);
+      d(u + 0.1, 0.31, 36, '#fbbf24', 6, 1);
+      b({ u0: u + 0.18, v0: 0.22, u1: u + 0.27, v1: 0.28, z0: 26, z1: 30, color: '#374151' });
+    });
+    b({ u0: 0.6, v0: 0.5, u1: 1.4, v1: 0.65, z0: 26, z1: 28, color: '#374151' });
+    d(1.7, 0.55, 28, '#e5e7eb', 3, 2);
+  },
+  office_desk(b, { d }) {
+    // Scrivania da ufficio 2x1: piano chiaro, cassettiera, monitor, pile di fogli e una tazza.
+    b({ u0: 0.05, v0: 0.15, u1: 1.95, v1: 0.85, z0: 22, z1: 26, color: '#e5e7eb' });
+    b({ u0: 0.1, v0: 0.2, u1: 0.6, v1: 0.8, z1: 22, color: '#9ca3af', tex: 'metal' });
+    b({ u0: 1.85, v0: 0.2, u1: 1.9, v1: 0.8, z1: 22, color: '#6b7280' });
+    b({ u0: 0.8, v0: 0.25, u1: 1.3, v1: 0.33, z0: 26, z1: 44, color: '#111827' });
+    d(0.9, 0.34, 40, '#60a5fa', 10, 6);
+    b({ u0: 1.45, v0: 0.4, u1: 1.75, v1: 0.6, z0: 26, z1: 31, color: '#f8fafc' });
+    d(0.4, 0.6, 28, '#b45309', 3, 3);
+  },
+  office_chair(b, { c }) {
+    // Sedia girevole nera con le ruote.
+    c({ u: 0.5, v: 0.5, r: 0.04, z0: 2, z1: 16, color: '#4b5563' });
+    c({ u: 0.5, v: 0.5, r: 0.3, z0: 0, z1: 2, color: '#111827' });
+    b({ u0: 0.22, v0: 0.22, u1: 0.78, v1: 0.78, z0: 16, z1: 20, color: '#111827', tex: 'fabric' });
+    b({ u0: 0.22, v0: 0.18, u1: 0.78, v1: 0.28, z0: 20, z1: 40, color: '#1f2937', tex: 'fabric' });
+  },
+  elevator(b, { d, now }) {
+    // Ascensore 2x1: porte d'acciaio, cornice dorata, display del piano e i pulsanti.
+    const floor = Math.floor((now || 0) / 1000) % 4;
+    b({ u0: 0.05, v0: 0.3, u1: 1.95, v1: 0.7, z1: 92, color: '#d4a537', left: '#b8892a', right: '#8a6416' });
+    b({ u0: 0.25, v0: 0.68, u1: 1.0, v1: 0.72, z0: 0, z1: 76, color: '#cbd5e1', left: '#cbd5e1', tex: 'metal' });
+    b({ u0: 1.0, v0: 0.68, u1: 1.75, v1: 0.72, z0: 0, z1: 76, color: '#94a3b8', left: '#94a3b8', tex: 'metal' });
+    b({ u0: 0.7, v0: 0.69, u1: 1.3, v1: 0.73, z0: 80, z1: 88, color: '#111827' });
+    d(0.95, 0.74, 86, '#ef4444', 6, 5);
+    d(1.05 + floor * 0.04, 0.74, 84, '#fbbf24', 2, 2);
+    d(1.85, 0.72, 40, '#fde68a', 3, 3);
+    d(1.85, 0.72, 34, '#fde68a', 3, 3);
+  },
+  board_table(b, { c }) {
+    // Tavolo del consiglio 4x2: legno lucido scuro con il bordo, cartelline e bottiglie d'acqua.
+    b({ u0: 0.1, v0: 0.2, u1: 3.9, v1: 1.8, z0: 24, z1: 28, color: '#3f2a14', tex: 'wood' });
+    [[0.6, 1], [3.4, 1]].forEach(([u, v]) => c({ u, v, r: 0.2, z0: 0, z1: 24, color: '#1f130a' }));
+    b({ u0: 0.2, v0: 0.3, u1: 3.8, v1: 1.7, z0: 28, z1: 28, color: '#5b3a1e' });
+    [0.8, 1.6, 2.4, 3.2].forEach((u) => {
+      b({ u0: u - 0.15, v0: 0.35, u1: u + 0.15, v1: 0.55, z0: 28, z1: 29, color: '#f8fafc' });
+      b({ u0: u - 0.15, v0: 1.45, u1: u + 0.15, v1: 1.65, z0: 28, z1: 29, color: '#f8fafc' });
+      c({ u, v: 1, r: 0.05, z0: 28, z1: 38, color: 'rgba(186, 230, 253, 0.8)' });
+    });
+  },
+  ceo_desk(b, { d }) {
+    // Scrivania del dirigente 3x1: mogano con il piano di pelle, lampada verde e monitor.
+    b({ u0: 0.05, v0: 0.1, u1: 2.95, v1: 0.9, z1: 28, color: '#5b2a0e', left: '#7c3a16', right: '#3f1d0a', tex: 'wood' });
+    b({ u0: 0.3, v0: 0.2, u1: 2.7, v1: 0.8, z0: 28, z1: 28, color: '#14532d' });
+    b({ u0: 1.2, v0: 0.2, u1: 1.8, v1: 0.3, z0: 28, z1: 48, color: '#111827' });
+    d(1.3, 0.31, 44, '#22c55e', 10, 2);
+    d(1.3, 0.31, 38, '#ef4444', 6, 2);
+    b({ u0: 0.4, v0: 0.3, u1: 0.5, v1: 0.4, z0: 28, z1: 40, color: '#d4a537' });
+    b({ u0: 0.3, v0: 0.25, u1: 0.6, v1: 0.45, z0: 40, z1: 44, color: '#15803d' });
+    d(2.4, 0.6, 30, '#d4a537', 4, 2);
+  },
+  bull_statue(b, { c }) {
+    // Toro di bronzo di Wall Street 2x2 sul piedistallo di granito, a testa bassa.
+    b({ u0: 0.1, v0: 0.3, u1: 1.9, v1: 1.7, z1: 12, color: '#6b7280', tex: 'stone' });
+    b({ u0: 0.3, v0: 0.7, u1: 1.5, v1: 1.3, z0: 22, z1: 40, color: '#8a5a2b', left: '#a16b34', right: '#6b4423', tex: 'metal' });
+    [[0.4, 0.75], [0.4, 1.25], [1.35, 0.75], [1.35, 1.25]].forEach(([u, v]) => b({ u0: u - 0.06, v0: v - 0.06, u1: u + 0.06, v1: v + 0.06, z0: 12, z1: 24, color: '#6b4423' }));
+    b({ u0: 1.45, v0: 0.85, u1: 1.8, v1: 1.15, z0: 18, z1: 34, color: '#8a5a2b', tex: 'metal' });
+    c({ u: 1.7, v: 0.78, r: 0.04, z0: 32, z1: 42, color: '#d4a537' });
+    c({ u: 1.7, v: 1.22, r: 0.04, z0: 32, z1: 42, color: '#d4a537' });
+    b({ u0: 0.2, v0: 0.95, u1: 0.32, v1: 1.05, z0: 30, z1: 46, color: '#6b4423' });
+  },
+  filing_cabinet(b, { d }) {
+    // Archivio d'ufficio grigio a quattro cassetti.
+    b({ u0: 0.15, v0: 0.15, u1: 0.85, v1: 0.85, z1: 52, color: '#9ca3af', left: '#d1d5db', right: '#6b7280', tex: 'metal' });
+    for (let k = 0; k < 4; k += 1) d(0.5, 0.86, 8 + k * 12, '#374151', 6, 2);
+  },
   vault_door(b, { c, d }) {
     // Porta blindata 1x1 del Caveau: lastra d'acciaio rotonda con la ruota e i bulloni, nel telaio.
     b({ u0: 0.05, v0: 0.3, u1: 0.95, v1: 0.7, z1: 76, color: '#374151', left: '#4b5563', right: '#1f2937' });
@@ -2496,7 +2596,10 @@ const ANIMATIONS = {
   weed_plant: { period: 300, steps: 12 },
   vault_safe: { period: 600, steps: 2 },
   gold_bars: { period: 250, steps: 8 },
-  diamond_case: { period: 200, steps: 6 }
+  diamond_case: { period: 200, steps: 6 },
+  stock_board: { period: 400, steps: 8 },
+  trading_desk: { period: 500, steps: 4 },
+  elevator: { period: 1000, steps: 4 }
 };
 const DANCE_COLORS = 6;
 

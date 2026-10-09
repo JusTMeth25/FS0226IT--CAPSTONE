@@ -139,6 +139,9 @@ public class RoomService {
         return roomRepository.findWithOwner(roomId).map(RoomData::from);
     }
 
+    /** Piani alti di Wall Street: si raggiungono con l'ascensore, non dal navigatore. */
+    private static final Set<UUID> HIDDEN_FLOORS = Set.of(NpcRoster.WS_OFFICES, NpcRoster.WS_EXECUTIVE, NpcRoster.WS_BOARD);
+
     /**
      * Navigatore: stanze pubbliche nell'ordine deciso a mano, poi le stanze dei giocatori con
      * dentro piu' persone. Il conteggio dei presenti viene dalle stanze vive in memoria.
@@ -149,7 +152,7 @@ public class RoomService {
         List<Map<String, Object>> publicRooms = new ArrayList<>();
         for (Room room : roomRepository.findByPublicRoomTrueOrderBySortOrderAsc()) {
             // Il Caveau non si vede: ci si entra solo dalla porta blindata del casino.
-            if (NpcRoster.VAULT.equals(room.getId())) continue;
+            if (NpcRoster.VAULT.equals(room.getId()) || HIDDEN_FLOORS.contains(room.getId())) continue;
             publicRooms.add(summary(room, likes));
         }
 

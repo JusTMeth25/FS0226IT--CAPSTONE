@@ -263,6 +263,15 @@ public final class FurniCatalog {
         add(new FurniDef("weed_counter", "Bancone del Green Shop", "negozi", 0, 3, 1, false, false, -1, false, false));
         add(new FurniDef("weed_plant", "Pianta di canapa", "negozi", 0, 1, 1, false, false, -1, false, false));
         add(new FurniDef("building", "Palazzo del Quartiere", "quartiere", 0, 4, 3, false, false, -1, false, false));
+        add(new FurniDef("stock_board", "Tabellone della borsa", "ufficio", 0, 4, 1, false, false, -1, false, false));
+        add(new FurniDef("trading_desk", "Postazione di trading", "ufficio", 0, 2, 1, false, false, -1, false, false));
+        add(new FurniDef("office_desk", "Scrivania da ufficio", "ufficio", 0, 2, 1, false, false, -1, false, false));
+        add(new FurniDef("office_chair", "Sedia da ufficio", "ufficio", 0, 1, 1, false, false, 4, false, false));
+        add(new FurniDef("elevator", "Ascensore", "ufficio", 0, 2, 1, false, false, -1, false, false));
+        add(new FurniDef("board_table", "Tavolo del consiglio", "ufficio", 0, 4, 2, false, false, -1, false, false));
+        add(new FurniDef("ceo_desk", "Scrivania del dirigente", "ufficio", 0, 3, 1, false, false, -1, false, false));
+        add(new FurniDef("bull_statue", "Toro di Wall Street", "ufficio", 0, 2, 2, false, false, -1, false, false));
+        add(new FurniDef("filing_cabinet", "Archivio", "ufficio", 0, 1, 1, false, false, -1, false, false));
         add(new FurniDef("vault_door", "Porta blindata del Caveau", "casino", 0, 1, 1, false, false, -1, false, false));
         add(new FurniDef("vault_safe", "Cassaforte degli incassi", "casino", 0, 2, 1, false, false, -1, false, false));
         add(new FurniDef("cash_pallet", "Bancale di banconote", "casino", 0, 2, 2, false, false, -1, false, false));

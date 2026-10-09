@@ -49,7 +49,8 @@ export const ROOM_THEMES = {
   '00000000-0000-0000-0000-00000000a01f': 'rockstore',
   '00000000-0000-0000-0000-00000000a020': 'casino',
   '00000000-0000-0000-0000-00000000a021': 'tobacco',
-  '00000000-0000-0000-0000-00000000a022': 'greenshop'
+  '00000000-0000-0000-0000-00000000a022': 'greenshop',
+  '00000000-0000-0000-0000-00000000a024': 'wallstreet'
 };
 
 /** Colore della scritta sull'insegna, per tema. */
@@ -58,12 +59,12 @@ export const SIGN_COLORS = {
   arcade: '#a5f3fc', library: '#fde68a', tower: '#e0f2fe', beach: '#fef08a', kiosk: '#ffffff', cinema: '#fde047', gym: '#ffffff',
   stadium: '#ffffff', bowling: '#fecaca', minigolf: '#ffffff', court: '#fed7aa', kart: '#ffffff', disco: '#f9a8d4', atelier: '#f3ead8',
   jeweler: '#fcd34d', skate: '#ffffff', bikes: '#ffffff', cars: '#ffffff', cafe: '#fef3c7', ice: '#e0f2fe', basketarena: '#fed7aa',
-  rockclub: '#fb923c', rockstore: '#fde68a', casino: '#fde047', tobacco: '#ffffff', greenshop: '#bef264', generic: '#ffffff'
+  rockclub: '#fb923c', rockstore: '#fde68a', casino: '#fde047', tobacco: '#ffffff', greenshop: '#bef264', wallstreet: '#4ade80', generic: '#ffffff'
 };
 
 /** Altezza (in pixel dello sprite) sopra il lotto: serve al motore per la tela e l'insegna. */
 export const BUILDING_HEIGHT = {
-  tower: 250, hotel: 200, library: 150, casino: 170, stadium: 120, arena: 130, cinema: 150, disco: 140
+  tower: 250, wallstreet: 280, hotel: 200, library: 150, casino: 170, stadium: 120, arena: 130, cinema: 150, disco: 140
 };
 
 export function signHeight(theme) {
@@ -356,6 +357,19 @@ const THEMES = {
         d(2 + Math.cos(a) * 0.25, FACE + 0.05, 90 + Math.sin(a) * 9, '#4ade80', 4, 4);
       }
     });
+  },
+  wallstreet(b, c, d, leaves, palm, front, now) {
+    // Grattacielo della borsa: vetro blu altissimo, colonne all'ingresso, nastro luminoso delle
+    // quotazioni a meta' e l'antenna con la luce rossa in cima.
+    const step = Math.floor((now || 0) / 300) % 10;
+    body(b, d, front, { h: 250, wall: '#1e3a5f', trim: '#cbd5e1', tex: 'metal', window: '#7dd3fc', lit: 'rgba(224, 242, 254, 0.55)', sign: '#0b1020', door: '#d4a537', glass: '#0c4a6e', roof: '#334155' });
+    front(() => {
+      b({ u0: 0.1, v0: FACE, u1: 3.9, v1: FACE + 0.04, z0: 120, z1: 132, color: '#0b1020' });
+      for (let k = 0; k < 16; k += 1) d(0.2 + ((k * 0.24 + step * 0.06) % 3.6), FACE + 0.05, 129, k % 3 ? '#4ade80' : '#f87171', 6, 5);
+      [0.4, 1.2, 2.0].forEach((u) => c({ u: u + 0.15, v: FACE + 0.2, r: 0.07, z0: 0, z1: 40, color: '#e5e7eb', top: '#f8fafc' }));
+    });
+    c({ u: 2, v: 1.4, r: 0.04, z0: 258, z1: 276, color: '#9ca3af' });
+    d(2.02, 1.4, 278, step % 2 ? '#ef4444' : '#7f1d1d', 3, 3);
   },
   generic(b, c, d, leaves, palm, front, now, item) {
     const color = hashColor(item?.plot?.name || item?.id || '');

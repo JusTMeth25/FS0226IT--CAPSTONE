@@ -47,6 +47,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import HotelView from '../hotel/ui/HotelView.jsx';
 import NpcCard from '../hotel/ui/NpcCard.jsx';
 import SmokeShopPanel from '../hotel/ui/SmokeShopPanel.jsx';
+import StockPanel from '../hotel/ui/StockPanel.jsx';
 import CasinoBankPanel from '../components/admin/CasinoBankPanel.jsx';
 import { adminApi } from '../services/adminApi.js';
 import { VAULT_ID } from '../hotel/vaultLoot.js';
@@ -77,6 +78,13 @@ const CONSUME = {
 
 /** Banconi della Tabaccheria e del Green Shop: aprono il negozio (SmokeShopPanel). */
 const SMOKE_COUNTERS = { tobacco_counter: 'tabacchi', weed_counter: 'green' };
+/** Piani del grattacielo di Wall Street, dal basso: l'ascensore li collega. */
+const WS_FLOORS = [
+  { id: '00000000-0000-0000-0000-00000000a024', name: 'Sala della borsa', floor: 'Piano terra', icon: 'ph-chart-line-up' },
+  { id: '00000000-0000-0000-0000-00000000a025', name: 'Uffici', floor: '30° piano', icon: 'ph-desktop' },
+  { id: '00000000-0000-0000-0000-00000000a026', name: 'Piano dirigenti', floor: '50° piano', icon: 'ph-briefcase' },
+  { id: '00000000-0000-0000-0000-00000000a027', name: 'Attico del CdA', floor: '80° piano', icon: 'ph-crown' }
+];
 
 
 /** Mobili che si usano cliccandoli: bibite, cibo, jukebox. */
@@ -1115,6 +1123,15 @@ export default function HotelPage() {
       setPanel('vault');
       return;
     }
+    // Wall Street: tabellone e postazioni aprono la borsa, l'ascensore porta ai piani.
+    if (item.type === 'stock_board' || item.type === 'trading_desk') {
+      setPanel('stocks');
+      return;
+    }
+    if (item.type === 'elevator') {
+      setPanel('elevator');
+      return;
+    }
     if (SMOKE_COUNTERS[item.type]) {
       setSmokeShop(SMOKE_COUNTERS[item.type]);
       setPanel('smoke');
@@ -1516,6 +1533,26 @@ export default function HotelPage() {
             {user?.role === 'ADMIN'
               ? <CasinoBankPanel canWithdraw onWithdrawn={(res) => { refreshUser(); sound.coin(); showTreasure(res); }} />
               : <p className="hotel-panel-hint">La combinazione la conosce solo il gestore.</p>}
+          </div>
+        )}
+        {panel === 'stocks' && <StockPanel gold={gold} onGold={() => refreshUser()} onClose={() => setPanel(null)} />}
+        {panel === 'elevator' && (
+          <div className="hotel-panel hotel-elevator" role="dialog" aria-label="Ascensore">
+            <header className="hotel-panel-header">
+              <h3><i className="ph-fill ph-buildings" /> Ascensore</h3>
+              <button type="button" className="hotel-panel-close" onClick={() => setPanel(null)} aria-label="Chiudi"><i className="ph ph-x" /></button>
+            </header>
+            <ul className="elevator-floors">
+              {[...WS_FLOORS].reverse().map((f) => (
+                <li key={f.id}>
+                  <button type="button" className={`elevator-floor${room?.id === f.id ? ' here' : ''}`} disabled={room?.id === f.id}
+                    onClick={() => { setPanel(null); join(f.id); }}>
+                    <i className={`ph-fill ${f.icon}`} /><span><b>{f.name}</b><small>{f.floor}</small></span>
+                    {room?.id === f.id && <em>sei qui</em>}
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
         {panel === 'smoke' && (
