@@ -1091,7 +1091,7 @@ input.filter-select { cursor: text; }
 .profile-header { display: flex; align-items: center; gap: var(--space-md); flex-wrap: wrap; }
 
 .avatar-picker-panel { display: flex; flex-direction: column; gap: var(--space-sm); }
-.avatar-picker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-sm); max-width: 360px; }
+.avatar-picker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-sm); max-width: 440px; }
 .avatar-picker-item {
   position: relative; aspect-ratio: 1; padding: 0; border-radius: 50%; overflow: hidden;
   background: var(--bg-card); border: 3px solid var(--border-color);
@@ -1115,7 +1115,7 @@ input.filter-select { cursor: text; }
   animation: spin 0.7s linear infinite;
 }
 @media (min-width: 768px) {
-  .avatar-picker-grid { grid-template-columns: repeat(6, 1fr); max-width: 560px; }
+  .avatar-picker-grid { grid-template-columns: repeat(7, 1fr); max-width: 650px; }
 }
 
 .profile-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-sm); }

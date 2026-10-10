@@ -486,7 +486,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     private void startQuiz(HotelSession session, RoomInstance room) {
         if (cardRepository == null) return;
         List<com.capstone.vinyldex.entity.Card> pool = cardRepository.findAllActiveWithArtistClass().stream()
-                .filter(c -> QUIZ_SOURCES.contains(c.getSource()) && c.getImgUrl() != null && !c.getImgUrl().isBlank())
+                .filter(c -> !c.isUltimate() && QUIZ_SOURCES.contains(c.getSource()) && c.getImgUrl() != null && !c.getImgUrl().isBlank())
                 .toList();
         if (pool.isEmpty()) {
             session.send(error("quiz_no_cards"));

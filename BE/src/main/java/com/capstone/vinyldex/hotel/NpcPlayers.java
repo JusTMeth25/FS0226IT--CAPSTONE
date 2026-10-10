@@ -116,7 +116,7 @@ public class NpcPlayers {
     void ensureBots() {
         List<Bot> list = new ArrayList<>();
         List<Card> pool = cardRepository.findAllActiveWithArtistClass().stream()
-                .filter(c -> List.of("rare", "epic", "legendary").contains(c.getRarity()) && c.getImgUrl() != null)
+                .filter(c -> !c.isUltimate() && List.of("rare", "epic", "legendary").contains(c.getRarity()) && c.getImgUrl() != null)
                 .toList();
         for (String key : KEYS) {
             Optional<NpcRoster.Located> located = NpcRoster.byKey(key);

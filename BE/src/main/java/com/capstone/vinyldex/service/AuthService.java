@@ -28,7 +28,7 @@ public class AuthService {
      * cartella o estensione senza toccare il database.
      */
     private static final List<String> AVAILABLE_AVATARS =
-            List.of("avatar1", "avatar2", "avatar3", "avatar4", "avatar5", "avatar6");
+            List.of("avatar1", "avatar2", "avatar3", "avatar4", "avatar5", "avatar6", "avatar7");
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;

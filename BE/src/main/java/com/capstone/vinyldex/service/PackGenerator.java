@@ -35,6 +35,12 @@ public class PackGenerator {
     public static final int PITY_SOFT = 20;
     /** Al pacchetto numero PITY_HARD senza leggendaria, una e' garantita. */
     public static final int PITY_HARD = 40;
+    /**
+     * Probabilita' che un pacchetto contenga una carta ultimate (Eternal Empress, e a parte la sua
+     * versione alternativa): 0,0000001%, cioe' una su un miliardo. E' un tiro a parte per ciascuna:
+     * le carte ultimate non stanno mai nel mazzo delle leggendarie.
+     */
+    public static final double ULTIMATE_CHANCE = 1e-9;
     /** Carte del set della settimana nel pacchetto del weekend. */
     public static final int FEATURED_COUNT = 2;
 
@@ -53,7 +59,13 @@ public class PackGenerator {
      *                 si pesca fra le carte dello stesso gioco
      */
     public List<Card> generate(Pack pack, int pity, List<Card> featured) {
-        List<Card> allCards = cardRepository.findAllActiveWithArtistClass();
+        List<Card> catalog = cardRepository.findAllActiveWithArtistClass();
+        List<Card> allCards = catalog.stream().filter(c -> !c.isUltimate()).toList();
+        // Pacchetti di un altro gioco (Pokemon, Ultimate Team...) o di un gruppo: niente ultimate.
+        List<Card> ultimates = catalog.stream()
+                .filter(c -> c.isUltimate() && (pack.getSource() == null || pack.getSource().isBlank()
+                        || pack.getSource().equals(c.getSource())))
+                .toList();
         // Pacchetto di una sola fonte (per esempio Ultimate Team): si pesca solo fra quelle carte.
         if (pack.getSource() != null && !pack.getSource().isBlank()) {
             // La fonte del pacchetto vale per tutta la sua famiglia: il Pacchetto Pokémon pesca anche
@@ -68,6 +80,7 @@ public class PackGenerator {
                     .filter(c -> group == null || group.equals(c.getGroup()))
                     .toList();
         }
+        if (featured != null) featured = featured.stream().filter(c -> !c.isUltimate()).toList();
         if (featured != null && !featured.isEmpty()) {
             Set<String> sources = featured.stream().map(Card::getSource).collect(Collectors.toSet());
             List<Card> sameGame = allCards.stream().filter(c -> sources.contains(c.getSource())).toList();
@@ -129,7 +142,18 @@ public class PackGenerator {
             taken.add(card.getId());
         }
 
+        // Il tiro di ogni carta ultimate: se esce prende il posto di una delle ultime carte pescate.
+        int slot = result.size() - 1;
+        for (Card ultimate : ultimates) {
+            if (slot < 0) break;
+            if (rollUltimate()) result.set(slot--, ultimate);
+        }
         return result;
+    }
+
+    /** Il tiro a parte di una carta ultimate (sovrascrivibile nei test). */
+    boolean rollUltimate() {
+        return random.nextDouble() < ULTIMATE_CHANCE;
     }
 
     private Card pickFrom(List<Card> pool, Set<UUID> taken) {

@@ -741,6 +741,28 @@ export const CARDS = [
     fullImage: true,
     stats: { fans: 58, style: 56, influence: 68, energy: 74 },
     description: 'Fa il lavoro che non finisce negli highlights. Un blocco alla volta apre la strada alla squadra.'
+  },
+  {
+    id: 'legendary-ultimate-001',
+    name: 'Eternal Empress',
+    artistClass: 'The Absolute',
+    variant: 'Eternal Empress',
+    rarity: 'legendary',
+    img: '/assets/img/EternalEmpress.webp',
+    fullImage: true,
+    stats: { fans: 2500, style: 2500, influence: 2500, energy: 2499 },
+    description: 'La regina definitiva di VinylDex. Capelli rossi fiammeggianti, occhi verdi smeraldo e una presenza magnetica impossibile da ignorare. Elegante, potente e seducente, domina il palco con uno stile leggendario e un carisma fuori scala.'
+  },
+  {
+    id: 'legendary-ultimate-002',
+    name: 'Eternal Empress',
+    artistClass: 'The Absolute',
+    variant: 'Eternal Empress Realistic',
+    rarity: 'legendary',
+    img: '/assets/img/EternalEmpressRealistic.webp',
+    fullImage: true,
+    stats: { fans: 2500, style: 2500, influence: 2500, energy: 2499 },
+    description: 'La regina definitiva di VinylDex. Capelli rossi fiammeggianti, occhi verdi smeraldo e una presenza magnetica impossibile da ignorare. Elegante, potente e seducente, domina il palco con uno stile leggendario e un carisma fuori scala.'
   }
 ];
 

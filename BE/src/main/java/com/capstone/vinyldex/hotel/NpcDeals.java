@@ -117,7 +117,7 @@ public class NpcDeals {
     }
 
     private List<Card> ofRarity(String rarity) {
-        return pool().stream().filter(c -> rarity.equals(c.getRarity())).toList();
+        return pool().stream().filter(c -> !c.isUltimate() && rarity.equals(c.getRarity())).toList();
     }
 
     // ------------------------------------------------------------------ vetrina e proposte
@@ -191,12 +191,12 @@ public class NpcDeals {
         Set<UUID> ownedIds = owned.stream().map(uc -> uc.getCard().getId()).collect(Collectors.toSet());
         int target = value(want);
         List<Card> fair = pool().stream()
-                .filter(c -> !ownedIds.contains(c.getId()))
+                .filter(c -> !c.isUltimate() && !ownedIds.contains(c.getId()))
                 .filter(c -> value(c) >= target && value(c) <= target * 1.3 + 5)
                 .toList();
         if (fair.isEmpty()) {
             // Nessuna carta di valore simile: si prende quella nuova piu' vicina per valore.
-            fair = pool().stream().filter(c -> !ownedIds.contains(c.getId()) && value(c) >= target)
+            fair = pool().stream().filter(c -> !c.isUltimate() && !ownedIds.contains(c.getId()) && value(c) >= target)
                     .sorted(Comparator.comparingInt(NpcDeals::value)).limit(5).toList();
         }
         if (fair.isEmpty()) return Optional.empty();
@@ -263,7 +263,7 @@ public class NpcDeals {
         List<PvpGame.CardInfo> team = new ArrayList<>();
         for (String rarity : rarities) {
             List<Card> options = ofRarity(rarity);
-            if (options.isEmpty()) options = pool();
+            if (options.isEmpty()) options = pool().stream().filter(c -> !c.isUltimate()).toList();
             Card card = options.get(random.nextInt(options.size()));
             team.add(PvpService.cardInfo(card));
         }

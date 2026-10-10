@@ -64,7 +64,7 @@ public class CardExtrasService {
     /** La carta del giorno: la stessa per tutti, scelta fra le carte con un'immagine. */
     static Card pickDaily(List<Card> cards, LocalDate day) {
         List<Card> pool = cards.stream()
-                .filter(c -> c.getImgUrl() != null && !c.getImgUrl().isBlank() && !"common".equals(c.getRarity()))
+                .filter(c -> !c.isUltimate() && c.getImgUrl() != null && !c.getImgUrl().isBlank() && !"common".equals(c.getRarity()))
                 .sorted(Comparator.comparing(Card::getCode))
                 .toList();
         if (pool.isEmpty()) return null;
@@ -83,7 +83,7 @@ public class CardExtrasService {
 
     /** Le carte fra cui si sceglie: attive, non olografiche, con un'immagine, non comuni. */
     private static final String DAILY_POOL = "FROM cards WHERE is_active AND NOT holo AND img_url IS NOT NULL "
-            + "AND img_url <> '' AND rarity <> 'common'";
+            + "AND img_url <> '' AND rarity <> 'common' AND code NOT LIKE '" + Card.ULTIMATE_PREFIX + "%'";
 
     /**
      * La carta del giorno si sceglie nel database (conta e posizione, ordinando per codice come
@@ -227,7 +227,7 @@ public class CardExtrasService {
         String target = nextRarity(rarity);
         if (target == null) throw ApiException.badRequest("fusion_max_rarity");
         List<Card> pool = cardRepository.findAllActiveWithArtistClass().stream()
-                .filter(c -> target.equals(c.getRarity()) && c.getImgUrl() != null && !c.getImgUrl().isBlank())
+                .filter(c -> !c.isUltimate() && target.equals(c.getRarity()) && c.getImgUrl() != null && !c.getImgUrl().isBlank())
                 .toList();
         if (pool.isEmpty()) throw ApiException.badRequest("fusion_no_cards");
         for (Map.Entry<String, Integer> e : wanted.entrySet()) {

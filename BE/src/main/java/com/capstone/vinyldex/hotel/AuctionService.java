@@ -144,7 +144,7 @@ public class AuctionService {
         // Un lotto su quattro e' un pezzo dei negozi in edizione limitata, numerato (10 copie al massimo).
         if (wardrobe != null && random.nextInt(4) == 0 && openLuxury()) return;
         List<Card> pool = cardRepository.findAllActiveWithArtistClass().stream()
-                .filter(c -> RARITIES.contains(c.getRarity()) && c.getImgUrl() != null && !c.getImgUrl().isBlank())
+                .filter(c -> !c.isUltimate() && RARITIES.contains(c.getRarity()) && c.getImgUrl() != null && !c.getImgUrl().isBlank())
                 .toList();
         if (pool.isEmpty()) return;
         // Le leggendarie escono piu' di rado.

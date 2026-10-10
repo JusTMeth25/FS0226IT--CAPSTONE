@@ -120,6 +120,18 @@ public class Card {
         return holo && code != null && code.endsWith(HOLO_SUFFIX) ? code.substring(0, code.length() - HOLO_SUFFIX.length()) : code;
     }
 
+    /**
+     * Codici delle carte ultimate, le piu' rare del gioco: Eternal Empress (V80) e la sua versione
+     * alternativa (V81). Escono solo dal tiro a parte di PackGenerator.
+     */
+    public static final String ULTIMATE_PREFIX = "legendary-ultimate-";
+
+    /** Carta ultimate (o la sua olografica): fuori da tutte le estrazioni casuali normali. */
+    public boolean isUltimate() {
+        String base = baseCode();
+        return base != null && base.startsWith(ULTIMATE_PREFIX);
+    }
+
     /** Prezzo di mercato letto da metadata, null se l'import non lo ha fornito. */
     public Double getMarketPrice() {
         if (metadata == null) return null;

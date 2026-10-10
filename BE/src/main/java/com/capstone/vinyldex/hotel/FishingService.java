@@ -60,7 +60,7 @@ public class FishingService {
         if (caught != null && caught >= CARDS_PER_DAY) return null;
         String rarity = rarityFor(score, random);
         List<Card> pool = cardRepository.findAllActiveWithArtistClass().stream()
-                .filter(c -> rarity.equals(c.getRarity()) && c.getImgUrl() != null && !c.getImgUrl().isBlank())
+                .filter(c -> !c.isUltimate() && rarity.equals(c.getRarity()) && c.getImgUrl() != null && !c.getImgUrl().isBlank())
                 .toList();
         if (pool.isEmpty()) return null;
         Card card = pool.get(random.nextInt(pool.size()));
