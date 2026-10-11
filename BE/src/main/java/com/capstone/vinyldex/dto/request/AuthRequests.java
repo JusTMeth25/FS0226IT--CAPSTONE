@@ -29,6 +29,19 @@ public final class AuthRequests {
     ) {
     }
 
+    /** "Non ricordo la password": l'email dell'account. */
+    public record ForgotPasswordRequest(
+            @NotBlank(message = "missing_fields") @Size(max = 255, message = "invalid_email") String email
+    ) {
+    }
+
+    /** Password nuova col token del link arrivato via email (stesse regole della registrazione). */
+    public record ResetPasswordRequest(
+            @NotBlank(message = "reset_token_invalid") @Size(max = 200, message = "reset_token_invalid") String token,
+            @NotBlank(message = "missing_fields") @Size(min = 8, max = 100, message = "weak_password") String password
+    ) {
+    }
+
     /** {@code deviceToken}: token del dispositivo fidato, se il client ne ha uno (salta il codice a 6 cifre). */
     public record LoginRequest(
             @NotBlank(message = "missing_fields") String email,

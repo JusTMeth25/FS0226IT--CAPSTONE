@@ -63,6 +63,11 @@ public class AdminController {
         return Map.of("user", adminService.setGold(id, request.gold(), principal.getUsername()));
     }
 
+    @PostMapping("/users/{id}/cards")
+    public Map<String, Object> giveCard(@PathVariable UUID id, @Valid @RequestBody AdminRequests.GiveCardRequest request) {
+        return adminService.giveCard(id, request.cardId(), request.quantity());
+    }
+
     // ------------------------------------------------------------------- carte
 
     /** Le ultime carte (al massimo AdminService.CARD_LIST_LIMIT), o quelle che corrispondono a q. */

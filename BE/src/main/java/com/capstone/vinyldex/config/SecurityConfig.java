@@ -85,7 +85,8 @@ public class SecurityConfig {
                         // L'hotel autentica la connessione con il primo messaggio WebSocket
                         // (vedi HotelSocketHandler): l'handshake HTTP non porta il token.
                         .requestMatchers("/ws/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/social", "/api/auth/2fa/verify").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/social", "/api/auth/2fa/verify",
+                                "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/providers").permitAll()
 
                         // Vetrine pubbliche: leggibili anche senza login. Il filtro JWT popola comunque

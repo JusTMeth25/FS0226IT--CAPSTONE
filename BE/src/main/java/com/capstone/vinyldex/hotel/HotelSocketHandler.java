@@ -178,8 +178,10 @@ public class HotelSocketHandler extends TextWebSocketHandler {
     // ------------------------------------------------------------------ comandi
 
     private void authenticate(HotelSession session, String token) {
-        UUID userId = token == null ? null : jwtService.extractUserId(token);
-        Optional<User> user = userId == null ? Optional.empty() : userRepository.findById(userId);
+        JwtService.Access access = token == null ? null : jwtService.extractAccess(token);
+        UUID userId = access == null ? null : access.userId();
+        Optional<User> user = access == null ? Optional.empty() : userRepository.findById(access.userId())
+                .filter(u -> u.acceptsTokenIssuedAt(access.issuedAt()));
         if (user.isEmpty()) {
             session.close(AUTH_FAILED);
             return;

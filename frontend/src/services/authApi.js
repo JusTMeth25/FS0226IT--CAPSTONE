@@ -14,7 +14,9 @@ const AUTH_ERRORS = {
   provider_disabled: 'Questo metodo di accesso non è attivo.',
   email_taken: 'Email già usata da un altro account.',
   username_taken: 'Username già in uso.',
-  weak_password: 'La password deve avere almeno 8 caratteri.'
+  weak_password: 'La password deve avere almeno 8 caratteri.',
+  reset_token_invalid: 'Il link non è più valido: è scaduto o è già stato usato. Chiedine uno nuovo.',
+  too_many_requests: 'Troppe richieste: riprova fra un po\'.'
 };
 
 export function authErrorText(err, fallback = 'Qualcosa è andato storto.') {
@@ -41,6 +43,13 @@ export const authApi = {
   },
   async verifyTwoFactor(challenge, code, remember) {
     return keep(await apiClient.post('/auth/2fa/verify', { challenge, code, remember }));
+  },
+  /** "Non ricordo la password": il server risponde sempre ok, che l'email esista o no. */
+  async forgotPassword(email) {
+    return apiClient.post('/auth/forgot-password', { email });
+  },
+  async resetPassword(token, password) {
+    return apiClient.post('/auth/reset-password', { token, password });
   },
   /** Google/Apple attivi sul server, con i client id pubblici. */
   async providers() {

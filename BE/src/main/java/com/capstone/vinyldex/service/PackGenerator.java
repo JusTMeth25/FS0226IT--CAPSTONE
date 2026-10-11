@@ -37,10 +37,10 @@ public class PackGenerator {
     public static final int PITY_HARD = 40;
     /**
      * Probabilita' che un pacchetto contenga una carta ultimate (Eternal Empress, e a parte la sua
-     * versione alternativa): 0,0000001%, cioe' una su un miliardo. E' un tiro a parte per ciascuna:
+     * versione alternativa): 0,0001%, cioe' una su un milione. E' un tiro a parte per ciascuna:
      * le carte ultimate non stanno mai nel mazzo delle leggendarie.
      */
-    public static final double ULTIMATE_CHANCE = 1e-9;
+    public static final double ULTIMATE_CHANCE = 1e-6;
     /** Carte del set della settimana nel pacchetto del weekend. */
     public static final int FEATURED_COUNT = 2;
 

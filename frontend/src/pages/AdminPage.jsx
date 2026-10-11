@@ -125,16 +125,58 @@ function UsersTab() {
   );
 }
 
+/** Regala copie della carta scelta nella tabella a un utente. */
+function GiveCardPanel({ card, onClose }) {
+  const { data } = useApiResource(() => adminApi.getUsers(), []);
+  const users = data?.users || [];
+  const [userId, setUserId] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState(null);
+
+  async function give(e) {
+    e.preventDefault();
+    if (!userId) return;
+    setBusy(true);
+    setMessage(null);
+    try {
+      const res = await adminApi.giveCard(userId, card.id, quantity);
+      setMessage({ type: 'success', text: `${res.card} data a ${res.username}: ora ne ha ${res.quantity}.` });
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form className="admin-form-row glass-panel admin-give-card" onSubmit={give}>
+      <span><i className="ph-fill ph-gift" /> Dai <strong>{card.name}</strong>{card.variant && card.variant !== card.name ? ` (${card.variant})` : ''}</span>
+      <select className="ai-input" value={userId} onChange={(e) => setUserId(e.target.value)} aria-label="Utente">
+        <option value="">Scegli l'utente…</option>
+        {users.map((u) => <option key={u.id} value={u.id}>{u.username}</option>)}
+      </select>
+      <input type="number" min="1" max="99" className="ai-input admin-gold-input" value={quantity} aria-label="Copie"
+        onChange={(e) => setQuantity(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))} />
+      <button type="submit" className="btn btn-primary btn-small" disabled={busy || !userId}>Dai carta</button>
+      <button type="button" className="btn btn-secondary btn-small" onClick={onClose}>Chiudi</button>
+      {message && <div className={`auth-message auth-message-${message.type}`}>{message.text}</div>}
+    </form>
+  );
+}
+
 function CardsTab() {
   // Il catalogo e' enorme: il server manda le ultime 300 carte, o quelle che corrispondono alla ricerca.
   const [query, setQuery] = useState('');
   const [search, setSearch] = useState('');
+  const [giving, setGiving] = useState(null);
   return (
     <>
     <form className="admin-form-row glass-panel" onSubmit={(e) => { e.preventDefault(); setSearch(query.trim()); }}>
       <input className="ai-input" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cerca per nome, codice o fonte (es. weiss)" aria-label="Cerca carte" />
       <button type="submit" className="btn btn-primary btn-small">Cerca</button>
     </form>
+    {giving && <GiveCardPanel key={giving.id} card={giving} onClose={() => setGiving(null)} />}
     <Resource
       fetcher={() => adminApi.getCards(search)}
       deps={[search]}
@@ -145,15 +187,20 @@ function CardsTab() {
         return (
           <div className="admin-table-wrap">
             <table className="admin-table">
-              <thead><tr><th>Nome</th><th>Set</th><th>Rarità</th><th>Fonte</th><th>Valore</th></tr></thead>
+              <thead><tr><th>Nome</th><th>Set</th><th>Rarità</th><th>Fonte</th><th>Valore</th><th /></tr></thead>
               <tbody>
                 {cards.map((c) => (
                   <tr key={c.id}>
-                    <td data-label="Nome">{c.name}</td>
+                    <td data-label="Nome">{c.name}{c.variant && c.variant !== c.name && <small className="admin-card-variant"> · {c.variant}</small>}</td>
                     <td data-label="Set">{c.setName}</td>
                     <td data-label="Rarità">{c.rarity}</td>
                     <td data-label="Fonte">{c.source}</td>
                     <td data-label="Valore">{formatMarketPrice(c.marketPrice) || '—'}</td>
+                    <td>
+                      <button type="button" className="btn btn-small btn-secondary" onClick={() => setGiving(c)} title="Dai questa carta a un utente">
+                        <i className="ph-fill ph-gift" /> Dai
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

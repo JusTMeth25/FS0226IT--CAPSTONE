@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/** Eternal Empress: mai dal mazzo delle leggendarie, solo dal tiro a parte da una su un miliardo. */
+/** Eternal Empress: mai dal mazzo delle leggendarie, solo dal tiro a parte da una su un milione. */
 class PackGeneratorUltimateTest {
 
     private static Card card(String code, String rarity, String source) {
@@ -66,9 +66,9 @@ class PackGeneratorUltimateTest {
     }
 
     @Test
-    @DisplayName("Probabilita' dello 0,0000001%: una su un miliardo")
+    @DisplayName("Probabilita' dello 0,0001%: una su un milione")
     void chance() {
-        assertEquals(1e-9, PackGenerator.ULTIMATE_CHANCE);
+        assertEquals(1e-6, PackGenerator.ULTIMATE_CHANCE);
     }
 
     @Test

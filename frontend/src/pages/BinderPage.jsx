@@ -115,7 +115,7 @@ export default function BinderPage() {
       setBook((current) => {
         const chunks = new Map(current?.key === key ? current.chunks : []);
         chunks.set(index, res.cards || []);
-        return { key, total: res.total, owned: res.owned, chunks };
+        return { key, total: res.total, owned: res.owned, cardsTotal: res.cardsTotal ?? res.total, chunks };
       });
     }).catch(() => {
       loading.current.delete(id);
@@ -232,7 +232,7 @@ export default function BinderPage() {
         <button type="button" className="btn btn-secondary btn-small" onClick={toggleView}>
           <i className={`ph-fill ${flat ? 'ph-cube' : 'ph-squares-four'}`} /> {flat ? 'Vista 3D' : 'Vista piatta'}
         </button>
-        <span className="binder-count">{owned} / {total} carte</span>
+        <span className="binder-count">{owned} / {cards?.cardsTotal || total} carte</span>
       </div>
       <p className="binder-title"><img src={coverImage(theme)} alt="" /> {theme.title}</p>
 

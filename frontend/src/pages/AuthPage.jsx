@@ -6,10 +6,13 @@ import { CARDS } from '../data/cards.js';
 import CardTile from '../components/card/CardTile.jsx';
 import ShinyText from '../components/fx/ShinyText.jsx';
 import SplitText from '../components/fx/SplitText.jsx';
-import { authApi } from '../services/authApi.js';
+import { authApi, authErrorText } from '../services/authApi.js';
 import { availableProviders, prepareSocial, socialSignIn } from '../services/socialLogin.js';
 
 /** Cosa si vede prima ancora di avere un account. */
+/** Schermata iniziale di ciascun indirizzo. */
+const START_TABS = { '/register': 'register', '/forgot-password': 'forgot', '/reset-password': 'reset' };
+
 const HIGHLIGHTS = [
   { icon: 'ph-cards', title: 'Oltre mille carte', text: 'Artisti originali più import da nove giochi di carte reali.' },
   { icon: 'ph-gift', title: 'Bustine ogni giorno', text: 'Una gratis a rotazione, con probabilità decise dal server.' },
@@ -22,7 +25,11 @@ export default function AuthPage() {
   const { isAuthenticated, login, register, socialLogin, verifyTwoFactor } = useAuth();
   const { sound } = useSound();
 
-  const [tab, setTab] = useState(location.pathname === '/register' ? 'register' : 'login');
+  const [tab, setTab] = useState(START_TABS[location.pathname] || 'login');
+  // Link dell'email: /#/reset-password?token=...
+  const resetToken = new URLSearchParams(location.search).get('token') || '';
+  const [newPassword, setNewPassword] = useState({ password: '', confirm: '' });
+  const [resetDone, setResetDone] = useState(false);
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [message, setMessage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -31,6 +38,14 @@ export default function AuthPage() {
   const [code, setCode] = useState('');
   const [remember, setRemember] = useState(true);
   const [socialConfig, setSocialConfig] = useState(null);
+  // Cambiando indirizzo senza ricaricare (link dell'email in una scheda gia' aperta) cambia la schermata.
+  const [shownPath, setShownPath] = useState(location.pathname);
+  if (shownPath !== location.pathname) {
+    setShownPath(location.pathname);
+    setTab(START_TABS[location.pathname] || 'login');
+    setMessage(null);
+    setResetDone(false);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -44,7 +59,8 @@ export default function AuthPage() {
   const providers = availableProviders(socialConfig);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    // Dal link dell'email si cambia la password anche se su questo browser c'e' gia' qualcuno dentro.
+    if (isAuthenticated && tab !== 'reset') {
       const dest = location.state?.from?.pathname || '/home';
       navigate(dest, { replace: true });
     }
@@ -126,6 +142,44 @@ export default function AuthPage() {
     setTab(next);
     setMessage(null);
     setChallenge(null);
+    navigate(next === 'forgot' ? '/forgot-password' : `/${next}`, { replace: true });
+  }
+
+  async function handleForgot(e) {
+    e.preventDefault();
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await authApi.forgotPassword(form.email.trim());
+      setMessage({ type: 'success', text: 'Se l\'email è di un account VinylDex ti abbiamo scritto: apri il link entro 30 minuti. Controlla anche lo spam.' });
+      sound.success();
+    } catch (err) {
+      setMessage({ type: 'error', text: authErrorText(err, 'Richiesta non riuscita: riprova.') });
+      sound.error();
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleReset(e) {
+    e.preventDefault();
+    if (newPassword.password !== newPassword.confirm) {
+      setMessage({ type: 'error', text: 'Le due password non sono uguali.' });
+      return;
+    }
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      await authApi.resetPassword(resetToken, newPassword.password);
+      setResetDone(true);
+      setMessage({ type: 'success', text: 'Password cambiata. Sei uscito da tutti i dispositivi: accedi con quella nuova.' });
+      sound.success();
+    } catch (err) {
+      setMessage({ type: 'error', text: authErrorText(err, 'Cambio non riuscito: riprova.') });
+      sound.error();
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   // Tre carte vere del catalogo locale, scelte per rarita' e non per identificativo:
@@ -202,6 +256,47 @@ export default function AuthPage() {
             </form>
             <p className="auth-switch"><button type="button" className="auth-switch-link" onClick={() => { setChallenge(null); setMessage(null); }}>Torna all&apos;accesso</button></p>
           </>
+        ) : tab === 'forgot' ? (
+          <>
+            <h3 className="auth-form-title"><i className="ph-fill ph-key" /> Non ricordo la password</h3>
+            <p className="auth-2fa-hint">Scrivi l&apos;email del tuo account: ti mandiamo un link per sceglierne una nuova.</p>
+            <form className="auth-form" onSubmit={handleForgot}>
+              <div className="auth-field">
+                <label className="filter-label" htmlFor="auth-forgot-email">Email</label>
+                <input className="ai-input" id="auth-forgot-email" name="email" type="email" value={form.email} onChange={updateField} autoFocus required />
+              </div>
+              <button type="submit" className="btn btn-primary auth-submit" disabled={submitting || !form.email.trim()}>Mandami il link</button>
+              {message && <div className={`auth-message auth-message-${message.type}`}>{message.text}</div>}
+            </form>
+            <p className="auth-switch"><button type="button" className="auth-switch-link" onClick={() => switchTab('login')}>Torna all&apos;accesso</button></p>
+          </>
+        ) : tab === 'reset' ? (
+          <>
+            <h3 className="auth-form-title"><i className="ph-fill ph-key" /> Nuova password</h3>
+            {!resetToken ? (
+              <p className="auth-2fa-hint">Il link non è completo: aprilo di nuovo dall&apos;email o chiedine uno nuovo.</p>
+            ) : !resetDone && (
+              <form className="auth-form" onSubmit={handleReset}>
+                <div className="auth-field">
+                  <label className="filter-label" htmlFor="auth-new-pass">Nuova password</label>
+                  <input className="ai-input" id="auth-new-pass" type="password" minLength={8} maxLength={100} autoComplete="new-password"
+                    value={newPassword.password} onChange={(e) => setNewPassword((p) => ({ ...p, password: e.target.value }))} autoFocus required />
+                </div>
+                <div className="auth-field">
+                  <label className="filter-label" htmlFor="auth-new-pass2">Ripeti la password</label>
+                  <input className="ai-input" id="auth-new-pass2" type="password" minLength={8} maxLength={100} autoComplete="new-password"
+                    value={newPassword.confirm} onChange={(e) => setNewPassword((p) => ({ ...p, confirm: e.target.value }))} required />
+                </div>
+                <button type="submit" className="btn btn-primary auth-submit" disabled={submitting || newPassword.password.length < 8}>Cambia password</button>
+              </form>
+            )}
+            {message && <div className={`auth-message auth-message-${message.type}`}>{message.text}</div>}
+            <p className="auth-switch">
+              {resetDone
+                ? <button type="button" className="auth-switch-link" onClick={() => switchTab('login')}>Vai all&apos;accesso</button>
+                : <button type="button" className="auth-switch-link" onClick={() => switchTab('forgot')}>Chiedi un nuovo link</button>}
+            </p>
+          </>
         ) : tab === 'login' ? (
           <>
             <h3 className="auth-form-title"><i className="ph-fill ph-lock" /> Accedi</h3>
@@ -217,6 +312,7 @@ export default function AuthPage() {
               <button type="submit" className="btn btn-primary auth-submit" disabled={submitting}>Accedi</button>
               {message && <div className={`auth-message auth-message-${message.type}`}>{message.text}</div>}
             </form>
+            <p className="auth-switch"><button type="button" className="auth-switch-link" onClick={() => switchTab('forgot')}>Non ricordo la password</button></p>
             <p className="auth-switch">Non hai un account? <button type="button" className="auth-switch-link" onClick={() => switchTab('register')}>Registrati</button></p>
           </>
         ) : (
@@ -241,7 +337,7 @@ export default function AuthPage() {
             <p className="auth-switch">Hai già un account? <button type="button" className="auth-switch-link" onClick={() => switchTab('login')}>Accedi</button></p>
           </>
         )}
-        {!challenge && providers.length > 0 && (
+        {!challenge && (tab === 'login' || tab === 'register') && providers.length > 0 && (
           <div className="auth-social">
             <div className="auth-social-divider"><span>oppure</span></div>
             {providers.includes('google') && (

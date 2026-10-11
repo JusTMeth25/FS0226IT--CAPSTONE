@@ -1161,6 +1161,8 @@ input.filter-select { cursor: text; }
 }
 
 .admin-form-row { display: flex; gap: var(--space-sm); flex-wrap: wrap; align-items: flex-end; }
+.admin-give-card { align-items: center; margin-bottom: var(--space-sm); }
+.admin-give-card .auth-message { flex-basis: 100%; }
 .admin-form-row .filter-group { flex: 1; min-width: 140px; }
 .badge-role-admin { background: rgba(255, 215, 0, 0.15); color: var(--neon-gold); font-size: 0.6rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
 .badge-banned { background: rgba(255, 82, 82, 0.15); color: #FF5252; font-size: 0.6rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }

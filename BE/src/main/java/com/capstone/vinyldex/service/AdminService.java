@@ -33,6 +33,12 @@ public class AdminService {
     private final MissionRepository missionRepository;
     private final EventRepository eventRepository;
     private final WalletService walletService;
+    private UserCardService userCardService;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    void setUserCardService(UserCardService userCardService) {
+        this.userCardService = userCardService;
+    }
 
     public AdminService(UserRepository userRepository,
                         CardRepository cardRepository,
@@ -95,6 +101,15 @@ public class AdminService {
         User updated = walletService.adjustGold(userId, delta,
                 WalletTransactionType.ADMIN_ADJUST, null, "admin:" + adminUsername);
         return PublicUserDto.from(updated);
+    }
+
+    /** L'admin regala copie di una carta a un utente; restituisce quante copie ha ora. */
+    @Transactional
+    public Map<String, Object> giveCard(UUID userId, UUID cardId, int quantity) {
+        User user = userRepository.findById(userId).orElseThrow(() -> ApiException.notFound("user_not_found"));
+        Card card = cardRepository.findById(cardId).orElseThrow(() -> ApiException.notFound("card_not_found"));
+        UserCard saved = userCardService.add(user, card, quantity);
+        return Map.of("username", user.getUsername(), "card", card.getName(), "quantity", saved.getQuantity());
     }
 
     // ------------------------------------------------------------------- carte

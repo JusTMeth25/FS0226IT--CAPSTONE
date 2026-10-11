@@ -16,7 +16,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Legge il Bearer token e popola il SecurityContext.
@@ -48,11 +47,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith(BEARER_PREFIX)
                 && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            UUID userId = jwtService.extractUserId(header.substring(BEARER_PREFIX.length()).trim());
-            if (userId != null) {
-                Optional<User> user = userRepository.findById(userId);
-                // Un utente bannato o cancellato non viene autenticato: il token da solo non basta.
-                if (user.isPresent() && !user.get().isBanned()) {
+            JwtService.Access access = jwtService.extractAccess(header.substring(BEARER_PREFIX.length()).trim());
+            if (access != null) {
+                Optional<User> user = userRepository.findById(access.userId());
+                // Un utente bannato o cancellato non viene autenticato: il token da solo non basta. Nemmeno
+                // un token emesso prima dell'ultimo cambio della password.
+                if (user.isPresent() && !user.get().isBanned() && user.get().acceptsTokenIssuedAt(access.issuedAt())) {
                     UserPrincipal principal = new UserPrincipal(user.get());
                     var authentication = new UsernamePasswordAuthenticationToken(
                             principal, null, principal.getAuthorities());

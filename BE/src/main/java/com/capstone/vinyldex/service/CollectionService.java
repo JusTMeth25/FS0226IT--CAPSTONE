@@ -10,6 +10,7 @@ import com.capstone.vinyldex.repository.UserCardRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -92,8 +93,11 @@ public class CollectionService {
         return true;
     }
 
-    /** Carte del raccoglitore in una pagina, con il totale e quante se ne possiedono. */
-    public record BinderPage(List<CollectionEntryDto> cards, int total, long owned, int offset) {
+    /**
+     * Carte del raccoglitore in una pagina. total = tasche (le carte piu' le olografiche possedute,
+     * per sfogliare), cardsTotal = carte del gioco o del set, owned = quante se ne possiedono.
+     */
+    public record BinderPage(List<CollectionEntryDto> cards, int total, long owned, int offset, int cardsTotal) {
     }
 
     public static final int BINDER_MAX_LIMIT = 180;
@@ -127,19 +131,24 @@ public class CollectionService {
                 .filter(uc -> uc.getQuantity() > 0).toList();
         Map<UUID, UserCard> ownedByCardId = mine.stream()
                 .collect(Collectors.toMap(uc -> uc.getCard().getId(), Function.identity(), (a, b) -> a));
-        // Le olografiche non stanno nel raccoglitore: riempiono (e fanno brillare) la tasca della carta base.
-        java.util.Set<String> holoOf = mine.stream().filter(uc -> uc.getCard().isHolo())
-                .map(uc -> uc.getCard().baseCode()).collect(Collectors.toSet());
-        int from = Math.max(0, Math.min(offset, all.size()));
-        int to = Math.min(all.size(), from + Math.max(1, Math.min(limit, BINDER_MAX_LIMIT)));
-        List<CollectionEntryDto> page = all.subList(from, to).stream()
-                .map(card -> {
-                    CollectionEntryDto entry = CollectionEntryDto.from(card, ownedByCardId.get(card.getId()));
-                    return holoOf.contains(card.getCode()) ? entry.withHoloOwned() : entry;
-                })
-                .toList();
-        long owned = all.stream().filter(c -> ownedByCardId.containsKey(c.getId()) || holoOf.contains(c.getCode())).count();
-        return new BinderPage(page, all.size(), owned, from);
+        // Un'olografica posseduta ha la sua tasca, subito dopo quella della carta normale: si vedono tutte e due.
+        Map<String, UserCard> holoOf = mine.stream().filter(uc -> uc.getCard().isHolo())
+                .collect(Collectors.toMap(uc -> uc.getCard().baseCode(), Function.identity(), (a, b) -> a));
+        List<CollectionEntryDto> pockets = new ArrayList<>(all.size() + holoOf.size());
+        int from = Math.max(0, offset);
+        int to = from + Math.max(1, Math.min(limit, BINDER_MAX_LIMIT));
+        int index = 0;
+        for (Card card : all) {
+            if (index >= from && index < to) pockets.add(CollectionEntryDto.from(card, ownedByCardId.get(card.getId())));
+            index++;
+            UserCard holo = holoOf.get(card.getCode());
+            if (holo == null) continue;
+            if (index >= from && index < to) pockets.add(CollectionEntryDto.from(holo.getCard(), holo).withHoloOwned());
+            index++;
+        }
+        // Per il completamento conta la carta, normale o olografica.
+        long owned = all.stream().filter(c -> ownedByCardId.containsKey(c.getId()) || holoOf.containsKey(c.getCode())).count();
+        return new BinderPage(pockets, index, owned, Math.min(from, index), all.size());
     }
 
     /** Carte di un gioco nell'ordine del raccoglitore, ricalcolate solo quando cambia il catalogo in cache. */

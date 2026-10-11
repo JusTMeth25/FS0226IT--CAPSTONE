@@ -114,6 +114,17 @@ public class User {
     @Column(name = "ban_reason", length = 500)
     private String banReason;
 
+    /** Ultimo cambio della password: i token di accesso emessi prima non valgono piu'. */
+    @Column(name = "password_changed_at")
+    private Instant passwordChangedAt;
+
+    /** Il token emesso in quell'istante vale ancora (non e' di prima dell'ultimo cambio della password). */
+    public boolean acceptsTokenIssuedAt(Instant issuedAt) {
+        if (passwordChangedAt == null) return true;
+        // Il token tiene solo i secondi: si confronta al secondo.
+        return issuedAt != null && !issuedAt.isBefore(passwordChangedAt.truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
+    }
+
     /** Ultima apertura del pacchetto gratuito, per calcolare il cooldown. */
     @Column(name = "last_free_pack_at")
     private Instant lastFreePackAt;

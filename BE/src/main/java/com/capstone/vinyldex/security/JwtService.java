@@ -104,6 +104,23 @@ public class JwtService {
         }
     }
 
+    /** Token di accesso valido: di chi e e quando e' stato emesso. */
+    public record Access(UUID userId, java.time.Instant issuedAt) {
+    }
+
+    /** Utente e istante di emissione del token, oppure null se scaduto, manomesso, malformato o con uno scopo. */
+    public Access extractAccess(String token) {
+        try {
+            Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+            if (claims.get("purpose") != null) return null;
+            java.util.Date issued = claims.getIssuedAt();
+            return new Access(UUID.fromString(claims.getSubject()), issued == null ? null : issued.toInstant());
+        } catch (JwtException | IllegalArgumentException ex) {
+            log.debug("Token JWT rifiutato: {}", ex.getMessage());
+            return null;
+        }
+    }
+
     /** Id utente contenuto nel token, oppure null se il token e' scaduto, manomesso o malformato. */
     public UUID extractUserId(String token) {
         try {

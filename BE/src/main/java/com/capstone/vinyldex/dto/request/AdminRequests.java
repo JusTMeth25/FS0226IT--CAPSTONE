@@ -1,5 +1,6 @@
 package com.capstone.vinyldex.dto.request;
 
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -18,6 +19,14 @@ public final class AdminRequests {
     }
 
     public record BanRequest(String reason) {
+    }
+
+    /** Carta da dare a un utente dal pannello admin, con quante copie (1-99). */
+    public record GiveCardRequest(
+            @NotNull(message = "invalid_card") UUID cardId,
+            @NotNull(message = "invalid_quantity") @Min(value = 1, message = "invalid_quantity")
+            @Max(value = 99, message = "invalid_quantity") Integer quantity
+    ) {
     }
 
     public record GoldRequest(

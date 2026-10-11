@@ -6,6 +6,7 @@ import com.capstone.vinyldex.dto.response.AuthUserDto;
 import com.capstone.vinyldex.security.CurrentUser;
 import com.capstone.vinyldex.security.UserPrincipal;
 import com.capstone.vinyldex.service.AuthService;
+import com.capstone.vinyldex.service.PasswordResetService;
 import com.capstone.vinyldex.service.TwoFactorService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
@@ -21,8 +22,31 @@ public class AuthController {
 
     private final AuthService authService;
 
+    private PasswordResetService passwordReset;
+
     public AuthController(AuthService authService) {
         this.authService = authService;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    void setPasswordReset(PasswordResetService passwordReset) {
+        this.passwordReset = passwordReset;
+    }
+
+    /** Manda il link per reimpostare la password: risponde sempre ok, che l'email esista o no. */
+    @PostMapping("/forgot-password")
+    public Map<String, Boolean> forgotPassword(@Valid @RequestBody AuthRequests.ForgotPasswordRequest request,
+                                               jakarta.servlet.http.HttpServletRequest http) {
+        String forwarded = http.getHeader("X-Forwarded-For");
+        String ip = forwarded != null && !forwarded.isBlank() ? forwarded.split(",")[0].trim() : http.getRemoteAddr();
+        passwordReset.request(request.email(), ip);
+        return Map.of("sent", true);
+    }
+
+    @PostMapping("/reset-password")
+    public Map<String, Boolean> resetPassword(@Valid @RequestBody AuthRequests.ResetPasswordRequest request) {
+        passwordReset.reset(request.token(), request.password());
+        return Map.of("reset", true);
     }
 
     @PostMapping("/register")

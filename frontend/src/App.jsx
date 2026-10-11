@@ -51,6 +51,8 @@ export default function App() {
             Chi non ha ancora un account vede solo la presentazione e il modulo. */}
         <Route path="login" element={<AuthPage />} />
         <Route path="register" element={<AuthPage />} />
+        <Route path="forgot-password" element={<AuthPage />} />
+        <Route path="reset-password" element={<AuthPage />} />
 
         {/* Per giocare serve un account: non esiste piu' una modalita' ospite.
             ProtectedRoute avvolge l'intero layout, quindi ogni pagina interna e'

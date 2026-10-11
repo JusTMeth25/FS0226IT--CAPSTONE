@@ -10,6 +10,7 @@ export const adminApi = {
   async banUser(userId) { return apiClient.post(`/admin/users/${userId}/ban`); },
   async unbanUser(userId) { return apiClient.post(`/admin/users/${userId}/unban`); },
   async setUserGold(userId, gold) { return apiClient.patch(`/admin/users/${userId}/gold`, { gold }); },
+  async giveCard(userId, cardId, quantity) { return apiClient.post(`/admin/users/${userId}/cards`, { cardId, quantity }); },
 
   // Carte / pacchetti / drop-rate / garanzie
   async getCards(q = '') { return apiClient.get(`/admin/cards${q ? `?q=${encodeURIComponent(q)}` : ''}`); },
