@@ -34,3 +34,6 @@ npm-debug.log*
 .claude/
 .cline/
 .qodo/
+
+# Deploy: backup del database di produzione
+deploy/backups/

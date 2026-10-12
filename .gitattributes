@@ -1,0 +1,6 @@
+# Script e file letti su Linux (server, container): sempre con fine riga LF.
+*.sh text eol=lf
+mvnw text eol=lf
+Caddyfile text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf

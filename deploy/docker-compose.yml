@@ -1,0 +1,59 @@
+# VinylDex in produzione su un solo server: PostgreSQL, backend Spring e Caddy (frontend + HTTPS).
+# Si lancia da questa cartella:  docker compose up -d --build
+# Variabili in deploy/.env (copia di .env.example, mai in git).
+
+services:
+  db:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: vinyldex
+      POSTGRES_USER: vinyldex
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?manca DB_PASSWORD in deploy/.env}
+    volumes:
+      - db-data:/var/lib/postgresql
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vinyldex -d vinyldex"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # Nessuna porta verso l'esterno: il database lo vede solo il backend.
+
+  backend:
+    build: ../BE
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/vinyldex
+      DB_USERNAME: vinyldex
+      PORT: "4000"
+      APP_URL: ${PUBLIC_URL:?manca PUBLIC_URL in deploy/.env}
+      CORS_ORIGINS: ${PUBLIC_URL}${EXTRA_CORS_ORIGINS:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: ${BACKEND_MEMORY:-4g}
+
+  web:
+    build:
+      context: ../frontend
+      args:
+        VITE_SPOTIFY_CLIENT_ID: ${VITE_SPOTIFY_CLIENT_ID:-}
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?manca DOMAIN in deploy/.env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - backend
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:
