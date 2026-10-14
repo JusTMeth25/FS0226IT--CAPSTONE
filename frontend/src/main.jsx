@@ -14,8 +14,10 @@ import { initNativeApp } from './services/nativeInit.js'
 import { registerServiceWorker } from './services/pwa.js'
 import { applyPerfMode } from './utils/perfMode.js'
 import { handleSpotifyCallback } from './hotel/spotify.js'
+import { installImageFallback } from './utils/imageFallback.js'
 
 applyPerfMode()
+installImageFallback()
 initNativeApp()
 registerServiceWorker()
 

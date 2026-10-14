@@ -48,6 +48,13 @@ public class CardImageController {
         this.cardRepository = cardRepository;
     }
 
+    private com.capstone.vinyldex.importer.CardImageAudit imageAudit;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setImageAudit(com.capstone.vinyldex.importer.CardImageAudit imageAudit) {
+        this.imageAudit = imageAudit;
+    }
+
     /** id e' il code pubblico della carta, come in GET /api/cards/{id}. */
     @GetMapping("/cards/{id}/image")
     public ResponseEntity<byte[]> getCardImage(@PathVariable String id) {
@@ -72,6 +79,11 @@ public class CardImageController {
 
             try (InputStream body = response.body()) {
                 if (response.statusCode() != 200 || !contentType.startsWith("image/")) {
+                    // Immagine che la fonte non ha (403/404): la carta si spegne subito per tutti.
+                    if (imageAudit != null && com.capstone.vinyldex.importer.CardImageAudit.classify(response.statusCode(), contentType)
+                            == com.capstone.vinyldex.importer.CardImageAudit.Result.BROKEN) {
+                        imageAudit.markBroken(url, response.statusCode());
+                    }
                     throw new ApiException(HttpStatus.BAD_GATEWAY, "image_unavailable");
                 }
                 byte[] bytes = body.readNBytes(MAX_IMAGE_BYTES + 1);

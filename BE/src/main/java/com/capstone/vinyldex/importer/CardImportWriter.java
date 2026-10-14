@@ -31,12 +31,21 @@ public class CardImportWriter {
         this.statCalculator = statCalculator;
     }
 
+    private CardImageAudit imageAudit;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setImageAudit(CardImageAudit imageAudit) {
+        this.imageAudit = imageAudit;
+    }
+
     /** Fonti le cui carte senza immagine le disegna il backend (FcCardArtController, NbaCardArtController). */
     private static final java.util.Set<String> DRAWN_BY_BACKEND = java.util.Set.of("fc27", "nba");
 
     @Transactional
     public int persist(String source, List<ImportedCard> cards, String errorMessage) {
         int imported = 0;
+        // Immagini gia' viste rotte (CardImageAudit): le loro carte restano spente anche dopo l'import.
+        java.util.Set<String> brokenImages = imageAudit == null ? java.util.Set.of() : imageAudit.brokenUrls();
 
         for (ImportedCard incoming : cards) {
             Card card = cardRepository.findBySourceAndExternalId(source, incoming.externalId())
@@ -69,7 +78,8 @@ public class CardImportWriter {
             // TCGplayer): nei pacchetti e nei set si vedrebbe solo un riquadro vuoto. Fanno
             // eccezione le fonti che la carta la disegna il backend (FC 27, NBA).
             boolean hasImage = incoming.imgUrl() != null && !incoming.imgUrl().isBlank();
-            card.setActive(!incoming.isDemo() && (hasImage || DRAWN_BY_BACKEND.contains(source)));
+            card.setActive(!incoming.isDemo() && (hasImage || DRAWN_BY_BACKEND.contains(source))
+                    && !(hasImage && brokenImages.contains(incoming.imgUrl())));
 
             if (computeStats) applyStats(card);
 
