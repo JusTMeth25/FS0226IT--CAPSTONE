@@ -2,6 +2,11 @@
  * Effetti sonori (mp3 in public/assets/audio/) mappati alle azioni dell'app.
  * Lo stato "enabled" è persistito in localStorage e notificato via subscribe()
  * così i componenti React (topbar) possono sincronizzare l'icona.
+ *
+ * Si suonano con la Web Audio API: i file si scaricano e si decodificano una volta sola, partono
+ * senza ritardo e il volume (con le dissolvenze) funziona anche su iPhone, dove Safari ignora
+ * audio.volume e un new Audio() parte in ritardo. Il contesto audio si sblocca al primo tocco,
+ * come vuole iOS. Senza Web Audio si ripiega su new Audio(), senza tagliare i suoni.
  */
 
 const STORAGE_KEY = 'vinyldex_sound_enabled';
@@ -24,6 +29,9 @@ const FILES = {
   error: '/assets/audio/error.mp3'
 };
 
+/** Dissolvenza quando una carta nuova interrompe il suono della precedente (secondi). */
+const HANDOVER_FADE = 0.12;
+
 function readEnabled() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -37,6 +45,11 @@ class SoundService {
   constructor() {
     this._enabled = readEnabled();
     this._listeners = new Set();
+    this._ctx = null;
+    this._buffers = new Map();
+    this._loading = null;
+    this._reveal = null;
+    this._installUnlock();
   }
 
   isEnabled() {
@@ -59,35 +72,105 @@ class SoundService {
     return () => this._listeners.delete(cb);
   }
 
-  _play(fileKey, { volume = 0.5, delay = 0, maxDuration = null } = {}) {
-    if (!this._enabled) return;
-    const src = FILES[fileKey];
-    if (!src) return;
+  // ------------------------------------------------------------------ Web Audio
 
+  /** iOS fa partire l'audio solo dentro un gesto: al primo tocco si crea il contesto e si caricano i suoni. */
+  _installUnlock() {
+    if (typeof window === 'undefined') return;
+    const unlock = () => {
+      const ctx = this._context();
+      if (!ctx) return;
+      if (ctx.state !== 'running') ctx.resume().catch(() => {});
+      // Un buffer muto suonato nel gesto sblocca davvero l'uscita su Safari.
+      try {
+        const src = ctx.createBufferSource();
+        src.buffer = ctx.createBuffer(1, 1, 22050);
+        src.connect(ctx.destination);
+        src.start(0);
+      } catch { /* ignore */ }
+      this._preload();
+    };
+    ['pointerdown', 'touchend', 'keydown'].forEach((type) => window.addEventListener(type, unlock, { passive: true }));
+  }
+
+  _context() {
+    if (this._ctx) return this._ctx;
+    const Ctx = typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext);
+    if (!Ctx) return null;
+    try {
+      this._ctx = new Ctx();
+    } catch {
+      this._ctx = null;
+    }
+    return this._ctx;
+  }
+
+  _preload() {
+    if (this._loading || !this._ctx) return this._loading;
+    const ctx = this._ctx;
+    this._loading = Promise.all(Object.entries(FILES).map(async ([key, src]) => {
+      try {
+        const data = await (await fetch(src)).arrayBuffer();
+        const buffer = await new Promise((ok, ko) => {
+          const p = ctx.decodeAudioData(data, ok, ko);
+          if (p && typeof p.then === 'function') p.then(ok, ko);
+        });
+        this._buffers.set(key, buffer);
+      } catch { /* quel suono restera' su new Audio() */ }
+    }));
+    return this._loading;
+  }
+
+  /**
+   * Suona un effetto. Con `maxDuration` (ms) dopo quel tempo parte una dissolvenza di `fade` ms:
+   * niente tagli netti. Restituisce un controllo { stop(fadeSeconds) } se suonato con Web Audio.
+   */
+  _play(fileKey, { volume = 0.5, delay = 0, maxDuration = null, fade = 350 } = {}) {
+    if (!this._enabled) return null;
+    const ctx = this._ctx;
+    const buffer = this._buffers.get(fileKey);
+    if (ctx && buffer && ctx.state === 'running') {
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      const gain = ctx.createGain();
+      source.connect(gain).connect(ctx.destination);
+      const start = ctx.currentTime + delay / 1000;
+      gain.gain.setValueAtTime(volume, start);
+      let end = start + buffer.duration;
+      if (maxDuration) {
+        const fadeAt = start + maxDuration / 1000;
+        if (fadeAt < end) {
+          gain.gain.setValueAtTime(volume, fadeAt);
+          gain.gain.linearRampToValueAtTime(0.0001, fadeAt + fade / 1000);
+          end = Math.min(end, fadeAt + fade / 1000 + 0.02);
+        }
+      }
+      source.start(start);
+      source.stop(end);
+      return {
+        stop: (fadeSeconds = HANDOVER_FADE) => {
+          const now = ctx.currentTime;
+          if (now >= end) return;
+          try {
+            gain.gain.cancelScheduledValues(now);
+            gain.gain.setValueAtTime(gain.gain.value, now);
+            gain.gain.linearRampToValueAtTime(0.0001, now + fadeSeconds);
+            source.stop(now + fadeSeconds + 0.02);
+          } catch { /* gia' fermo */ }
+        }
+      };
+    }
+    // Ripiego: senza Web Audio (o prima del primo tocco) il suono parte intero, senza tagli.
+    const src = FILES[fileKey];
+    if (!src) return null;
     const run = () => {
       const audio = new Audio(src);
       audio.volume = volume;
       audio.play().catch(() => {});
-      if (maxDuration) this._scheduleFadeOut(audio, volume, maxDuration);
     };
-
     if (delay > 0) setTimeout(run, delay);
     else run();
-  }
-
-  _scheduleFadeOut(audio, startVolume, afterMs) {
-    const fadeSteps = 5;
-    const fadeStepMs = 12;
-    setTimeout(() => {
-      let step = 0;
-      const fade = () => {
-        step++;
-        audio.volume = Math.max(0, startVolume * (1 - step / fadeSteps));
-        if (step < fadeSteps) setTimeout(fade, fadeStepMs);
-        else audio.pause();
-      };
-      fade();
-    }, afterMs);
+    return null;
   }
 
   click() { this._play('click', { volume: 0.3 }); }
@@ -95,9 +178,15 @@ class SoundService {
     this._play('packOpenWhoosh', { volume: 0.45 });
     this._play('packOpenPop', { volume: 0.4, delay: 280 });
   }
+  /**
+   * Una carta che si scopre: il suono va fino in fondo (circa un secondo e mezzo) e, se intanto si
+   * scopre la carta dopo, quello della precedente sfuma in un attimo invece di accavallarsi.
+   */
   cardReveal(rarity) {
-    if (rarity === 'legendary') this._play('cardLegendary', { volume: 0.6, maxDuration: 450 });
-    else this._play('cardReveal', { volume: 0.45, maxDuration: 300 });
+    this._reveal?.stop();
+    this._reveal = rarity === 'legendary'
+      ? this._play('cardLegendary', { volume: 0.6, maxDuration: 1300, fade: 400 })
+      : this._play('cardReveal', { volume: 0.45, maxDuration: 1100, fade: 450 });
   }
   coin() { this._play('coin', { volume: 0.5 }); }
   reward() { this._play('reward', { volume: 0.5 }); }
