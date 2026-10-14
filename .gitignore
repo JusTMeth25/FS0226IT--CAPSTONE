@@ -37,3 +37,7 @@ npm-debug.log*
 
 # Deploy: backup del database di produzione
 deploy/backups/
+
+# Python
+__pycache__/
+*.pyc
