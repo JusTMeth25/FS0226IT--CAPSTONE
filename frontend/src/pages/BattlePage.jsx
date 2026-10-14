@@ -11,6 +11,7 @@ import CardTile from '../components/card/CardTile.jsx';
 import RevealSpark from '../components/common/RevealSpark.jsx';
 import StarBorder from '../components/common/StarBorder.jsx';
 import ScrollToTopButton from '../components/common/ScrollToTopButton.jsx';
+import { useProgressiveList } from '../hooks/useProgressiveList.js';
 import SavedTeams from '../components/card/SavedTeams.jsx';
 import { applySynergies, teamSynergies } from '../utils/battleSynergy.js';
 
@@ -256,6 +257,8 @@ export default function BattlePage() {
     }
     return cards;
   }, [collectionCards, battleRarityFilter, battleSourceFilter, battleSearch]);
+  const { visible: shownAvailableCards, hasMore: moreAvailable, sentinelRef: availableSentinel } =
+    useProgressiveList(filteredAvailableCards, { resetKey: filteredAvailableCards });
 
   if (collectionCards.length < 3 && (!synced || game.loading)) {
     return (
@@ -553,7 +556,7 @@ export default function BattlePage() {
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: 'var(--space-md) 0' }}>Nessuna carta trovata con questi filtri.</p>
           ) : (
             <div className="battle-available-grid">
-              {filteredAvailableCards.map((card) => {
+              {shownAvailableCards.map((card) => {
                 const inTeam = b.team.some((t) => t && t.id === card.id);
                 return (
                   <div key={card.id} className={`battle-card-wrap ${inTeam ? 'battle-in-team' : ''}`}>
@@ -562,6 +565,7 @@ export default function BattlePage() {
                   </div>
                 );
               })}
+              {moreAvailable && <div ref={availableSentinel} className="progressive-sentinel" aria-hidden="true" />}
             </div>
           )}
         </div>

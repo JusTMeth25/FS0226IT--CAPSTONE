@@ -6,6 +6,7 @@ import { CARDS, getArtistClasses } from '../data/cards.js';
 import { RARITIES, RARITY_ORDER, SOURCE_LABELS, formatMarketPrice, getRarityIcon, getSourceLabel, getTotalScore } from '../utils/cardUtils.js';
 import { dedupeCollection, getCollectionValue } from '../utils/collectionUtils.js';
 import CardTile from '../components/card/CardTile.jsx';
+import { useProgressiveList } from '../hooks/useProgressiveList.js';
 import EmptyState from '../components/common/EmptyState.jsx';
 import ScrollToTopButton from '../components/common/ScrollToTopButton.jsx';
 
@@ -51,6 +52,9 @@ export default function CollectionPage() {
 
     return unique;
   }, [collection, classFilter, rarityFilter, sourceFilter, sortBy, sortDir]);
+
+  // Migliaia di carte tutte insieme fanno chiudere Safari su iPhone: si mostrano a blocchi.
+  const { visible: shownCards, hasMore, sentinelRef } = useProgressiveList(filteredCards, { resetKey: filteredCards });
 
   // Con un filtro attivo il valore riguarda solo le carte mostrate; senza filtri e' quello
   // dell'intera collezione. L'ordinamento non conta: cambia l'ordine, non quali carte ci sono.
@@ -167,9 +171,10 @@ export default function CollectionPage() {
         />
       ) : (
         <div className="collection-grid">
-          {filteredCards.map((card) => (
+          {shownCards.map((card) => (
             <CardTile key={card.id} card={card} quantity={card.quantity} onClick={() => navigate(`/card/${card.id}`)} />
           ))}
+          {hasMore && <div ref={sentinelRef} className="progressive-sentinel" aria-hidden="true" />}
         </div>
       )}
 
