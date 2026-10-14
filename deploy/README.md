@@ -45,6 +45,26 @@ Instance > Subnet > Security List > **Add Ingress Rules**, sorgente `0.0.0.0/0`:
 
 (La porta 22 per SSH c'e' gia'.) Le regole del firewall dentro Ubuntu le apre lo script del passo 4.
 
+### Server introvabile ("Out of host capacity")
+
+I server ARM gratuiti finiscono spesso. Invece di riprovare a mano, lo script
+`scripts/oracle_crea_istanza.py` riprova da solo ogni 5 minuti, una misura per volta a rotazione (4 OCPU/24 GB, 2/12, 1/6),
+e si ferma appena il server esiste, stampando l'IP. Resta sempre nei limiti gratuiti.
+
+1. **Ambiente Python** (una volta): `python -m venv %USERPROFILE%\.oci-cli` e poi
+   `%USERPROFILE%\.oci-cli\Scripts\python -m pip install oci`.
+2. **Chiave API**: Console Oracle > icona profilo > **My profile** > **API keys** > **Add API key**
+   > "Generate API key pair" > **Download private key** > **Add**. Salva la chiave come
+   `%USERPROFILE%\.oci\oci_api_key.pem`.
+3. Oracle mostra un'**anteprima della configurazione**: copiala in `%USERPROFILE%\.oci\config`
+   e cambia la riga `key_file` in `key_file=C:\Users\<utente>\.oci\oci_api_key.pem`.
+4. Crea prima la rete (VCN Wizard, "Create VCN with Internet Connectivity") e la regola per le
+   porte 80 e 443: lo script usa la subnet pubblica che trova.
+5. Lancia `deploy\scripts\oracle-crea-istanza.cmd` e lascia la finestra aperta. Il PC deve restare
+   acceso solo finche' il server non viene creato.
+
+Usa la chiave SSH `%USERPROFILE%\.ssh\vinyldex.key.pub` (opzione `--ssh-key` per un'altra).
+
 ## 3. Entrare nel server
 
 Da PowerShell sul tuo PC:

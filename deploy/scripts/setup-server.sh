@@ -46,7 +46,8 @@ echo "== Backup notturno del database (alle 3:30, si tengono gli ultimi 14)"
 mkdir -p "$PROJECT_DIR/deploy/backups"
 chown "$APP_USER":"$APP_USER" "$PROJECT_DIR/deploy/backups"
 CRON_LINE="30 3 * * * cd $PROJECT_DIR && bash deploy/scripts/backup.sh >> deploy/backups/backup.log 2>&1"
-( crontab -u "$APP_USER" -l 2>/dev/null | grep -v 'deploy/scripts/backup.sh' ; echo "$CRON_LINE" ) | crontab -u "$APP_USER" -
+# Con crontab ancora vuoto "crontab -l" e grep falliscono: || true, se no set -e ferma lo script.
+{ crontab -u "$APP_USER" -l 2>/dev/null | grep -v 'deploy/scripts/backup.sh' || true; echo "$CRON_LINE"; } | crontab -u "$APP_USER" -
 
 echo
 echo "Fatto. Esci e rientra via SSH (per il gruppo docker), poi:"
