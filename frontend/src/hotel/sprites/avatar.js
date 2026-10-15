@@ -132,17 +132,18 @@ export const GUITAR_STYLES = [
 /** Orologi: cinturino, cassa, quadrante e ghiera. */
 export const WATCH_STYLES = [
   null,
-  { strap: '#c0c4cc', steel: '#e5e7eb', dial: '#111827', bezel: '#15803d' },
-  { strap: '#d4a017', steel: '#f5d06a', dial: '#f5e6b8', bezel: '#d4a017' },
-  { strap: '#c0c4cc', steel: '#e5e7eb', dial: '#1e3a8a', bezel: '#c0c4cc' },
+  // shape: forma della cassa al polso; links: bracciale in metallo a maglie (gli altri sono pelle o gomma).
+  { strap: '#c0c4cc', steel: '#e5e7eb', dial: '#111827', bezel: '#15803d', links: true },
+  { strap: '#d4a017', steel: '#f5d06a', dial: '#f5e6b8', bezel: '#d4a017', links: true },
+  { strap: '#c0c4cc', steel: '#e5e7eb', dial: '#1e3a8a', bezel: '#c0c4cc', links: true, shape: 'cushion' },
   { strap: '#5b3a29', steel: '#e8a488', dial: '#faf7f2', bezel: '#e8a488' },
-  { strap: '#cfd3d9', steel: '#eef0f3', dial: '#27408b', bezel: '#9ca3af' },
-  { strap: '#1f1f22', steel: '#3f3f46', dial: '#0a0a0a', bezel: '#52525b' },
-  { strap: '#d1d5db', steel: '#e5e7eb', dial: '#111827', bezel: '#1d4ed8', bezel2: '#dc2626' },
-  { strap: '#e5e7eb', steel: '#f1f5f9', dial: '#a5d8ff', bezel: '#e5e7eb' },
-  { strap: '#14532d', steel: '#d1d5db', dial: '#166534', bezel: '#d1d5db' },
+  { strap: '#cfd3d9', steel: '#eef0f3', dial: '#27408b', bezel: '#9ca3af', links: true, shape: 'octagon' },
+  { strap: '#1f1f22', steel: '#3f3f46', dial: '#0a0a0a', bezel: '#52525b', shape: 'octagon' },
+  { strap: '#d1d5db', steel: '#e5e7eb', dial: '#111827', bezel: '#1d4ed8', bezel2: '#dc2626', links: true },
+  { strap: '#e5e7eb', steel: '#f1f5f9', dial: '#a5d8ff', bezel: '#e5e7eb', links: true },
+  { strap: '#14532d', steel: '#d1d5db', dial: '#166534', bezel: '#d1d5db', shape: 'cushion' },
   { strap: '#1f1f1f', steel: '#e8b48c', dial: '#1e1b4b', bezel: '#e8b48c' },
-  { strap: '#dc2626', steel: '#d4d4d8', dial: '#27272a', bezel: '#a1a1aa', skeleton: true }
+  { strap: '#dc2626', steel: '#d4d4d8', dial: '#27272a', bezel: '#a1a1aa', skeleton: true, shape: 'tonneau' }
 ];
 
 /** Collane: colore del filo, delle pietre e forma del pendente. */
@@ -1119,18 +1120,74 @@ function drawOutfitSkirt(ctx, y0, style) {
   if (style.long) px(ctx, 29, y0 + 74, 1, 12, shade(style.color, -0.4));
 }
 
-/** Orologio al polso del braccio davanti (se il braccio e' giu' e si vede di fronte). */
-function drawWatch(ctx, y0, style, swing) {
+/** Righe della cassa al polso (5 di larghezza): # cassa, o quadrante, . vuoto. */
+const WATCH_CASES = {
+  round: ['.###.', '#ooo#', '#ooo#', '#ooo#', '.###.'],
+  octagon: ['.###.', '#ooo#', '#ooo#', '#ooo#', '.###.'],
+  cushion: ['#####', '#ooo#', '#ooo#', '#ooo#', '#####'],
+  tonneau: ['.###.', '#ooo#', '#ooo#', '#ooo#', '#ooo#', '.###.']
+};
+
+/**
+ * Orologio al polso del braccio davanti (braccio giu'): cinturino che gira attorno al polso con
+ * la stessa ombra del braccio (maglie per i bracciali in metallo), cassa della forma del modello,
+ * ghiera, quadrante con le lancette, corona e un riflesso. Di spalle si vede il cinturino.
+ */
+function drawWatch(ctx, y0, style, swing, back = false) {
   const top = y0 + 42;
   const row = 14;
+  // Il braccio si inclina con il passo: l'orologio segue la riga del polso.
   const x = 35 + Math.round((swing * row) / 18);
   const y = top + row;
-  px(ctx, x - 1, y, 8, 3, style.strap);
-  px(ctx, x + 1, y - 1, 4, 5, style.bezel);
-  if (style.bezel2) px(ctx, x + 1, y + 2, 4, 2, style.bezel2);
-  px(ctx, x + 2, y, 2, 3, style.dial);
-  if (style.skeleton) px(ctx, x + 2, y + 1, 2, 1, '#d4a017');
-  px(ctx, x + 2, y, 1, 1, '#ffffff');
+  const rows = WATCH_CASES[style.shape] || WATCH_CASES.round;
+  const caseTop = y - 1;
+  const bandRows = [caseTop - 1, caseTop + rows.length];
+  const band = (yy) => {
+    for (let i = 0; i < 6; i += 1) {
+      let color = style.strap;
+      if (style.links) color = shade(style.strap, (i + yy) % 2 ? 0.25 : -0.05);
+      if (i === 0) color = shade(color, 0.2);
+      if (i >= 4) color = shade(color, -0.3);
+      px(ctx, x + i, yy, 1, 1, color);
+    }
+  };
+  if (back) {
+    // Di spalle: il cinturino intero e la fibbia (o la chiusura del bracciale) al centro.
+    for (let yy = caseTop; yy < caseTop + rows.length; yy += 1) band(yy);
+    px(ctx, x + 2, caseTop + 1, 2, rows.length - 2, style.links ? shade(style.steel, 0.15) : shade(style.steel, -0.1));
+    return;
+  }
+  bandRows.forEach(band);
+  // Cassa: ghiera sul bordo, lato destro in ombra, sinistro in luce.
+  rows.forEach((line, r) => {
+    for (let c = 0; c < 5; c += 1) {
+      const ch = line[c];
+      if (ch === '.') continue;
+      const xx = x + c;
+      const yy = caseTop + r;
+      if (ch === '#') {
+        let color = style.bezel;
+        if (style.bezel2) color = r < rows.length / 2 ? style.bezel2 : style.bezel;
+        if (c === 4) color = shade(color, -0.35);
+        else if (c === 0) color = shade(color, 0.2);
+        px(ctx, xx, yy, 1, 1, color);
+      } else {
+        px(ctx, xx, yy, 1, 1, style.dial);
+      }
+    }
+  });
+  const dialTop = caseTop + 1;
+  const dialRows = rows.length - 2;
+  // Scheletrato: ruota dorata a vista; gli altri: lancette chiare (scure sui quadranti chiari).
+  if (style.skeleton) px(ctx, x + 2, dialTop + 1, 1, 2, '#d4a017');
+  const light = parseInt(style.dial.slice(1), 16) > 0x999999;
+  const handColor = light ? '#3b2f1e' : '#f1f5f9';
+  px(ctx, x + 2, dialTop, 1, 1 + Math.floor(dialRows / 2), handColor);
+  px(ctx, x + 3, dialTop + Math.floor(dialRows / 2), 1, 1, handColor);
+  // Corona a ore 3, appena fuori dalla cassa, e il riflesso sul vetro in alto a sinistra.
+  px(ctx, x + 5, dialTop + Math.floor(dialRows / 2), 1, 1, shade(style.steel, -0.15));
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+  ctx.fillRect(x + 1, dialTop, 1, 1);
 }
 
 /** Collana sul collo: filo a V, perle o pietre, o un pendente in fondo. Di spalle solo il filo. */
@@ -1349,7 +1406,7 @@ function drawAvatar(look, { back, pose, frame, outfit, gear }) {
   if (guitar && !playing && back) drawGuitarShape(ctx, 22, y0 + 58, guitar, 0.3, -0.95);
   arm(ctx, 35, y0, { up: o.frontUp, swing: o.frontArm, sleeve, skin, sleeveLength, reach, jab: o.frontJab });
   const watch = swim ? null : WATCH_STYLES[parts.w];
-  if (watch && !o.frontUp && !o.frontJab) drawWatch(ctx, y0, watch, o.frontArm);
+  if (watch && !o.frontUp && !o.frontJab) drawWatch(ctx, y0, watch, o.frontArm, back);
 
   // DJ con il casco (Disco): il casco 3D al posto di testa, capelli e viso.
   const dj = DJ_HEAD_STYLES[parts.d];
