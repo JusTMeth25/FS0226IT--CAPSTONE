@@ -66,6 +66,25 @@ function speak(text, { queue = false } = {}) {
   }
 }
 
+/** Premi annunciati con la voce registrata (BingoGame.java: Linea, Doppia linea, Bingo). */
+const PRIZE_CLIPS = { LINE: 'linea', TWO_LINES: 'doppia-linea', BINGO: 'bingo' };
+
+/**
+ * Il banditore: prima la frase registrata (si sente anche su iPhone), e solo se manca la sintesi
+ * vocale del browser. I nomi dei vincitori cambiano ogni volta: quelli li legge la sintesi vocale.
+ */
+async function announceBall(n) {
+  const ok = await soundService.sayVoice(`n${String(n).padStart(2, '0')}`);
+  if (!ok) speak(callLine(n));
+}
+
+async function announceWinner(w) {
+  const clip = PRIZE_CLIPS[w.prize];
+  const ok = clip ? await soundService.sayVoice(clip, { queue: true }) : false;
+  if (!ok) speak(`${w.label}! ${w.names.join(', ')}`, { queue: true });
+  else if (w.names?.length) speak(w.names.join(', '), { queue: true });
+}
+
 const seconds = (ms) => Math.max(0, Math.ceil(ms / 1000));
 
 function BingoCard({ card, drawn, auto, marks, onMark, index }) {
@@ -105,6 +124,9 @@ export default function BingoGame({ ctx, wallet, send }) {
   const ctxRef = useRef(ctx);
   useEffect(() => { ctxRef.current = ctx; });
 
+  // Le frasi del banditore si scaricano appena si apre il tavolo (meno di 1 MB).
+  useEffect(() => { soundService.preloadVoice(); }, []);
+
   useEffect(() => {
     send({ type: 'bingo_watch' });
     return bingoBus.subscribe((event) => {
@@ -134,7 +156,7 @@ export default function BingoGame({ ctx, wallet, send }) {
     if (bingo.last && bingo.last !== before.last && bingo.drawn.length > before.drawn.length) {
       casinoSound.chip();
       casinoSound.bell();
-      if (voice) speak(callLine(bingo.last));
+      if (voice) announceBall(bingo.last);
     }
     // Il bingo chiude la partita: lo stato arriva gia' "ended", quindi vale anche il passaggio
     // da "calling" a "ended". Con piu' premi alla stessa pallina si annunciano tutti.
@@ -142,7 +164,7 @@ export default function BingoGame({ ctx, wallet, send }) {
     if (fresh.length && (bingo.phase === 'calling' || before.phase === 'calling')) {
       const big = fresh.some((w) => w.prize === 'BINGO');
       casinoSound.win(big);
-      if (voice) fresh.forEach((w) => speak(`${w.label}! ${w.names.join(', ')}`, { queue: true }));
+      if (voice) fresh.reduce((chain, w) => chain.then(() => announceWinner(w)), Promise.resolve());
     }
   }, [bingo, voice]);
 

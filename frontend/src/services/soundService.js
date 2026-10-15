@@ -191,6 +191,68 @@ class SoundService {
     return null;
   }
 
+  // ------------------------------------------------------------------ voce del banditore
+
+  /**
+   * Frasi registrate del banditore del bingo (public/assets/audio/bingo/, generate con Piper):
+   * n01..n90 per le palline, linea / doppia-linea / bingo per i premi. Si suonano con la Web Audio
+   * come gli altri effetti, quindi su iPhone si sentono anche dove la sintesi vocale tace.
+   */
+  preloadVoice() {
+    const ctx = this._context();
+    if (!ctx || this._voiceLoading) return;
+    const keys = [...Array.from({ length: 90 }, (_, i) => `n${String(i + 1).padStart(2, '0')}`), 'linea', 'doppia-linea', 'bingo'];
+    this._voiceBuffers ??= new Map();
+    this._voiceLoading = Promise.all(keys.map((key) => this._loadVoice(key)));
+  }
+
+  _loadVoice(key) {
+    this._voiceBuffers ??= new Map();
+    if (this._voiceBuffers.has(key)) return this._voiceBuffers.get(key);
+    const ctx = this._context();
+    if (!ctx) return Promise.resolve(null);
+    const loading = fetch(`/assets/audio/bingo/${key}.mp3`)
+      .then((res) => (res.ok ? res.arrayBuffer() : Promise.reject(new Error('missing'))))
+      .then((data) => new Promise((ok, ko) => {
+        const p = ctx.decodeAudioData(data, ok, ko);
+        if (p && typeof p.then === 'function') p.then(ok, ko);
+      }))
+      .catch(() => null);
+    this._voiceBuffers.set(key, loading);
+    return loading;
+  }
+
+  /**
+   * Dice una frase registrata. queue = false interrompe quella in corso (le palline), true la
+   * mette in coda (i premi dopo il numero). Restituisce false se la frase non c'e'.
+   */
+  async sayVoice(key, { queue = false, volume = 1 } = {}) {
+    if (!this._enabled) return true;
+    const ctx = this._context();
+    const buffer = ctx ? await this._loadVoice(key) : null;
+    if (!ctx || !buffer) return false;
+    if (ctx.state !== 'running') await ctx.resume().catch(() => {});
+    if (ctx.state !== 'running') return false;
+    const now = ctx.currentTime;
+    if (!queue && this._voice) {
+      try {
+        this._voice.gain.gain.setTargetAtTime(0.0001, now, 0.03);
+        this._voice.source.stop(now + 0.12);
+      } catch { /* gia' finita */ }
+      this._voiceEnd = now + 0.1;
+    }
+    const start = Math.max(now, this._voiceEnd || now);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    const gain = ctx.createGain();
+    gain.gain.value = volume;
+    source.connect(gain).connect(ctx.destination);
+    source.start(start);
+    this._voice = { source, gain };
+    this._voiceEnd = start + buffer.duration + 0.15;
+    return true;
+  }
+
   click() { this._play('click', { volume: 0.3 }); }
   packOpen() {
     this._play('packOpenWhoosh', { volume: 0.45 });
