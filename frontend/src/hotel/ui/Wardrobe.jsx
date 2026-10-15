@@ -15,6 +15,10 @@ const NAMES = { b: BODIES, h: HAIR_STYLES, hc: HAIR_COLOR_NAMES, sh: SHIRT_NAMES
  * Guardaroba: si sceglie l'aspetto parte per parte e si vede subito il risultato, di fronte
  * e di spalle. Salvando, il server lo registra e lo mostra a tutti i presenti nella stanza.
  */
+/** Indici di HAIR_STYLES: Corto, A punta, Cresta, Rasato; e Lunghi. */
+const SHORT_HAIR = [0, 1, 4, 9];
+const LONG_HAIR = 2;
+
 export default function Wardrobe({ look, onClose, onSaved }) {
   const [parts, setParts] = useState(() => parseLook(look));
   const [saving, setSaving] = useState(false);
@@ -42,7 +46,11 @@ export default function Wardrobe({ look, onClose, onSaved }) {
   const cycle = (key, count, delta) => {
     setParts((p) => {
       const n = countOf(key, count, p);
-      return fixLook({ ...p, [key]: (p[key] + delta + n) % n });
+      const next = { ...p, [key]: (p[key] + delta + n) % n };
+      // Passando a donna con i capelli corti (corto, a punta, cresta, rasato) si parte dai lunghi:
+      // il corpo cambia poco a quella scala, i capelli si notano. Poi si cambiano come si vuole.
+      if (key === 'b' && next.b === 1 && SHORT_HAIR.includes(p.h)) next.h = LONG_HAIR;
+      return fixLook(next);
     });
   };
 

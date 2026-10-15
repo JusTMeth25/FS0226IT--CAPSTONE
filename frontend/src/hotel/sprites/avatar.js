@@ -493,6 +493,33 @@ const CAP_COLORS = ['#ef4444', '#3b82f6', '#fbbf24', '#ec4899', '#22c55e', '#f5f
  * Costume intero da bagno al posto della maglia: spalle e braccia scoperte, le spalline, una
  * riga bianca sul fianco. Il colore e' quello della maglia, cosi' si riconosce chi e'.
  */
+/**
+ * Corporatura da donna (fuori dall'acqua, dove c'e' gia' il costume intero): vita piu' stretta,
+ * fianchi appena piu' larghi e il busto accennato con un'ombra sotto e una luce sopra.
+ */
+function drawFigure(ctx, y0, color, back) {
+  const top = y0 + 40;
+  // Vita: si toglie un pixel per lato a meta' busto.
+  ctx.clearRect(13, top + 11, 1, 7);
+  ctx.clearRect(35, top + 11, 1, 7);
+  px(ctx, 14, top + 11, 1, 7, shade(color, -0.12));
+  // Fianchi: un pixel in piu' per lato sopra la cintura.
+  px(ctx, 12, top + 19, 1, 5, shade(color, -0.1));
+  px(ctx, 36, top + 19, 1, 5, shade(color, -0.25));
+  if (back) return;
+  // Busto: luce sopra e ombra sotto, in due curve.
+  const dark = shade(color, -0.22);
+  const light = shade(color, 0.18);
+  px(ctx, 17, top + 5, 5, 1, light);
+  px(ctx, 26, top + 5, 5, 1, light);
+  px(ctx, 16, top + 9, 1, 1, dark);
+  px(ctx, 17, top + 10, 5, 1, dark);
+  px(ctx, 22, top + 9, 1, 1, dark);
+  px(ctx, 25, top + 9, 1, 1, dark);
+  px(ctx, 26, top + 10, 5, 1, dark);
+  px(ctx, 31, top + 9, 1, 1, dark);
+}
+
 function drawSwimsuit(ctx, y0, { color, skin, back }) {
   const top = y0 + 40;
   block(ctx, 13, top, 23, 25, skin);
@@ -580,7 +607,7 @@ function drawEars(ctx, y0, skin, back) {
   if (back) ear(36);
 }
 
-function drawFace(ctx, y0, skin) {
+function drawFace(ctx, y0, skin, woman = false) {
   const cy = y0 + 24;
   // Occhi: ovali scuri con il riflesso, il destro un po' piu' stretto per il tre quarti.
   const eye = (x, w) => {
@@ -589,11 +616,26 @@ function drawFace(ctx, y0, skin) {
   };
   eye(24, 3);
   eye(31, 2);
+  if (woman) {
+    // Ciglia: una linea sopra l'occhio con la punta all'insu' verso l'esterno.
+    px(ctx, 23, cy - 3, 5, 1, EYE);
+    px(ctx, 22, cy - 4, 1, 1, EYE);
+    px(ctx, 30, cy - 3, 4, 1, EYE);
+    px(ctx, 33, cy - 4, 1, 1, EYE);
+  }
   px(ctx, 28, cy + 2, 2, 2, shade(skin, -0.18));
-  // Bocca sorridente.
-  px(ctx, 26, cy + 6, 1, 1, shade(skin, -0.45));
-  px(ctx, 27, cy + 7, 4, 1, shade(skin, -0.45));
-  px(ctx, 31, cy + 6, 1, 1, shade(skin, -0.45));
+  if (woman) {
+    // Labbra rosate al posto del sorriso disegnato.
+    px(ctx, 26, cy + 6, 1, 1, '#c2415f');
+    px(ctx, 27, cy + 7, 4, 1, '#d9466f');
+    px(ctx, 28, cy + 6, 2, 1, '#e9738f');
+    px(ctx, 31, cy + 6, 1, 1, '#c2415f');
+  } else {
+    // Bocca sorridente.
+    px(ctx, 26, cy + 6, 1, 1, shade(skin, -0.45));
+    px(ctx, 27, cy + 7, 4, 1, shade(skin, -0.45));
+    px(ctx, 31, cy + 6, 1, 1, shade(skin, -0.45));
+  }
   // Guance rosate.
   ctx.fillStyle = 'rgba(236, 72, 153, 0.22)';
   ctx.fillRect(22, cy + 4, 3, 2);
@@ -1295,6 +1337,7 @@ function drawAvatar(look, { back, pose, frame, outfit, gear }) {
   else if (swim) drawSwimsuit(ctx, y0, { color: shirt, skin, back });
   else if (style) drawOutfitTorso(ctx, y0, style, { skin, back });
   else drawTorso(ctx, y0, parts, { shirt, skin, back });
+  if (!swim && !man && !cat) drawFigure(ctx, y0, style ? (style.jacket || style.color) : shirt, back);
   if (!o.sit && !style && (swim ? man : parts.t !== 4)) px(ctx, 14, y0 + 63, 21, 2, shade(pants, -0.25)); // cintura / elastico
   if (style && !o.sit) drawOutfitSkirt(ctx, y0, style);
   // Jeans strappati alle ginocchia.
@@ -1333,7 +1376,7 @@ function drawAvatar(look, { back, pose, frame, outfit, gear }) {
   if (!cat && (capped || ![2, 6, 8].includes(parts.h))) drawEars(ctx, y0, skin, back);
   if (!back && !cat) {
     faceWindow(ctx, y0, skin);
-    drawFace(ctx, y0, skin);
+    drawFace(ctx, y0, skin, !man);
     drawBrows(ctx, y0, hairColor);
     if (capped) drawGoggles(ctx, y0);
     else drawHairFront(ctx, y0, parts.h, hairColor);
