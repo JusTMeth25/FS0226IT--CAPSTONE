@@ -114,6 +114,15 @@ public class TradeService {
         User receiver = trade.getToUser();
         User proposer = trade.getFromUser();
 
+        // Al massimo TradeLimits.PER_WINDOW scambi conclusi ogni mezz'ora, per entrambi.
+        java.time.Instant since = java.time.Instant.now().minus(TradeLimits.WINDOW);
+        if (tradeRepository.countAcceptedSince(receiver.getId(), since) >= TradeLimits.PER_WINDOW) {
+            throw new ApiException(org.springframework.http.HttpStatus.TOO_MANY_REQUESTS, "trade_limit");
+        }
+        if (tradeRepository.countAcceptedSince(proposer.getId(), since) >= TradeLimits.PER_WINDOW) {
+            throw new ApiException(org.springframework.http.HttpStatus.TOO_MANY_REQUESTS, "trade_limit_other");
+        }
+
         List<TradeItem> requested = itemsOf(trade, TradeItemDirection.REQUESTED);
         List<TradeItem> offered = itemsOf(trade, TradeItemDirection.OFFERED);
 

@@ -57,7 +57,7 @@ public class NpcTradeService {
             List<UUID> players = room.activePlayers().stream()
                     .filter(id -> now - offeredAt.getOrDefault(id, 0L) > OFFER_COOLDOWN_MILLIS)
                     .filter(id -> offers.values().stream().noneMatch(o -> o.userId().equals(id)))
-                    .filter(id -> deals.tradesToday(id) < NpcDeals.TRADES_PER_DAY)
+                    .filter(id -> deals.recentTrades(id) < NpcDeals.TRADES_PER_WINDOW)
                     .toList();
             List<UUID> traders = room.npcsWithRole(TRADERS);
             if (players.isEmpty() || traders.isEmpty()) continue;
@@ -117,7 +117,7 @@ public class NpcTradeService {
         List<Card> cards = deals.showcase(npcId);
         session.send(Map.of("type", "npc_showcase", "npcId", npcId,
                 "cards", cards.stream().map(c -> Map.of("card", RoomItemView.CardView.from(c), "value", NpcDeals.value(c))).toList(),
-                "tradesLeft", Math.max(0, NpcDeals.TRADES_PER_DAY - deals.tradesToday(session.user().id()))));
+                "tradesLeft", Math.max(0, NpcDeals.TRADES_PER_WINDOW - deals.recentTrades(session.user().id()))));
         return null;
     }
 

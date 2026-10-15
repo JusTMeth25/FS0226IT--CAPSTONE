@@ -103,7 +103,7 @@ export function NpcTradePanel({ npc, showcase, send, onClose }) {
       </header>
       <div className="hotel-npc-trade-body">
         <section>
-          <span className="hotel-npc-menu-title">La vetrina di {npc.username}{showcase?.tradesLeft != null && ` · scambi rimasti oggi: ${showcase.tradesLeft}`}</span>
+          <span className="hotel-npc-menu-title">La vetrina di {npc.username}{showcase?.tradesLeft != null && ` · scambi rimasti (30 min): ${showcase.tradesLeft}`}</span>
           <div className="hotel-trade-row">
             {!cards && <span className="hotel-room-empty">Carico la vetrina…</span>}
             {cards?.map(({ card, value }) => (

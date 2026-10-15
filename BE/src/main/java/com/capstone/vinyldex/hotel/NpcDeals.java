@@ -48,8 +48,8 @@ public class NpcDeals {
     private static final Map<String, Integer> RARITY_VALUE = Map.of(
             "common", 10, "uncommon", 25, "rare", 60, "epic", 150, "legendary", 400);
 
-    /** Scambi con gli NPC al giorno per giocatore: bastano a divertirsi, non a fare incetta. */
-    public static final int TRADES_PER_DAY = 5;
+    /** Scambi con gli NPC per giocatore ogni mezz'ora: bastano a divertirsi, non a fare incetta. */
+    public static final int TRADES_PER_WINDOW = com.capstone.vinyldex.service.TradeLimits.PER_WINDOW;
     /** Partite contro gli NPC premiate al giorno, con premi piu' bassi di quelle fra giocatori. */
     public static final int REWARDED_MATCHES_PER_DAY = 5;
     static final PvpRewardService.Reward WIN = new PvpRewardService.Reward(50, 100);
@@ -210,7 +210,7 @@ public class NpcDeals {
      */
     @Transactional
     public Verdict trade(UUID userId, String npcName, String giveCode, String getCode) {
-        if (tradesToday(userId) >= TRADES_PER_DAY) return Verdict.LIMIT;
+        if (recentTrades(userId) >= TRADES_PER_WINDOW) return Verdict.LIMIT;
         User user = userRepository.findById(userId).orElseThrow(() -> ApiException.notFound("user_not_found"));
         Card give = cardRepository.findByCode(giveCode).orElse(null);
         Card get = cardRepository.findByCode(getCode).orElse(null);
@@ -245,8 +245,9 @@ public class NpcDeals {
     }
 
     @Transactional(readOnly = true)
-    public int tradesToday(UUID userId) {
-        return (int) npcTradeRepository.countByUserIdAndDay(userId, LocalDate.now(clock));
+    public int recentTrades(UUID userId) {
+        return (int) npcTradeRepository.countByUserIdAndCreatedAtAfter(userId,
+                clock.instant().minus(com.capstone.vinyldex.service.TradeLimits.WINDOW));
     }
 
     // ------------------------------------------------------------------ sfide

@@ -169,7 +169,7 @@ const ERRORS = {
   npc_no_challenge: 'Con gli NPC si gioca solo in Arena, contro gli sfidanti.',
   npc_no_trade: 'Questo personaggio non scambia carte.',
   npc_trade_unfair: 'Scambio rifiutato: offri una carta di valore piu\' alto.',
-  npc_trade_limit: 'Per oggi hai gia\' fatto tutti gli scambi con gli NPC.',
+  npc_trade_limit: 'Hai gia\' fatto 5 scambi con gli NPC nell\'ultima mezz\'ora: riprova fra poco.',
   npc_trade_not_offered: 'Quella carta non e\' piu\' nella sua vetrina.',
   npc_trade_expired: 'L\'offerta di scambio e\' scaduta.',
   nothing_in_hand: 'Non hai niente in mano.',

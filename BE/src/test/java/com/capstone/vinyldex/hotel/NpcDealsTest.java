@@ -159,8 +159,9 @@ class NpcDealsTest {
         assertEquals(LocalDate.now(), saved.getValue().getDay());
 
         // Dopo un riavvio conta quello che c'e' nel database, non la memoria.
-        when(npcTrades.countByUserIdAndDay(anna.getId(), LocalDate.now())).thenReturn((long) NpcDeals.TRADES_PER_DAY);
-        assertEquals(NpcDeals.TRADES_PER_DAY, deals.tradesToday(anna.getId()));
+        when(npcTrades.countByUserIdAndCreatedAtAfter(org.mockito.ArgumentMatchers.eq(anna.getId()), any()))
+                .thenReturn((long) NpcDeals.TRADES_PER_WINDOW);
+        assertEquals(NpcDeals.TRADES_PER_WINDOW, deals.recentTrades(anna.getId()));
         assertEquals(NpcDeals.Verdict.LIMIT, deals.trade(anna.getId(), "Dario", "common0", "common1"));
         verify(npcTrades).save(any());
     }

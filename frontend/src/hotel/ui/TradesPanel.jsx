@@ -8,7 +8,9 @@ import CardOwnership from '../../components/trade/CardOwnership.jsx';
 
 const ERRORS = {
   insufficient_quantity_or_gold: 'Non hai piu\' le carte o i gold richiesti.',
-  trade_not_pending: 'Questo scambio non e\' piu\' in attesa.'
+  trade_not_pending: 'Questo scambio non e\' piu\' in attesa.',
+  trade_limit: 'Hai gia\' concluso 5 scambi nell\'ultima mezz\'ora: riprova fra poco.',
+  trade_limit_other: 'L\'altro giocatore ha gia\' concluso 5 scambi nell\'ultima mezz\'ora: riprova fra poco.'
 };
 
 /** Stato degli scambi: il backend lo scrive in maiuscolo (PENDING), qui si confronta senza badarci. */

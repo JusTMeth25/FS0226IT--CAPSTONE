@@ -12,6 +12,14 @@ import java.util.UUID;
 
 public interface TradeRepository extends JpaRepository<Trade, UUID> {
 
+    /** Scambi fra giocatori conclusi dall'utente (da una parte o dall'altra) dopo quell'istante. */
+    @Query("""
+            SELECT count(t) FROM Trade t
+            WHERE t.status = com.capstone.vinyldex.entity.TradeStatus.ACCEPTED AND t.updatedAt > :since
+              AND (t.fromUser.id = :userId OR t.toUser.id = :userId)
+            """)
+    long countAcceptedSince(@Param("userId") UUID userId, @Param("since") java.time.Instant since);
+
     @Query("""
             SELECT DISTINCT t FROM Trade t
             JOIN FETCH t.fromUser

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { WATCH_STYLES } from '../sprites/avatar.js';
 import { drawVehiclePreview, whenVehicleReady } from '../sprites/vehicles.js';
 import AvatarPreview from './AvatarPreview.jsx';
@@ -21,8 +21,26 @@ export function VehiclePreview({ ride }) {
   return <canvas ref={ref} className="lux-vehicle" width={180} height={120} aria-hidden="true" />;
 }
 
-/** Quadrante dell'orologio ingrandito: rotondo, ottagonale ("Quercia Reale") o a botte (scheletrato). */
+/**
+ * Orologio in 3D (watchModels.js, reso una volta in un'immagine). Finche' il modello non e' pronto
+ * si vede il disegno piatto, che resta anche dove il WebGL non c'e'.
+ */
 export function WatchFace({ index }) {
+  const [image, setImage] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    import('../sprites/watchModels.js')
+      .then((m) => m.watchImage(index))
+      .then((src) => { if (alive && src) setImage(src); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [index]);
+  if (image) return <img className="lux-watch lux-watch-3d" src={image} alt="" aria-hidden="true" />;
+  return <WatchSketch index={index} />;
+}
+
+/** Quadrante dell'orologio ingrandito: rotondo, ottagonale ("Quercia Reale") o a botte (scheletrato). */
+function WatchSketch({ index }) {
   const w = WATCH_STYLES[index];
   if (!w) return null;
   const octagon = index === 5 || index === 6;

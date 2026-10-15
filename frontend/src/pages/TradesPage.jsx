@@ -8,6 +8,14 @@ import CardOwnership from '../components/trade/CardOwnership.jsx';
 import TradeComposer from '../components/trade/TradeComposer.jsx';
 import { useOwnedCounts } from '../hooks/useOwnedCounts.js';
 
+/** Messaggi per i codici d'errore degli scambi. */
+const TRADE_ERRORS = {
+  trade_limit: "Hai gia' concluso 5 scambi nell'ultima mezz'ora: riprova fra poco.",
+  trade_limit_other: "L'altro giocatore ha gia' concluso 5 scambi nell'ultima mezz'ora: riprova fra poco.",
+  insufficient_quantity_or_gold: "Non hai piu' le carte o i gold richiesti.",
+  trade_not_pending: "Questo scambio non e' piu' in attesa."
+};
+
 const STATUS_LABELS = { pending: 'In attesa', accepted: 'Accettato', rejected: 'Rifiutato', cancelled: 'Annullato' };
 
 /**
@@ -100,7 +108,7 @@ export default function TradesPage() {
       await fn(trade.id);
       reload();
     } catch (err) {
-      setActionError(err.message);
+      setActionError(TRADE_ERRORS[err.code] || err.message);
     }
   }
 
