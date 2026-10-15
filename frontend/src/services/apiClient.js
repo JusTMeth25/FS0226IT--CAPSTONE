@@ -57,6 +57,16 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Id della connessione all'hotel di questo dispositivo (dal messaggio "hello"): le giocate del
+ * casino lo mandano nell'header X-Hotel-Session e il server le accetta solo dal dispositivo
+ * collegato adesso, non da uno sostituito aprendo l'hotel altrove.
+ */
+let hotelSessionId = null;
+export function setHotelSession(id) {
+  hotelSessionId = id || null;
+}
+
 async function request(path, { method = 'GET', body, headers = {}, timeout = 10000 } = {}) {
   const url = `${BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
   const token = getToken();
@@ -64,6 +74,7 @@ async function request(path, { method = 'GET', body, headers = {}, timeout = 100
   const finalHeaders = { Accept: 'application/json', ...headers };
   if (body !== undefined) finalHeaders['Content-Type'] = 'application/json';
   if (token) finalHeaders.Authorization = `Bearer ${token}`;
+  if (hotelSessionId) finalHeaders['X-Hotel-Session'] = hotelSessionId;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);

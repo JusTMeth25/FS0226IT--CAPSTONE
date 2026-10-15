@@ -43,15 +43,24 @@ function saveFlag(key, value) {
 function speak(text, { queue = false } = {}) {
   if (!soundService.isEnabled() || typeof window === 'undefined' || !window.speechSynthesis) return;
   try {
-    // Le palline si interrompono a vicenda; l'annuncio di un premio aspetta la fine del numero.
-    if (!queue) window.speechSynthesis.cancel();
+    const synth = window.speechSynthesis;
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'it-IT';
     u.rate = 1.05;
     u.pitch = 1;
-    const voice = window.speechSynthesis.getVoices().find((v) => v.lang?.startsWith('it'));
+    u.volume = 1;
+    const voice = synth.getVoices().find((v) => v.lang?.startsWith('it'));
     if (voice) u.voice = voice;
-    window.speechSynthesis.speak(u);
+    // Safari a volte resta in pausa (dopo uno sfondo o una chiamata): si riprende.
+    if (synth.paused) synth.resume();
+    // Le palline si interrompono a vicenda; l'annuncio di un premio aspetta la fine del numero.
+    // Su iPhone una frase detta subito dopo cancel() si perde: si aspetta un attimo.
+    if (!queue && (synth.speaking || synth.pending)) {
+      synth.cancel();
+      setTimeout(() => synth.speak(u), 80);
+    } else {
+      synth.speak(u);
+    }
   } catch {
     // Sintesi vocale non disponibile: resta il testo.
   }

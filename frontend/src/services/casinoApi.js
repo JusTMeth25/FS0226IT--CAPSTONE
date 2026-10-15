@@ -18,6 +18,7 @@ export const casinoApi = {
 /** Messaggi per i codici d'errore del casino. */
 export const CASINO_ERRORS = {
   casino_not_here: 'Si gioca solo dentro il Casinò.',
+  hotel_other_device: 'L\'hotel è aperto su un altro dispositivo: gioca da lì o riprendilo qui.',
   casino_bad_bet: 'Puntata non valida: da 1 a 1000 per puntata.',
   casino_not_enough_chips: 'Non hai abbastanza fiches: cambiale alla cassa.',
   insufficient_gold: 'Non hai abbastanza gold.',

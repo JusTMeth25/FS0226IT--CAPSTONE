@@ -197,7 +197,8 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         session.authenticate(hotelUser);
         session.setAdmin(user.get().isAdmin());
         registry.register(session);
-        session.send(Map.of("type", "hello", "user", hotelUser));
+        // "session" identifica questo dispositivo: lo richiedono le giocate del casino (HotelDeviceConfig).
+        session.send(Map.of("type", "hello", "user", hotelUser, "session", session.id()));
     }
 
     private void dispatch(HotelSession session, String type, JsonNode node) {
@@ -361,7 +362,7 @@ public class HotelSocketHandler extends TextWebSocketHandler {
                     .withClub(clubService.badgeOf(user.getId())).withBadge(socialService.wornBadge(user.getId()));
             session.authenticate(updated);
             session.setAdmin(user.isAdmin());
-            session.send(Map.of("type", "hello", "user", updated));
+            session.send(Map.of("type", "hello", "user", updated, "session", session.id()));
             if (room != null) room.updateUser(updated);
         });
     }

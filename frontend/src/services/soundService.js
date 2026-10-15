@@ -89,8 +89,26 @@ class SoundService {
         src.start(0);
       } catch { /* ignore */ }
       this._preload();
+      this._unlockSpeech();
     };
     ['pointerdown', 'touchend', 'keydown'].forEach((type) => window.addEventListener(type, unlock, { passive: true }));
+  }
+
+  /**
+   * Safari su iPhone fa parlare la sintesi vocale (banditore del bingo) solo se la prima frase
+   * parte dentro un gesto: al primo tocco si dice una frase muta, poi le palline si sentono.
+   */
+  _unlockSpeech() {
+    if (this._speechUnlocked || typeof window === 'undefined' || !window.speechSynthesis) return;
+    this._speechUnlocked = true;
+    try {
+      const u = new SpeechSynthesisUtterance(' ');
+      u.volume = 0;
+      u.lang = 'it-IT';
+      window.speechSynthesis.speak(u);
+      // Le voci su iOS arrivano dopo: chiederle subito le fa caricare.
+      window.speechSynthesis.getVoices();
+    } catch { /* sintesi vocale non disponibile */ }
   }
 
   _context() {

@@ -1792,3 +1792,17 @@ button.hotel-badge:hover:not(:disabled) { transform: translateY(-2px) scale(1.08
   .stock-list { max-height: 260px; }
   .stock-bottom { grid-template-columns: 1fr; }
 }
+
+/* Hotel aperto altrove: copre tutta la scena, pannelli e casino compresi. */
+.hotel-replaced {
+  position: fixed; inset: 0; z-index: 2500; display: flex; align-items: center; justify-content: center;
+  padding: var(--space-md); background: rgba(6, 8, 20, 0.82); backdrop-filter: blur(4px);
+}
+.hotel-replaced-box {
+  max-width: 360px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: var(--space-sm);
+  padding: var(--space-lg); border-radius: 16px; background: var(--bg-card, #111b3d); border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.hotel-replaced-box > i { font-size: 2.6rem; color: #ffd700; }
+.hotel-replaced-box h3 { margin: 0; }
+.hotel-replaced-box p { margin: 0; color: var(--text-secondary, #c7cbe0); }
+.hotel-replaced-box small { color: var(--text-muted, #8a90a8); }

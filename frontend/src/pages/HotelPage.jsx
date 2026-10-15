@@ -228,7 +228,7 @@ export default function HotelPage() {
   const { sound } = useSound();
   const canvasRef = useRef(null);
   const hotel = useHotel();
-  const { status, send } = hotel;
+  const { status, send, resume } = hotel;
   // Ultima stanza nota al provider, letta dai gestori dei messaggi senza dipendere dal render.
   const hotelRoomRef = useRef(hotel.roomId);
   useEffect(() => { hotelRoomRef.current = hotel.roomId; }, [hotel.roomId]);
@@ -1315,7 +1315,22 @@ export default function HotelPage() {
           </div>
         )}
 
-        {!online && <div className="hotel-status">{STATUS_LABELS[status]}</div>}
+        {!online && status !== 'replaced' && <div className="hotel-status">{STATUS_LABELS[status]}</div>}
+        {status === 'replaced' && (
+          // Hotel aperto su un altro dispositivo: qui non si gioca piu' (casino compreso) finche'
+          // non si sceglie di riprenderlo, che a sua volta scollega l'altro dispositivo.
+          <div className="hotel-replaced" role="alertdialog" aria-labelledby="hotel-replaced-title">
+            <div className="hotel-replaced-box">
+              <i className="ph-fill ph-devices" />
+              <h3 id="hotel-replaced-title">Hotel aperto su un altro dispositivo</h3>
+              <p>Puoi giocare da un solo dispositivo alla volta: qui l&apos;hotel e il casinò sono in pausa.</p>
+              <button type="button" className="btn btn-primary" onClick={resume}>
+                <i className="ph-fill ph-arrow-counter-clockwise" /> Riprendi qui
+              </button>
+              <small>L&apos;altro dispositivo verrà scollegato.</small>
+            </div>
+          </div>
+        )}
         <div className="sr-only" aria-live="polite">{notice}</div>
         {notice && <div className="hotel-notice" role="status" aria-hidden="true">{notice}</div>}
 

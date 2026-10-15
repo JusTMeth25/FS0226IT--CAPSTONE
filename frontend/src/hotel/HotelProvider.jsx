@@ -66,7 +66,7 @@ export default function HotelProvider({ children }) {
     listeners.current.forEach((listener) => listener(message));
   }, []);
 
-  const { status, send } = useHotelSocket({
+  const { status, send, resume } = useHotelSocket({
     enabled,
     onMessage,
     // Dopo una caduta di rete si torna nella stanza in cui si era.
@@ -82,7 +82,7 @@ export default function HotelProvider({ children }) {
   }, []);
 
   const value = useMemo(() => ({
-    status, send, subscribe, me, roomId,
+    status, send, resume, subscribe, me, roomId,
     activate: () => setEnabled(true),
     pendingChallenge,
     takePendingChallenge: () => {
@@ -92,7 +92,7 @@ export default function HotelProvider({ children }) {
     },
     tradeVersion,
     clearToast: () => setToast(null)
-  }), [status, send, subscribe, me, roomId, pendingChallenge, tradeVersion]);
+  }), [status, send, resume, subscribe, me, roomId, pendingChallenge, tradeVersion]);
 
   return (
     <HotelContext.Provider value={value}>

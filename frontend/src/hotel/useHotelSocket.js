@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BASE_URL, getToken } from '../services/apiClient.js';
+import { BASE_URL, getToken, setHotelSession } from '../services/apiClient.js';
 
 const PING_MS = 25_000;
 const MAX_RETRY_MS = 15_000;
@@ -34,6 +34,9 @@ export function hotelSocketUrl() {
  */
 export function useHotelSocket({ onMessage, onReconnect, enabled = true }) {
   const [status, setStatus] = useState(enabled ? 'connecting' : 'idle');
+  // "Riprendi qui" dopo che l'hotel e' stato aperto su un altro dispositivo: si riconnette.
+  const [attempt, setAttempt] = useState(0);
+  const everConnectedRef = useRef(false);
   const socketRef = useRef(null);
   const handlers = useRef({ onMessage, onReconnect });
   useEffect(() => {
@@ -47,7 +50,6 @@ export function useHotelSocket({ onMessage, onReconnect, enabled = true }) {
     let retryTimer = 0;
     let pingTimer = 0;
     let stopped = false;
-    let everConnected = false;
 
     const connect = () => {
       setStatus('connecting');
@@ -72,14 +74,16 @@ export function useHotelSocket({ onMessage, onReconnect, enabled = true }) {
           greeted = true;
           retryMs = 1_000;
           setStatus('online');
-          if (everConnected) handlers.current.onReconnect?.();
-          everConnected = true;
+          if (everConnectedRef.current) handlers.current.onReconnect?.();
+          everConnectedRef.current = true;
         }
+        if (message.type === 'hello' && message.session) setHotelSession(message.session);
         handlers.current.onMessage?.(message);
       };
 
       socket.onclose = (event) => {
         clearInterval(pingTimer);
+        setHotelSession(null);
         if (stopped) return;
         const final = FINAL_CLOSES[event.code];
         if (final) {
@@ -106,12 +110,14 @@ export function useHotelSocket({ onMessage, onReconnect, enabled = true }) {
       socketRef.current?.close();
       socketRef.current = null;
     };
-  }, [enabled]);
+  }, [enabled, attempt]);
+
+  const resume = useCallback(() => setAttempt((n) => n + 1), []);
 
   const send = useCallback((message) => {
     const socket = socketRef.current;
     if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message));
   }, []);
 
-  return { status, send };
+  return { status, send, resume };
 }
