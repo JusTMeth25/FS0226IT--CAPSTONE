@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { m } from 'motion/react';
+import StarBurst from '../phantom/StarBurst.jsx';
 import { apiClient } from '../../services/apiClient.js';
 import GradedSlab from './GradedSlab.jsx';
 
@@ -50,7 +52,7 @@ export default function GradingBox({ card, gold, onGraded }) {
   };
 
   return (
-    <div className="grading-box">
+    <div className={`grading-box${revealed ? ' is-revealed' : ''}`}>
       <div className="grading-head">
         <i className="ph-fill ph-magnifying-glass" />
         <div>
@@ -58,15 +60,25 @@ export default function GradingBox({ card, gold, onGraded }) {
           <span>{grade ? 'Ha esaminato la tua copia.' : 'Esamina la carta e le da\' un voto da 1 a 10.'}</span>
         </div>
       </div>
+      {/* Voto appena dato: il cofanetto cade dall'alto e il voto si stampa sopra come un timbro,
+          con la stella dietro. Con "riduci animazioni" MotionConfig salta gli spostamenti. */}
       {revealed && (
-        <div className="grading-sealed just-sealed">
+        <m.div className="grading-sealed" initial={{ y: -48, rotate: -4, opacity: 0 }} animate={{ y: 0, rotate: 0, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 24 }}>
           <GradedSlab card={{ ...card, grade: revealed.grade }} size="large" />
           <p>La carta e&apos; stata sigillata nel cofanetto del perito.</p>
-        </div>
+        </m.div>
       )}
       {grade ? (
         <div className={`grading-result${revealed ? ' just-graded' : ''}`}>
-          <GradeBadge grade={grade} />
+          {/* Lama magenta dietro il timbro: entra di taglio appena prima del voto. */}
+          {revealed && <m.span className="cx-grade-slash" aria-hidden="true" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+            transition={{ duration: 0.22, delay: 0.2, ease: [0.7, 0, 0.3, 1] }} />}
+          <m.span className="cx-grade-stamp" initial={revealed ? { scale: 2.6, rotate: -24, opacity: 0 } : false}
+            animate={{ scale: 1, rotate: -6, opacity: 1 }} transition={{ type: 'spring', stiffness: 620, damping: 20, delay: revealed ? 0.35 : 0 }}>
+            {revealed && <StarBurst size={84} fill="var(--neon-gold)" stroke="#000" className="cx-grade-star" />}
+            <GradeBadge grade={grade} />
+          </m.span>
           <div>
             <strong>{gradeLabel(grade)}</strong>
             <span>Valore al negozio e negli scambi NPC: {BONUS[grade] || '-20%'}</span>

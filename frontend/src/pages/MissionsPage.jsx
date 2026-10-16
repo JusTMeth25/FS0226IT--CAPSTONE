@@ -2,7 +2,12 @@ import { useGame } from '../hooks/useGame.js';
 import { useApiResource } from '../hooks/useApiResource.js';
 import { missionApi } from '../services/missionApi.js';
 import { todayString } from '../utils/missionUtils.js';
+import { useState } from 'react';
+import { m } from 'motion/react';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
+import PhantomTitle from '../components/phantom/PhantomTitle.jsx';
+import StarBurst from '../components/phantom/StarBurst.jsx';
+import '../styles/pages/game-ranks.css';
 
 function missionGroup(missionId) {
   if (missionId.startsWith('daily-')) return 'daily';
@@ -11,6 +16,8 @@ function missionGroup(missionId) {
 }
 
 function MissionRow({ mission, onClaim }) {
+  // Il timbro "Ritirata!" piomba solo sulla missione appena ritirata, non su quelle gia' vecchie.
+  const [justClaimed, setJustClaimed] = useState(false);
   const progress = Math.min(mission.progress, mission.target);
   const percent = mission.target > 0 ? Math.round((progress / mission.target) * 100) : 0;
   const completed = progress >= mission.target;
@@ -32,9 +39,23 @@ function MissionRow({ mission, onClaim }) {
         {mission.rewardGold > 0 && <span className="missions-reward"><i className="ph-fill ph-coin" /> {mission.rewardGold}</span>}
         {mission.rewardXP > 0 && <span className="missions-reward"><i className="ph-fill ph-lightning" /> {mission.rewardXP}</span>}
         {mission.pack && <span className="missions-reward"><i className="ph-fill ph-gift" /> {mission.pack === 'pack-premium' ? 'Premium' : 'Deluxe'}</span>}
-        {completed && !mission.claimed && <button className="btn btn-gold btn-small" onClick={() => onClaim(mission)}>Reclama</button>}
+        {completed && !mission.claimed && (
+          <button className="btn btn-gold btn-small" onClick={() => { setJustClaimed(true); onClaim(mission); }}>Reclama</button>
+        )}
         {mission.claimed && <span className="missions-claimed-badge">Reclamato</span>}
       </div>
+      {completed && !mission.claimed && <span className="missions-done-tag">Completata!</span>}
+      {mission.claimed && justClaimed && (
+        <m.span
+          className="missions-stamp"
+          aria-hidden="true"
+          initial={{ scale: 2.2, rotate: -24, opacity: 0 }}
+          animate={{ scale: 1, rotate: -10, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 600, damping: 22 }}
+        >
+          <StarBurst size={34} fill="var(--neon-gold)" stroke="#000" /> Ritirata!
+        </m.span>
+      )}
     </div>
   );
 }
@@ -61,7 +82,7 @@ export default function MissionsPage() {
 
   return (
     <section className="missions-page">
-      <h2 className="section-title text-gradient"><i className="ph-fill ph-target" /> Missioni e Livelli</h2>
+      <PhantomTitle text="Missioni" className="game-page-title" />
 
       <div className="missions-level-card glass-panel">
         <div className="missions-level-top">
@@ -81,20 +102,22 @@ export default function MissionsPage() {
 
       </div>
 
-      <div className={`missions-login-card glass-panel ${canClaimLogin ? 'missions-login-available' : ''}`} onClick={() => canClaimLogin && handleClaimLogin()}>
+      {/* Un bottone vero (tastiera, controller); disattivato quando il premio di oggi e' gia' preso. */}
+      <button type="button" className={`missions-login-card glass-panel ${canClaimLogin ? 'missions-login-available' : ''}`}
+        disabled={!canClaimLogin} onClick={handleClaimLogin}>
         <span className="missions-login-icon"><i className={`ph-fill ${canClaimLogin ? 'ph-gift' : 'ph-check-circle'}`} /></span>
         <div className="missions-login-info">
           <span className="missions-login-title">Login Giornaliero</span>
           <span className="missions-login-desc">{canClaimLogin ? 'Clicca per ritirare la tua ricompensa giornaliera!' : 'Già reclamato oggi. Torna domani!'}</span>
         </div>
         <span className="missions-login-streak"><i className="ph-fill ph-fire" /> Giorno {game.loginStreak + (canClaimLogin ? 1 : 0)}</span>
-      </div>
+      </button>
 
       {server.loading ? (
         <LoadingSpinner label="Carico le missioni…" />
       ) : (
         ['daily', 'weekly', 'progress'].map((type) => (
-          <div className="glass-panel" key={type}>
+          <div className="glass-panel missions-group" key={type}>
             <h3 className="missions-section-title">
               <i className={`ph-fill ${type === 'daily' ? 'ph-calendar' : type === 'weekly' ? 'ph-calendar-dots' : 'ph-trophy'}`} />
               {' '}{type === 'daily' ? 'Daily' : type === 'weekly' ? 'Settimanali' : 'Progresso'}

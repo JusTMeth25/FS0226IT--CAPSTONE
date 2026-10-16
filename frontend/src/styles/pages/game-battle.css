@@ -1,0 +1,828 @@
+/* ==========================================================================
+   Battaglie e torneo in stile Phantom (Persona 5).
+   Cornici, titoli, schede e momenti forti (VS, round, risultato, tabellone) con tagli e
+   diagonali; carte, valori e bottoni dritti e leggibili, anche su telefono.
+   Tutto sotto :root[data-skin="phantom"]: l'hotel usa lo stesso markup (pannello Torneo,
+   squadre salvate) senza lo skin e resta com'era.
+   ========================================================================== */
+
+/* ---------- Bilancio delle battaglie: una barra di stato, quattro numeri in fila ---------- */
+:root[data-skin="phantom"] .battle-page .collection-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  padding: 12px 8px;
+}
+:root[data-skin="phantom"] .battle-page .collection-stat { min-width: 0; padding: 0 4px; text-align: center; }
+:root[data-skin="phantom"] .battle-page .collection-stat + .collection-stat { border-left: 1.5px solid var(--p5-line); }
+:root[data-skin="phantom"] .battle-page .collection-stat-value {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--p5-ink);
+}
+:root[data-skin="phantom"] .battle-page .collection-stat:first-child .collection-stat-value { text-shadow: 3px 3px 0 var(--p5-red); }
+:root[data-skin="phantom"] .battle-page .collection-stat-label {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--p5-ink-soft);
+}
+
+/* ---------- Slot della squadra ---------- */
+:root[data-skin="phantom"] .battle-slot {
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  transition: transform var(--p5-fast) var(--p5-snap);
+}
+/* Bordo e fondo nei due pseudo-elementi tagliati: il ::before fa da bordo, il ::after da fondo. */
+:root[data-skin="phantom"] .battle-slot::before,
+:root[data-skin="phantom"] .battle-slot::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  clip-path: var(--p5-shape);
+}
+:root[data-skin="phantom"] .battle-slot::before { inset: 0; background: rgba(255, 255, 255, 0.28); }
+:root[data-skin="phantom"] .battle-slot::after { inset: 2px; background: var(--p5-stripes), #0a0619; }
+:root[data-skin="phantom"] .battle-slot:hover { background: none; transform: translate(-1px, -1px); }
+:root[data-skin="phantom"] .battle-slot-active { box-shadow: none; }
+:root[data-skin="phantom"] .battle-slot-active::before { background: var(--p5-red); }
+:root[data-skin="phantom"] .battle-slot-active::after { inset: 3px; background: var(--p5-halftone-red), #12061f; }
+:root[data-skin="phantom"] .battle-slot-filled::after { background: #07040f; }
+:root[data-skin="phantom"] .battle-slot-empty { flex-direction: column; min-height: 156px; gap: 4px; }
+:root[data-skin="phantom"] .battle-slot-number {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 70%;
+  font-size: 3.6rem;
+  line-height: 0.9;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.75);
+}
+:root[data-skin="phantom"] .battle-slot-active .battle-slot-number { color: var(--p5-ink); -webkit-text-stroke: 0; text-shadow: 3px 3px 0 var(--p5-red); }
+:root[data-skin="phantom"] .battle-slot-label {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--p5-ink-soft);
+}
+:root[data-skin="phantom"] .battle-slot-active .battle-slot-label { color: var(--p5-ink); }
+:root[data-skin="phantom"] .battle-slot-empty:focus-visible { outline-offset: -6px; }
+
+/* ---------- Avversario, avvio della partita ---------- */
+:root[data-skin="phantom"] .battle-opponent-tabs { gap: 8px 10px; }
+:root[data-skin="phantom"] .battle-opponent-hint { color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .battle-mode-actions { gap: 14px; padding: 4px 6px 6px 0; }
+:root[data-skin="phantom"] .battle-mode-actions .btn { min-height: 58px; font-size: 1.1rem; font-weight: 900; text-transform: uppercase; flex: 1; }
+
+/* Righe dei giocatori da sfidare: elenco dritto, con il filo magenta a sinistra. */
+:root[data-skin="phantom"] .battle-opponent-list li {
+  border-radius: 0;
+  background: #0a0619;
+  border-left: 3px solid var(--p5-red);
+  padding: 6px 8px 6px 10px;
+}
+:root[data-skin="phantom"] .battle-opponent-avatar { border-radius: 0; clip-path: var(--p5-shape-sm); width: 40px; height: 40px; background: var(--p5-red-deep); }
+:root[data-skin="phantom"] .battle-opponent-name strong { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; letter-spacing: 0.02em; }
+:root[data-skin="phantom"] .battle-opponent-name small { color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .battle-opponent-search .btn { min-width: 48px; }
+
+/* Sfida in arrivo: lastra magenta scuro, si nota subito. */
+:root[data-skin="phantom"] .battle-online-invite-incoming { box-shadow: none; }
+:root[data-skin="phantom"] .battle-online-invite-incoming::before { background: var(--p5-red-deep); border: 0; }
+:root[data-skin="phantom"] .battle-online-invite-incoming > i { font-size: 1.6rem; color: #fff; }
+:root[data-skin="phantom"] .battle-online-timer {
+  padding: 2px 10px;
+  background: #000;
+  color: var(--p5-ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  outline: 1.5px solid rgba(255, 255, 255, 0.5);
+}
+
+/* ---------- Riepilogo della squadra ---------- */
+:root[data-skin="phantom"] :is(.battle-team-preview, .battle-available) > h3 {
+  display: inline-block;
+  margin-bottom: 10px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 78%;
+  font-size: 1.15rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  transform: skewX(-6deg);
+  transform-origin: left;
+  text-shadow: 2px 2px 0 var(--p5-red);
+}
+:root[data-skin="phantom"] .battle-available-count { font-family: system-ui, sans-serif; font-weight: 600; font-size: 0.8rem; text-shadow: none; color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .battle-preview-row { font-size: 0.85rem; }
+:root[data-skin="phantom"] .battle-preview-label {
+  width: 92px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  text-transform: uppercase;
+  color: var(--p5-ink-soft);
+}
+:root[data-skin="phantom"] .battle-preview-label i { color: var(--p5-red); }
+:root[data-skin="phantom"] .battle-preview-track { height: 10px; border-radius: 0; background: #000; outline: 1.5px solid rgba(255, 255, 255, 0.45); }
+:root[data-skin="phantom"] .battle-preview-fill { border-radius: 0; background: repeating-linear-gradient(-45deg, var(--p5-red) 0 6px, var(--p5-red-deep) 6px 10px); }
+:root[data-skin="phantom"] .battle-preview-val { width: 36px; font-family: var(--font-display); font-weight: 900; font-size: 1rem; }
+:root[data-skin="phantom"] .battle-preview-empty { color: var(--p5-ink-soft); }
+
+/* Bonus di squadra: tasselli tagliati invece delle pillole. */
+:root[data-skin="phantom"] .battle-synergy-list li {
+  border: 0;
+  border-radius: 0;
+  padding: 5px 14px;
+  background: #2a1a55;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+:root[data-skin="phantom"] .battle-synergy-list li strong { color: var(--p5-gold); }
+:root[data-skin="phantom"] .battle-synergy-empty { color: var(--p5-ink-soft); }
+
+/* Carte gia' in squadra nella griglia. */
+:root[data-skin="phantom"] .battle-in-team { opacity: 0.45; filter: grayscale(0.8); }
+:root[data-skin="phantom"] .battle-check-mark {
+  top: -8px;
+  right: -8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 0;
+  background: var(--p5-red);
+  color: #000;
+  clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%);
+  box-shadow: none;
+  font-size: 1rem;
+}
+
+/* Squadre salvate: la crocetta per cancellare e' un bersaglio da dito. */
+:root[data-skin="phantom"] .saved-team-delete { min-width: 44px; min-height: 44px; display: inline-grid; place-items: center; }
+:root[data-skin="phantom"] .saved-team-delete:hover { color: var(--p5-red); }
+:root[data-skin="phantom"] .saved-teams-notice { color: var(--p5-ink-soft); }
+
+:root[data-skin="phantom"] .battle-tournament-badge {
+  color: var(--p5-gold);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   VS: i due schieramenti entrano dai lati, una fascia magenta taglia lo schermo e il VS
+   ci piomba sopra. Tu su lastra nera, l'avversario su lastra bianca.
+   ========================================================================== */
+:root[data-skin="phantom"] .battle-vs-page { position: relative; isolation: isolate; overflow: clip; padding: 10px 0 18px; }
+:root[data-skin="phantom"] .battle-vs-page::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: -20%;
+  right: -20%;
+  top: 50%;
+  height: 132px;
+  translate: 0 -50%;
+  rotate: -12deg;
+  background: var(--p5-halftone), var(--p5-red);
+  box-shadow: 0 12px 0 #000, 0 -12px 0 #000;
+}
+:root[data-skin="phantom"] .battle-vs-content { gap: 18px; }
+:root[data-skin="phantom"] .battle-vs-player {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  max-width: 440px;
+  padding: 16px 16px 18px;
+  gap: 10px;
+  color: var(--p5-ink);
+}
+:root[data-skin="phantom"] .battle-vs-player::before,
+:root[data-skin="phantom"] .battle-vs-player::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  clip-path: polygon(0 0, 100% 0, 96% 100%, 0 100%);
+}
+:root[data-skin="phantom"] .battle-vs-player::before { z-index: -1; background: var(--p5-halftone-red), #0a0410; border-left: 6px solid var(--p5-red); }
+/* L'ombra netta e' una seconda lastra spostata: con clip-path la box-shadow non si vede. */
+:root[data-skin="phantom"] .battle-vs-player::after { z-index: -2; translate: 7px 7px; background: #000; }
+:root[data-skin="phantom"] .battle-vs-ai { color: var(--p5-black); }
+:root[data-skin="phantom"] .battle-vs-ai::before,
+:root[data-skin="phantom"] .battle-vs-ai::after { clip-path: polygon(4% 0, 100% 0, 100% 100%, 0 100%); }
+:root[data-skin="phantom"] .battle-vs-ai::before {
+  background: radial-gradient(rgba(7, 4, 15, 0.12) 1px, transparent 1.6px) 0 0 / 7px 7px, var(--p5-paper);
+  border-left: 0;
+  border-right: 6px solid var(--p5-red);
+}
+:root[data-skin="phantom"] .battle-vs-ai::after { background: var(--p5-red); }
+:root[data-skin="phantom"] .battle-vs-avatar { font-size: 2.2rem; line-height: 1; color: var(--p5-red); }
+:root[data-skin="phantom"] .battle-vs-ai .battle-vs-avatar { color: var(--p5-black); }
+:root[data-skin="phantom"] .battle-vs-player h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: 1.35rem;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: skewX(-6deg);
+}
+:root[data-skin="phantom"] .battle-vs-cards { gap: 10px; flex-wrap: nowrap; width: 100%; }
+:root[data-skin="phantom"] .battle-vs-mini {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 96px;
+  padding: 0;
+  gap: 4px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+}
+:root[data-skin="phantom"] .battle-vs-thumb {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 5 / 7;
+  border-radius: 0;
+  clip-path: var(--p5-shape-sm);
+  background: #000;
+}
+:root[data-skin="phantom"] .battle-vs-mini-name {
+  width: 100%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+:root[data-skin="phantom"] .battle-vs-mystery { opacity: 1; }
+:root[data-skin="phantom"] .battle-vs-mystery-icon {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 5 / 7;
+  border-radius: 0;
+  clip-path: var(--p5-shape-sm);
+  background: var(--p5-stripes), #07040f;
+  color: var(--p5-ink);
+  font-size: 1.8rem;
+}
+:root[data-skin="phantom"] .battle-vs-power {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: 1.9rem;
+  line-height: 1;
+  color: var(--p5-ink);
+}
+:root[data-skin="phantom"] .battle-vs-power i { color: var(--p5-red); }
+:root[data-skin="phantom"] .battle-vs-power-hidden { font-style: normal; font-size: 1rem; font-weight: 800; text-transform: uppercase; color: var(--p5-black); }
+:root[data-skin="phantom"] .battle-vs-player .battle-synergy-list.compact li { color: var(--p5-ink); }
+:root[data-skin="phantom"] .battle-vs-center { position: relative; gap: 10px; padding: 4px 0; }
+:root[data-skin="phantom"] .battle-vs-label {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 70%;
+  font-size: clamp(4.4rem, 20vw, 7.5rem);
+  line-height: 0.85;
+  color: var(--p5-ink);
+  -webkit-text-stroke: 3px #000;
+  paint-order: stroke fill;
+  text-shadow: 6px 6px 0 #000;
+  animation: none;
+}
+:root[data-skin="phantom"] .battle-vs-round {
+  padding: 3px 12px;
+  background: #000;
+  color: var(--p5-ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+:root[data-skin="phantom"] .battle-vs-center .btn { min-width: 200px; font-size: 1.15rem; text-transform: uppercase; }
+/* Il bottone bianco-su-magenta sulla fascia magenta sparirebbe: qui e' nero con l'ombra bianca. */
+:root[data-skin="phantom"] .battle-vs-center .btn-primary::before { background: #000; }
+:root[data-skin="phantom"] .battle-vs-center .btn-primary { filter: drop-shadow(4px 4px 0 #fff); }
+
+@media (min-width: 768px) {
+  :root[data-skin="phantom"] .battle-vs-page::before { height: 170px; rotate: -6deg; }
+  :root[data-skin="phantom"] .battle-vs-content { max-width: 1040px; align-items: center; }
+  :root[data-skin="phantom"] .battle-vs-player { flex: 1; }
+}
+/* Telefono girato: tutto su una riga e piu' basso. */
+@media (orientation: landscape) and (max-height: 520px) {
+  :root[data-skin="phantom"] .battle-vs-page { min-height: 0; }
+  :root[data-skin="phantom"] .battle-vs-content { flex-direction: row; gap: 10px; }
+  :root[data-skin="phantom"] .battle-vs-player { padding: 10px 12px; gap: 6px; }
+  :root[data-skin="phantom"] .battle-vs-avatar { display: none; }
+  :root[data-skin="phantom"] .battle-vs-mini { max-width: 64px; }
+  :root[data-skin="phantom"] .battle-vs-label { font-size: 4rem; }
+  :root[data-skin="phantom"] .battle-vs-power { font-size: 1.4rem; }
+  :root[data-skin="phantom"] .battle-vs-center .btn { min-width: 0; }
+}
+
+/* ==========================================================================
+   Round: intestazione, scelta della categoria, scelta della carta
+   ========================================================================== */
+:root[data-skin="phantom"] .battle-round-header { flex-wrap: wrap; gap: 10px; }
+:root[data-skin="phantom"] .battle-round-number {
+  padding: 6px 18px 6px 14px;
+  background: #000;
+  color: var(--p5-ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 78%;
+  font-size: 1.1rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  border-left: 5px solid var(--p5-red);
+}
+:root[data-skin="phantom"] .battle-round-number i { color: var(--p5-gold); }
+:root[data-skin="phantom"] .battle-round-score {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: 2.2rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--p5-ink);
+  text-shadow: 3px 3px 0 var(--p5-red);
+}
+:root[data-skin="phantom"] .battle-round-score:empty { display: none; }
+:root[data-skin="phantom"] :is(.battle-round-prompt, .battle-online-wait) h3 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 78%;
+  font-size: 1.25rem;
+  text-transform: uppercase;
+  line-height: 1.05;
+}
+:root[data-skin="phantom"] :is(.battle-round-prompt p, .battle-online-wait-text, .battle-final-sub) { color: var(--p5-ink-soft); }
+
+/* Le quattro categorie: grandi bottoni inclinati, al passaggio diventano bianchi. */
+:root[data-skin="phantom"] .battle-category-pick-grid { gap: 14px 12px; padding-right: 6px; }
+:root[data-skin="phantom"] .battle-category-pick-card {
+  position: relative;
+  isolation: isolate;
+  min-height: 116px;
+  justify-content: center;
+  padding: 16px 12px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--p5-ink);
+  cursor: pointer;
+  filter: drop-shadow(5px 5px 0 #000);
+  transition: transform var(--p5-fast) var(--p5-snap), color var(--p5-fast);
+}
+:root[data-skin="phantom"] .battle-category-pick-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(var(--p5-red), var(--p5-red)) 0 0 / 100% 5px no-repeat,
+    var(--p5-stripes),
+    #120a2a;
+  clip-path: polygon(7% 0, 100% 0, 93% 100%, 0 100%);
+  transition: background var(--p5-fast);
+}
+:root[data-skin="phantom"] .battle-category-pick-card i { font-size: 2.4rem; color: var(--p5-red); }
+:root[data-skin="phantom"] .battle-category-pick-name {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: 1.45rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+:root[data-skin="phantom"] .battle-category-pick-card:is(:hover, :focus-visible) {
+  background: none;
+  box-shadow: none;
+  color: var(--p5-black);
+  transform: translate(-2px, -3px) rotate(-1.5deg);
+  filter: drop-shadow(6px 6px 0 var(--p5-red));
+}
+:root[data-skin="phantom"] .battle-category-pick-card:is(:hover, :focus-visible)::before { background: var(--p5-paper); }
+:root[data-skin="phantom"] .battle-category-pick-card:active { transform: translate(2px, 2px); }
+
+/* Categoria del round: grande e bianca su nero. */
+:root[data-skin="phantom"] .battle-category-display { padding: 12px 16px; }
+:root[data-skin="phantom"] .battle-category-label {
+  display: inline-block;
+  margin-bottom: 4px;
+  padding: 1px 10px;
+  background: var(--p5-red-deep);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+}
+:root[data-skin="phantom"] .battle-category-name {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 72%;
+  font-size: 2.3rem;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--p5-ink);
+  text-shadow: 3px 3px 0 var(--p5-red);
+}
+:root[data-skin="phantom"] .battle-category-name i { color: var(--p5-red); text-shadow: none; }
+:root[data-skin="phantom"] .battle-card-select h3 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+}
+:root[data-skin="phantom"] .battle-card-options { gap: 18px 12px; }
+:root[data-skin="phantom"] .battle-pick-meta { gap: 6px; width: 100%; }
+/* Il valore della categoria e' l'informazione che decide il round: grande e su nero. */
+:root[data-skin="phantom"] .battle-stat-highlight {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 3px 12px;
+  background: #000;
+  color: var(--p5-ink-soft);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  outline: 1.5px solid rgba(255, 255, 255, 0.3);
+}
+:root[data-skin="phantom"] .battle-stat-highlight i { color: var(--p5-red); }
+:root[data-skin="phantom"] .battle-stat-highlight strong { font-size: 1.5rem; font-weight: 900; line-height: 1; color: var(--p5-ink); }
+:root[data-skin="phantom"] .battle-special-btn-inline {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 0;
+  background: var(--p5-paper);
+  color: var(--p5-black);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 85%;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+}
+:root[data-skin="phantom"] .battle-special-btn-inline i { color: var(--p5-red-deep); }
+:root[data-skin="phantom"] .battle-special-btn-inline:hover { transform: translate(-1px, -2px); background: var(--p5-gold); }
+:root[data-skin="phantom"] .battle-synergy-chip { color: var(--p5-gold); }
+
+/* ==========================================================================
+   Confronto del round (RoundClash)
+   ========================================================================== */
+:root[data-skin="phantom"] .battle-comparison { gap: 12px; padding: 8px 0; }
+:root[data-skin="phantom"] .battle-comp-card {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: 'side side' 'art name' 'art stat';
+  align-items: center;
+  justify-items: start;
+  column-gap: 14px;
+  row-gap: 4px;
+  width: 100%;
+  max-width: 340px;
+  padding: 12px 14px 14px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  text-align: left;
+  color: var(--p5-ink);
+}
+:root[data-skin="phantom"] .battle-comp-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  clip-path: var(--p5-shape);
+  background: linear-gradient(var(--rarity-color, #fff), var(--rarity-color, #fff)) 0 0 / 5px 100% no-repeat, #0d0820;
+}
+:root[data-skin="phantom"] .battle-comp-side {
+  grid-area: side;
+  padding: 1px 10px;
+  background: #000;
+  color: var(--p5-ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+:root[data-skin="phantom"] .battle-comp-art { grid-area: art; width: 78px; height: 109px; clip-path: var(--p5-shape-sm); background: #000; }
+:root[data-skin="phantom"] .battle-comp-name { grid-area: name; font-size: 0.9rem; line-height: 1.2; align-self: end; }
+:root[data-skin="phantom"] .battle-comp-stat { grid-area: stat; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; align-self: start; }
+:root[data-skin="phantom"] .battle-comp-value {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 72%;
+  font-size: 3.2rem;
+  line-height: 0.9;
+  font-variant-numeric: tabular-nums;
+}
+:root[data-skin="phantom"] .battle-bonus { color: inherit; font-weight: 800; font-size: 0.8rem; }
+:root[data-skin="phantom"] .battle-badge-win {
+  display: inline-block;
+  padding: 2px 12px;
+  border-radius: 0;
+  background: var(--p5-red-deep);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+}
+/* Chi vince il round: lastra bianca col testo nero e l'ombra magenta. */
+:root[data-skin="phantom"] .battle-winner { box-shadow: none; background: none; color: var(--p5-black); filter: drop-shadow(6px 6px 0 var(--p5-red)); }
+:root[data-skin="phantom"] .battle-winner::before { background: linear-gradient(var(--rarity-color, #000), var(--rarity-color, #000)) 0 0 / 5px 100% no-repeat, var(--p5-paper); }
+:root[data-skin="phantom"] .battle-winner .battle-comp-side { background: var(--p5-red-deep); color: #fff; }
+:root[data-skin="phantom"] .battle-loser { opacity: 0.72; }
+:root[data-skin="phantom"] .battle-comp-vs { display: flex; flex-direction: column; align-items: center; }
+:root[data-skin="phantom"] .battle-comp-vs-text {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 70%;
+  font-size: 2.8rem;
+  line-height: 0.9;
+  color: var(--p5-ink);
+  text-shadow: 4px 4px 0 var(--p5-red);
+}
+:root[data-skin="phantom"] .battle-comp-detail { color: var(--p5-ink-soft); font-family: var(--font-display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
+:root[data-skin="phantom"] .battle-next-container .btn { min-width: 220px; text-transform: uppercase; }
+@media (min-width: 768px) {
+  :root[data-skin="phantom"] .battle-comparison { flex-wrap: nowrap; align-items: center; gap: 22px; }
+  :root[data-skin="phantom"] .battle-comp-art { width: 96px; height: 134px; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  :root[data-skin="phantom"] .battle-comparison { flex-direction: row; flex-wrap: nowrap; padding: 0; }
+  :root[data-skin="phantom"] .battle-comp-art { width: 60px; height: 84px; }
+  :root[data-skin="phantom"] .battle-comp-value { font-size: 2.4rem; }
+  :root[data-skin="phantom"] .battle-category-pick-grid { grid-template-columns: repeat(4, 1fr); }
+  :root[data-skin="phantom"] .battle-category-pick-card { min-height: 92px; }
+}
+
+/* ==========================================================================
+   Risultato finale: vittoria con raggi, stella e scossa; sconfitta sobria.
+   ========================================================================== */
+:root[data-skin="phantom"] .battle-final-page { position: relative; isolation: isolate; overflow: clip; padding: 56px 0 24px; }
+:root[data-skin="phantom"] .p5-result-bg { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+:root[data-skin="phantom"] .p5-result-rays {
+  position: absolute;
+  left: 50%;
+  top: 24%;
+  width: 160vmax;
+  height: 160vmax;
+  translate: -50% -50%;
+  background: repeating-conic-gradient(from -4deg, rgba(236, 72, 153, 0.5) 0 7deg, transparent 7deg 20deg);
+  -webkit-mask: radial-gradient(circle, #000 0 18%, transparent 46%);
+  mask: radial-gradient(circle, #000 0 18%, transparent 46%);
+}
+:root[data-skin="phantom"] .is-champion .p5-result-rays { background: repeating-conic-gradient(from -4deg, rgba(255, 215, 0, 0.45) 0 7deg, transparent 7deg 20deg); }
+:root[data-skin="phantom"] .p5-result-star { position: absolute; line-height: 0; }
+:root[data-skin="phantom"] .p5-result-star-main { left: calc(50% - 250px); top: -4px; }
+:root[data-skin="phantom"] .p5-result-star-a { right: calc(50% - 250px); top: 18px; }
+:root[data-skin="phantom"] .p5-result-star-b { right: calc(50% - 200px); top: 74px; }
+@media (max-width: 560px) {
+  :root[data-skin="phantom"] .p5-result-star-main { left: -24px; top: -36px; }
+  :root[data-skin="phantom"] .p5-result-star-main .p5-star { width: 120px; height: 120px; }
+  :root[data-skin="phantom"] .p5-result-star-a { right: 10px; top: 0; }
+  :root[data-skin="phantom"] .p5-result-star-b { right: 64px; top: 16px; }
+}
+:root[data-skin="phantom"] .p5-result-slab {
+  position: absolute;
+  left: -15%;
+  right: -15%;
+  top: 70px;
+  height: 150px;
+  rotate: -6deg;
+  background: var(--p5-stripes), #000;
+  border-top: 3px solid rgba(255, 255, 255, 0.6);
+}
+:root[data-skin="phantom"] .is-draw .p5-result-slab { background: var(--p5-halftone), #2a1a55; border-top-color: #fff; }
+:root[data-skin="phantom"] .battle-final-content { gap: 14px; padding: 22px 18px; }
+:root[data-skin="phantom"] :is(.is-win, .is-champion) .battle-final-content::before {
+  background:
+    linear-gradient(var(--p5-panel-raised), var(--p5-panel-raised)) padding-box,
+    linear-gradient(135deg, var(--p5-red), #fff 50%, var(--p5-red)) border-box;
+  border-width: 3px;
+}
+:root[data-skin="phantom"] .is-champion .battle-final-content::before {
+  background:
+    linear-gradient(var(--p5-panel-raised), var(--p5-panel-raised)) padding-box,
+    linear-gradient(135deg, var(--p5-gold), #fff 50%, var(--p5-gold)) border-box;
+}
+:root[data-skin="phantom"] .battle-final-icon { font-size: 3rem; line-height: 1; color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .is-win .battle-final-icon { color: var(--p5-red); }
+:root[data-skin="phantom"] .is-champion .battle-final-icon { color: var(--p5-gold); }
+:root[data-skin="phantom"] .battle-final-icon-champion { animation: none; }
+:root[data-skin="phantom"] .battle-final-slam { display: flex; justify-content: center; }
+:root[data-skin="phantom"] .battle-final-title.p5-ransom { justify-content: center; font-size: clamp(2.3rem, 11vw, 3.8rem); }
+:root[data-skin="phantom"] .is-champion .battle-final-title .p5-ransom-tile.is-red { background: var(--p5-gold); color: #000; }
+:root[data-skin="phantom"] .battle-final-title:is(.is-lose, .is-draw) {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 70%;
+  font-size: clamp(2rem, 9vw, 3rem);
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--p5-ink-soft);
+  text-shadow: 3px 3px 0 #000;
+}
+:root[data-skin="phantom"] .battle-final-title.is-draw { color: var(--p5-ink); text-shadow: 3px 3px 0 var(--p5-violet); }
+:root[data-skin="phantom"] .battle-final-score { gap: 14px; font-family: var(--font-display); font-weight: 900; font-stretch: 72%; }
+:root[data-skin="phantom"] .battle-final-score-you { font-size: 3.6rem; line-height: 1; color: var(--p5-ink); text-shadow: 4px 4px 0 var(--p5-red); }
+:root[data-skin="phantom"] .battle-final-score-ai { font-size: 3.6rem; line-height: 1; color: var(--p5-ink-soft); text-shadow: 4px 4px 0 #000; }
+:root[data-skin="phantom"] .battle-final-score-divider { color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .battle-final-rewards {
+  border-radius: 0;
+  background: #000;
+  clip-path: var(--p5-shape-sm);
+  border-left: 4px solid var(--p5-gold);
+}
+:root[data-skin="phantom"] .battle-final-rewards h3 { color: var(--p5-gold); font-family: var(--font-display); font-weight: 900; letter-spacing: 0.08em; }
+:root[data-skin="phantom"] .battle-reward-item { font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; }
+:root[data-skin="phantom"] .battle-reward-item i { color: var(--p5-gold); }
+:root[data-skin="phantom"] .battle-history h3 { color: var(--p5-ink); font-family: var(--font-display); font-weight: 900; text-shadow: 2px 2px 0 var(--p5-red); }
+:root[data-skin="phantom"] .battle-history-item { border-radius: 0; background: #0a0619; font-size: 0.8rem; }
+:root[data-skin="phantom"] .battle-history-round { color: var(--p5-ink); font-family: var(--font-display); }
+:root[data-skin="phantom"] .battle-history-cat { color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .battle-history-result { border-radius: 0; padding: 2px 8px; font-family: var(--font-display); font-weight: 900; font-size: 0.72rem; letter-spacing: 0.05em; }
+:root[data-skin="phantom"] .battle-history-win { background: var(--p5-red-deep); color: #fff; }
+:root[data-skin="phantom"] .battle-history-loss { background: #000; color: var(--p5-ink-soft); outline: 1px solid rgba(255, 255, 255, 0.3); }
+:root[data-skin="phantom"] .battle-history-draw { background: #2a1a55; color: #fff; }
+:root[data-skin="phantom"] .battle-final-actions { gap: 14px; }
+
+/* ==========================================================================
+   Coppa VinylDex (CardTournament): il tabellone come un "All-Out Attack".
+   Le partite entrano a raffica con un taglio, la finale sta su una scheggia magenta.
+   Solo con lo skin: nell'Arena dell'hotel il pannello resta quello di prima.
+   ========================================================================== */
+:root[data-skin="phantom"] .cup-title > i { font-size: 2.4rem; color: var(--p5-gold); filter: none; text-shadow: 3px 3px 0 #000; }
+:root[data-skin="phantom"] .cup-title h3 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 72%;
+  font-size: 1.6rem;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: skewX(-6deg);
+  transform-origin: left;
+  text-shadow: 3px 3px 0 var(--p5-red);
+}
+:root[data-skin="phantom"] .cup-title p { color: var(--p5-ink-soft); margin-top: 4px; }
+/* Montepremi: e' un premio, quindi oro. */
+:root[data-skin="phantom"] .cup-pool {
+  border: 0;
+  border-radius: 0;
+  padding: 6px 24px 6px 20px;
+  background: var(--p5-gold);
+  color: #000;
+  clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
+}
+:root[data-skin="phantom"] .cup-pool :is(span, small) { color: #3d2c00; font-weight: 700; }
+:root[data-skin="phantom"] .cup-pool b { color: #000; font-family: var(--font-display); font-weight: 900; font-size: 1.5rem; }
+:root[data-skin="phantom"] .cup-notice { border-radius: 0; background: #000; border-left: 4px solid var(--p5-red); }
+:root[data-skin="phantom"] .cup-notice-win { border-left-color: var(--p5-gold); color: var(--p5-gold); }
+:root[data-skin="phantom"] .cup-entered { color: var(--p5-ink); font-weight: 700; }
+:root[data-skin="phantom"] .cup-entered i { color: var(--neon-cyan); }
+
+:root[data-skin="phantom"] .cup-bracket-scroll {
+  padding: 10px 6px 12px;
+  background:
+    linear-gradient(-12deg, transparent 0 44%, rgba(236, 72, 153, 0.16) 44% 56%, transparent 56%),
+    var(--p5-halftone);
+}
+:root[data-skin="phantom"] .cup-col h4 {
+  align-self: center;
+  padding: 3px 12px;
+  background: #000;
+  color: var(--p5-ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  transform: skewX(-10deg);
+}
+:root[data-skin="phantom"] .cup-col.current h4 { background: var(--p5-red-deep); color: #fff; }
+:root[data-skin="phantom"] .cup-match {
+  border: 0;
+  border-radius: 0;
+  background: #0a0619;
+  outline: 1.5px solid rgba(255, 255, 255, 0.32);
+  box-shadow: 4px 4px 0 #000;
+  animation: p5CupCut 220ms cubic-bezier(0.2, 1, 0.3, 1) both;
+}
+:root[data-skin="phantom"] .cup-col-matches > .cup-match:nth-child(2),
+:root[data-skin="phantom"] .cup-compact-grid > .cup-match:nth-child(2) { animation-delay: 40ms; }
+:root[data-skin="phantom"] .cup-col-matches > .cup-match:nth-child(3),
+:root[data-skin="phantom"] .cup-compact-grid > .cup-match:nth-child(3) { animation-delay: 80ms; }
+:root[data-skin="phantom"] .cup-col-matches > .cup-match:nth-child(4),
+:root[data-skin="phantom"] .cup-compact-grid > .cup-match:nth-child(4) { animation-delay: 120ms; }
+:root[data-skin="phantom"] .cup-compact-grid > .cup-match:nth-child(n + 5) { animation-delay: 160ms; }
+:root[data-skin="phantom"] .cup-match.live { outline: 2px solid var(--p5-red); box-shadow: 5px 5px 0 var(--p5-red); }
+:root[data-skin="phantom"] .cup-match.mine { outline: 2px solid #fff; }
+:root[data-skin="phantom"] :is(.cup-col-left, .cup-col-right) .cup-match::after { height: 3px; background: rgba(255, 255, 255, 0.4); }
+:root[data-skin="phantom"] .cup-match.done::after { background: var(--p5-red); }
+:root[data-skin="phantom"] .cup-side { min-height: 30px; }
+:root[data-skin="phantom"] .cup-side + .cup-side { border-top-color: rgba(255, 255, 255, 0.16); }
+:root[data-skin="phantom"] .cup-side.me .cup-name { color: var(--neon-cyan); }
+/* Chi passa il turno: riga bianca col testo nero, il segno piu' netto di P5. */
+:root[data-skin="phantom"] .cup-side.won { background: var(--p5-paper); color: var(--p5-black); }
+:root[data-skin="phantom"] .cup-side.won > i { color: var(--p5-black); }
+:root[data-skin="phantom"] .cup-side.won .cup-score { color: var(--p5-red-deep); font-weight: 900; }
+:root[data-skin="phantom"] .cup-side.me.won .cup-name { color: var(--p5-red-deep); }
+:root[data-skin="phantom"] .cup-side.lost { opacity: 0.55; }
+:root[data-skin="phantom"] .cup-score { font-family: var(--font-display); font-weight: 900; }
+:root[data-skin="phantom"] .cup-live {
+  top: -9px;
+  padding: 0 9px;
+  border-radius: 0;
+  background: var(--p5-red);
+  color: #000;
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+}
+:root[data-skin="phantom"] .cup-note { border-radius: 0; background: #000; color: var(--p5-ink-soft); outline: 1px solid rgba(255, 255, 255, 0.3); font-size: 0.58rem; }
+:root[data-skin="phantom"] .cup-final { position: relative; isolation: isolate; }
+:root[data-skin="phantom"] .cup-final::before {
+  content: '';
+  position: absolute;
+  inset: 12% -10px;
+  z-index: -1;
+  background: var(--p5-halftone), var(--p5-red-deep);
+  clip-path: polygon(22% 0, 100% 0, 78% 100%, 0 100%);
+}
+:root[data-skin="phantom"] .cup-final .cup-match { border: 0; outline: 2px solid var(--p5-gold); box-shadow: 6px 6px 0 #000; }
+:root[data-skin="phantom"] .cup-final h4 { background: var(--p5-gold); color: #000; }
+:root[data-skin="phantom"] .cup-trophy { color: var(--p5-gold); filter: none; text-shadow: 4px 4px 0 #000; }
+:root[data-skin="phantom"] .cup-champion {
+  align-self: center;
+  padding: 4px 14px;
+  background: #000;
+  color: var(--p5-gold);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  outline: 2px solid var(--p5-gold);
+}
+/* Schede dei turni su telefono: il turno aperto e' la scheda bianca. */
+:root[data-skin="phantom"] .cup-round-tabs { gap: 6px; }
+:root[data-skin="phantom"] .cup-round-tab {
+  min-height: 44px;
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  outline: 1.5px solid rgba(255, 255, 255, 0.3);
+  color: var(--p5-ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 0.8rem;
+  clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+}
+:root[data-skin="phantom"] .cup-round-tab.active { background: var(--p5-paper); color: var(--p5-black); outline: 0; }
+:root[data-skin="phantom"] .cup-dot { border-radius: 0; background: var(--p5-red); top: 6px; right: 12%; }
+@keyframes p5CupCut {
+  from { opacity: 0; transform: translateX(-22px) skewX(-14deg); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-skin="phantom"] .cup-match { animation: none; }
+  :root[data-skin="phantom"] :is(.battle-category-pick-card, .battle-slot) { transition: none; }
+}

@@ -1,0 +1,280 @@
+/* ==========================================================================
+   Missioni, eventi e classifica in stile Phantom (Persona 5).
+   Cornici, titoli e podio forti; elenchi, barre e testi dritti e leggibili.
+   ========================================================================== */
+
+/* ---------- Stato vuoto delle pagine di gioco ---------- */
+:root[data-skin="phantom"] :is(.events-page, .leaderboard-page, .missions-page, .battle-page) .empty-state-icon { color: var(--p5-red); }
+:root[data-skin="phantom"] :is(.events-page, .leaderboard-page, .missions-page, .battle-page) .empty-state-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 78%;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  text-shadow: 3px 3px 0 var(--p5-red);
+}
+
+/* ==========================================================================
+   Missioni
+   ========================================================================== */
+:root[data-skin="phantom"] .missions-level-label {
+  width: fit-content;
+  padding: 1px 10px;
+  background: var(--p5-red-deep);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+:root[data-skin="phantom"] .missions-level-number {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 70%;
+  font-size: 4.6rem;
+  line-height: 0.85;
+  color: var(--p5-ink);
+  text-shadow: 4px 4px 0 var(--p5-red);
+}
+:root[data-skin="phantom"] .missions-level-stats { gap: 18px; flex-wrap: wrap; justify-content: flex-end; }
+:root[data-skin="phantom"] .missions-level-stat span { font-family: var(--font-display); font-weight: 900; font-size: 1.3rem; }
+:root[data-skin="phantom"] .missions-level-stat:first-child { color: var(--p5-gold); }
+:root[data-skin="phantom"] :is(.missions-xp-bar, .missions-item-bar) {
+  border-radius: 0;
+  background: #000;
+  outline: 1.5px solid rgba(255, 255, 255, 0.45);
+}
+:root[data-skin="phantom"] .missions-xp-bar { height: 14px; }
+:root[data-skin="phantom"] .missions-item-bar { height: 8px; }
+:root[data-skin="phantom"] :is(.missions-xp-fill, .missions-item-fill) {
+  border-radius: 0;
+  background: repeating-linear-gradient(-45deg, var(--p5-red) 0 6px, var(--p5-red-deep) 6px 10px);
+}
+:root[data-skin="phantom"] .missions-xp-text { color: var(--p5-ink-soft); font-family: var(--font-display); font-weight: 800; }
+
+/* Premio di ogni giorno: quando c'e' da ritirarlo e' una lastra magenta che chiama il dito. */
+:root[data-skin="phantom"] .missions-login-card { cursor: default; padding: 16px 18px; }
+:root[data-skin="phantom"] .missions-login-card:disabled { cursor: default; }
+:root[data-skin="phantom"] .missions-login-available { cursor: pointer; border: 0; box-shadow: none; transition: transform var(--p5-fast) var(--p5-snap); }
+:root[data-skin="phantom"] .missions-login-available::before { background: var(--p5-halftone), var(--p5-red-deep); border: 0; }
+:root[data-skin="phantom"] .missions-login-available:hover { background: none; transform: translate(-2px, -2px) rotate(-0.6deg); }
+:root[data-skin="phantom"] .missions-login-icon { color: var(--p5-red); font-size: 2rem; }
+:root[data-skin="phantom"] .missions-login-available .missions-login-icon { color: #fff; }
+:root[data-skin="phantom"] .missions-login-title { font-family: var(--font-display); font-weight: 900; font-size: 1.15rem; text-transform: uppercase; }
+:root[data-skin="phantom"] .missions-login-desc { color: var(--p5-ink-soft); font-size: 0.8rem; }
+:root[data-skin="phantom"] .missions-login-available .missions-login-desc { color: #fff; }
+:root[data-skin="phantom"] .missions-login-streak {
+  padding: 3px 12px;
+  background: #000;
+  color: var(--p5-gold);
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Titolo del gruppo (Daily, Settimanali, Progresso): etichetta nera col filo magenta. */
+:root[data-skin="phantom"] .missions-section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 18px 4px 12px;
+  background: #000;
+  border-left: 5px solid var(--p5-red);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 78%;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+}
+:root[data-skin="phantom"] .missions-section-title i { color: var(--p5-red); }
+:root[data-skin="phantom"] .missions-list { gap: 10px; }
+:root[data-skin="phantom"] .missions-item {
+  position: relative;
+  border-radius: 0;
+  background: #0a0619;
+  border-left: 3px solid rgba(255, 255, 255, 0.2);
+}
+:root[data-skin="phantom"] .missions-item:hover { background: #100a26; }
+:root[data-skin="phantom"] .missions-item-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  background: #000;
+  color: var(--p5-ink-soft);
+  clip-path: var(--p5-shape-sm);
+}
+:root[data-skin="phantom"] .missions-item-title { font-size: 0.9rem; }
+:root[data-skin="phantom"] .missions-item-desc { color: var(--p5-ink-soft); font-size: 0.75rem; }
+:root[data-skin="phantom"] .missions-item-text { color: var(--p5-ink-soft); font-size: 0.72rem; }
+:root[data-skin="phantom"] .missions-reward { font-size: 0.78rem; font-family: var(--font-display); }
+:root[data-skin="phantom"] .missions-reward .ph-coin { color: var(--p5-gold); }
+/* Completata e non ritirata: filo magenta e il tassello "Completata!". */
+:root[data-skin="phantom"] .missions-completed:not(.missions-claimed) { border-left-color: var(--p5-red); background: linear-gradient(90deg, rgba(236, 72, 153, 0.14), transparent 60%), #0a0619; }
+:root[data-skin="phantom"] .missions-completed:not(.missions-claimed) .missions-item-icon { background: var(--p5-red); color: #000; }
+:root[data-skin="phantom"] .missions-done-tag {
+  position: absolute;
+  top: -9px;
+  left: 54px;
+  padding: 0 8px;
+  background: var(--p5-red-deep);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+}
+:root[data-skin="phantom"] .missions-claimed { opacity: 1; }
+:root[data-skin="phantom"] .missions-claimed > :not(.missions-stamp) { opacity: 0.6; }
+:root[data-skin="phantom"] .missions-claimed-badge { color: var(--p5-ink-soft); font-family: var(--font-display); font-weight: 900; text-transform: uppercase; }
+/* Timbro sulla missione appena ritirata. */
+:root[data-skin="phantom"] .missions-stamp {
+  position: absolute;
+  top: -12px;
+  right: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 12px 2px 4px;
+  background: var(--p5-paper);
+  color: var(--p5-black);
+  outline: 2px solid #000;
+  box-shadow: 4px 4px 0 var(--p5-red);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1rem;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Eventi
+   ========================================================================== */
+:root[data-skin="phantom"] .events-page .page-subtitle { color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .event-item { padding: 18px 18px 16px; }
+:root[data-skin="phantom"] .event-item-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: 1.5rem;
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow: 3px 3px 0 var(--p5-red);
+}
+:root[data-skin="phantom"] .event-item-name::before {
+  content: 'Evento';
+  display: block;
+  width: fit-content;
+  margin-bottom: 8px;
+  padding: 1px 8px;
+  background: var(--p5-red-deep);
+  color: #fff;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-shadow: none;
+}
+:root[data-skin="phantom"] .event-item-desc { margin: 6px 0 0; color: var(--p5-ink-soft); font-size: 0.88rem; line-height: 1.45; }
+:root[data-skin="phantom"] .event-item-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+:root[data-skin="phantom"] .event-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  background: #000;
+  color: var(--p5-ink);
+  outline: 1.5px solid rgba(255, 255, 255, 0.3);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+:root[data-skin="phantom"] .event-tag i { color: var(--p5-red); }
+:root[data-skin="phantom"] .event-tag-bonus { background: var(--p5-paper); color: var(--p5-black); outline: 0; }
+:root[data-skin="phantom"] .event-tag-bonus i { color: var(--p5-red-deep); }
+
+/* ==========================================================================
+   Classifica: podio dei primi tre, poi l'elenco
+   ========================================================================== */
+:root[data-skin="phantom"] .lb-tabs { gap: 10px 12px; }
+.lb-ranking { display: flex; flex-direction: column; gap: var(--space-md); }
+.lb-podium {
+  list-style: none;
+  margin: 0;
+  padding: 28px 4px 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: 10px;
+}
+.lb-step { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; text-align: center; }
+/* Il primo al centro, il secondo a sinistra, il terzo a destra (nel DOM restano in ordine). */
+.lb-step-1 { order: 2; }
+.lb-step-2 { order: 1; }
+.lb-step-3 { order: 3; }
+.lb-star { position: absolute; top: -46px; right: 0; transform: rotate(14deg); }
+.lb-step-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+.lb-step-value {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: 1.5rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.lb-step-value small { font-size: 0.8rem; color: var(--p5-ink-soft, #c9c4dc); }
+/* Il gradino: ombra netta sul contenitore, forma tagliata sul figlio. */
+.lb-step-block { display: block; width: 100%; filter: drop-shadow(5px 5px 0 #000); }
+.lb-step-block > span {
+  display: grid;
+  place-items: center;
+  height: 90px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 70%;
+  font-size: 3.6rem;
+  line-height: 1;
+  clip-path: polygon(0 14px, 100% 0, 100% 100%, 0 100%);
+  background: var(--p5-halftone, none), #b0136a;
+  color: #fff;
+}
+.lb-step-1 .lb-step-block > span { height: 150px; font-size: 5rem; background: var(--neon-gold); color: #000; }
+.lb-step-2 .lb-step-block > span { height: 112px; background: #f4f1fa; color: #07040f; }
+.lb-step-1 .lb-step-name { font-size: 1.15rem; }
+.lb-step-1 .lb-step-value { color: var(--neon-gold); text-shadow: 2px 2px 0 #000; }
+
+.lb-list { list-style: none; margin: 0; padding: 6px 0; }
+:root[data-skin="phantom"] .lb-list .leaderboard-row { border-bottom: 1px solid var(--p5-line); min-height: 48px; }
+:root[data-skin="phantom"] .lb-list .leaderboard-row:last-child { border-bottom: 0; }
+:root[data-skin="phantom"] .leaderboard-rank { font-family: var(--font-display); font-weight: 900; font-stretch: 75%; font-size: 1.4rem; color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .leaderboard-value { font-family: var(--font-display); font-weight: 900; font-size: 1.15rem; color: var(--p5-ink); }
+:root[data-skin="phantom"] .leaderboard-percent { color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .game-leaderboard-prize i { color: var(--p5-gold); }
+
+@media (min-width: 768px) {
+  .lb-podium { max-width: 720px; margin-inline: auto; width: 100%; gap: 18px; }
+  .lb-step-name { font-size: 1.2rem; }
+  .lb-step-1 .lb-step-name { font-size: 1.4rem; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .lb-step-block > span { height: 64px; font-size: 2.6rem; }
+  .lb-step-1 .lb-step-block > span { height: 96px; font-size: 3.4rem; }
+  .lb-step-2 .lb-step-block > span { height: 78px; }
+}

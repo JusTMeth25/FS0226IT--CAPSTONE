@@ -1,0 +1,250 @@
+/* ==========================================================================
+   Pacchetti in stile Phantom (Persona 5): scelta del pacchetto, strappo, rivelazione una
+   carta alla volta e riepilogo.
+   Tutto sotto :root[data-skin="phantom"]: PackOpeningFlow si usa anche nell'hotel, che non ha
+   lo skin e resta com'era (li' anche gli scatti di Motion sono spenti, vedi usePhantomSkin).
+   ========================================================================== */
+
+/* ---------- Gold disponibili: lastra nera, cifra grande ---------- */
+:root[data-skin="phantom"] .packs-page .gold-display { justify-content: flex-start; gap: 4px 14px; padding: 14px 20px; }
+:root[data-skin="phantom"] .packs-page .gold-icon { font-size: 1.8rem; color: var(--p5-gold); }
+:root[data-skin="phantom"] .packs-page .gold-amount {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 72%;
+  font-size: 2.6rem;
+  line-height: 1;
+  color: var(--p5-gold);
+  text-shadow: 3px 3px 0 #000;
+  font-variant-numeric: tabular-nums;
+}
+:root[data-skin="phantom"] .packs-page .gold-label {
+  padding: 2px 10px;
+  background: #000;
+  color: var(--p5-ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---------- Leggendaria garantita (pity) ---------- */
+:root[data-skin="phantom"] .pity-bar { max-width: none; margin: 0; padding: 12px 16px; }
+:root[data-skin="phantom"] .pity-bar.boosted { box-shadow: none; }
+:root[data-skin="phantom"] .pity-bar.boosted::before {
+  background:
+    linear-gradient(var(--p5-panel-raised), var(--p5-panel-raised)) padding-box,
+    linear-gradient(135deg, var(--p5-gold), #fff 50%, var(--p5-gold)) border-box;
+}
+:root[data-skin="phantom"] .pity-head { align-items: baseline; }
+:root[data-skin="phantom"] .pity-head span { color: var(--p5-gold); font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; }
+:root[data-skin="phantom"] .pity-head strong { font-family: var(--font-display); font-weight: 900; font-size: 1rem; text-transform: uppercase; }
+:root[data-skin="phantom"] .pity-track { height: 14px; border-radius: 0; background: #000; outline: 1.5px solid rgba(255, 255, 255, 0.5); }
+:root[data-skin="phantom"] .pity-fill { border-radius: 0; background: repeating-linear-gradient(-45deg, var(--p5-red) 0 6px, var(--p5-red-deep) 6px 10px); }
+:root[data-skin="phantom"] .boosted .pity-fill { background: repeating-linear-gradient(-45deg, var(--p5-gold) 0 6px, #c9a400 6px 10px); }
+:root[data-skin="phantom"] .pity-soft { width: 3px; background: #fff; box-shadow: 0 0 0 1px #000; }
+:root[data-skin="phantom"] .pity-bar small { color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .packs-page .notify-row { margin: 0; text-align: left; }
+
+/* ---------- Gruppi di pacchetti: etichetta nera inclinata con il filo magenta ---------- */
+:root[data-skin="phantom"] .packs-group-title {
+  justify-self: start;
+  align-self: flex-start;
+  margin: 10px 0 4px;
+  padding: 4px 18px 4px 12px;
+  background: #000;
+  color: var(--p5-ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 78%;
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+  border-left: 5px solid var(--p5-red);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+}
+
+/* ---------- Il pacchetto: angoli tagliati, ombra netta, etichette a tassello ---------- */
+:root[data-skin="phantom"] .pack-card:hover:not(.pack-disabled) { transform: none; }
+:root[data-skin="phantom"] .pack-card-art-frame {
+  filter: drop-shadow(5px 5px 0 #000);
+  transition: transform var(--p5-fast) var(--p5-snap), filter var(--p5-fast);
+}
+:root[data-skin="phantom"] .pack-card:hover:not(.pack-disabled) .pack-card-art-frame {
+  transform: translate(-3px, -4px);
+  filter: drop-shadow(8px 8px 0 var(--p5-red));
+}
+:root[data-skin="phantom"] .pack-card-art-wrap { border-radius: 0; clip-path: var(--p5-shape); }
+:root[data-skin="phantom"] .pack-card:hover:not(.pack-disabled) .pack-card-art-wrap { box-shadow: none; }
+:root[data-skin="phantom"] .pack-card-name-tag {
+  border: 0;
+  border-radius: 0;
+  backdrop-filter: none;
+  background: #000;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
+  padding: 4px 16px;
+}
+:root[data-skin="phantom"] .pack-card-count {
+  border-radius: 0;
+  background: var(--p5-paper);
+  color: var(--p5-black);
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+:root[data-skin="phantom"] .pack-card-price-badge { border-radius: 0; background: #000; font-family: var(--font-display); }
+:root[data-skin="phantom"] .pack-weekend-set { border-radius: 0; background: var(--p5-gold); color: #000; font-family: var(--font-display); text-transform: uppercase; }
+:root[data-skin="phantom"] .pack-card-actions { gap: 8px; }
+:root[data-skin="phantom"] .pack-card-actions .btn { text-transform: uppercase; }
+
+/* ---------- Avviso (gold insufficienti) ---------- */
+:root[data-skin="phantom"] .pack-overlay { background: rgba(7, 4, 15, 0.82); }
+:root[data-skin="phantom"] .pack-modal-icon { color: var(--p5-red); font-size: 3rem; }
+:root[data-skin="phantom"] .pack-modal h3 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: 1.8rem;
+  text-transform: uppercase;
+  text-shadow: 3px 3px 0 var(--p5-red);
+}
+
+/* ==========================================================================
+   Strappo del pacchetto
+   ========================================================================== */
+:root[data-skin="phantom"] .pack-tear-stage { position: relative; isolation: isolate; overflow: clip; width: 100%; padding: 16px 0 8px; }
+/* Fascia magenta diagonale dietro il pacchetto, col retino: il palco del momento. */
+:root[data-skin="phantom"] .pack-tear-stage::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: -20%;
+  right: -20%;
+  top: 38%;
+  height: 160px;
+  translate: 0 -50%;
+  rotate: -12deg;
+  background: var(--p5-halftone), var(--p5-red-deep);
+  box-shadow: 0 10px 0 #000;
+}
+:root[data-skin="phantom"] .pack-tear-half { box-shadow: none; }
+:root[data-skin="phantom"] .pack-tear-half-left { border-radius: 0; }
+:root[data-skin="phantom"] .pack-tear-half-right { border-radius: 0; }
+:root[data-skin="phantom"] .pack-tear { filter: drop-shadow(7px 7px 0 #000); }
+:root[data-skin="phantom"] .pack-opening-text {
+  padding: 6px 16px;
+  background: #000;
+  color: var(--p5-ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  outline: 2px solid #fff;
+  animation: none;
+}
+:root[data-skin="phantom"] .pack-opening-text i { color: var(--p5-red); }
+/* Il lampo dello strappo: una scheggia bianca e magenta che taglia lo schermo. */
+:root[data-skin="phantom"] .p5-tear-slash {
+  position: absolute;
+  z-index: 3;
+  top: 20%;
+  left: 0;
+  width: 100%;
+  height: 90px;
+  pointer-events: none;
+  rotate: -12deg;
+  background: linear-gradient(#fff, #fff) 0 50% / 100% 14px no-repeat, var(--p5-red);
+  clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+}
+
+/* ==========================================================================
+   Rivelazione: una carta alla volta
+   ========================================================================== */
+:root[data-skin="phantom"] .pack-reveal-progress {
+  padding: 4px 16px;
+  background: var(--p5-paper);
+  color: var(--p5-black);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 78%;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  clip-path: polygon(5% 0, 100% 0, 95% 100%, 0 100%);
+  transform: rotate(-2deg);
+}
+:root[data-skin="phantom"] .reveal-dot { border-radius: 0; width: 12px; height: 12px; transform: skewX(-12deg); background: #000; border-color: rgba(255, 255, 255, 0.4); }
+:root[data-skin="phantom"] .reveal-dot.current { transform: skewX(-12deg) scale(1.35); box-shadow: 2px 2px 0 #000; }
+:root[data-skin="phantom"] .pack-reveal-solo-card { isolation: isolate; }
+:root[data-skin="phantom"] .p5-reveal-slash {
+  position: absolute;
+  z-index: 5;
+  top: 30%;
+  left: -20%;
+  width: 140%;
+  height: 70px;
+  pointer-events: none;
+  rotate: -12deg;
+  background: var(--p5-red);
+  clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
+}
+:root[data-skin="phantom"] .p5-reveal-star { position: absolute; z-index: -1; left: -60px; top: -50px; line-height: 0; pointer-events: none; }
+/* Annuncio della rarita': tassello bianco col testo nero, la leggendaria in oro. */
+:root[data-skin="phantom"] .rarity-announce {
+  border: 0;
+  border-radius: 0;
+  padding: 6px 22px;
+  background: var(--p5-paper);
+  color: var(--p5-black);
+  box-shadow: 5px 5px 0 var(--rarity-color);
+  text-shadow: none;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 78%;
+  font-size: 1.15rem;
+  clip-path: none;
+}
+:root[data-skin="phantom"] .rarity-announce-legendary { background: var(--p5-gold); box-shadow: 5px 5px 0 #000; }
+:root[data-skin="phantom"] .pack-reveal-next { min-width: 240px; text-transform: uppercase; font-size: 1.05rem; }
+
+/* ==========================================================================
+   Riepilogo
+   ========================================================================== */
+:root[data-skin="phantom"] .pack-verdict,
+:root[data-skin="phantom"] .pack-value {
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  box-shadow: 5px 5px 0 var(--rarity-color, var(--p5-gold));
+  clip-path: none;
+}
+:root[data-skin="phantom"] .pack-value { box-shadow: 5px 5px 0 var(--p5-gold); }
+:root[data-skin="phantom"] :is(.pack-verdict-label, .pack-value-label) { color: var(--p5-ink-soft); font-family: var(--font-display); }
+:root[data-skin="phantom"] .pack-verdict-name { font-family: var(--font-display); font-weight: 900; font-size: 1.1rem; text-transform: uppercase; }
+:root[data-skin="phantom"] .pack-verdict-rarity { border-radius: 0; clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%); padding: 3px 14px; font-family: var(--font-display); }
+:root[data-skin="phantom"] .pack-value-amount { font-family: var(--font-display); font-size: 1.4rem; }
+:root[data-skin="phantom"] .pack-value-detail { color: var(--p5-ink-soft); }
+/* Le carte arrivano a raffica, una dopo l'altra. */
+:root[data-skin="phantom"] .pack-reveal-flip.pack-reveal-slot {
+  animation: p5SlotIn 240ms cubic-bezier(0.2, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 55ms + 120ms);
+}
+:root[data-skin="phantom"] .pack-reveal-slot-best::before { border-radius: 0; clip-path: var(--p5-shape); }
+:root[data-skin="phantom"] .pack-summary-actions { gap: 14px; }
+@keyframes p5SlotIn {
+  from { opacity: 0; transform: translateX(-30px) rotate(-6deg); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-skin="phantom"] .pack-reveal-flip.pack-reveal-slot { animation: none; }
+  :root[data-skin="phantom"] .pack-card-art-frame { transition: none; }
+}
+:root[data-skin="phantom"] .pack-reveal-solo { width: 100%; overflow: clip; padding: 8px 0 18px; }

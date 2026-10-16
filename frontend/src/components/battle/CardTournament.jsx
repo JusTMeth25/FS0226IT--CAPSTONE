@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import '../../styles/pages/game-battle.css';
 
 const SHORT = ['Ottavi', 'Quarti', 'Semifinali', 'Finale'];
 

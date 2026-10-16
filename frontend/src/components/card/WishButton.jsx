@@ -22,7 +22,7 @@ export default function WishButton({ code }) {
 
   if (wished === null) return null;
   return (
-    <button type="button" className={`btn ${wished ? 'btn-gold' : 'btn-secondary'} wish-button`} onClick={toggle} disabled={busy} aria-pressed={wished}>
+    <button type="button" className={`btn ${wished ? 'btn-primary' : 'btn-secondary'} wish-button`} onClick={toggle} disabled={busy} aria-pressed={wished}>
       <i className={wished ? 'ph-fill ph-heart' : 'ph ph-heart'} /> {wished ? 'Nei desideri' : 'Aggiungi ai desideri'}
     </button>
   );

@@ -12,6 +12,10 @@ import PackValue from '../fx/PackValue.jsx';
 import ThreeGate from '../three/ThreeGate.jsx';
 import { useThreeEnabled } from '../three/useThreeEnabled.js';
 import { PACK_GRADIENT, PACK_ICON, PACK_IMAGE, PACK_TILT_RARITY } from './packArt.js';
+import { m } from 'motion/react';
+import StarBurst from '../phantom/StarBurst.jsx';
+import { SNAP, usePhantomSkin } from '../battle/phantomMotion.js';
+import '../../styles/pages/game-packs.css';
 
 // Lo strappo 3D porta con se' three.js: si scarica solo quando si apre davvero un pacchetto.
 const PackTear3D = lazy(() => import('../three/PackTear3D.jsx'));
@@ -95,6 +99,8 @@ function RevealCard({ card, size = 'grid' }) {
 export default function PackOpeningFlow({ packId, cards, actions = [], onSummary }) {
   const { sound } = useSound();
   const threeEnabled = useThreeEnabled();
+  // Gli scatti in stile Phantom solo fuori dall'hotel: li' l'apertura resta quella di sempre.
+  const phantom = usePhantomSkin();
 
   const [phase, setPhase] = useState('opening');
   const [revealIndex, setRevealIndex] = useState(0);
@@ -241,6 +247,15 @@ export default function PackOpeningFlow({ packId, cards, actions = [], onSummary
               torn={torn}
             />
           </ThreeGate>
+          {phantom && torn && (
+            <m.span
+              className="p5-tear-slash"
+              aria-hidden="true"
+              initial={{ x: '-130%', opacity: 1 }}
+              animate={{ x: '130%', opacity: 1, transitionEnd: { visibility: 'hidden' } }}
+              transition={{ duration: 0.34, ease: [0.7, 0, 0.3, 1] }}
+            />
+          )}
           <p className="pack-opening-text pack-tear-hint">
             {torn ? <><i className="ph-fill ph-sparkle" /> Le carte stanno per essere rivelate...</> : <><i className="ph-fill ph-arrows-left-right" /> Trascina per aprire il pacchetto!</>}
           </p>
@@ -266,10 +281,41 @@ export default function PackOpeningFlow({ packId, cards, actions = [], onSummary
           {/* key sull'indice: rimonta il palcoscenico a ogni carta, cosi' lampo, raggi e
               annuncio ripartono da capo invece di restare fermi dalla prima rivelazione. */}
           <div className="pack-reveal-solo-card" onClick={advanceReveal} key={revealIndex}>
-            <RevealStage rarity={currentCard.rarity}>
-              <RevealCard card={currentCard} size="hero" />
-            </RevealStage>
-            <RarityAnnounce rarity={currentCard.rarity} />
+            {phantom && (
+              <>
+                {/* Scheggia magenta che attraversa la carta mentre arriva, e una stella dietro le
+                    epiche e le leggendarie: il colpo di scena prima ancora di leggerla. */}
+                <m.span
+                  className="p5-reveal-slash"
+                  aria-hidden="true"
+                  initial={{ x: '-140%' }}
+                  animate={{ x: '140%', transitionEnd: { visibility: 'hidden' } }}
+                  transition={{ duration: 0.3, ease: [0.7, 0, 0.3, 1] }}
+                />
+                {(currentCard.rarity === 'epic' || currentCard.rarity === 'legendary') && (
+                  <m.span
+                    className="p5-reveal-star"
+                    aria-hidden="true"
+                    initial={{ scale: 0, rotate: -60 }}
+                    animate={{ scale: 1, rotate: -12 }}
+                    transition={{ type: 'spring', stiffness: 380, damping: 15, delay: 0.12 }}
+                  >
+                    <StarBurst size={170} fill={currentCard.rarity === 'legendary' ? 'var(--neon-gold)' : 'var(--neon-purple)'} />
+                  </m.span>
+                )}
+              </>
+            )}
+            <m.div
+              className="pack-reveal-solo-in"
+              initial={phantom ? { x: 120, rotate: 8, opacity: 0 } : false}
+              animate={{ x: 0, rotate: 0, opacity: 1 }}
+              transition={SNAP}
+            >
+              <RevealStage rarity={currentCard.rarity}>
+                <RevealCard card={currentCard} size="hero" />
+              </RevealStage>
+              <RarityAnnounce rarity={currentCard.rarity} />
+            </m.div>
           </div>
 
           <button className="btn btn-primary pack-reveal-next" onClick={advanceReveal}>
@@ -287,7 +333,7 @@ export default function PackOpeningFlow({ packId, cards, actions = [], onSummary
             {cards.map((card, i) => (
               <div
                 className={`pack-reveal-slot pack-reveal-flip${i === bestCardIndex ? ' pack-reveal-slot-best' : ''}`}
-                style={i === bestCardIndex ? { '--rarity-color': getRarityColor(card.rarity) } : undefined}
+                style={{ '--i': i, ...(i === bestCardIndex ? { '--rarity-color': getRarityColor(card.rarity) } : null) }}
                 key={`${card.id}-${i}`}
               >
                 <CardTile card={card} onClick={() => setInspectedCard(card)} />

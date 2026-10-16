@@ -1,0 +1,294 @@
+/* ==========================================================================
+   Mercato e Scambi in stile Phantom. Prefissi sm- (mercato) e st- (scambi).
+   Le cornici (pannelli, schede, cartellini del prezzo, timbri) prendono il P5; le righe degli
+   annunci e degli scambi restano dritte e leggibili.
+   ========================================================================== */
+
+/* ---------- Vendi una carta ---------- */
+:root[data-skin="phantom"] .market-page .sm-sell { padding: 18px 16px 18px; }
+:root[data-skin="phantom"] .market-page .sm-note { margin: 0; color: var(--p5-ink-soft); font-size: 0.9rem; }
+:root[data-skin="phantom"] .market-page .sm-sell-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: end;
+  margin-top: 6px;
+}
+:root[data-skin="phantom"] .market-page .sm-sell-form .filter-group { min-width: 0; }
+:root[data-skin="phantom"] .market-page .sm-sell-form .filter-group:first-child { grid-column: 1 / -1; }
+:root[data-skin="phantom"] .market-page .sm-sell-btn { grid-column: 1 / -1; min-height: 52px; font-size: 1.05rem; }
+@media (min-width: 900px) {
+  :root[data-skin="phantom"] .market-page .sm-sell-form { grid-template-columns: minmax(0, 2fr) minmax(0, 0.8fr) minmax(0, 1fr) auto; }
+  :root[data-skin="phantom"] .market-page .sm-sell-form .filter-group:first-child { grid-column: auto; }
+  :root[data-skin="phantom"] .market-page .sm-sell-btn { grid-column: auto; }
+}
+
+/* ---------- Annunci: righe della bottega ---------- */
+:root[data-skin="phantom"] .market-page .sm-count {
+  margin: 0 0 2px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--p5-ink-soft);
+}
+:root[data-skin="phantom"] .market-page .sm-list { gap: 10px; }
+:root[data-skin="phantom"] .market-page .listing-item {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-areas: 'art info' 'art deal';
+  align-items: center;
+  gap: 8px 14px;
+  padding: 12px 14px;
+}
+:root[data-skin="phantom"] .market-page .listing-item-art {
+  grid-area: art;
+  width: 64px;
+  height: 90px;
+  border-radius: 0;
+  outline: 2px solid var(--p5-ink);
+  outline-offset: 0;
+  box-shadow: 4px 4px 0 #000;
+  transform: rotate(-3deg);
+}
+:root[data-skin="phantom"] .market-page .listing-item-info { grid-area: info; }
+:root[data-skin="phantom"] .market-page .listing-item-name {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 82%;
+  font-size: 1.12rem;
+  line-height: 1.1;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+:root[data-skin="phantom"] .market-page .listing-item-meta { font-size: 0.8rem; color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .market-page .listing-item-average { font-size: 0.78rem; color: var(--p5-ink-soft); }
+/* "Affare!": un cartellino ciano, non solo un colore diverso. */
+:root[data-skin="phantom"] .market-page .listing-item-average.good {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 2px 10px;
+  background: var(--neon-cyan);
+  color: #04131a;
+  font-weight: 800;
+  clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
+}
+/* Prezzo e azione sulla stessa riga: il prezzo e' un cartellino oro inclinato. */
+:root[data-skin="phantom"] .market-page .listing-item-price {
+  grid-area: deal;
+  justify-self: start;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 4px 14px 3px 10px;
+  background: var(--p5-gold);
+  color: #1a1000;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1.25rem;
+  clip-path: polygon(0 0, 100% 0, 92% 100%, 0 100%);
+  transform: rotate(-2deg);
+}
+:root[data-skin="phantom"] .market-page .listing-item-price i { font-size: 1rem; align-self: center; }
+:root[data-skin="phantom"] .market-page .listing-item-price small { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; }
+:root[data-skin="phantom"] .market-page .listing-item-actions { grid-area: deal; justify-self: end; }
+:root[data-skin="phantom"] .market-page .listing-item-actions .btn { min-width: 112px; }
+@media (min-width: 720px) {
+  :root[data-skin="phantom"] .market-page .listing-item {
+    grid-template-columns: 64px minmax(0, 1fr) auto auto;
+    grid-template-areas: 'art info price act';
+    gap: 10px 20px;
+    padding: 12px 18px;
+  }
+  :root[data-skin="phantom"] .market-page .listing-item-price { grid-area: price; justify-self: end; }
+  :root[data-skin="phantom"] .market-page .listing-item-actions { grid-area: act; }
+}
+
+/* ==========================================================================
+   SCAMBI
+   ========================================================================== */
+:root[data-skin="phantom"] .trades-page .st-compose { padding: 18px 16px; }
+:root[data-skin="phantom"] .trades-page .trade-to-row .btn { min-height: 48px; }
+
+/* Il patto: due lati affrontati con le frecce al centro su un tassello magenta. */
+:root[data-skin="phantom"] .trades-page .trade-deal { gap: 10px; }
+:root[data-skin="phantom"] .trades-page .trade-side {
+  position: relative;
+  isolation: isolate;
+  padding: 14px 14px 12px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+:root[data-skin="phantom"] .trades-page .trade-side::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    var(--p5-stripes),
+    linear-gradient(#08051a, #08051a) padding-box,
+    linear-gradient(rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.35)) border-box;
+  border: 1.5px solid transparent;
+  clip-path: var(--p5-shape-sm);
+}
+:root[data-skin="phantom"] .trades-page .trade-side h4 {
+  align-self: flex-start;
+  padding: 3px 14px 2px 10px;
+  background: var(--p5-red);
+  color: var(--p5-ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 78%;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  clip-path: polygon(0 0, 100% 0, 94% 100%, 0 100%);
+  transform: rotate(-2deg);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-skin="phantom"] .trades-page .trade-side:last-child h4 { background: var(--p5-ink); color: var(--p5-black); }
+:root[data-skin="phantom"] .trades-page .trade-arrows {
+  align-self: center;
+  justify-self: center;
+  width: 56px;
+  height: 56px;
+  background: var(--p5-ink);
+  color: var(--p5-black);
+  font-size: 1.6rem;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+:root[data-skin="phantom"] .trades-page .trade-picked li {
+  grid-template-columns: 32px minmax(0, 1fr) auto auto;
+  padding: 4px 4px 4px 6px;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.06);
+}
+:root[data-skin="phantom"] .trades-page .trade-picked { max-height: 260px; }
+:root[data-skin="phantom"] .trades-page .trade-picked img { width: 32px; border-radius: 0; outline: 1.5px solid #fff; }
+:root[data-skin="phantom"] .trades-page :is(.trade-qty button, .trade-remove) {
+  width: 44px;
+  height: 44px;
+  border-radius: 0;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  background: #000;
+  font-weight: 900;
+  font-size: 1.1rem;
+}
+:root[data-skin="phantom"] .trades-page :is(.trade-qty button, .trade-remove):hover:not(:disabled) { background: var(--p5-ink); color: var(--p5-black); }
+:root[data-skin="phantom"] .trades-page .trade-gold { color: var(--p5-gold); font-family: var(--font-display); font-weight: 800; text-transform: uppercase; }
+:root[data-skin="phantom"] .trades-page .trade-gold .ai-input { min-height: 44px; }
+:root[data-skin="phantom"] .trades-page .trade-value { color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .trades-page .trade-empty { color: var(--p5-ink-soft); font-size: 0.86rem; }
+:root[data-skin="phantom"] .trades-page .trade-send { min-height: 56px; min-width: min(320px, 100%); font-size: 1.15rem; }
+
+:root[data-skin="phantom"] .trades-page .trade-col-title {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+}
+:root[data-skin="phantom"] .trades-page .trade-col-title i { color: var(--p5-red); }
+
+/* Miniature: bordo del colore di rarita', angoli netti, scelta = blocco magenta spostato. */
+:root[data-skin="phantom"] .trades-page .trade-thumb {
+  border-radius: 0;
+  background: #06030f;
+  transition: transform var(--p5-fast) var(--p5-snap);
+}
+:root[data-skin="phantom"] .trades-page .trade-thumb img { border-radius: 0; }
+:root[data-skin="phantom"] .trades-page .trade-thumb:hover:not(:disabled) { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 #000; }
+:root[data-skin="phantom"] .trades-page .trade-thumb.picked { box-shadow: 4px 4px 0 var(--p5-red); outline: 2px solid #fff; outline-offset: 0; }
+:root[data-skin="phantom"] .trades-page .trade-thumb-name { font-size: 0.72rem; }
+:root[data-skin="phantom"] .trades-page .trade-thumb-meta { font-size: 0.68rem; color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .trades-page .trade-thumb-meta .new { color: #6ee7a8; font-weight: 800; }
+:root[data-skin="phantom"] .trades-page .trade-thumb-badge {
+  border-radius: 0;
+  background: var(--p5-red);
+  color: #fff;
+  min-width: 24px;
+  height: 24px;
+  clip-path: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+}
+
+/* ---------- Elenco degli scambi ---------- */
+:root[data-skin="phantom"] .trades-page .st-tabs { margin-top: 4px; }
+:root[data-skin="phantom"] .trades-page .st-tabs .sp-tab { flex: 1 1 140px; }
+:root[data-skin="phantom"] .trades-page .trade-list { gap: 12px; }
+:root[data-skin="phantom"] .trades-page .trade-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'who stamp' 'cards cards' 'act act';
+  align-items: start;
+  gap: 10px 12px;
+  padding: 14px 16px;
+}
+:root[data-skin="phantom"] .trades-page .st-who {
+  grid-area: who;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1.15rem;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+:root[data-skin="phantom"] .trades-page .st-who small { color: var(--p5-red); font-size: 0.75em; letter-spacing: 0.1em; margin-right: 6px; }
+:root[data-skin="phantom"] .trades-page .st-sides {
+  grid-area: cards;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin: 0;
+}
+:root[data-skin="phantom"] .trades-page .st-side {
+  min-width: 0;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 4px solid var(--p5-red);
+}
+:root[data-skin="phantom"] .trades-page .st-side + .st-side { border-left-color: var(--p5-ink); }
+:root[data-skin="phantom"] .trades-page .st-side dt {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--p5-ink-soft);
+}
+:root[data-skin="phantom"] .trades-page .st-side dd { margin: 0; font-size: 0.88rem; }
+:root[data-skin="phantom"] .trades-page .trade-card-line { gap: 4px 8px; }
+:root[data-skin="phantom"] .trades-page .card-ownership { font-size: 0.74rem; }
+:root[data-skin="phantom"] .trades-page .trade-item .listing-item-actions { grid-area: act; display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+:root[data-skin="phantom"] .trades-page .trade-item .listing-item-actions .btn { min-width: 120px; }
+@media (min-width: 720px) {
+  :root[data-skin="phantom"] .trades-page .st-sides { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+
+/* Lo stato e' un timbro: inclinato, contorno doppio, colori pieni. */
+:root[data-skin="phantom"] .trades-page .trade-status-badge {
+  grid-area: stamp;
+  justify-self: end;
+  padding: 5px 12px 4px;
+  border-radius: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  transform: rotate(-5deg);
+  box-shadow: 3px 3px 0 #000;
+}
+:root[data-skin="phantom"] .trades-page .trade-status-pending { background: var(--p5-gold); color: #1a1000; }
+:root[data-skin="phantom"] .trades-page .trade-status-accepted { background: var(--p5-ink); color: #0b5f33; outline: 2px solid #0b5f33; outline-offset: -5px; }
+:root[data-skin="phantom"] .trades-page :is(.trade-status-rejected, .trade-status-cancelled) { background: #000; color: #fff; outline: 2px solid var(--p5-red); outline-offset: -5px; }
+:root[data-skin="phantom"] .trades-page .trade-item.is-closed { opacity: 0.82; }

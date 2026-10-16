@@ -6,6 +6,9 @@ import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import AdminHotelTab from '../components/admin/AdminHotelTab.jsx';
 import CasinoBankPanel from '../components/admin/CasinoBankPanel.jsx';
+import PhantomTitle from '../components/phantom/PhantomTitle.jsx';
+import '../styles/pages/social-phantom.css';
+import '../styles/pages/social-admin.css';
 
 /** Cassa del banco del casino: il gestore riscuote gli incassi. */
 function CasinoTab() {
@@ -72,16 +75,16 @@ function UserGoldEditor({ user, onSaved }) {
     <span className="admin-gold-editor">
       <strong>{user.gold}</strong>
       <input
-        type="number" min="0" placeholder="qta" value={amount}
+        type="number" min="0" placeholder="qta" value={amount} aria-label={`Gold da aggiungere o togliere a ${user.username}`}
         onChange={(e) => setAmount(e.target.value)}
         className="ai-input admin-gold-input"
         disabled={saving}
       />
-      <button className="btn btn-small btn-secondary" disabled={saving || !amount} title="Aggiungi gold" onClick={() => apply(1)}>
-        <i className="ph-fill ph-plus" />
+      <button className="btn btn-small btn-secondary" disabled={saving || !amount} title="Aggiungi gold" aria-label={`Aggiungi gold a ${user.username}`} onClick={() => apply(1)}>
+        <i className="ph ph-plus" />
       </button>
-      <button className="btn btn-small btn-secondary" disabled={saving || !amount} title="Togli gold" onClick={() => apply(-1)}>
-        <i className="ph-fill ph-minus" />
+      <button className="btn btn-small btn-secondary" disabled={saving || !amount} title="Togli gold" aria-label={`Togli gold a ${user.username}`} onClick={() => apply(-1)}>
+        <i className="ph ph-minus" />
       </button>
       {error && <span className="admin-gold-error" title={error}><i className="ph-fill ph-warning" /></span>}
     </span>
@@ -432,18 +435,21 @@ export default function AdminPage() {
   const ActiveTab = TAB_COMPONENTS[tab];
 
   return (
-    <section className="admin-page">
-      <h2 className="section-title text-gradient"><i className="ph-fill ph-shield-star" /> Admin Panel</h2>
+    <section className="admin-page sp-page">
+      <header className="sp-head">
+        <PhantomTitle as="h2" text="Pannello admin" />
+        <p className="sp-sub">Utenti, catalogo, import delle carte, missioni, eventi, hotel e incassi del casinò.</p>
+      </header>
 
-      <div className="admin-tabs">
+      <div className="admin-tabs sp-tabs" role="group" aria-label="Sezioni del pannello">
         {TABS.map((t) => (
-          <button key={t.key} className={`btn btn-small ${tab === t.key ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setTab(t.key)}>
-            <i className={`ph-fill ${t.icon}`} /> {t.label}
+          <button key={t.key} type="button" className={`sp-tab adm-tab${tab === t.key ? ' is-active' : ''}`} aria-pressed={tab === t.key} onClick={() => setTab(t.key)}>
+            <i className={`ph-fill ${t.icon}`} aria-hidden="true" /> {t.label}
           </button>
         ))}
       </div>
 
-      <div className="glass-panel">
+      <div className="glass-panel adm-body">
         <ActiveTab />
       </div>
     </section>

@@ -3,6 +3,8 @@ import { extrasApi } from '../services/extrasApi.js';
 import { RARITIES, formatMarketPrice, getRarityColor, getSourceLabel } from '../utils/cardUtils.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
+import PhantomTitle from '../components/phantom/PhantomTitle.jsx';
+import '../styles/pages/collection-phantom.css';
 
 const SOURCE_COLORS = {
   original: '#a855f7', pokemon: '#facc15', pokemonjp: '#dc2626', pokemonpromo: '#a855f7', nba: '#1d428a', yugioh: '#b45309', scryfall: '#f97316', onepiece: '#ef4444',
@@ -22,16 +24,20 @@ function ValueChart({ points }) {
   const last = points[points.length - 1];
   return (
     <svg className="stats-chart" viewBox={`0 0 ${w} ${h}`} role="img" aria-label={`Valore della collezione: oggi ${formatMarketPrice(last?.value)}`}>
+      {/* Come una stampa: area a retino magenta, linea bianca con l'ombra netta spostata,
+          l'ultimo punto un rombo. Niente sfumature. */}
       <defs>
-        <linearGradient id="statsArea" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#a855f7" stopOpacity="0.55" />
-          <stop offset="100%" stopColor="#a855f7" stopOpacity="0" />
-        </linearGradient>
+        <pattern id="statsDots" width="7" height="7" patternUnits="userSpaceOnUse">
+          <circle cx="3.5" cy="3.5" r="1.4" fill="#ec4899" />
+        </pattern>
       </defs>
       {[0.25, 0.5, 0.75].map((f) => <line key={f} x1={pad} x2={w - pad} y1={y(max * f)} y2={y(max * f)} className="stats-grid" />)}
-      <path d={area} fill="url(#statsArea)" />
-      <path d={line} fill="none" stroke="#e879f9" strokeWidth="3" strokeLinejoin="round" />
-      {last && <circle cx={x(points.length - 1)} cy={y(last.value)} r="5" fill="#fff" stroke="#e879f9" strokeWidth="3" />}
+      <path d={area} fill="url(#statsDots)" opacity="0.7" />
+      <path d={line} fill="none" stroke="#000" strokeWidth="5" strokeLinejoin="miter" transform="translate(4 4)" />
+      <path d={line} fill="none" stroke="#ec4899" strokeWidth="5" strokeLinejoin="miter" transform="translate(2 2)" />
+      <path d={line} fill="none" stroke="#fff" strokeWidth="3" strokeLinejoin="miter" />
+      {last && <rect x={x(points.length - 1) - 6} y={y(last.value) - 6} width="12" height="12" fill="#fff" stroke="#000" strokeWidth="3"
+        transform={`rotate(45 ${x(points.length - 1)} ${y(last.value)})`} />}
     </svg>
   );
 }
@@ -64,16 +70,18 @@ export default function StatsPage() {
     { icon: 'ph-copy', label: 'Copie totali', value: data.copies },
     { icon: 'ph-currency-dollar', label: 'Valore stimato', value: formatMarketPrice(data.value) || '—' },
     { icon: 'ph-gift', label: 'Pacchetti aperti', value: data.packsOpened },
-    { icon: 'ph-crown', label: 'Leggendarie trovate', value: data.legendaryPulls },
+    { icon: 'ph-crown', label: 'Leggendarie trovate', value: data.legendaryPulls, gold: true },
     { icon: 'ph-calendar', label: 'Giorni da collezionista', value: data.daysCollecting }
   ];
 
   return (
     <section className="stats-page">
-      <h2 className="section-title text-gradient"><i className="ph-fill ph-chart-line" /> Statistiche</h2>
+      <header className="cx-head">
+        <PhantomTitle text="Statistiche" className="cx-title" />
+      </header>
       <ul className="stats-numbers">
         {numbers.map((n) => (
-          <li key={n.label} className="glass-panel"><i className={`ph-fill ${n.icon}`} /><strong>{n.value}</strong><span>{n.label}</span></li>
+          <li key={n.label} className={`glass-panel${n.gold ? ' is-gold' : ''}`}><i className={`ph-fill ${n.icon}`} aria-hidden="true" /><strong>{n.value}</strong><span>{n.label}</span></li>
         ))}
       </ul>
 
@@ -101,7 +109,8 @@ export default function StatsPage() {
         {data.luck == null ? <p>Apri qualche pacchetto per misurare la tua fortuna.</p> : (
           <>
             <div className="stats-luck-row">
-              <span>Tu <strong>{data.luck.toFixed(2)}</strong></span>
+              <span className="stats-luck-you">Tu <strong>{data.luck.toFixed(2)}</strong></span>
+              <span className="stats-luck-vs" aria-hidden="true">VS</span>
               <span>Media dei giocatori <strong>{data.averageLuck?.toFixed(2)}</strong></span>
             </div>
             <p className={luckDelta >= 0 ? 'stats-lucky' : 'stats-unlucky'}>

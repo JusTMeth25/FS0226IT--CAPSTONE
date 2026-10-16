@@ -1,0 +1,513 @@
+/* ==========================================================================
+   Home: "In vetrina" (HomeToday)
+   --------------------------------------------------------------------------
+   La vetrina del negozio: l'oro (--h-accent-today) e' il colore dei premi e dei prezzi,
+   il neon viola/rosa si accende solo attorno alla carta in evidenza. Tre materiali:
+   la busta opaca (carta del giorno, carta in evidenza), il disco che esce dalla busta,
+   lo scaffale di legno scuro dei pacchetti che scorre dentro di se'.
+   ========================================================================== */
+
+.ht {
+  --ht-gold-ink: #1d1500;          /* testo scuro sopra l'oro: contrasto AA */
+  --ht-card-w: 120px;              /* larghezza della carta in evidenza (telefono: resta sotto mezzo schermo) */
+  --ht-pack-w: 104px;              /* larghezza di una copertina sullo scaffale */
+  display: flex;
+  flex-direction: column;
+  gap: var(--h-gap);
+  min-width: 0;
+}
+
+.ht-head { display: flex; flex-direction: column; gap: 6px; }
+.ht-head .h-kicker { color: var(--h-accent-today); }
+
+/* Vetrina: in colonna sul telefono, affiancate (non uguali) da tablet in su. */
+.ht-window {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--h-gap);
+  /* Ogni busta ha la sua altezza naturale: allungare la carta del giorno lasciava vuoti morti. */
+  align-items: start;
+}
+.ht-daily { min-width: 0; display: flex; }
+
+/* Cartellino del prezzo: tagliato a punta a sinistra, col buco per lo spago. Lo usano
+   il premio della carta del giorno e i prezzi dei pacchetti. */
+.ht .daily-card-reward,
+.ht-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  margin: 0;
+  padding: 3px 12px 3px 20px;
+  background:
+    radial-gradient(circle at 10px 50%, var(--h-shelf) 0 3px, transparent 3.5px),
+    var(--h-accent-today);
+  color: var(--ht-gold-ink);
+  clip-path: polygon(8px 0, 100% 0, 100% 100%, 8px 100%, 0 50%);
+  border-radius: 0 3px 3px 0;
+  font-family: var(--font-display);
+  font-stretch: 68%;
+  font-weight: 850;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- Carta del giorno: DailyCard vestita da qui ---------- */
+
+.ht .daily-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  margin: 0;
+  background: var(--h-sleeve);
+  backdrop-filter: none;
+  border: 1px solid var(--h-line);
+  border-radius: var(--h-radius-sleeve);
+  box-shadow: var(--h-shadow-sleeve);
+  padding: var(--h-pad);
+}
+/* Niente alone che insegue il puntatore: la busta e' carta opaca. */
+.ht .daily-card::after { display: none; }
+.ht .daily-card.fx-glow { border-color: var(--h-line-strong); box-shadow: var(--h-shadow-sleeve); }
+
+.ht .daily-card .panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--h-accent-today);
+}
+.ht .daily-card .panel-title i { font-size: 1rem; }
+
+.ht .daily-card-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+}
+
+/* La carta sta su un ripiano di vetro: una riga chiara sotto e l'ombra appoggiata. */
+.ht .daily-card-img {
+  position: relative;
+  flex: none;
+  width: 100%;
+  max-width: 230px;
+  justify-self: center;
+  padding: 0 0 12px;
+  border-radius: 8px;
+}
+.ht .daily-card-img::after {
+  content: '';
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: 0;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--h-line-strong);
+  box-shadow: 0 6px 14px -4px rgba(0, 0, 0, 0.9);
+}
+.ht .daily-card-img img,
+.ht .daily-card-skeleton {
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 0 0 2px var(--rarity-color, var(--h-line-strong)), var(--h-shadow-lift);
+  transition: transform var(--h-fast) var(--h-ease);
+}
+.ht .daily-card-img:hover img { transform: translateY(-4px); }
+
+.ht .daily-card-info { gap: 8px; }
+.ht .daily-card-info strong {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 82%;
+  font-size: clamp(1.15rem, 2.2vw, 1.5rem);
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+.ht .daily-card-rarity {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.ht .daily-card-info p { color: var(--h-ink-soft); opacity: 1; font-size: 0.9rem; line-height: 1.4; }
+
+.ht .daily-card-info .daily-card-reward {
+  margin: 4px 0;
+  color: var(--ht-gold-ink);
+  font-size: 1.35rem;
+  transform: rotate(-2deg);
+  transform-origin: left center;
+}
+/* "Premio" scritto sul cartellino prima della cifra (lo pseudo-elemento va in testa con order). */
+.ht .daily-card-reward::after {
+  content: 'Premio';
+  order: -1;
+  padding-right: 8px;
+  margin-right: 2px;
+  border-right: 1px dashed rgba(29, 21, 0, 0.45);
+  font-size: 0.68rem;
+  font-weight: 800;
+  font-stretch: 100%;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ht .daily-card-info .btn {
+  align-self: flex-start;
+  box-sizing: border-box;
+  height: auto;
+  min-height: var(--h-tap);
+  padding: 13px 16px;
+  border-radius: var(--h-radius-cell);
+  font-size: 0.88rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  text-align: left;
+}
+.ht .daily-card .btn-primary {
+  background: var(--h-accent-today);
+  color: var(--ht-gold-ink);
+  box-shadow: none;
+}
+.ht .daily-card .btn-primary:hover { box-shadow: 0 10px 22px -12px rgba(255, 215, 0, 0.7); }
+.ht .daily-card .btn-secondary {
+  border: 1px solid rgba(255, 215, 0, 0.6);
+  color: var(--h-accent-today);
+}
+.ht .daily-card .btn-secondary:hover { background: rgba(255, 215, 0, 0.08); }
+.ht .daily-card-done { display: inline-flex; align-items: center; gap: 6px; min-height: var(--h-tap); }
+
+/* ---------- Carta in evidenza: il disco nella sua busta ---------- */
+
+.ht-feature {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  color: inherit;
+  text-align: center;
+  text-decoration: none;
+}
+.ht-feature > .h-kicker { align-self: flex-start; }
+
+/* Il palco misura la carta piu' lo spazio per il vinile che esce a destra. */
+.ht-stage {
+  position: relative;
+  width: calc(var(--ht-card-w) * 1.78);
+  max-width: 100%;
+  height: calc(var(--ht-card-w) * 1.43 + 16px);
+  margin: 6px 0 4px;
+}
+
+.ht-vinyl {
+  --ht-out: calc(var(--ht-card-w) * 0.5);
+  position: absolute;
+  top: 50%;
+  left: calc(var(--ht-card-w) * -0.12);
+  width: calc(var(--ht-card-w) * 1.24);
+  aspect-ratio: 1;
+  margin-top: calc(var(--ht-card-w) * -0.62);
+  border-radius: 50%;
+  /* Etichetta nel colore della rarita', solchi, e un riflesso fermo che fa leggere il giro. */
+  background:
+    radial-gradient(circle, #050816 0 2.5%, var(--rarity-color, var(--h-accent-today)) 3% 17%, #0d0d14 17.5% 19%, transparent 19.5%),
+    conic-gradient(from 30deg, transparent 0 12%, rgba(255, 255, 255, 0.09) 16%, transparent 22% 62%, rgba(255, 255, 255, 0.07) 66%, transparent 72%),
+    repeating-radial-gradient(circle, #0a0a10 0 1.5px, #17171f 1.5px 3px);
+  box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.9), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  transform: translateX(var(--ht-out)) rotate(40deg);
+  transition: transform var(--h-slow) var(--h-ease);
+  animation: ht-vinyl-out 900ms var(--h-ease) 250ms both;
+}
+@keyframes ht-vinyl-out {
+  from { transform: translateX(0) rotate(0deg); }
+  to { transform: translateX(var(--ht-out)) rotate(40deg); }
+}
+a.ht-feature:hover .ht-vinyl,
+a.ht-feature:focus-visible .ht-vinyl {
+  transform: translateX(calc(var(--ht-out) * 1.25)) rotate(110deg);
+}
+
+/* Il bordo neon (l'insegna): l'unico punto della sezione dove si accende. */
+.ht-card {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  z-index: 1;
+  display: block;
+  padding: 3px;
+  border-radius: 13px;
+  background: var(--h-neon);
+  box-shadow: 0 0 26px -6px rgba(236, 72, 153, 0.6);
+}
+.ht-card .card {
+  width: var(--ht-card-w);
+  height: calc(var(--ht-card-w) * 1.43);
+  animation: none;
+  box-shadow: none;
+}
+.ht-card .card:hover { transform: none; }
+.ht-card .card-tile-slab { width: var(--ht-card-w); }
+
+.ht-feature-name {
+  margin: 0;
+  max-width: 100%;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
+  line-height: 1.1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ht-feature-note { margin: 0; color: var(--h-ink-soft); font-size: 0.85rem; line-height: 1.4; }
+.ht-feature-rarity {
+  color: var(--rarity-color);
+  font-weight: 700;
+  font-family: var(--font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+/* Vetrina vuota: la busta c'e' ma e' vuota, il disco aspetta fermo. */
+.ht-feature-empty .ht-vinyl { animation: none; transform: translateX(var(--ht-out)); opacity: 0.7; }
+.ht-sleeve-empty {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: var(--ht-card-w);
+  height: calc(var(--ht-card-w) * 1.43);
+  border: 2px dashed var(--h-line-strong);
+  border-radius: 10px;
+  background: var(--h-sleeve-raised);
+  color: var(--h-ink-faint);
+  font-size: 2.2rem;
+}
+.ht-feature-empty .ht-feature-note { max-width: 32ch; }
+.ht-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--h-tap);
+  margin-top: 4px;
+  padding: 10px 18px;
+  border: 1px solid rgba(255, 215, 0, 0.6);
+  border-radius: var(--h-radius-cell);
+  background: none;
+  color: var(--h-accent-today);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.ht-cta:hover { background: rgba(255, 215, 0, 0.08); }
+
+/* ---------- Lo scaffale dei pacchetti ---------- */
+
+.ht-rack {
+  position: relative;
+  min-width: 0;
+  padding-top: var(--h-pad);
+  background: var(--h-shelf);
+  border: 1px solid var(--h-line);
+  border-radius: var(--h-radius-sleeve);
+  overflow: hidden;
+}
+/* Il ripiano su cui poggiano le copertine. */
+.ht-rack::after {
+  content: '';
+  display: block;
+  height: 12px;
+  background: linear-gradient(180deg, #1b2350 0%, #0e1433 60%, #070b1c 100%);
+  border-top: 1px solid var(--h-line-strong);
+  box-shadow: 0 -10px 18px -8px rgba(0, 0, 0, 0.8);
+}
+
+.ht-rack-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 16px;
+  padding: 0 var(--h-pad);
+}
+.ht-rack-title {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-stretch: 72%;
+  font-size: 1.3rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.ht-wallet {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 2px;
+  color: var(--h-accent-today);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.ht-rack-tools { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+
+/* Le frecce servono solo a chi ha il mouse: sul touch lo scaffale si trascina col dito. */
+.ht-arrow {
+  display: none;
+  place-items: center;
+  width: var(--h-tap);
+  height: var(--h-tap);
+  border: 1px solid var(--h-line-strong);
+  border-radius: var(--h-radius-label);
+  background: var(--h-sleeve);
+  color: var(--h-ink);
+  cursor: pointer;
+}
+.ht-arrow:hover { border-color: var(--h-accent-today); color: var(--h-accent-today); }
+@media (hover: hover) and (pointer: fine) {
+  .ht-arrow { display: grid; }
+}
+
+.ht-rack-list {
+  display: flex;
+  gap: 14px;
+  margin: 0;
+  padding: 18px var(--h-pad) 0;
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--h-pad);
+  scrollbar-width: none;
+  /* Sfumatura al bordo destro: dice che lo scaffale continua. */
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent);
+}
+.ht-rack-list::-webkit-scrollbar { display: none; }
+.ht-rack-list > li { flex: 0 0 auto; scroll-snap-align: start; display: flex; }
+.ht-rack-list > li:last-child { padding-right: 40px; }
+/* Il pacchetto gratis sta in testa, separato dal resto della merce. */
+.ht-rack-list > li:first-child { padding-right: 14px; border-right: 1px dashed var(--h-line-strong); }
+
+.ht-pack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: var(--ht-pack-w);
+  padding: 0 0 12px;
+  border: 0;
+  background: none;
+  color: var(--h-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ht-pack-cover {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 3px;
+  box-shadow: var(--h-shadow-lift), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 2.4rem;
+  transition: transform var(--h-fast) var(--h-ease);
+}
+.ht-pack-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Si sfila dallo scaffale quando lo si punta. */
+.ht-pack:hover .ht-pack-cover,
+.ht-pack:focus-visible .ht-pack-cover { transform: translateY(-6px); }
+
+.ht-pack-name {
+  min-height: 2.5em;
+  color: var(--h-ink-soft);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ht-tag { font-size: 1.05rem; }
+.ht-tag i { font-size: 0.85rem; }
+
+/* Troppo caro per ora: resta in vista ma spento, col lucchetto e quanto manca. */
+.ht-pack.is-locked .ht-pack-cover { filter: grayscale(0.85) brightness(0.5); }
+.ht-pack.is-locked .ht-pack-name { color: var(--h-ink-faint); }
+.ht-tag-locked {
+  background:
+    radial-gradient(circle at 10px 50%, var(--h-shelf) 0 3px, transparent 3.5px),
+    var(--h-sleeve-raised);
+  color: var(--h-ink-soft);
+}
+.ht-pack-miss { margin-top: -2px; color: var(--h-ink-faint); font-size: 0.72rem; font-weight: 700; }
+
+/* Pacchetto gratis: pronto -> acceso d'oro; altrimenti il tempo che manca.
+   Un po' piu' largo degli altri, cosi' il timer sta sul cartellino anche col telefono girato. */
+.ht-pack-free { width: calc(var(--ht-pack-w) + 16px); }
+.ht-pack-free.is-ready .ht-pack-cover {
+  box-shadow: 0 0 0 2px var(--h-accent-today), 0 12px 26px -10px rgba(255, 215, 0, 0.55);
+}
+.ht-pack-free.is-ready .ht-pack-name { color: var(--h-ink); }
+.ht-pack-free:not(.is-ready) .ht-pack-cover { filter: saturate(0.5) brightness(0.7); }
+.ht-tag-wait {
+  background:
+    radial-gradient(circle at 10px 50%, var(--h-shelf) 0 3px, transparent 3.5px),
+    var(--h-ink-soft);
+}
+
+/* ---------- Formati ---------- */
+
+/* Da tablet in su: affiancate con pesi diversi, la carta del giorno e' la vetrina larga. */
+@media (min-width: 720px) {
+  .ht { --ht-card-w: 148px; }
+  .ht-window { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+  .ht { --ht-pack-w: 124px; }
+}
+@media (min-width: 720px) and (max-width: 899px) and (min-height: 521px) {
+  .ht .daily-card-body { grid-template-columns: minmax(0, 1fr); justify-items: start; }
+  .ht .daily-card-img { max-width: 170px; justify-self: start; }
+}
+@media (min-width: 1100px) {
+  .ht { --ht-card-w: 180px; --ht-pack-w: 136px; }
+  .ht-window { grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr); }
+  .ht .daily-card-body { grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: 28px; }
+}
+
+/* Telefono in orizzontale: carta del giorno e in evidenza affiancate, tutto piu' basso. */
+@media (orientation: landscape) and (max-height: 520px) {
+  /* Viene dopo le regole per larghezza: un telefono girato e' largo come un tablet ma basso. */
+  .ht { --ht-card-w: 112px; --ht-pack-w: 92px; }
+  .ht-window { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); }
+  .ht .daily-card-body { grid-template-columns: minmax(0, 120px) minmax(0, 1fr); }
+  .ht .daily-card-info .daily-card-reward { font-size: 1.15rem; }
+}
+
+/* Movimento ridotto: il disco e' gia' fuori dalla busta e non si muove piu'. */
+@media (prefers-reduced-motion: reduce) {
+  .ht-vinyl { animation: none; transition: none; }
+  a.ht-feature:hover .ht-vinyl,
+  a.ht-feature:focus-visible .ht-vinyl { transform: translateX(var(--ht-out)) rotate(40deg); }
+  .ht-pack-cover, .ht .daily-card-img img { transition: none; }
+  .ht-pack:hover .ht-pack-cover, .ht .daily-card-img:hover img { transform: none; }
+}

@@ -1,0 +1,197 @@
+/* ==========================================================================
+   Pannello admin in stile Phantom, a volume ridotto: e' uno strumento. Prefisso adm-.
+   Schede e titoli parlano P5, le tabelle e i form restano dritti, densi e chiari; niente
+   rotazioni o animazioni sulle righe. Vale anche per le sezioni dell'hotel e la cassa del casino'
+   mostrate qui (fuori dall'hotel lo skin e' attivo, dentro no: la' restano com'erano).
+   ========================================================================== */
+
+/* ---------- Schede delle sezioni: piu' piccole, nessuna rotazione ---------- */
+:root[data-skin="phantom"] .admin-page .admin-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 6px;
+}
+:root[data-skin="phantom"] .admin-page .adm-tab {
+  justify-content: flex-start;
+  min-height: 46px;
+  padding: 0 16px;
+  font-size: 0.92rem;
+}
+:root[data-skin="phantom"] .admin-page .adm-tab::before { clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%); }
+:root[data-skin="phantom"] .admin-page .adm-tab i { color: var(--p5-red); }
+:root[data-skin="phantom"] .admin-page .adm-tab.is-active { transform: none; }
+:root[data-skin="phantom"] .admin-page .adm-tab.is-active i { color: #fff; }
+:root[data-skin="phantom"] .admin-page .adm-tab:hover { transform: none; }
+@media (min-width: 992px) {
+  :root[data-skin="phantom"] .admin-page .admin-tabs { display: flex; flex-wrap: wrap; }
+}
+
+:root[data-skin="phantom"] .admin-page .adm-body { padding: 16px; min-width: 0; }
+:root[data-skin="phantom"] .admin-page .adm-body > .admin-list,
+:root[data-skin="phantom"] .admin-page .adm-body > .admin-hotel { gap: 14px; }
+/* Pannelli dentro il pannello: piu' piatti, cosi' non si accumulano cornici su cornici. */
+:root[data-skin="phantom"] .admin-page .adm-body .glass-panel::before {
+  background:
+    linear-gradient(#0a0618, #0a0618) padding-box,
+    linear-gradient(rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.18)) border-box;
+}
+:root[data-skin="phantom"] .admin-page .adm-body .glass-panel { padding: 14px; }
+:root[data-skin="phantom"] .admin-page .panel-title { transform: none; }
+
+/* ---------- Tabelle ---------- */
+:root[data-skin="phantom"] .admin-page .admin-table { font-size: 0.86rem; }
+:root[data-skin="phantom"] .admin-page .admin-table th {
+  padding: 10px var(--space-sm);
+  background: #000;
+  color: var(--p5-ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  border-bottom: 2px solid var(--p5-red);
+}
+:root[data-skin="phantom"] .admin-page .admin-table td { border-bottom-color: rgba(255, 255, 255, 0.1); }
+:root[data-skin="phantom"] .admin-page .admin-table td[data-label]::before {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--p5-ink-soft);
+}
+/* Righe come schede su telefono e tablet: angoli netti e filetto magenta a sinistra. */
+:root[data-skin="phantom"] .admin-page .admin-table tr {
+  border-radius: 0;
+  border-color: rgba(255, 255, 255, 0.14);
+  border-left: 3px solid var(--p5-red);
+  background: rgba(255, 255, 255, 0.025);
+}
+:root[data-skin="phantom"] .admin-page .admin-table td small { color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .admin-page .admin-table td .btn + .btn { margin-left: 6px; }
+@media (min-width: 992px) {
+  :root[data-skin="phantom"] .admin-page .admin-table tr { border-left: 0; background: none; }
+  :root[data-skin="phantom"] .admin-page .admin-table tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.03); }
+  :root[data-skin="phantom"] .admin-page .admin-table tbody tr:hover { background: rgba(236, 72, 153, 0.08); }
+}
+
+/* ---------- Gold di un utente ---------- */
+:root[data-skin="phantom"] .admin-page .admin-gold-editor { gap: 6px; }
+:root[data-skin="phantom"] .admin-page .admin-gold-editor strong { font-family: var(--font-display); font-weight: 900; font-size: 1rem; color: var(--p5-gold); }
+:root[data-skin="phantom"] .admin-page .admin-gold-input { width: 76px; min-height: 44px; }
+:root[data-skin="phantom"] .admin-page .admin-gold-editor .btn-small { min-width: 44px; padding: 0 10px; justify-content: center; }
+:root[data-skin="phantom"] .admin-page .admin-gold-error { color: #ff8fa3; }
+
+/* Badge di ruolo e stato: tasselli pieni, leggibili anche piccoli. */
+:root[data-skin="phantom"] .admin-page .badge-role-admin {
+  display: inline-block;
+  padding: 3px 10px 2px;
+  border-radius: 0;
+  background: var(--p5-gold);
+  color: #1a1000;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+}
+:root[data-skin="phantom"] .admin-page .badge-banned {
+  display: inline-block;
+  padding: 3px 10px 2px;
+  border-radius: 0;
+  background: #000;
+  color: #fff;
+  outline: 2px solid var(--p5-red);
+  outline-offset: -2px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---------- Form ---------- */
+:root[data-skin="phantom"] .admin-page .admin-form-row { gap: 10px; }
+:root[data-skin="phantom"] .admin-page .admin-form-row > .ai-input { flex: 1 1 220px; min-width: 0; }
+:root[data-skin="phantom"] .admin-page .admin-give-card > span { flex: 1 1 100%; }
+:root[data-skin="phantom"] .admin-page .admin-list-item { flex-wrap: wrap; gap: 10px 14px; }
+:root[data-skin="phantom"] .admin-page .admin-list-item .listing-item-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+:root[data-skin="phantom"] .admin-page .admin-list-item .listing-item-info { flex: 1 1 200px; }
+
+/* Sezioni dell'hotel: campi con etichetta sopra, alti da dito. */
+:root[data-skin="phantom"] .admin-page .admin-hotel-form { gap: 10px 12px; }
+:root[data-skin="phantom"] .admin-page .admin-hotel-form label {
+  flex: 1 1 130px;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--p5-ink);
+}
+:root[data-skin="phantom"] .admin-page .admin-hotel-form label.wide { flex: 2 1 240px; }
+:root[data-skin="phantom"] .admin-page .admin-hotel-form label.check {
+  flex: 1 1 100%;
+  min-height: 44px;
+  font-family: inherit;
+  font-weight: 600;
+  font-stretch: 100%;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 0.88rem;
+}
+:root[data-skin="phantom"] .admin-page .admin-hotel-form label.check input { width: 20px; height: 20px; accent-color: var(--p5-red); }
+:root[data-skin="phantom"] .admin-page .admin-hotel-form :is(input:not([type="checkbox"]), select) {
+  min-height: 44px;
+  padding: 6px 10px;
+  border-radius: 0;
+  background: #0a0619;
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  font-family: system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 0.92rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+:root[data-skin="phantom"] .admin-page .admin-hotel-form .btn { flex: 0 0 auto; }
+:root[data-skin="phantom"] .admin-page .admin-hotel-section [role="status"] {
+  margin: 0;
+  padding: 8px 12px;
+  background: #000;
+  border-left: 4px solid var(--neon-cyan);
+  font-size: 0.88rem;
+}
+:root[data-skin="phantom"] .admin-page .admin-chat-log { max-height: 420px; }
+
+/* ---------- Cassa del casino' ---------- */
+:root[data-skin="phantom"] .admin-page .casino-bank-row {
+  border-radius: 0;
+  background: #000;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  border-left: 4px solid var(--p5-gold);
+  padding: 12px 14px;
+}
+:root[data-skin="phantom"] .admin-page .casino-bank-head {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+:root[data-skin="phantom"] .admin-page .casino-bank-head b { font-family: var(--font-display); font-weight: 900; font-size: 1.6rem; color: var(--p5-gold); }
+:root[data-skin="phantom"] .admin-page .casino-bank-head b.neg { color: #ff8fa3; }
+:root[data-skin="phantom"] .admin-page .casino-bank-row small,
+:root[data-skin="phantom"] .admin-page .casino-bank-note,
+:root[data-skin="phantom"] .admin-page .casino-bank-history { color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .admin-page .casino-bank-actions input { height: 44px; border-radius: 0; }
+:root[data-skin="phantom"] .admin-page .casino-bank-where { color: var(--p5-ink); }
+:root[data-skin="phantom"] .admin-page .casino-bank-where i { color: var(--p5-gold); }

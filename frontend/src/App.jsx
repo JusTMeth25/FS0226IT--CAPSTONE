@@ -1,5 +1,7 @@
-import { Suspense, lazy } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Suspense, lazy, useEffect } from 'react';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { LazyMotion, MotionConfig, domAnimation } from 'motion/react';
+import PageWipe from './components/phantom/PageWipe.jsx';
 import AppLayout from './components/layout/AppLayout.jsx';
 import ProtectedRoute from './components/common/ProtectedRoute.jsx';
 import AdminRoute from './components/common/AdminRoute.jsx';
@@ -35,9 +37,29 @@ const BinderPage = lazy(() => import('./pages/BinderPage.jsx'));
 // L'hotel ha un motore grafico tutto suo: si scarica solo quando ci si entra.
 const HotelPage = lazy(() => import('./pages/HotelPage.jsx'));
 
+/**
+ * Stile grafico "Phantom" (stile Persona 5, vedi styles/phantom) su tutte le pagine tranne
+ * l'hotel, che ha la sua grafica a pixel e usa anche le classi comuni (.btn...).
+ */
+function usePhantomSkin(pathname) {
+  const inHotel = pathname.startsWith('/hotel');
+  useEffect(() => {
+    // La cornice (sidebar, barra in alto, menu in basso) e' Phantom anche nell'hotel.
+    document.documentElement.dataset.shell = 'phantom';
+    if (inHotel) delete document.documentElement.dataset.skin;
+    else document.documentElement.dataset.skin = 'phantom';
+  }, [inHotel]);
+  return !inHotel;
+}
+
 export default function App() {
+  const location = useLocation();
+  const phantom = usePhantomSkin(location.pathname);
   return (
-    <>
+    // Motion leggero (solo le animazioni del DOM) e spento con "riduci animazioni".
+    <LazyMotion features={domAnimation} strict>
+    <MotionConfig reducedMotion="user">
+      {phantom && <PageWipe path={location.pathname} />}
       {/* Sfondo animato a livello di applicazione e non dentro la shell: cosi' copre anche
           la pagina di accesso, che ora sta fuori dal layout per occupare tutto lo schermo. */}
       <Aurora />
@@ -88,6 +110,7 @@ export default function App() {
           </Route>
         </Route>
       </Routes>
-    </>
+    </MotionConfig>
+    </LazyMotion>
   );
 }

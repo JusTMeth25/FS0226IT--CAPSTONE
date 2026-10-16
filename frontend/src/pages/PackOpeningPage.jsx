@@ -12,6 +12,8 @@ import StarBorder from '../components/common/StarBorder.jsx';
 import CardHoloFrame from '../components/card/CardHoloFrame.jsx';
 import PackOpeningFlow from '../components/pack/PackOpeningFlow.jsx';
 import { PACK_GRADIENT, PACK_ICON, PACK_IMAGE, PACK_TILT_RARITY, PACK_NAMED_ART } from '../components/pack/packArt.js';
+import PhantomTitle from '../components/phantom/PhantomTitle.jsx';
+import '../styles/pages/game-packs.css';
 
 /** Riflesso olografico + sparkle sopra la card pacchetto, stesso pattern usato per le carte. */
 // I pacchetti misti pescano da tutti i giochi; gli altri da uno solo (Ultimate Team compreso).
@@ -50,6 +52,8 @@ function PackSelectCard({ pack, gold, isFreeAvailable, cooldownRemaining, gifted
 
   return (
     <CardHoloFrame rarity={PACK_TILT_RARITY[pack.id] || 'rare'} maxTilt={6} className="pack-card">
+      {/* La cornice porta l'ombra netta: sull'immagine, tagliata con clip-path, non si vedrebbe. */}
+      <div className="pack-card-art-frame">
       <div className="pack-card-art-wrap" style={{ background: packImage ? undefined : PACK_GRADIENT[pack.id] }}>
         {packImage ? (
           <>
@@ -69,6 +73,7 @@ function PackSelectCard({ pack, gold, isFreeAvailable, cooldownRemaining, gifted
         )}
         {giftedCount > 0 && <span className="pack-card-price-badge pack-card-price-free pack-card-gift-badge"><i className="ph-fill ph-gift" /> x{giftedCount}</span>}
         <PackHoloLayers />
+      </div>
       </div>
       <div className="pack-card-body pack-card-body-slim">
         <div className="pack-card-actions">
@@ -185,7 +190,7 @@ export default function PackOpeningPage() {
   if (!selectedPack) {
     return (
       <section className="packs-page">
-        <h2 className="section-title text-gradient"><i className="ph-fill ph-gift" /> Apri un Pacchetto</h2>
+        <PhantomTitle text="Apri un pacchetto" className="game-page-title" />
         <p className="text-center packs-subtitle">Scegli il pacchetto che vuoi aprire</p>
 
         <div className="gold-display glass-panel">
@@ -235,7 +240,7 @@ export default function PackOpeningPage() {
 
   return (
     <section className="pack-opening-page">
-      <h2 className="section-title text-gradient">Apertura Pacchetto</h2>
+      <PhantomTitle text="Apertura" className="game-page-title" />
       <PackOpeningFlow
         key={openingId}
         packId={selectedPack.id}

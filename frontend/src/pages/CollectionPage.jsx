@@ -9,6 +9,8 @@ import CardTile from '../components/card/CardTile.jsx';
 import { useProgressiveList } from '../hooks/useProgressiveList.js';
 import EmptyState from '../components/common/EmptyState.jsx';
 import ScrollToTopButton from '../components/common/ScrollToTopButton.jsx';
+import PhantomTitle from '../components/phantom/PhantomTitle.jsx';
+import '../styles/pages/collection-phantom.css';
 
 export default function CollectionPage() {
   const { collection, catalogSize, stats } = useGame();
@@ -70,7 +72,9 @@ export default function CollectionPage() {
 
   return (
     <section className="collection-page">
-      <h2 className="section-title text-gradient"><i className="ph-fill ph-cards" /> La Mia Collezione</h2>
+      <header className="cx-head">
+        <PhantomTitle text="La mia collezione" className="cx-title" />
+      </header>
 
       <div className="collection-stats glass-panel">
         <div className="collection-stat">
@@ -99,17 +103,20 @@ export default function CollectionPage() {
       <div className="rarity-counts glass-panel">
         <div className="rarity-counts-row">
           {Object.entries(RARITIES).map(([key, r]) => (
-            <div className="rarity-count-item" key={key} onClick={() => setParam('rarity', key)}>
+            // Bottoni veri (non div cliccabili): si raggiungono con la tastiera e col controller.
+            <button type="button" key={key} className={`rarity-count-item${rarityFilter === key ? ' active' : ''}`}
+              style={{ '--rarity-color': r.color }} aria-pressed={rarityFilter === key} onClick={() => setParam('rarity', key)}>
               <span className="rarity-count-icon"><img src={getRarityIcon(key)} alt="" /></span>
               <span className="rarity-count-label">{r.name}</span>
-              <span className="rarity-count-value" style={{ color: r.color }}>{stats[`${key}Count`] || 0}</span>
-            </div>
+              <span className="rarity-count-value">{stats[`${key}Count`] || 0}</span>
+            </button>
           ))}
-          <div className="rarity-count-item" onClick={() => setParam('rarity', '')}>
+          <button type="button" className={`rarity-count-item${rarityFilter ? '' : ' active'}`} aria-pressed={!rarityFilter}
+            onClick={() => setParam('rarity', '')}>
             <span className="rarity-count-icon"><img src="/total.svg" alt="" /></span>
             <span className="rarity-count-label">Totale</span>
             <span className="rarity-count-value">{collection.length}</span>
-          </div>
+          </button>
         </div>
       </div>
 

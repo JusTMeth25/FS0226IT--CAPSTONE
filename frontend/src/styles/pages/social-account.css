@@ -1,0 +1,197 @@
+/* ==========================================================================
+   Profilo in stile Phantom: la scheda del personaggio. Prefisso sr-.
+   In alto il cartellino (avatar nel ritaglio, livello sulla stella, nome enorme), poi la scheda
+   dei numeri come le statistiche di un gioco, l'avatar da scegliere e la sicurezza.
+   ========================================================================== */
+
+/* ---------- Cartellino ---------- */
+:root[data-skin="phantom"] .profile-page .sr-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px 18px;
+  padding: 20px 18px;
+}
+:root[data-skin="phantom"] .profile-page .sr-card::before {
+  background:
+    linear-gradient(105deg, transparent 0 62%, rgba(236, 72, 153, 0.9) 62% 64%, transparent 64%),
+    var(--p5-halftone),
+    linear-gradient(var(--p5-panel-raised), var(--p5-panel-raised)) padding-box,
+    linear-gradient(135deg, var(--p5-red), rgba(139, 92, 246, 0.6) 45%, rgba(255, 255, 255, 0.2)) border-box;
+}
+:root[data-skin="phantom"] .profile-page .sr-avatar { position: relative; }
+:root[data-skin="phantom"] .profile-page .sr-avatar .auth-profile-avatar {
+  width: 92px;
+  height: 92px;
+  border-radius: 0;
+  border: 0;
+  background: #000;
+  clip-path: polygon(8% 0, 100% 4%, 94% 100%, 0 94%);
+  box-shadow: inset 0 0 0 3px #fff;
+  font-size: 2.6rem;
+}
+:root[data-skin="phantom"] .profile-page .sr-avatar .auth-profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+:root[data-skin="phantom"] .profile-page .sr-lv {
+  position: absolute;
+  right: -14px;
+  bottom: -10px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  width: 50px;
+  height: 50px;
+  padding-top: 8%;
+  background: var(--p5-red);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 70%;
+  line-height: 0.8;
+  font-size: 1.25rem;
+  clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+:root[data-skin="phantom"] .profile-page .sr-lv small { font-size: 0.5em; letter-spacing: 0.05em; text-transform: uppercase; }
+:root[data-skin="phantom"] .profile-page .sr-id { min-width: 0; }
+:root[data-skin="phantom"] .profile-page .auth-profile-username {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 72%;
+  font-size: clamp(1.8rem, 7vw, 3rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  transform: skewX(-6deg);
+  transform-origin: left;
+  text-shadow: 3px 3px 0 var(--p5-red);
+}
+:root[data-skin="phantom"] .profile-page .auth-profile-email { margin-top: 6px; font-size: 0.88rem; color: var(--p5-ink-soft); overflow-wrap: anywhere; }
+:root[data-skin="phantom"] .profile-page .sr-logout { grid-column: 1 / -1; justify-self: start; }
+@media (min-width: 640px) {
+  :root[data-skin="phantom"] .profile-page .sr-card { grid-template-columns: auto minmax(0, 1fr) auto; padding: 22px 26px; }
+  :root[data-skin="phantom"] .profile-page .sr-logout { grid-column: auto; justify-self: end; }
+  :root[data-skin="phantom"] .profile-page .sr-avatar .auth-profile-avatar { width: 112px; height: 112px; }
+}
+
+/* ---------- Scheda dei numeri ---------- */
+:root[data-skin="phantom"] .profile-page .sr-stats-panel { padding: 18px 16px; }
+:root[data-skin="phantom"] .profile-page .sr-stats {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px 22px;
+  margin: 0;
+}
+:root[data-skin="phantom"] .profile-page .sr-stat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 4px 12px;
+  padding: 8px 4px 8px 12px;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.14);
+  border-left: 4px solid transparent;
+}
+:root[data-skin="phantom"] .profile-page .sr-stat:hover { border-left-color: var(--p5-red); background: rgba(255, 255, 255, 0.04); }
+:root[data-skin="phantom"] .profile-page .sr-stat dt {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.86rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--p5-ink-soft);
+}
+:root[data-skin="phantom"] .profile-page .sr-stat-pct { color: var(--p5-red); }
+:root[data-skin="phantom"] .profile-page .sr-stat dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: 1.7rem;
+  line-height: 1;
+  color: var(--p5-ink);
+  font-variant-numeric: tabular-nums;
+}
+:root[data-skin="phantom"] .profile-page .sr-stat dd small { font-size: 0.55em; color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .profile-page .sr-stat.is-gold dd { color: var(--p5-gold); }
+:root[data-skin="phantom"] .profile-page .sr-stat-bar {
+  grid-column: 1 / -1;
+  display: block;
+  height: 8px;
+  background: #000;
+  outline: 1.5px solid rgba(255, 255, 255, 0.55);
+  transform: skewX(-18deg);
+}
+:root[data-skin="phantom"] .profile-page .sr-stat-bar > span { display: block; height: 100%; background: repeating-linear-gradient(-45deg, var(--p5-red) 0 6px, var(--p5-red-deep) 6px 10px); }
+@media (min-width: 640px) {
+  :root[data-skin="phantom"] .profile-page .sr-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1200px) {
+  :root[data-skin="phantom"] .profile-page .sr-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ---------- Scelta dell'avatar: ritagli quadrati, la scelta su tassello magenta ---------- */
+:root[data-skin="phantom"] .profile-page .avatar-picker-grid { gap: 12px; }
+:root[data-skin="phantom"] .profile-page .avatar-picker-item {
+  min-width: 44px;
+  border-radius: 0;
+  border: 0;
+  background: #000;
+  overflow: visible;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+  transition: transform var(--p5-fast) var(--p5-snap);
+}
+:root[data-skin="phantom"] .profile-page .avatar-picker-item img { clip-path: var(--p5-shape-sm); padding: 3px; }
+:root[data-skin="phantom"] .profile-page .avatar-picker-item:hover:not(:disabled) { transform: translate(-2px, -2px) rotate(-2deg); box-shadow: inset 0 0 0 2px #fff, 4px 4px 0 #000; }
+:root[data-skin="phantom"] .profile-page .avatar-picker-item.selected {
+  background: var(--p5-red);
+  box-shadow: inset 0 0 0 3px #fff, 5px 5px 0 #000;
+  transform: rotate(-3deg);
+}
+:root[data-skin="phantom"] .profile-page .avatar-picker-check {
+  right: -8px;
+  bottom: -8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 0;
+  background: #fff;
+  color: var(--p5-red-deep);
+  font-size: 1rem;
+  clip-path: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+  box-shadow: none;
+}
+:root[data-skin="phantom"] .profile-page .avatar-picker-spinner { border-radius: 0; }
+
+/* ---------- Sicurezza (verifica in due passaggi) ---------- */
+:root[data-skin="phantom"] .profile-page .twofa-panel { padding: 18px 16px; gap: 12px; }
+:root[data-skin="phantom"] .profile-page .twofa-state { font-weight: 600; }
+/* Attiva/spenta come un timbro: si legge anche senza il colore. */
+:root[data-skin="phantom"] .profile-page .twofa-state b {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 2px 10px 1px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transform: rotate(-3deg);
+}
+:root[data-skin="phantom"] .profile-page .twofa-state b.on { background: var(--p5-ink); color: #0b5f33; box-shadow: 3px 3px 0 #000; }
+:root[data-skin="phantom"] .profile-page .twofa-state b.off { background: #000; color: #fff; outline: 2px solid var(--p5-red); outline-offset: -4px; }
+:root[data-skin="phantom"] .profile-page .twofa-hint { color: var(--p5-ink-soft); line-height: 1.5; max-width: 72ch; }
+:root[data-skin="phantom"] .profile-page .twofa-panel > .btn-primary { align-self: flex-start; }
+:root[data-skin="phantom"] .profile-page .twofa-secret { border-radius: 0; background: #000; outline: 1px solid rgba(255, 255, 255, 0.3); }
+:root[data-skin="phantom"] .profile-page .twofa-qr { border-radius: 0; box-shadow: 5px 5px 0 var(--p5-red); }
+:root[data-skin="phantom"] .profile-page .twofa-danger { color: #ff8fa3; }
+:root[data-skin="phantom"] .profile-page .twofa-backup { border-radius: 0; background: #000; border: 2px dashed rgba(255, 255, 255, 0.4); }
+:root[data-skin="phantom"] .profile-page .twofa-facts b { color: var(--p5-ink); font-family: var(--font-display); font-weight: 900; }
+
+/* ---------- Installa l'app e foto (componenti comuni): solo i ritocchi del contesto ---------- */
+:root[data-skin="phantom"] .profile-page .install-app,
+:root[data-skin="phantom"] .profile-page .photo-gallery { padding: 18px 16px; }
+:root[data-skin="phantom"] .profile-page .install-app p { color: var(--p5-ink-soft); line-height: 1.5; }
+:root[data-skin="phantom"] .profile-page .photo-gallery img { border-radius: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-skin="phantom"] .profile-page .avatar-picker-item { transition: none; }
+  :root[data-skin="phantom"] .profile-page .avatar-picker-item:hover:not(:disabled) { transform: none; }
+}

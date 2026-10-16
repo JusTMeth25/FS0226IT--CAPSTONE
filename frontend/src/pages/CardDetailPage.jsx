@@ -1,4 +1,5 @@
 import { lazy, useMemo } from 'react';
+import { m } from 'motion/react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
 import { useAuth } from '../hooks/useAuth.js';
@@ -19,6 +20,7 @@ import EmptyState from '../components/common/EmptyState.jsx';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import RarityAmbience from '../components/fx/RarityAmbience.jsx';
 import ThreeGate from '../components/three/ThreeGate.jsx';
+import '../styles/pages/collection-phantom.css';
 
 // La carta 3D porta con se' three.js: si scarica solo quando si apre il dettaglio di una carta posseduta.
 const Card3D = lazy(() => import('../components/three/Card3D.jsx'));
@@ -128,9 +130,19 @@ export default function CardDetailPage() {
         <CardHero card={card} quantity={card.quantity} hideArt />
       </ThreeGate>
 
-      <h2 className="card-detail-title">{card.name}</h2>
-      {!ownedEntry && <span className="card-detail-rarity-chip card-detail-missing"><i className="ph ph-lock-simple" /> Non ce l&apos;hai ancora</span>}
-      <span className="card-detail-rarity-chip">{getRarityName(card.rarity)}</span>
+      {/* Il nome su una targa nera inclinata: i nomi delle carte importate possono essere lunghi,
+          quindi niente lettere a ritaglio qui (restano per i titoli brevi delle pagine). */}
+      <h2 className="card-detail-title cx-nameplate"><span>{card.name}</span></h2>
+      <div className="cx-chips">
+        {ownedEntry ? (
+          // Il timbro "ce l'hai" cade sulla scheda come un timbro vero: e' il momento della carta ottenuta.
+          <m.span className="cx-owned-stamp" initial={{ scale: 1.8, rotate: -18, opacity: 0 }} animate={{ scale: 1, rotate: -6, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 560, damping: 22, delay: 0.15 }}>
+            <i className="ph-fill ph-seal-check" aria-hidden="true" /> In collezione
+          </m.span>
+        ) : <span className="card-detail-rarity-chip card-detail-missing"><i className="ph ph-lock-simple" /> Non ce l&apos;hai ancora</span>}
+        <span className="card-detail-rarity-chip">{getRarityName(card.rarity)}</span>
+      </div>
       <GradeBadge grade={card.grade} />
       {card.firstEdition && (
         <span className="first-edition-badge" title="Una delle sole dieci copie numerate di questa carta: esce di rado (1% le comuni, 10% le leggendarie) e vale una volta e mezza">
@@ -139,7 +151,7 @@ export default function CardDetailPage() {
       )}
       {card.foil > 0 && <span className="foil-badge foil-badge-inline">Olografica{card.foil > 1 ? ` ×${card.foil}` : ''}</span>}
 
-      <div className="card-detail-meta" style={{ width: '100%' }}>
+      <div className="card-detail-meta">
         {ownedEntry && (
           <>
             <div className="card-detail-meta-item">
@@ -159,7 +171,7 @@ export default function CardDetailPage() {
         {formatCardPrice(ownedEntry) && (
           <div className="card-detail-meta-item">
             <span className="meta-label">{card.coinPrice ? 'Prezzo Ultimate Team' : 'Valore di mercato'}</span>
-            <span className="meta-value" style={{ color: 'var(--neon-gold)' }}>{formatCardPrice(ownedEntry)}</span>
+            <span className="meta-value cx-meta-price">{formatCardPrice(ownedEntry)}</span>
           </div>
         )}
       </div>
@@ -177,12 +189,12 @@ export default function CardDetailPage() {
           <GradingBox card={card} gold={gold} onGraded={() => { refreshCollection(); refreshUser(); }} />
         </>
       ) : (
-        <div className="glass-panel" style={{ background: 'rgba(0,0,0,0.3)', width: '100%' }}>
-          <p style={{ marginBottom: 'var(--space-sm)' }}><i className="ph-fill ph-lightbulb" /> <strong>La vuoi?</strong> Prova ad aprire</p>
-          <p style={{ color: 'var(--neon-cyan)', fontWeight: 700 }}>{packHint.bestPack.name}</p>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Drop rate: <span style={{ color: getRarityColor(card.rarity) }}>{(packHint.bestRate * 100).toFixed(0)}%</span></p>
-          {packHint.guaranteeText && <p style={{ fontSize: '0.8rem', color: 'var(--neon-gold)' }}>{packHint.guaranteeText}</p>}
-          <button className="btn btn-primary" style={{ marginTop: 'var(--space-md)' }} onClick={() => navigate('/packs')}>
+        <div className="glass-panel cx-hint">
+          <p className="cx-hint-kicker"><i className="ph-fill ph-lightbulb" /> <strong>La vuoi?</strong> Prova ad aprire</p>
+          <p className="cx-hint-pack">{packHint.bestPack.name}</p>
+          <p className="cx-hint-rate">Drop rate: <strong>{(packHint.bestRate * 100).toFixed(0)}%</strong></p>
+          {packHint.guaranteeText && <p className="cx-hint-guarantee">{packHint.guaranteeText}</p>}
+          <button className="btn btn-primary" onClick={() => navigate('/packs')}>
             <i className="ph-fill ph-gift" /> Apri Pacchetti
           </button>
         </div>

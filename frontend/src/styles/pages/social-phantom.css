@@ -1,0 +1,279 @@
+/* ==========================================================================
+   Comunita' e account in stile Phantom: parti comuni alle pagine Mercato, Scambi, Profilo,
+   Novita' e Admin (classe .sp-page sul contenitore). Prefisso sp-.
+   Tutto sotto :root[data-skin="phantom"]: nell'hotel lo skin non c'e' e le stesse classi comuni
+   (auth-message, casino-bank...) restano com'erano.
+   ========================================================================== */
+
+/* ---------- Intestazione della pagina: titolo a ritaglio, barra diagonale, sottotitolo ---------- */
+:root[data-skin="phantom"] .sp-head {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 6px 0 4px;
+}
+/* Sbarra magenta inclinata dietro al titolo: la "firma" delle schermate di menu di P5. Sta nel
+   titolo (che con l'ombra e' gia' un contesto a se'), cosi' resta dietro i tasselli e non tocca il
+   sottotitolo. */
+:root[data-skin="phantom"] .sp-head .p5-ransom { position: relative; }
+:root[data-skin="phantom"] .sp-head .p5-ransom::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: -12px;
+  right: -48px;
+  bottom: 2px;
+  height: 48%;
+  background: var(--p5-red);
+  clip-path: polygon(0 30%, 100% 0, 97% 100%, 2% 82%);
+  transform: rotate(-4deg);
+  pointer-events: none;
+}
+:root[data-skin="phantom"] .sp-head .p5-ransom { filter: drop-shadow(4px 4px 0 #000); }
+:root[data-skin="phantom"] .sp-sub {
+  margin: 0;
+  max-width: 62ch;
+  padding-left: 12px;
+  border-left: 4px solid var(--p5-red);
+  color: var(--p5-ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+/* ---------- Titoli dei pannelli: etichetta bianca tagliata, come le schede dei menu ---------- */
+:root[data-skin="phantom"] .sp-page .panel-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 0 14px;
+  padding: 5px 16px 4px 12px;
+  background: var(--p5-ink);
+  color: var(--p5-black);
+  font-size: 0.98rem;
+  font-weight: 900;
+  font-stretch: 80%;
+  clip-path: polygon(0 0, 100% 0, 95% 100%, 0 100%);
+  transform: rotate(-1.5deg);
+  transform-origin: left center;
+}
+:root[data-skin="phantom"] .sp-page .panel-title i { color: var(--p5-red-deep); }
+
+/* ---------- Stati vuoti (EmptyState): icona su tassello magenta, titolo condensato ---------- */
+:root[data-skin="phantom"] .sp-page .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 34px 20px 30px;
+  color: var(--p5-ink-soft);
+}
+:root[data-skin="phantom"] .sp-page .empty-state::before {
+  background:
+    var(--p5-halftone),
+    linear-gradient(var(--p5-panel), var(--p5-panel)) padding-box,
+    linear-gradient(135deg, rgba(236, 72, 153, 0.7), rgba(139, 92, 246, 0.35) 40%, rgba(255, 255, 255, 0.12)) border-box;
+}
+:root[data-skin="phantom"] .sp-page .empty-state-icon {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  margin: 0 0 10px;
+  opacity: 1;
+  color: var(--p5-ink);
+  font-size: 2.3rem;
+  filter: drop-shadow(5px 5px 0 #000);
+  transform: rotate(-6deg);
+}
+:root[data-skin="phantom"] .sp-page .empty-state-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--p5-red);
+  clip-path: polygon(8% 0, 100% 6%, 92% 100%, 0 92%);
+}
+:root[data-skin="phantom"] .sp-page .empty-state-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: 1.7rem;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--p5-ink);
+  text-shadow: 3px 3px 0 var(--p5-red);
+}
+:root[data-skin="phantom"] .sp-page .empty-state p { max-width: 46ch; margin: 4px auto 0; color: var(--p5-ink-soft); }
+
+/* ---------- Messaggi di esito: barre dritte, contrasto pieno ---------- */
+:root[data-skin="phantom"] .sp-page .auth-message,
+:root[data-skin="phantom"] .sa .auth-message {
+  min-height: 0;
+  margin: 8px 0 0;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-align: left;
+  line-height: 1.4;
+}
+:root[data-skin="phantom"] :is(.sp-page, .sa) .auth-message:empty { display: none; }
+:root[data-skin="phantom"] :is(.sp-page, .sa) .auth-message-error {
+  background: #000;
+  color: #fff;
+  border-left: 6px solid var(--p5-red);
+  box-shadow: inset 0 0 0 1.5px rgba(236, 72, 153, 0.55);
+}
+:root[data-skin="phantom"] :is(.sp-page, .sa) .auth-message-success {
+  background: var(--p5-ink);
+  color: var(--p5-black);
+  border-left: 6px solid var(--neon-cyan);
+}
+
+/* ---------- Campi: altezza da dito ---------- */
+:root[data-skin="phantom"] .sp-page :is(.ai-input, .filter-select) { min-height: 44px; }
+:root[data-skin="phantom"] .sp-page .filter-label {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  color: var(--p5-ink);
+}
+/* Bottoni piccoli della barra dei filtri (componente comune): quadrati da 44px. */
+:root[data-skin="phantom"] .sp-page .card-filter-bar .btn-small { min-width: 44px; justify-content: center; }
+:root[data-skin="phantom"] .sp-page .card-filter-count { color: var(--p5-ink-soft); }
+
+/* ---------- Schede (Ricevuti/Inviati, sezioni Admin): blocchi inclinati ---------- */
+:root[data-skin="phantom"] .sp-tabs { display: flex; flex-wrap: wrap; gap: 6px 4px; }
+:root[data-skin="phantom"] .sp-tab {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  background: none;
+  color: var(--p5-ink-soft);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: transform var(--p5-fast) var(--p5-snap), color var(--p5-fast);
+}
+:root[data-skin="phantom"] .sp-tab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(#000, #000) padding-box,
+    linear-gradient(rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.45)) border-box;
+  border: 2px solid transparent;
+  clip-path: polygon(7% 0, 100% 0, 93% 100%, 0 100%);
+}
+:root[data-skin="phantom"] .sp-tab:hover { color: var(--p5-ink); transform: translateY(-2px); }
+:root[data-skin="phantom"] .sp-tab.is-active {
+  color: var(--p5-ink);
+  transform: rotate(-3deg) scale(1.06);
+  filter: drop-shadow(4px 4px 0 #000);
+  z-index: 1;
+}
+:root[data-skin="phantom"] .sp-tab.is-active::before {
+  background:
+    linear-gradient(var(--p5-red), var(--p5-red)) padding-box,
+    linear-gradient(#fff, #fff) border-box;
+}
+:root[data-skin="phantom"] .sp-tab-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  background: var(--p5-ink);
+  color: var(--p5-black);
+  font-size: 0.8rem;
+  clip-path: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+}
+
+/* ---------- Banner di un momento forte (acquisto, vendita, scambio concluso) ---------- */
+:root[data-skin="phantom"] .sp-deal {
+  position: fixed;
+  z-index: 1500;
+  left: 50%;
+  top: calc(84px + var(--safe-top, 0px));
+  width: min(560px, calc(100vw - 24px));
+  translate: -50% 0;
+  pointer-events: none;
+}
+:root[data-skin="phantom"] .sp-deal-inner {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 12px 14px 18px;
+  color: var(--p5-black);
+  pointer-events: auto;
+  filter: drop-shadow(6px 6px 0 #000);
+}
+:root[data-skin="phantom"] .sp-deal-inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    var(--p5-halftone-red),
+    linear-gradient(var(--p5-ink), var(--p5-ink)) padding-box,
+    linear-gradient(var(--p5-red), var(--p5-red)) border-box;
+  border: 4px solid transparent;
+  clip-path: polygon(0 6%, 100% 0, 97% 100%, 2% 94%);
+}
+:root[data-skin="phantom"] .sp-deal-star { width: 56px; height: 56px; }
+:root[data-skin="phantom"] .sp-deal-text { min-width: 0; }
+:root[data-skin="phantom"] .sp-deal-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 72%;
+  font-size: clamp(1.6rem, 6vw, 2.2rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: var(--p5-red-deep);
+  transform: skewX(-8deg);
+  transform-origin: left;
+}
+:root[data-skin="phantom"] .sp-deal-desc { margin: 4px 0 0; font-size: 0.9rem; font-weight: 600; overflow-wrap: anywhere; }
+:root[data-skin="phantom"] .sp-deal-close {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: #000;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  clip-path: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+}
+:root[data-skin="phantom"] .sp-deal-close:hover { background: var(--p5-red); }
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-skin="phantom"] .sp-tab { transition: none; }
+  :root[data-skin="phantom"] .sp-tab:hover { transform: none; }
+}

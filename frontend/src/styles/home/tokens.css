@@ -1,0 +1,153 @@
+/* ==========================================================================
+   Home: token e materiali comuni ("il negozio di dischi di notte")
+   --------------------------------------------------------------------------
+   Il neon viola/rosa del brand resta, ma e' l'insegna del negozio: si accende solo
+   dove conta (azione principale, livello, titolo, carta in evidenza). Il resto e'
+   carta opaca, scaffali ed etichette. Le sezioni usano SOLO queste variabili, piu'
+   le proprie con prefisso (hh-, ht-, hs-).
+   ========================================================================== */
+
+:root {
+  /* Titoli da copertina: Archivo variabile (peso 100-900, larghezza 62-125%). */
+  --font-display: 'Archivo Variable', 'Arial Narrow', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.home2 {
+  /* Superfici */
+  --h-bg: var(--bg-primary);
+  --h-sleeve: #0c1330;            /* carta opaca: contenuti principali */
+  --h-sleeve-raised: #111a3e;     /* un gradino sopra (righe, celle) */
+  --h-shelf: #080d22;             /* il ripiano degli scaffali */
+  --h-line: rgba(255, 255, 255, 0.08);
+  --h-line-strong: rgba(255, 255, 255, 0.16);
+
+  /* Inchiostro (contrasto AA su --h-sleeve) */
+  --h-ink: #f3f1fa;
+  --h-ink-soft: #b8b6cc;
+  --h-ink-faint: #8a88a3;         /* solo per testo >= 14px bold o decorativo */
+
+  /* Neon del brand: da usare con parsimonia */
+  --h-neon: linear-gradient(100deg, var(--neon-purple) 0%, var(--neon-magenta) 100%);
+  --h-neon-edge: 0 0 0 1px rgba(236, 72, 153, 0.55), 0 0 22px -4px rgba(236, 72, 153, 0.45);
+  --h-neon-text-shadow: 0 0 18px rgba(236, 72, 153, 0.45);
+
+  /* Accento dominante di ogni sezione (uno solo per sezione) */
+  --h-accent-hero: var(--neon-magenta);
+  --h-accent-today: var(--neon-gold);
+  --h-accent-shelf: var(--neon-cyan);
+
+  /* Forme: angoli diversi per materiali diversi (mai tutti uguali) */
+  --h-radius-sleeve: 4px;         /* busta di cartone */
+  --h-radius-cell: 10px;          /* righe, bottoni secondari */
+  --h-radius-label: 999px;        /* etichette tonde, pillole */
+
+  /* Ombre: la busta appoggiata, non il bagliore */
+  --h-shadow-sleeve: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 14px 30px -20px rgba(0, 0, 0, 0.9);
+  --h-shadow-lift: 0 18px 36px -22px rgba(0, 0, 0, 0.95);
+
+  /* Ritmo */
+  --h-gap: clamp(12px, 2.4vw, 24px);
+  --h-pad: clamp(14px, 3vw, 28px);
+  --h-tap: 44px;                  /* area di tocco minima */
+
+  /* Movimento */
+  --h-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --h-fast: 160ms;
+  --h-slow: 420ms;
+
+  color: var(--h-ink);
+  font-family: var(--font-body);
+}
+
+/* ---------- Materiali condivisi ---------- */
+
+/* Busta: carta opaca con angoli netti. */
+.home2 .h-sleeve {
+  background: var(--h-sleeve);
+  border: 1px solid var(--h-line);
+  border-radius: var(--h-radius-sleeve);
+  box-shadow: var(--h-shadow-sleeve);
+  padding: var(--h-pad);
+  min-width: 0;
+}
+
+/* Occhiello sopra i titoli: maiuscoletto spaziato, come il retro di una copertina. */
+.home2 .h-kicker {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-stretch: 100%;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--h-ink-soft);
+}
+
+/* Titoli di sezione: condensati e pesanti. */
+.home2 .h-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 850;
+  font-stretch: 72%;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  font-size: clamp(1.35rem, 2.6vw, 1.9rem);
+  text-transform: uppercase;
+}
+
+/* Numeri allineati (gold, XP, timer). */
+.home2 .h-num { font-variant-numeric: tabular-nums; }
+
+/* Link/bottoni testuali della Home: area di tocco piena anche se piccoli. */
+.home2 .h-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--h-tap);
+  padding: 0 4px;
+  background: none;
+  color: var(--h-ink-soft);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: var(--h-radius-cell);
+}
+.home2 .h-link:hover { color: var(--h-ink); }
+
+/* Focus sempre visibile, anche col controller. */
+.home2 :is(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--neon-cyan);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home2 *, .home2 *::before, .home2 *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* ---------- Phantom (Persona 5): stessi materiali, grammatica di P5 ---------- */
+/* Buste ad angoli netti con ombra da stampa (niente clip-path: il vinile della vetrina e le carte
+   degli scaffali escono dai bordi), titoli condensati bianchi con l'ombra magenta, inclinati. */
+:root[data-skin="phantom"] .home2 {
+  --h-sleeve: #0d0820;
+  --h-sleeve-raised: #150d2e;
+  --h-radius-sleeve: 0;
+  --h-radius-cell: 0;
+  --h-shadow-sleeve: 6px 6px 0 #000;
+}
+:root[data-skin="phantom"] .home2 .h-sleeve {
+  border: 0;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.12), inset 4px 0 0 var(--neon-magenta), 6px 6px 0 #000;
+}
+:root[data-skin="phantom"] .home2 .h-title {
+  font-weight: 900;
+  text-shadow: 3px 3px 0 var(--neon-magenta);
+  transform: skewX(-7deg);
+  transform-origin: left bottom;
+}
+:root[data-skin="phantom"] .home2 .h-kicker { color: #fff; }
+:root[data-skin="phantom"] .home2 .h-kicker::before { content: '// '; color: var(--neon-magenta); }

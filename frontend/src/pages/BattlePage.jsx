@@ -3,12 +3,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
 import { useSound } from '../hooks/useSound.js';
 import { useCountUp } from '../hooks/useCountUp.js';
-import { RARITIES, SOURCE_LABELS, getRarityCSSClass, getRarityColor, getSourceLabel, getTotalScore, resolveCardImage } from '../utils/cardUtils.js';
+import { m } from 'motion/react';
+import { RARITIES, SOURCE_LABELS, getRarityCSSClass, getSourceLabel, getTotalScore, resolveCardImage } from '../utils/cardUtils.js';
 import { CARDS } from '../data/cards.js';
 import EmptyState from '../components/common/EmptyState.jsx';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import CardTile from '../components/card/CardTile.jsx';
-import RevealSpark from '../components/common/RevealSpark.jsx';
 import StarBorder from '../components/common/StarBorder.jsx';
 import ScrollToTopButton from '../components/common/ScrollToTopButton.jsx';
 import { useProgressiveList } from '../hooks/useProgressiveList.js';
@@ -21,6 +21,11 @@ import OnlineMatch from '../components/battle/OnlineMatch.jsx';
 import { TournamentPanel } from '../components/battle/CardTournament.jsx';
 import { useCardTournament } from '../hotel/useCardTournament.js';
 import { useAuth } from '../hooks/useAuth.js';
+import PhantomTitle from '../components/phantom/PhantomTitle.jsx';
+import RoundClash from '../components/battle/RoundClash.jsx';
+import { FinalTitle, ResultBackdrop, SlamIn } from '../components/battle/PhantomFx.jsx';
+import { FROM_LEFT, FROM_RIGHT, impactProps } from '../components/battle/phantomMotion.js';
+import '../styles/pages/game-battle.css';
 
 const CATEGORIES = ['fans', 'style', 'influence', 'energy'];
 const CATEGORY_NAMES = { fans: 'Fans', style: 'Style', influence: 'Influence', energy: 'Energy' };
@@ -83,42 +88,42 @@ function VsScreen({ team, aiTeamLength, tournamentBadge, onStartRound, opponentN
       <div className="battle-vs-wrapper">
         {tournamentBadge}
         <div className="battle-vs-content">
-          <div className="battle-vs-player battle-vs-enter-left">
+          <m.div className="battle-vs-player" {...FROM_LEFT}>
             <div className="battle-vs-avatar"><i className="ph-fill ph-vinyl-record" /></div>
             <h3>Il Tuo Team</h3>
             <div className="battle-vs-cards">
               {team.map((c) => (
                 <div key={c.id} className={`battle-vs-mini ${getRarityCSSClass(c.rarity)}`}>
-                  <div style={{ width: 30, height: 40, overflow: 'hidden', borderRadius: 4 }}>
-                    <img loading="lazy" decoding="async" src={resolveCardImage(c)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div className="battle-vs-thumb">
+                    <img loading="lazy" decoding="async" src={resolveCardImage(c)} alt="" />
                   </div>
-                  <span style={{ fontSize: '0.55rem' }}>{c.name}</span>
+                  <span className="battle-vs-mini-name">{c.name}</span>
                 </div>
               ))}
             </div>
             <span className="battle-vs-power"><i className="ph-fill ph-lightning" /> {displayTotal}</span>
             <SynergyList team={team} compact />
-          </div>
+          </m.div>
 
           <div className="battle-vs-center">
-            <span className="battle-vs-label">VS</span>
+            <SlamIn className="battle-vs-label" delay={0.14} tilt={-8}>VS</SlamIn>
             <span className="battle-vs-round">Round 1 di 3</span>
-            <button className="btn btn-primary" onClick={onStartRound}><i className="ph-fill ph-sword" /> Round 1</button>
+            <button className="btn btn-primary btn-large" onClick={onStartRound}><i className="ph-fill ph-sword" /> Round 1</button>
           </div>
 
-          <div className="battle-vs-player battle-vs-ai battle-vs-enter-right">
+          <m.div className="battle-vs-player battle-vs-ai" {...FROM_RIGHT}>
             <div className="battle-vs-avatar"><i className={`ph-fill ${opponentName ? 'ph-user' : 'ph-robot'}`} /></div>
             <h3>{opponentName ? `Squadra di ${opponentName}` : 'NPC'}</h3>
             <div className="battle-vs-cards">
               {Array.from({ length: aiTeamLength }, (_, i) => (
                 <div key={i} className="battle-vs-mini battle-vs-mystery">
                   <div className="battle-vs-mystery-icon"><i className="ph ph-question" /></div>
-                  <span style={{ fontSize: '0.55rem' }}>???</span>
+                  <span className="battle-vs-mini-name">???</span>
                 </div>
               ))}
             </div>
             <span className="battle-vs-power battle-vs-power-hidden">Squadra nascosta</span>
-          </div>
+          </m.div>
         </div>
       </div>
     </section>
@@ -132,16 +137,17 @@ function FinalScreen({ finalKind, rewards, tournamentStage, roundScores, history
 
   if (finalKind === 'tournament-stage-cleared') {
     return (
-      <section className="battle-final-page">
-        <div className="battle-final-content glass-panel battle-final-enter">
+      <section className="battle-final-page is-win">
+        <ResultBackdrop tone="win" />
+        <m.div className="battle-final-content glass-panel" {...impactProps(true)}>
           <div className="battle-final-icon"><i className="ph-fill ph-trophy" /></div>
-          <h2 className="battle-final-title" style={{ color: 'var(--neon-gold)' }}>AVVERSARIO {tournamentStage + 1}/3 SCONFITTO!</h2>
-          <p style={{ color: 'var(--text-secondary)' }}>Punteggio: {roundScores.player} - {roundScores.ai}</p>
+          <FinalTitle tone="win" text={`Avversario ${tournamentStage + 1}/3 sconfitto!`} />
+          <p className="battle-final-sub">Punteggio: {roundScores.player} - {roundScores.ai}</p>
           {historyPanel}
-          <button className="btn btn-gold btn-large" style={{ marginTop: 'var(--space-md)' }} onClick={onNextTournamentMatch}>
+          <button className="btn btn-gold btn-large battle-final-next" onClick={onNextTournamentMatch}>
             <i className="ph-fill ph-sword" /> Prossimo Avversario
           </button>
-        </div>
+        </m.div>
       </section>
     );
   }
@@ -153,22 +159,23 @@ function FinalScreen({ finalKind, rewards, tournamentStage, roundScores, history
 
   let icon = 'ph-heart-break';
   let title = 'SCONFITTA!';
-  let color = 'var(--text-secondary)';
+  let tone = 'lose';
   if (finalKind === 'single') {
     icon = playerWon ? 'ph-trophy' : draw ? 'ph-handshake' : 'ph-heart-break';
     title = playerWon ? 'VITTORIA!' : draw ? 'PAREGGIO!' : 'SCONFITTA!';
-    color = playerWon ? 'var(--neon-gold)' : draw ? 'var(--neon-cyan)' : 'var(--text-secondary)';
+    tone = playerWon ? 'win' : draw ? 'draw' : 'lose';
   } else if (wonAllStages) {
-    icon = 'ph-trophy'; title = 'CAMPIONE DEL TORNEO!'; color = 'var(--neon-gold)';
+    icon = 'ph-trophy'; title = 'CAMPIONE DEL TORNEO!'; tone = 'champion';
   } else if (eliminated) {
-    icon = 'ph-heart-break'; title = `ELIMINATO — AVVERSARIO ${tournamentStage + 1}/3`; color = 'var(--text-secondary)';
+    icon = 'ph-heart-break'; title = `ELIMINATO — AVVERSARIO ${tournamentStage + 1}/3`;
   }
 
   return (
-    <section className="battle-final-page">
-      <div className="battle-final-content glass-panel battle-final-enter">
+    <section className={`battle-final-page is-${tone}`}>
+      <ResultBackdrop tone={tone} />
+      <m.div className="battle-final-content glass-panel" {...impactProps(tone === 'win' || tone === 'champion')}>
         <div className={`battle-final-icon ${wonAllStages ? 'battle-final-icon-champion' : ''}`}><i className={`ph-fill ${icon}`} /></div>
-        <h2 className="battle-final-title" style={{ color }}>{title}</h2>
+        <FinalTitle tone={tone} text={title} />
 
         {finalKind === 'single' && (
           <div className="battle-final-score">
@@ -178,7 +185,7 @@ function FinalScreen({ finalKind, rewards, tournamentStage, roundScores, history
           </div>
         )}
         {finalKind !== 'single' && (
-          <p style={{ color: 'var(--text-secondary)' }}>
+          <p className="battle-final-sub">
             {wonAllStages ? 'Hai sconfitto tutti e 3 gli avversari!' : `Hai superato ${tournamentStage} avversari su 3.`}
           </p>
         )}
@@ -201,7 +208,7 @@ function FinalScreen({ finalKind, rewards, tournamentStage, roundScores, history
           )}
           <button className="btn btn-secondary" onClick={onNavigateHome}><i className="ph-fill ph-house" /> Torna alla Home</button>
         </div>
-      </div>
+      </m.div>
     </section>
   );
 }
@@ -336,7 +343,7 @@ export default function BattlePage() {
   if (collectionCards.length < 3 && (!synced || game.loading)) {
     return (
       <section className="battle-page">
-        <h2 className="section-title text-gradient"><i className="ph-fill ph-sword" /> Battaglia PvP</h2>
+        <PhantomTitle text="Battaglia" className="game-page-title" />
         <LoadingSpinner />
       </section>
     );
@@ -345,7 +352,7 @@ export default function BattlePage() {
   if (collectionCards.length < 3) {
     return (
       <section className="battle-page">
-        <h2 className="section-title text-gradient"><i className="ph-fill ph-sword" /> Battaglia PvP</h2>
+        <PhantomTitle text="Battaglia" className="game-page-title" />
         <EmptyState
           icon="ph-sword"
           title="Non abbastanza carte!"
@@ -576,7 +583,7 @@ export default function BattlePage() {
 
     return (
       <section className="battle-page">
-        <h2 className="section-title text-gradient"><i className="ph-fill ph-sword" /> Seleziona la tua Squadra</h2>
+        <PhantomTitle text="Scegli la squadra" className="game-page-title" />
         <p className="text-center battle-subtitle">Scegli 3 carte per la battaglia</p>
 
         <div className="collection-stats glass-panel">
@@ -592,7 +599,11 @@ export default function BattlePage() {
               {b.team[i] ? (
                 <CardTile card={b.team[i]} onClick={(e) => { e.stopPropagation(); removeFromTeam(i); }} />
               ) : (
-                <div className="battle-slot-empty"><span className="battle-slot-number">{i + 1}</span><span className="battle-slot-label">Seleziona carta</span></div>
+                // Un bottone vero: lo raggiungono la tastiera e la navigazione col controller.
+                <button type="button" className="battle-slot-empty" aria-pressed={b.selectedSlot === i}
+                  onClick={(e) => { e.stopPropagation(); selectSlot(i); }}>
+                  <span className="battle-slot-number">{i + 1}</span><span className="battle-slot-label">Seleziona carta</span>
+                </button>
               )}
             </div>
           ))}
@@ -630,13 +641,13 @@ export default function BattlePage() {
         <div className="battle-team-preview glass-panel">
           <h3>La tua squadra</h3>
           {filledCount === 0 ? (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Seleziona 3 carte per vedere le statistiche della squadra.</p>
+            <p className="battle-preview-empty">Seleziona 3 carte per vedere le statistiche della squadra.</p>
           ) : (
             <div className="battle-preview-bars">
               {CATEGORIES.map((cat) => (
                 <div className="battle-preview-row" key={cat}>
                   <span className="battle-preview-label"><i className={`ph-fill ${CATEGORY_ICONS[cat]}`} /> {CATEGORY_NAMES[cat]}</span>
-                  <div className="battle-preview-track"><div className="battle-preview-fill" style={{ width: `${teamTotals[cat] / 3}%`, background: 'var(--neon-purple)' }} /></div>
+                  <div className="battle-preview-track"><div className="battle-preview-fill" style={{ width: `${teamTotals[cat] / 3}%` }} /></div>
                   <span className="battle-preview-val">{teamTotals[cat]}</span>
                 </div>
               ))}
@@ -709,15 +720,16 @@ export default function BattlePage() {
           <span className="battle-round-number">Round {b.currentRound} / 3</span>
           <span className="battle-round-score">{b.roundScores.player} - {b.roundScores.ai}</span>
         </div>
-        <div className="glass-panel text-center">
+        <div className="glass-panel text-center battle-round-prompt">
           <h3>Scegli tu la categoria di questo round!</h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: 4 }}>Punta sul punto forte di una delle carte che ti restano.</p>
+          <p>Punta sul punto forte di una delle carte che ti restano.</p>
         </div>
         <div className="battle-category-pick-grid">
           {CATEGORIES.map((cat) => (
-            <div key={cat} className="battle-category-pick-card" onClick={() => chooseCategory(cat)}>
-              <span className="battle-category-pick-name"><i className={`ph-fill ${CATEGORY_ICONS[cat]}`} /> {CATEGORY_NAMES[cat]}</span>
-            </div>
+            <button type="button" key={cat} className="battle-category-pick-card" onClick={() => chooseCategory(cat)}>
+              <i className={`ph-fill ${CATEGORY_ICONS[cat]}`} aria-hidden="true" />
+              <span className="battle-category-pick-name">{CATEGORY_NAMES[cat]}</span>
+            </button>
           ))}
         </div>
       </section>
@@ -736,7 +748,7 @@ export default function BattlePage() {
         </div>
         <div className="battle-category-display glass-panel">
           <span className="battle-category-label">Categoria</span>
-          <span className="battle-category-name">{CATEGORY_NAMES[b.currentCategory]}</span>
+          <span className="battle-category-name"><i className={`ph-fill ${CATEGORY_ICONS[b.currentCategory]}`} aria-hidden="true" /> {CATEGORY_NAMES[b.currentCategory]}</span>
         </div>
         <div className="battle-card-select">
           <h3>Scegli una carta per questo round:</h3>
@@ -751,7 +763,7 @@ export default function BattlePage() {
                     <span className="battle-stat-highlight"><i className={`ph-fill ${CATEGORY_ICONS[b.currentCategory]}`} /> {CATEGORY_NAMES[b.currentCategory]}: <strong>{statValue}</strong></span>
                     {card.synergy > 0 && <span className="battle-synergy-chip" title="Bonus di squadra"><i className="ph-fill ph-link" /> +{card.synergy}%</span>}
                     {!b.specialUsed && (
-                      <button className="battle-special-btn-inline" onClick={(e) => { e.stopPropagation(); playSpecialCard(i); }}>
+                      <button type="button" className="battle-special-btn-inline" onClick={(e) => { e.stopPropagation(); playSpecialCard(i); }}>
                         <i className="ph-fill ph-sparkle" /> Abilità (+25%)
                       </button>
                     )}
@@ -767,8 +779,6 @@ export default function BattlePage() {
 
   // ---------- ROUND RESULT ----------
   if (b.phase === 'result') {
-    const playerColor = getRarityColor(b.playerCard.rarity);
-    const aiColor = getRarityColor(b.aiCard.rarity);
     const playerStat = b.playerCard.stats[b.currentCategory] || 0;
     const aiStat = b.aiCard.stats[b.currentCategory] || 0;
     const playerWon = playerStat > aiStat;
@@ -779,36 +789,14 @@ export default function BattlePage() {
         {tournamentBadge}
         <div className="battle-round-header">
           <span className="battle-round-number">Round {b.currentRound} — {CATEGORY_NAMES[b.currentCategory]}</span>
+          <span className="battle-round-score">{b.roundScores.player} - {b.roundScores.ai}</span>
         </div>
-        <div className="battle-comparison">
-          <div className={`battle-comp-card battle-comp-enter-left ${playerWon ? 'battle-winner' : ''}`}>
-            <div className="battle-comp-art">
-              <img src={resolveCardImage(b.playerCard)} alt="" />
-              {playerWon && <RevealSpark color={playerColor} count={10} radius={38} />}
-            </div>
-            <span className="battle-comp-name" style={{ color: playerColor }}>{b.playerCard.name}</span>
-            <div className="battle-comp-stat">
-              <span className="battle-comp-value" style={{ color: playerColor }}>{playerStat}</span>
-              {b.lastBonus > 0 && <span className="battle-bonus">+{b.lastBonus} <i className="ph-fill ph-sparkle" /></span>}
-              {playerWon && <span className="battle-badge-win">WIN</span>}
-            </div>
-          </div>
-          <div className="battle-comp-vs">
-            <span className="battle-comp-vs-text">VS</span>
-            <span className="battle-comp-detail">{CATEGORY_NAMES[b.currentCategory]}</span>
-          </div>
-          <div className={`battle-comp-card battle-comp-enter-right ${aiWon ? 'battle-winner' : ''}`}>
-            <div className="battle-comp-art">
-              <img src={resolveCardImage(b.aiCard)} alt="" />
-              {aiWon && <RevealSpark color={aiColor} count={10} radius={38} />}
-            </div>
-            <span className="battle-comp-name" style={{ color: aiColor }}>{b.aiCard.name}</span>
-            <div className="battle-comp-stat">
-              <span className="battle-comp-value" style={{ color: aiColor }}>{aiStat}</span>
-              {aiWon && <span className="battle-badge-win">WIN</span>}
-            </div>
-          </div>
-        </div>
+        <RoundClash
+          category={CATEGORY_NAMES[b.currentCategory]}
+          winner={playerWon ? 'you' : aiWon ? 'opponent' : null}
+          you={{ label: 'Tu', card: b.playerCard, value: playerStat, bonus: b.lastBonus > 0 ? `+${b.lastBonus}` : null }}
+          opponent={{ label: b.opponentName || 'NPC', card: b.aiCard, value: aiStat }}
+        />
         <div className="battle-next-container">
           {b.currentRound < 3 ? (
             <button className="btn btn-primary" onClick={goToNextRound}>

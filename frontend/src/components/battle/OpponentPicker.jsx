@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import '../../styles/pages/game-battle.css';
 import { battleApi } from '../../services/battleApi.js';
 import { getAvatarUrl } from '../../utils/avatarUtils.js';
 

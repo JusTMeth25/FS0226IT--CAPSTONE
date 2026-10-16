@@ -183,7 +183,7 @@ export default function TradeComposer({ initialTo = '', onSent }) {
 
       <div className="trade-deal">
         <DealSide title="Tu offri" items={[...offer.values()]} gold={offerGold} onGold={setOfferGold} maxGold={game.gold} onChange={change(setOffer)} />
-        <div className="trade-arrows" aria-hidden="true"><i className="ph-bold ph-arrows-left-right" /></div>
+        <div className="trade-arrows" aria-hidden="true"><i className="ph-fill ph-arrows-left-right" /></div>
         <DealSide title={partner ? `Chiedi a ${partner.user.username}` : 'Chiedi'} items={[...ask.values()]} gold={askGold} onGold={setAskGold} onChange={change(setAsk)} />
       </div>
       <button type="button" className="btn btn-primary trade-send" onClick={send} disabled={!ready || sending}>

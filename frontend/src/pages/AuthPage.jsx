@@ -1,13 +1,16 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { m } from 'motion/react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { useSound } from '../hooks/useSound.js';
-import { CARDS } from '../data/cards.js';
-import CardTile from '../components/card/CardTile.jsx';
-import ShinyText from '../components/fx/ShinyText.jsx';
-import SplitText from '../components/fx/SplitText.jsx';
+import { HOME_MODELS, modelSrc, pickHomeModel } from '../data/homeModels.js';
+import StarBurst from '../components/phantom/StarBurst.jsx';
 import { authApi, authErrorText } from '../services/authApi.js';
 import { availableProviders, prepareSocial, socialSignIn } from '../services/socialLogin.js';
+import '../styles/pages/social-phantom.css';
+import '../styles/pages/social-auth.css';
+
+const snap = { type: 'spring', stiffness: 520, damping: 28 };
 
 /** Cosa si vede prima ancora di avere un account. */
 /** Schermata iniziale di ciascun indirizzo. */
@@ -182,58 +185,92 @@ export default function AuthPage() {
     }
   }
 
-  // Tre carte vere del catalogo locale, scelte per rarita' e non per identificativo:
-  // restano valide anche se il catalogo cambia. Sono disponibili senza account,
-  // quindi la vetrina funziona anche a utente non autenticato.
-  const showcase = useMemo(() => {
-    const pick = (rarity) => CARDS.find((c) => c.rarity === rarity);
-    return [pick('epic'), pick('legendary'), pick('rare')].filter(Boolean);
-  }, []);
+  // Il "modello" della schermata titolo: la figura ritagliata da una carta originale, come nella
+  // Home (data/homeModels.js), diversa a ogni apertura.
+  const [model] = useState(pickHomeModel);
+  const srcSet = `${modelSrc(model, true)} 440w, ${modelSrc(model)} 760w`;
 
   return (
-    <main className="auth-screen">
-      <section className="auth-page auth-landing">
-      <div className="auth-hero">
-        <p className="auth-hero-eyebrow"><i className="ph-fill ph-vinyl-record" /> Colleziona. Scambia. Domina la classifica.</p>
-
-        <h1 className="auth-hero-title">
-          <ShinyText speed={6}>VinylDex</ShinyText>
-        </h1>
-
-        <p className="auth-hero-tagline">
-          <SplitText text="Il tuo album di carte musicali" delay={18} />
-        </p>
-
-        <ul className="auth-hero-list">
-          {HIGHLIGHTS.map((item) => (
-            <li className="auth-hero-item" key={item.title}>
-              <span className="auth-hero-icon"><i className={`ph-fill ${item.icon}`} /></span>
-              <span>
-                <strong>{item.title}</strong>
-                <span className="auth-hero-item-text">{item.text}</span>
-              </span>
-            </li>
-          ))}
-        </ul>
-
-        {showcase.length > 0 && (
-          <div className="auth-hero-cards" aria-hidden="true">
-            {showcase.map((card, i) => (
-              <div className={`auth-hero-card auth-hero-card-${i + 1}`} key={card.id}>
-                <CardTile card={card} />
-              </div>
-            ))}
-          </div>
-        )}
+    <main className="auth-screen sa">
+      {/* Mappa a due toni della figura (come la copertina della Home): ombre nere, mezzitoni
+          viola e magenta, luci bianche. */}
+      <svg className="sa-defs" aria-hidden="true" focusable="false">
+        <filter id="sa-duotone" colorInterpolationFilters="sRGB">
+          <feColorMatrix type="saturate" values="0" />
+          <feComponentTransfer>
+            <feFuncR type="table" tableValues="0.03 0.33 0.93 1" />
+            <feFuncG type="table" tableValues="0.02 0.12 0.28 1" />
+            <feFuncB type="table" tableValues="0.06 0.55 0.60 1" />
+          </feComponentTransfer>
+        </filter>
+      </svg>
+      <div className="sa-bg" aria-hidden="true">
+        <span className="sa-shard sa-shard-1" />
+        <span className="sa-shard sa-shard-2" />
+        <span className="sa-shard sa-shard-3" />
+        <StarBurst size={60} className="sa-star sa-star-1" />
+        <StarBurst size={34} fill="#fff" stroke="#000" className="sa-star sa-star-2" />
       </div>
 
-      <div className="glass-panel auth-card">
-        <div className="auth-tabs">
-          <button className={`btn btn-secondary ${tab === 'login' ? 'btn-tab-active' : ''}`} onClick={() => switchTab('login')}>
-            <i className="ph-fill ph-lock" /> Login
+      <section className="auth-page auth-landing">
+      <m.figure
+        className="sa-model"
+        aria-hidden="true"
+        initial={{ x: 60, opacity: 0, rotate: 2 }}
+        animate={{ x: 0, opacity: 1, rotate: 0 }}
+        transition={{ ...snap, delay: 0.05 }}
+      >
+        <span className="sa-model-art">
+          <img
+            className="sa-model-img"
+            src={modelSrc(model)}
+            srcSet={srcSet}
+            sizes="(max-width: 720px) 80vw, 40vw"
+            alt=""
+            fetchPriority="high"
+            decoding="async"
+            onError={(e) => { if (model.slug !== HOME_MODELS[0].slug) e.currentTarget.src = modelSrc(HOME_MODELS[0]); }}
+          />
+          <img className="sa-model-img sa-model-duo" src={modelSrc(model)} srcSet={srcSet} sizes="(max-width: 720px) 80vw, 40vw" alt="" decoding="async" />
+        </span>
+      </m.figure>
+
+      <div className="auth-hero">
+        <m.p className="auth-hero-eyebrow" initial={{ x: -24, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={snap}>
+          {'// Colleziona. Scambia. Domina la classifica. //'}
+        </m.p>
+
+        <m.h1 className="sa-logo" aria-label="VinylDex" initial={{ x: -40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ ...snap, delay: 0.06 }}>
+          <span aria-hidden="true">Vinyl</span>
+          <span className="sa-logo-mark" aria-hidden="true">Dex</span>
+        </m.h1>
+
+        <p className="auth-hero-tagline"><span>Il tuo album di carte musicali</span></p>
+        <p className="sa-model-name">Modello: <strong>{model.name}</strong></p>
+      </div>
+
+      <ul className="auth-hero-list">
+        {HIGHLIGHTS.map((item) => (
+          <li className="auth-hero-item" key={item.title}>
+            <span className="auth-hero-icon" aria-hidden="true"><i className={`ph-fill ${item.icon}`} /></span>
+            <span>
+              <strong>{item.title}</strong>
+              <span className="auth-hero-item-text">{item.text}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <m.div className="glass-panel auth-card" initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ ...snap, delay: 0.12 }}>
+        {/* Come il menu della schermata titolo di un gioco: continua la partita o iniziane una nuova. */}
+        <div className="auth-tabs" role="group" aria-label="Accesso o registrazione">
+          <button type="button" className={`sa-tab${tab === 'login' ? ' is-active' : ''}`} aria-pressed={tab === 'login'} onClick={() => switchTab('login')}>
+            <span className="sa-tab-kicker">Continua</span>
+            <span className="sa-tab-label"><i className="ph-fill ph-lock" aria-hidden="true" /> Accedi</span>
           </button>
-          <button className={`btn btn-secondary ${tab === 'register' ? 'btn-tab-active' : ''}`} onClick={() => switchTab('register')}>
-            <i className="ph-fill ph-sparkle" /> Registrati
+          <button type="button" className={`sa-tab${tab === 'register' ? ' is-active' : ''}`} aria-pressed={tab === 'register'} onClick={() => switchTab('register')}>
+            <span className="sa-tab-kicker">Nuova partita</span>
+            <span className="sa-tab-label"><i className="ph-fill ph-sparkle" aria-hidden="true" /> Registrati</span>
           </button>
         </div>
 
@@ -352,7 +389,7 @@ export default function AuthPage() {
             )}
           </div>
         )}
-        </div>
+        </m.div>
       </section>
     </main>
   );

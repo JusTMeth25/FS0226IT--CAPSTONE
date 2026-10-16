@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { m } from 'motion/react';
 import { apiClient } from '../services/apiClient.js';
 import { collectionApi } from '../services/collectionApi.js';
 import { useAuth } from '../hooks/useAuth.js';
 import { getRarityColor, resolveCardImage } from '../utils/cardUtils.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
+import PhantomTitle from '../components/phantom/PhantomTitle.jsx';
+import StarBurst from '../components/phantom/StarBurst.jsx';
+import '../styles/pages/collection-phantom.css';
 
 /**
  * Set da completare: per ogni set le carte che hai e quelle che mancano. A set completo si
@@ -17,6 +21,8 @@ export default function SetsPage() {
   const [open, setOpen] = useState(null);
   const [busy, setBusy] = useState(null);
   const [notice, setNotice] = useState(null);
+  // Ultimo set ritirato: per il riquadro della vittoria (il testo resta anche in notice).
+  const [won, setWon] = useState(null);
 
   const load = useCallback(() => {
     apiClient.get('/sets').then(setData).catch(() => setError('Set non disponibili, riprova piu\' tardi.'));
@@ -28,9 +34,11 @@ export default function SetsPage() {
     try {
       const res = await apiClient.post(`/sets/${set.key}/claim`);
       setNotice(`Set "${set.title}" completato: +${res.reward} gold e nuovo distintivo!`);
+      setWon({ key: set.key, title: set.title, reward: res.reward });
       refreshUser();
       load();
     } catch {
+      setWon(null);
       setNotice('Premio non ritirato, riprova.');
     } finally {
       setBusy(null);
@@ -41,9 +49,26 @@ export default function SetsPage() {
   const done = data.sets.filter((s) => s.claimed).length;
   return (
     <section className="sets-page">
-      <h2 className="section-title text-gradient"><i className="ph-fill ph-stack" /> Set da completare</h2>
+      <header className="cx-head">
+        <PhantomTitle text="Set da completare" className="cx-title" />
+      </header>
       <p className="page-subtitle">Raccogli tutte le carte di un set per il premio in gold e il distintivo. Completati: {done} su {data.sets.length}. Nell&apos;hotel apri la tua scheda (clic sul tuo avatar) e scegli il distintivo da mostrare accanto al nome.</p>
-      {notice && <p className="sets-notice" role="status">{notice}</p>}
+      {won ? (
+        // Set completato: il riquadro entra di scatto in diagonale, con la stella d'oro del premio.
+        <m.div key={won.key} className="cx-win" role="status" initial={{ x: -60, skewX: -14, opacity: 0 }} animate={{ x: 0, skewX: 0, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 520, damping: 26 }}>
+          <m.span className="cx-win-star" initial={{ scale: 0, rotate: -90 }} animate={{ scale: 1, rotate: 12 }}
+            transition={{ type: 'spring', stiffness: 480, damping: 16, delay: 0.12 }}>
+            <StarBurst size={76} fill="var(--neon-gold)" stroke="#000" />
+          </m.span>
+          <div className="cx-win-text">
+            <span className="cx-win-kicker">Set completato!</span>
+            <strong>{won.title}</strong>
+            <span><b>+{won.reward} gold</b> e nuovo distintivo</span>
+          </div>
+          <button type="button" className="btn btn-secondary btn-small" onClick={() => setWon(null)}>Continua</button>
+        </m.div>
+      ) : notice && <p className="sets-notice" role="status">{notice}</p>}
 
       {data.badges.length > 0 && (
         <div className="sets-badges" aria-label="I tuoi distintivi dei set">

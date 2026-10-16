@@ -1,0 +1,242 @@
+/* ==========================================================================
+   Phantom: la cornice dell'app (sidebar, topbar, bottom nav, foglio "Altro")
+   Il menu laterale e' quello di un gioco: voci in maiuscolo inclinate, la voce attiva
+   ingrandita su una scheggia magenta col bordo bianco, le altre si accendono al passaggio.
+   Vale ovunque, hotel compreso (data-shell, vedi App.jsx): li' cambia solo la cornice, non la stanza.
+   ========================================================================== */
+
+/* Barra XP della sidebar: nell'hotel non c'e' phantom.css, quindi la si veste qui. */
+:root[data-shell="phantom"] .sidebar .progress-bar { border-radius: 0; background: #000; outline: 1.5px solid rgba(255, 255, 255, 0.5); }
+:root[data-shell="phantom"] .sidebar .progress-fill { border-radius: 0; background: repeating-linear-gradient(-45deg, var(--neon-magenta) 0 6px, #b0136a 6px 10px); }
+
+/* ---------- Sidebar ---------- */
+:root[data-shell="phantom"] .sidebar {
+  background:
+    var(--p5-halftone),
+    linear-gradient(180deg, #0b0618 0%, #07040f 100%);
+  border-right: 0;
+  box-shadow: inset -3px 0 0 #000, inset -5px 0 0 rgba(236, 72, 153, 0.55);
+  overflow-x: hidden;
+}
+
+/* Logo: maiuscolo pesante bianco, con la "X" sul tassello magenta. */
+:root[data-shell="phantom"] .sidebar .sidebar-brand .nav-link,
+:root[data-shell="phantom"] .sidebar .sidebar-brand .nav-link:hover {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--p5-ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 72%;
+  font-size: 2rem;
+  letter-spacing: 0;
+  line-height: 0.9;
+  padding: 2px 0;
+  transform: skewX(-8deg) rotate(-3deg);
+  text-shadow: 3px 3px 0 var(--p5-red);
+}
+:root[data-shell="phantom"] .sidebar .sidebar-brand .nav-link::before,
+:root[data-shell="phantom"] .sidebar .sidebar-brand .nav-link::after { display: none; }
+:root[data-shell="phantom"] .sidebar .sidebar-brand .nav-link { min-height: 0; display: inline-block; font-size: 2.2rem; }
+
+:root[data-shell="phantom"] .sidebar-avatar {
+  border-radius: 0;
+  clip-path: var(--p5-shape-sm);
+  border: 0;
+  outline: 2px solid var(--p5-ink);
+}
+:root[data-shell="phantom"] .sidebar-username { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; font-size: 1rem; }
+:root[data-shell="phantom"] .sidebar-level { color: var(--p5-red); font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; font-size: 0.65rem; }
+
+/* Voci del menu */
+:root[data-shell="phantom"] .sidebar-nav ul { gap: 2px; }
+:root[data-shell="phantom"] .sidebar .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 6px 14px;
+  border-radius: 0;
+  background: none;
+  color: var(--p5-ink-soft);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 80%;
+  font-size: 1.02rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  isolation: isolate;
+  transition: color var(--p5-fast), transform var(--p5-fast) var(--p5-snap);
+}
+:root[data-shell="phantom"] .sidebar .nav-link i { font-size: 1.1rem; }
+:root[data-shell="phantom"] .sidebar .nav-link::before {
+  content: '';
+  position: absolute;
+  inset: 3px -6px 3px 4px;
+  z-index: -1;
+  background: var(--p5-ink);
+  clip-path: polygon(4% 0, 100% 8%, 96% 100%, 0 90%);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--p5-fast) var(--p5-snap);
+}
+:root[data-shell="phantom"] .sidebar .nav-link:hover { color: var(--p5-black); background: none; transform: translateX(4px); }
+:root[data-shell="phantom"] .sidebar .nav-link:hover::before { transform: scaleX(1); }
+
+/* Voce attiva: piu' grande, su scheggia magenta col bordo bianco, leggermente ruotata. */
+:root[data-shell="phantom"] .sidebar .nav-link.active {
+  color: var(--p5-ink);
+  background: none;
+  font-size: 1.22rem;
+  min-height: 48px;
+  transform: rotate(-2.5deg) translateX(6px);
+}
+:root[data-shell="phantom"] .sidebar .nav-link.active::before {
+  transform: none;
+  inset: 2px -14px 2px 0;
+  background:
+    linear-gradient(var(--p5-red), var(--p5-red)) padding-box,
+    linear-gradient(var(--p5-ink), var(--p5-ink)) border-box;
+  border: 2px solid transparent;
+  clip-path: polygon(2% 6%, 100% 0, 97% 100%, 0 88%);
+  filter: drop-shadow(3px 3px 0 #000);
+}
+:root[data-shell="phantom"] .sidebar .nav-link.active i { color: var(--p5-ink); }
+
+:root[data-shell="phantom"] .sidebar-footer { border-top: 2px dashed rgba(255, 255, 255, 0.18); }
+:root[data-shell="phantom"] .sidebar-gold-pill { font-family: var(--font-display); font-weight: 900; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+
+/* ---------- Topbar ---------- */
+:root[data-shell="phantom"] .topbar {
+  background:
+    linear-gradient(176deg, rgba(7, 4, 15, 0.97) 0 82%, transparent 82.5%),
+    var(--p5-red);
+  backdrop-filter: none;
+  border-bottom: 0;
+  /* La linea magenta sotto la barra e' tagliata in diagonale, come le strisce di P5. */
+  padding-bottom: 6px;
+}
+:root[data-shell="phantom"] .topbar-brand-icon {
+  border-radius: 0;
+  clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  background: var(--p5-red);
+  box-shadow: none;
+  width: 34px;
+  height: 34px;
+}
+:root[data-shell="phantom"] .topbar-brand-text,
+:root[data-shell="phantom"] .topbar-brand:hover .topbar-brand-text {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--p5-ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 72%;
+  font-size: 1.45rem;
+  letter-spacing: 0;
+  transform: skewX(-8deg);
+  text-shadow: 2px 2px 0 var(--p5-red);
+  animation: none;
+}
+/* Cartellini tagliati invece delle pillole tonde */
+:root[data-shell="phantom"] :is(.topbar-gold-pill, .topbar-profile-link, .topbar-icon-btn) {
+  border-radius: 0;
+  clip-path: var(--p5-shape-sm);
+  min-height: 40px;
+}
+:root[data-shell="phantom"] .topbar-gold-pill {
+  background: var(--p5-gold);
+  border: 0;
+  color: #1a1000;
+  font-family: var(--font-display);
+  font-weight: 900;
+}
+:root[data-shell="phantom"] .topbar-gold-pill i,
+:root[data-shell="phantom"] .topbar-gold-pill strong { color: #1a1000; }
+:root[data-shell="phantom"] .topbar-icon-btn {
+  width: 40px;
+  background: #000;
+  border: 0;
+  color: var(--p5-ink);
+}
+:root[data-shell="phantom"] .topbar-icon-btn:hover { background: var(--p5-ink); color: var(--p5-black); transform: none; }
+:root[data-shell="phantom"] .topbar-logout-btn:hover { background: var(--p5-red); color: var(--p5-ink); }
+:root[data-shell="phantom"] .topbar-profile-link {
+  background: var(--p5-ink);
+  border: 0;
+  color: var(--p5-black);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+:root[data-shell="phantom"] .topbar-profile-link:hover { background: var(--p5-red); color: var(--p5-ink); }
+:root[data-shell="phantom"] .topbar-avatar { border-radius: 0; clip-path: var(--p5-shape-sm); }
+
+/* ---------- Bottom nav ---------- */
+:root[data-shell="phantom"] .bottom-nav {
+  background:
+    linear-gradient(4deg, rgba(7, 4, 15, 0.98) 0 86%, transparent 86.5%),
+    var(--p5-red);
+  backdrop-filter: none;
+  border-top: 0;
+  box-shadow: none;
+}
+:root[data-shell="phantom"] .bottom-nav-item {
+  color: var(--p5-ink-soft);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+:root[data-shell="phantom"] .bottom-nav-item.active { color: var(--p5-ink); }
+/* Scheggia magenta sotto l'icona attiva, al posto della lineetta */
+:root[data-shell="phantom"] .bottom-nav-item.active::before {
+  top: 6px;
+  width: 46px;
+  height: 30px;
+  border-radius: 0;
+  background: var(--p5-red);
+  clip-path: polygon(8% 12%, 100% 0, 92% 100%, 0 86%);
+  z-index: -1;
+}
+:root[data-shell="phantom"] .bottom-nav-item { isolation: isolate; }
+:root[data-shell="phantom"] .bottom-nav-indicator { display: none; }
+
+/* ---------- Foglio "Altro" ---------- */
+:root[data-shell="phantom"] .more-sheet {
+  background: var(--p5-halftone), #0b0618;
+  border: 0;
+  border-top: 3px solid var(--p5-red);
+  border-radius: 0;
+  clip-path: polygon(0 18px, 100% 0, 100% 100%, 0 100%);
+  padding-top: 30px;
+}
+:root[data-shell="phantom"] .more-sheet-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 72%;
+  font-size: 1.6rem;
+  text-transform: uppercase;
+  text-shadow: 3px 3px 0 var(--p5-red);
+}
+:root[data-shell="phantom"] .more-sheet-item {
+  border-radius: 0;
+  clip-path: var(--p5-shape-sm);
+  background: #120b26;
+  border: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+:root[data-shell="phantom"] .more-sheet-item:hover,
+:root[data-shell="phantom"] .more-sheet-item.active { background: var(--p5-red); color: var(--p5-ink); }
+:root[data-shell="phantom"] .more-sheet-item.active i,
+:root[data-shell="phantom"] .more-sheet-item:hover i { color: var(--p5-ink); }
+
+/* ---------- Footer ---------- */
+:root[data-shell="phantom"] #app-footer { border-top: 2px solid rgba(236, 72, 153, 0.4); background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-shell="phantom"] .sidebar .nav-link,
+  :root[data-shell="phantom"] .sidebar .nav-link::before { transition: none; }
+}

@@ -1,0 +1,323 @@
+/* ==========================================================================
+   Home: copertina in stile Persona 5 (HomeHero). Prefisso hp-.
+   A sinistra titolo enorme, chi sei e l'azione principale; a destra la figura ritagliata da una
+   carta, a due toni con contorno bianco, su fondo nero con strisce, retino, schegge e stelle.
+   Su telefono la figura passa dietro il titolo, sfumata in basso.
+   ========================================================================== */
+
+.home2 .hp {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 560px;
+  padding: clamp(18px, 3vw, 40px) clamp(16px, 3vw, 44px) clamp(20px, 3vw, 36px);
+  overflow: hidden;
+  color: #fff;
+  /* Cornice nera tagliata con il bordo magenta, come i pannelli di P5. */
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 28px), calc(100% - 28px) 100%, 0 100%);
+  background:
+    radial-gradient(rgba(255, 255, 255, 0.09) 1.2px, transparent 1.8px) 0 0 / 9px 9px,
+    repeating-linear-gradient(-60deg, rgba(255, 255, 255, 0.03) 0 3px, transparent 3px 22px),
+    radial-gradient(ellipse at 78% 30%, rgba(139, 92, 246, 0.45), transparent 55%),
+    radial-gradient(ellipse at 100% 100%, rgba(236, 72, 153, 0.35), transparent 50%),
+    #07040f;
+  box-shadow: inset 0 0 0 2px rgba(236, 72, 153, 0.6);
+}
+
+.home2 .hp-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* ---------- Fondo: schegge e stelle ---------- */
+.home2 .hp-bg { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.home2 .hp-shard { position: absolute; display: block; }
+.home2 .hp-shard-1 {
+  right: -6%; top: -10%; width: 62%; height: 70%;
+  background: var(--neon-magenta);
+  clip-path: polygon(38% 0, 100% 0, 100% 46%, 12% 100%, 0 78%);
+  opacity: 0.85;
+}
+.home2 .hp-shard-2 {
+  right: 18%; bottom: -12%; width: 46%; height: 48%;
+  background: #000;
+  clip-path: polygon(20% 0, 100% 30%, 82% 100%, 0 80%);
+}
+.home2 .hp-shard-3 {
+  left: -4%; bottom: 14%; width: 38%; height: 9px;
+  background: var(--neon-magenta);
+  transform: rotate(-8deg);
+  box-shadow: 0 16px 0 #fff;
+}
+.home2 .hp-star { position: absolute; }
+.home2 .hp-star-1 { right: 6%; top: 8%; transform: rotate(14deg); }
+.home2 .hp-star-2 { right: 40%; top: 14%; transform: rotate(-10deg); }
+.home2 .hp-star-3 { left: 44%; bottom: 22%; }
+
+/* ---------- La figura ---------- */
+.home2 .hp-model {
+  position: absolute;
+  z-index: 0;
+  right: -10%;
+  top: 2%;
+  width: 96%;
+  height: 58%;
+  margin: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+.home2 .hp-model-art {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Bordi dritti dove la figura tocca il taglio dell'illustrazione: spariscono in sfumatura. */
+  -webkit-mask-image: linear-gradient(180deg, #000 62%, transparent 98%), linear-gradient(90deg, transparent 0, #000 12%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(180deg, #000 62%, transparent 98%), linear-gradient(90deg, transparent 0, #000 12%);
+  mask-composite: intersect;
+}
+.home2 .hp-model-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: right bottom;
+  /* Contorno bianco spesso e ombra netta nera, come le figure ritagliate di P5. */
+  filter: drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff) drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff) drop-shadow(10px 10px 0 #000);
+}
+.home2 .hp-model-duo {
+  filter: url(#hp-duotone);
+  opacity: 0.72;
+  mix-blend-mode: normal;
+}
+.home2 .hp-model figcaption {
+  position: absolute;
+  right: 4%;
+  bottom: 6%;
+  pointer-events: auto;
+}
+.home2 .hp-model-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 14px;
+  background: #fff;
+  color: #07040f;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 80%;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
+  transform: rotate(-4deg);
+  filter: drop-shadow(4px 4px 0 var(--neon-magenta));
+}
+.home2 .hp-model-tag span { color: var(--neon-magenta); letter-spacing: 0.12em; font-size: 0.68rem; }
+.home2 .hp-model-tag:hover { background: var(--neon-magenta); color: #fff; }
+.home2 .hp-model-tag:hover span { color: #fff; }
+
+/* ---------- Testo e azioni ---------- */
+.home2 .hp-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 16px;
+  min-width: 0;
+  padding-top: 42vh;
+}
+.home2 .hp-kicker {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  color: #fff;
+}
+.home2 .hp-kicker::first-letter { color: var(--neon-magenta); }
+.home2 .hp-title { font-size: clamp(3rem, 15vw, 6.6rem); }
+
+.home2 .hp-who { display: flex; align-items: center; gap: 12px; min-width: 0; max-width: 460px; }
+.home2 .hp-lv {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  background: var(--neon-magenta);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 70%;
+  font-size: 2rem;
+  line-height: 0.8;
+  position: relative;
+  background: none;
+}
+.home2 .hp-lv-star { position: absolute; inset: 0; width: 100%; height: 100%; }
+.home2 .hp-lv-n {
+  position: relative;
+  /* Il centro ottico della stella e' un po' sotto la meta'. */
+  transform: translateY(6%);
+  font-size: 1.55rem;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.home2 .hp-who-text { min-width: 0; flex: 1; }
+.home2 .hp-name {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 78%;
+  font-size: 1.35rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.home2 .hp-xp { height: 10px; background: #000; outline: 2px solid #fff; transform: skewX(-18deg); }
+.home2 .hp-xp > span { display: block; height: 100%; background: repeating-linear-gradient(-45deg, var(--neon-magenta) 0 6px, #b0136a 6px 10px); }
+.home2 .hp-xp-text { margin: 6px 0 0; font-size: 0.78rem; color: #d9d4ea; }
+
+.home2 .hp-actions { display: flex; flex-wrap: wrap; gap: 14px 18px; }
+.home2 .hp-cta,
+.home2 .hp-ghost {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 0 26px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 82%;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: none;
+  transition: transform 140ms cubic-bezier(0.2, 1.4, 0.3, 1);
+}
+.home2 .hp-cta { color: #fff; filter: drop-shadow(5px 5px 0 #000); flex: 1 1 260px; }
+.home2 .hp-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(var(--neon-magenta), var(--neon-magenta)) padding-box,
+    linear-gradient(#fff, #fff) border-box;
+  border: 3px solid transparent;
+  clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
+}
+.home2 .hp-cta-wait::before {
+  background:
+    linear-gradient(#000, #000) padding-box,
+    linear-gradient(var(--neon-magenta), var(--neon-magenta)) border-box;
+}
+.home2 .hp-cta-small { font-size: 0.72rem; letter-spacing: 0.1em; color: #e8c3dc; }
+.home2 .hp-ghost { color: #fff; flex: 0 1 auto; }
+.home2 .hp-ghost::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(#07040f, #07040f) padding-box,
+    linear-gradient(#fff, #fff) border-box;
+  border: 3px solid transparent;
+  clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
+}
+.home2 :is(.hp-cta, .hp-ghost):hover { transform: translate(-2px, -2px) rotate(-1.2deg); }
+.home2 .hp-ghost:hover { color: #07040f; }
+.home2 .hp-ghost:hover::before { background: #fff; }
+.home2 :is(.hp-cta, .hp-ghost):active { transform: translate(2px, 2px); }
+
+.home2 .hp-stats { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.home2 .hp-stats li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 14px;
+  background: #fff;
+  color: #07040f;
+  clip-path: polygon(5% 0, 100% 0, 95% 100%, 0 100%);
+}
+.home2 .hp-stats li:nth-child(2) { background: var(--neon-gold); }
+.home2 .hp-stats strong { font-family: var(--font-display); font-weight: 900; font-size: 1.25rem; }
+.home2 .hp-stats span { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
+
+.home2 .hp-short { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.home2 .hp-short button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  border: 0;
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 92% 100%, 0 100%);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4);
+}
+.home2 .hp-short button:hover { background: #fff; color: #07040f; }
+.home2 .hp-short i { color: var(--neon-magenta); }
+
+/* ---------- Tablet e desktop: figura a destra, testo a sinistra ---------- */
+@media (min-width: 720px) {
+  /* Altezza data dal contenuto (mai tagliato), con un minimo per la figura. */
+  .home2 .hp { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); align-items: center; min-height: 620px; }
+  .home2 .hp-copy { grid-column: 1; padding-top: 0; justify-content: center; }
+  .home2 .hp-model { right: -2%; top: 0; width: 56%; height: 100%; }
+  .home2 .hp-model-art {
+    -webkit-mask-image: linear-gradient(180deg, #000 74%, transparent 100%), linear-gradient(90deg, transparent 0, #000 10%);
+    mask-image: linear-gradient(180deg, #000 74%, transparent 100%), linear-gradient(90deg, transparent 0, #000 10%);
+  }
+  .home2 .hp-short { grid-template-columns: repeat(4, auto); justify-content: start; }
+  .home2 .hp-title { font-size: clamp(3.4rem, 7vw, 6.6rem); }
+}
+
+/* ---------- Telefono in orizzontale: tutto in uno schermo ---------- */
+@media (orientation: landscape) and (max-height: 520px) {
+  .home2 .hp { min-height: 0; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); align-items: start; }
+  .home2 .hp-copy { padding-top: 0; gap: 10px; justify-content: flex-start; }
+  .home2 .hp-model { right: -2%; top: 0; width: 46%; height: 100%; }
+  .home2 .hp-title { font-size: clamp(2.2rem, 7vw, 3.4rem); }
+  .home2 .hp-lv { width: 56px; height: 56px; }
+  .home2 .hp-lv-n { font-size: 1.15rem; }
+  .home2 .hp-cta, .home2 .hp-ghost { min-height: 48px; font-size: 0.95rem; }
+  .home2 .hp-short { grid-template-columns: repeat(4, auto); justify-content: start; }
+}
+
+/* Telefono verticale: il testo sopra la figura deve restare leggibile. */
+@media (max-width: 719px) {
+  .home2 .hp-copy { text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85); }
+  .home2 .hp-model figcaption { bottom: auto; top: 6%; right: 6%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home2 :is(.hp-cta, .hp-ghost):hover { transform: none; }
+}
+.home2 .hp-name-lv { color: var(--neon-magenta); font-size: 0.85em; margin-left: 6px; }
+/* Telefono in orizzontale: la copertina deve stare in uno schermo con l'azione principale visibile. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .home2 .hp-kicker, .home2 .hp-xp-text { display: none; }
+  .home2 .hp-title { font-size: clamp(1.9rem, 6vw, 2.8rem); }
+  .home2 .hp-who { gap: 8px; }
+  .home2 .hp-name { font-size: 1.05rem; margin-bottom: 4px; }
+}

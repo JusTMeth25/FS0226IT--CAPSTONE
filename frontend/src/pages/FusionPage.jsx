@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { m } from 'motion/react';
 import { apiClient } from '../services/apiClient.js';
 import { useGame } from '../hooks/useGame.js';
 import { getRarityColor, getRarityName, resolveCardImage } from '../utils/cardUtils.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
+import PhantomTitle from '../components/phantom/PhantomTitle.jsx';
+import StarBurst from '../components/phantom/StarBurst.jsx';
+import '../styles/pages/collection-phantom.css';
 
 const ERRORS = {
   fusion_not_duplicate: 'Puoi fondere solo i doppioni: di ogni carta ne resta sempre una.',
@@ -66,7 +70,9 @@ export default function FusionPage() {
   const byId = new Map(group.map((e) => [e.card.id, e.card]));
   return (
     <section className="fusion-page">
-      <h2 className="section-title text-gradient"><i className="ph-fill ph-flask" /> Fusione</h2>
+      <header className="cx-head">
+        <PhantomTitle text="Fusione" className="cx-title" />
+      </header>
       <p className="page-subtitle">Scegli {size} doppioni della stessa rarità: diventano una carta della rarità successiva. Di ogni carta ne tieni sempre una.</p>
 
       <div className="fusion-tabs" role="tablist">
@@ -93,21 +99,31 @@ export default function FusionPage() {
             );
           })}
         </div>
-        <button type="button" className="btn btn-gold btn-large" disabled={picked.length !== size || busy} onClick={fuse}>
+        {/* Fondere e' l'azione della pagina: magenta (l'oro resta ai premi). */}
+        <button type="button" className="btn btn-primary btn-large fusion-go" disabled={picked.length !== size || busy} onClick={fuse}>
           <i className="ph-fill ph-flask" /> {busy ? 'Fusione in corso…' : 'Fondi'}
         </button>
         {error && <p className="fusion-error" role="alert">{error}</p>}
       </div>
 
       {result && (
-        <div className="fusion-result" role="status" style={{ '--rarity-color': getRarityColor(result.card.rarity) }}>
-          <img src={resolveCardImage(result.card)} alt={result.card.name} />
-          <div>
+        // Fusione riuscita: lampo magenta in diagonale, poi la carta nuova arriva ruotando sulla stella.
+        <div className="fusion-result" role="status" key={result.card.id} style={{ '--rarity-color': getRarityColor(result.card.rarity) }}>
+          <m.span className="cx-fuse-flash" aria-hidden="true" initial={{ x: '-120%' }} animate={{ x: '120%' }}
+            transition={{ duration: 0.28, ease: [0.7, 0, 0.3, 1] }} />
+          <m.div className="cx-fuse-card" initial={{ scale: 0.4, rotate: -24, opacity: 0 }} animate={{ scale: 1, rotate: -4, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 460, damping: 20, delay: 0.12 }}>
+            <StarBurst size={170} fill="var(--neon-magenta)" stroke="#fff" className="cx-fuse-star" />
+            <img src={resolveCardImage(result.card)} alt={result.card.name} />
+          </m.div>
+          <m.div className="cx-fuse-text" initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 520, damping: 26, delay: 0.22 }}>
+            <span className="cx-fuse-kicker">Fusione riuscita!</span>
             <span>Dalla fusione è nata</span>
             <strong>{result.card.name}</strong>
-            <span>{getRarityName(result.card.rarity)}</span>
+            <span className="cx-fuse-rarity">{getRarityName(result.card.rarity)}</span>
             <button type="button" className="btn btn-secondary btn-small" onClick={() => setResult(null)}>Continua</button>
-          </div>
+          </m.div>
         </div>
       )}
 

@@ -4,6 +4,8 @@ import { extrasApi } from '../services/extrasApi.js';
 import { getRarityColor, getRarityName, getSourceLabel, resolveCardImage } from '../utils/cardUtils.js';
 import EmptyState from '../components/common/EmptyState.jsx';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
+import PhantomTitle from '../components/phantom/PhantomTitle.jsx';
+import '../styles/pages/collection-phantom.css';
 
 const WHERE_ICON = { market: 'ph-storefront', stall: 'ph-basket', npc: 'ph-user-sound' };
 
@@ -20,7 +22,9 @@ export default function WishlistPage() {
 
   return (
     <section className="wishlist-page">
-      <h2 className="section-title text-gradient"><i className="ph-fill ph-heart" /> Lista dei desideri</h2>
+      <header className="cx-head">
+        <PhantomTitle text="Lista dei desideri" className="cx-title" />
+      </header>
       <p className="page-subtitle">
         Le carte che cerchi. Quando una compare al mercato, sul banchetto di un giocatore o nella vetrina di un NPC te lo diciamo qui
         {data?.available ? <> — <strong className="wish-available-count">{data.available} disponibili adesso!</strong></> : '.'}
@@ -37,6 +41,7 @@ export default function WishlistPage() {
                 <img src={resolveCardImage(card)} alt={card.name} loading="lazy" />
               </button>
               <div className="wish-info">
+                {offers.length > 0 && <span className="cx-wish-tag">In vendita adesso</span>}
                 <strong>{card.name}</strong>
                 <span className="wish-meta">{getSourceLabel(card.source)} · <span style={{ color: 'var(--rarity-color)' }}>{getRarityName(card.rarity)}</span></span>
                 {owned && <span className="wish-owned"><i className="ph-fill ph-check-circle" /> Ce l&apos;hai gia&apos;</span>}

@@ -7,6 +7,10 @@ import { SOURCE_LABELS, getSourceLabel } from '../utils/cardUtils.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import AnimatedNumber from '../components/fx/AnimatedNumber.jsx';
+import { m } from 'motion/react';
+import PhantomTitle from '../components/phantom/PhantomTitle.jsx';
+import StarBurst from '../components/phantom/StarBurst.jsx';
+import '../styles/pages/game-ranks.css';
 
 const TYPES = [
   { key: 'collection', label: 'Collezione' },
@@ -14,6 +18,50 @@ const TYPES = [
   { key: 'battles', label: 'Battaglie vinte' },
   { key: 'games', label: 'Per gioco' }
 ];
+
+/**
+ * Podio dei primi tre e, sotto, il resto della classifica in righe dritte.
+ * Nel DOM l'ordine resta 1-2-3 (lettori di schermo, tastiera); il CSS mette il primo al centro.
+ * `extra(row)` aggiunge un dato accanto al valore (la percentuale nella classifica per gioco).
+ */
+function Ranking({ rows, rowKey, value, extra }) {
+  const podium = rows.slice(0, 3);
+  const rest = rows.slice(3);
+  return (
+    <div className="lb-ranking">
+      <ol className="lb-podium" aria-label="Podio">
+        {podium.map((row, i) => (
+          <m.li
+            key={rowKey(row, i)}
+            className={`lb-step lb-step-${i + 1}`}
+            initial={{ y: 48, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            // Prima il terzo, poi il secondo, per ultimo il primo: la suspense del podio.
+            transition={{ type: 'spring', stiffness: 460, damping: 26, delay: (2 - i) * 0.09 }}
+          >
+            {i === 0 && <StarBurst size={46} fill="var(--neon-gold)" stroke="#000" className="lb-star" />}
+            <span className="lb-step-name" title={row.username}>{row.username}</span>
+            <span className="lb-step-value"><AnimatedNumber value={value(row)} />{extra && <small>{extra(row)}</small>}</span>
+            <span className="lb-step-block" aria-hidden="true"><span>{i + 1}</span></span>
+            <span className="sr-only">{i + 1}° posto</span>
+          </m.li>
+        ))}
+      </ol>
+      {rest.length > 0 && (
+        <ol className="lb-list glass-panel" start={4}>
+          {rest.map((row, i) => (
+            <li className="leaderboard-row" style={{ animationDelay: `${Math.min(i, 20) * 0.04}s` }} key={rowKey(row, i + 3)}>
+              <span className="leaderboard-rank">{i + 4}</span>
+              <span className="leaderboard-name">{row.username}</span>
+              {extra && <span className="leaderboard-percent">{extra(row)}</span>}
+              <span className="leaderboard-value"><AnimatedNumber value={value(row)} /></span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  );
+}
 
 /** Classifica di un gioco: carte diverse, completamento e premio del lunedi' al primo. */
 function GameLeaderboard() {
@@ -45,16 +93,8 @@ function GameLeaderboard() {
       {loading ? <LoadingSpinner label="Carico la classifica…" /> : rows.length === 0 ? (
         <EmptyState icon="ph-trophy" title="Nessuno in classifica" description="Nessun giocatore ha ancora carte di questo gioco." />
       ) : (
-        <div className="glass-panel" key={source}>
-          {rows.map((row, i) => (
-            <div className="leaderboard-row" style={{ animationDelay: `${Math.min(i, 20) * 0.04}s` }} key={row.id}>
-              <span className={`leaderboard-rank ${i < 3 ? `rank-${i + 1}` : ''}`}>{i + 1}</span>
-              <span className="leaderboard-name">{row.username}</span>
-              <span className="leaderboard-percent" title={`${row.cards} di ${data.total} carte`}>{row.percent}%</span>
-              <span className="leaderboard-value"><AnimatedNumber value={row.cards} /></span>
-            </div>
-          ))}
-        </div>
+        <Ranking key={source} rows={rows} rowKey={(row) => row.id} value={(row) => row.cards}
+          extra={(row) => `${row.percent}%`} />
       )}
     </>
   );
@@ -69,11 +109,11 @@ export default function LeaderboardPage() {
 
   return (
     <section className="leaderboard-page">
-      <h2 className="section-title text-gradient"><i className="ph-fill ph-trophy" /> Classifica</h2>
+      <PhantomTitle text="Classifica" className="game-page-title" />
 
-      <div className="tabs-row">
+      <div className="tabs-row lb-tabs">
         {TYPES.map((t) => (
-          <button key={t.key} className={`btn ${type === t.key ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setType(t.key)}>{t.label}</button>
+          <button key={t.key} className={`btn ${type === t.key ? 'btn-primary' : 'btn-secondary'}`} aria-pressed={type === t.key} onClick={() => setType(t.key)}>{t.label}</button>
         ))}
       </div>
 
@@ -89,15 +129,7 @@ export default function LeaderboardPage() {
       ) : rows.length === 0 ? (
         <EmptyState icon="ph-trophy" title="Classifica vuota" description="Non ci sono ancora dati sufficienti per questa classifica." />
       ) : (
-        <div className="glass-panel" key={type}>
-          {rows.map((row, i) => (
-            <div className="leaderboard-row" style={{ animationDelay: `${Math.min(i, 20) * 0.04}s` }} key={row.userId || i}>
-              <span className={`leaderboard-rank ${i < 3 ? `rank-${i + 1}` : ''}`}>{i + 1}</span>
-              <span className="leaderboard-name">{row.username}</span>
-              <span className="leaderboard-value"><AnimatedNumber value={row.value} /></span>
-            </div>
-          ))}
-        </div>
+        <Ranking key={type} rows={rows} rowKey={(row, i) => row.userId || i} value={(row) => row.value} />
       )}
     </section>
   );

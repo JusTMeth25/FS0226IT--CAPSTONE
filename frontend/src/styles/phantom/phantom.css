@@ -1,0 +1,255 @@
+/* ==========================================================================
+   Phantom: il linguaggio grafico di VinylDex ispirato a Persona 5
+   --------------------------------------------------------------------------
+   La grammatica di P5 (tagli netti, diagonali, contrasto estremo, retino, titoli a ritaglio,
+   scatti) con i colori del brand: il magenta fa la parte del rosso, su nero notte e bianco
+   puro; il viola e' il secondo piano, l'oro solo per premi e leggendarie, il ciano per link e
+   focus. Le cornici si inclinano, i contenuti restano dritti e leggibili.
+
+   Tutto e' sotto :root[data-skin="phantom"] (lo imposta AppLayout fuori dall'hotel): l'hotel,
+   che usa anche .btn e le altre classi comuni, resta com'era.
+   ========================================================================== */
+
+/* I token servono anche alla cornice nell'hotel (data-shell): li' le pagine restano com'erano. */
+:root[data-skin="phantom"],
+:root[data-shell="phantom"] {
+  --p5-black: #07040f;
+  --p5-ink: #ffffff;
+  --p5-ink-soft: #c9c4dc;
+  --p5-red: var(--neon-magenta);          /* il "rosso" di P5 */
+  --p5-red-deep: #b0136a;
+  --p5-violet: var(--neon-purple);
+  --p5-gold: var(--neon-gold);
+  --p5-paper: #f4f1fa;                     /* bianco "carta" dei tasselli */
+
+  /* Superfici */
+  --p5-panel: #0d0820;
+  --p5-panel-raised: #150d2e;
+  --p5-line: rgba(255, 255, 255, 0.14);
+
+  /* Tagli: angoli netti invece degli arrotondati */
+  --p5-cut: 14px;
+  --p5-cut-sm: 8px;
+  --p5-shape: polygon(var(--p5-cut) 0, 100% 0, 100% calc(100% - var(--p5-cut)), calc(100% - var(--p5-cut)) 100%, 0 100%, 0 var(--p5-cut));
+  --p5-shape-sm: polygon(var(--p5-cut-sm) 0, 100% 0, 100% calc(100% - var(--p5-cut-sm)), calc(100% - var(--p5-cut-sm)) 100%, 0 100%, 0 var(--p5-cut-sm));
+  /* Blocco inclinato dei bottoni principali */
+  --p5-slant: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
+
+  /* Ombre nette, da stampa (niente bagliori morbidi) */
+  --p5-shadow: 5px 5px 0 #000;
+  --p5-shadow-red: 5px 5px 0 var(--p5-red);
+
+  /* Texture */
+  --p5-halftone: radial-gradient(rgba(255, 255, 255, 0.11) 1px, transparent 1.6px) 0 0 / 7px 7px;
+  --p5-halftone-red: radial-gradient(rgba(236, 72, 153, 0.35) 1.2px, transparent 1.8px) 0 0 / 8px 8px;
+  --p5-stripes: repeating-linear-gradient(-58deg, rgba(255, 255, 255, 0.035) 0 2px, transparent 2px 14px);
+
+  /* Movimento: scatti brevi */
+  --p5-snap: cubic-bezier(0.2, 1.4, 0.3, 1);
+  --p5-fast: 140ms;
+
+  --font-display: 'Archivo Variable', 'Arial Narrow', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ---------- Fondo: notte con strisce e retino in un angolo ---------- */
+:root[data-skin="phantom"] body {
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(236, 72, 153, 0.14), transparent 45%),
+    radial-gradient(ellipse at 0% 100%, rgba(139, 92, 246, 0.16), transparent 50%),
+    var(--p5-stripes),
+    var(--p5-black);
+  background-attachment: fixed;
+}
+
+/* ---------- Titoli di pagina e di sezione ---------- */
+:root[data-skin="phantom"] .section-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 70%;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  line-height: 0.95;
+  color: var(--p5-ink);
+  /* Niente testo a gradiente: bianco pieno con l'ombra netta magenta, come i titoli di P5. */
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  text-shadow: 3px 3px 0 var(--p5-red);
+  transform: skewX(-6deg);
+  transform-origin: left;
+}
+:root[data-skin="phantom"] .section-title.text-gradient { background: none; -webkit-text-fill-color: currentColor; }
+:root[data-skin="phantom"] .section-title i { color: var(--p5-red); text-shadow: none; }
+
+:root[data-skin="phantom"] .panel-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+:root[data-skin="phantom"] .panel-title i { color: var(--p5-red); }
+
+/* ---------- Pannelli: busta tagliata con bordo spezzato ---------- */
+/* Il fondo e il bordo stanno nel ::before (tagliato con clip-path): il pannello no, cosi'
+   menu a tendina e badge che escono dai bordi non vengono tagliati. Il ::after resta
+   all'alone che segue il puntatore (fx.css). */
+:root[data-skin="phantom"] .glass-panel {
+  position: relative;
+  isolation: isolate;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+:root[data-skin="phantom"] .glass-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  clip-path: var(--p5-shape);
+  background:
+    linear-gradient(var(--p5-panel), var(--p5-panel)) padding-box,
+    linear-gradient(135deg, rgba(236, 72, 153, 0.7), rgba(139, 92, 246, 0.35) 40%, rgba(255, 255, 255, 0.12)) border-box;
+  border: 1.5px solid transparent;
+}
+:root[data-skin="phantom"] .glass-panel::after { border-radius: 0; clip-path: var(--p5-shape); }
+:root[data-skin="phantom"] .glass-panel.fx-glow { box-shadow: none; }
+:root[data-skin="phantom"] .glass-panel.fx-glow::before {
+  background:
+    linear-gradient(var(--p5-panel-raised), var(--p5-panel-raised)) padding-box,
+    linear-gradient(135deg, var(--p5-red), rgba(139, 92, 246, 0.6) 45%, rgba(255, 255, 255, 0.2)) border-box;
+}
+
+/* ---------- Bottoni ---------- */
+:root[data-skin="phantom"] .btn {
+  position: relative;
+  isolation: isolate;
+  min-height: 44px;
+  border-radius: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  letter-spacing: 0.04em;
+  transition: transform var(--p5-fast) var(--p5-snap), color var(--p5-fast), filter var(--p5-fast);
+}
+/* Principale: blocco magenta inclinato con ombra nera netta (lo sfondo nel ::before, il testo dritto). */
+:root[data-skin="phantom"] .btn-primary {
+  background: none;
+  color: var(--p5-ink);
+  box-shadow: none;
+  padding-inline: 22px;
+  filter: drop-shadow(4px 4px 0 #000);
+}
+:root[data-skin="phantom"] :is(.btn-primary, .btn-gold, .btn-secondary)::before {
+  /* fx.css usa il ::before per il riflesso: qui diventa il fondo del bottone. */
+  width: auto;
+  height: auto;
+  transform: none;
+  animation: none;
+}
+:root[data-skin="phantom"] .btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--p5-red);
+  clip-path: var(--p5-slant);
+}
+:root[data-skin="phantom"] .btn-primary:hover:not(:disabled) {
+  transform: translate(-2px, -2px) rotate(-1deg);
+  filter: drop-shadow(6px 6px 0 #000);
+  box-shadow: none;
+}
+:root[data-skin="phantom"] .btn-primary:active:not(:disabled) { transform: translate(2px, 2px); filter: drop-shadow(1px 1px 0 #000); }
+
+/* Secondario: contorno bianco tagliato; al passaggio si riempie di bianco col testo nero. */
+:root[data-skin="phantom"] .btn-secondary {
+  background: none;
+  color: var(--p5-ink);
+  border: 0;
+}
+:root[data-skin="phantom"] .btn-secondary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  clip-path: var(--p5-shape-sm);
+  background:
+    linear-gradient(var(--p5-black), var(--p5-black)) padding-box,
+    linear-gradient(var(--p5-ink), var(--p5-ink)) border-box;
+  border: 2px solid transparent;
+  transition: background var(--p5-fast);
+}
+:root[data-skin="phantom"] .btn-secondary:hover:not(:disabled) { background: none; color: var(--p5-black); transform: translate(-1px, -1px); }
+:root[data-skin="phantom"] .btn-secondary:hover:not(:disabled)::before { background: var(--p5-ink); }
+
+:root[data-skin="phantom"] .btn-gold {
+  background: none;
+  color: #1a1000;
+  box-shadow: none;
+  filter: drop-shadow(4px 4px 0 #000);
+}
+:root[data-skin="phantom"] .btn-gold::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--p5-gold);
+  clip-path: var(--p5-slant);
+}
+:root[data-skin="phantom"] .btn-gold:hover:not(:disabled) { transform: translate(-2px, -2px) rotate(-1deg); box-shadow: none; }
+
+:root[data-skin="phantom"] .btn-danger {
+  border-radius: 0;
+  clip-path: var(--p5-shape-sm);
+}
+:root[data-skin="phantom"] .btn-small { min-height: 44px; }
+:root[data-skin="phantom"] .btn:disabled { filter: none; opacity: 0.45; }
+
+/* ---------- Campi ---------- */
+:root[data-skin="phantom"] :is(.filter-select, .ai-input, .form-input, textarea, select) {
+  border-radius: 0;
+  background: #0a0619;
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  color: var(--p5-ink);
+}
+:root[data-skin="phantom"] :is(.filter-select, .ai-input, .form-input, textarea, select):focus {
+  border-color: var(--p5-red);
+  box-shadow: 4px 4px 0 var(--p5-red);
+  outline: none;
+}
+
+/* ---------- Barre di avanzamento: nastro bianco su nero, riempimento magenta a strisce ---------- */
+:root[data-skin="phantom"] .progress-bar {
+  border-radius: 0;
+  background: #000;
+  outline: 1.5px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 0;
+}
+:root[data-skin="phantom"] .progress-fill {
+  border-radius: 0;
+  background: repeating-linear-gradient(-45deg, var(--p5-red) 0 6px, var(--p5-red-deep) 6px 10px);
+}
+
+/* ---------- Focus sempre visibile ---------- */
+:root[data-skin="phantom"] :is(a, button, [tabindex], input, select, textarea):focus-visible {
+  outline: 2px solid var(--neon-cyan);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-skin="phantom"] .btn { transition: none; }
+  :root[data-skin="phantom"] .btn:hover { transform: none !important; }
+}
+
+/* ---------- Tendina tra le pagine (PageWipe) ---------- */
+.p5-wipe { position: fixed; inset: 0; z-index: 2500; pointer-events: none; overflow: hidden; }
+.p5-wipe > span { position: absolute; top: -10%; bottom: -10%; left: 0; width: 70vw; transform-origin: center; }
+.p5-wipe-red { background: var(--neon-magenta); clip-path: polygon(22% 0, 100% 0, 78% 100%, 0 100%); }
+.p5-wipe-ink { background: #000; clip-path: polygon(30% 0, 100% 0, 70% 100%, 0 100%); width: 55vw; }
+
+/* L'aurora sfocata dello sfondo non e' P5: con Phantom il fondo e' notte, strisce e retino. */
+:root[data-skin="phantom"] .aurora { display: none; }

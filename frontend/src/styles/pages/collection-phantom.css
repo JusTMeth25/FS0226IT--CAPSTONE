@@ -1,0 +1,1076 @@
+/* ==========================================================================
+   Phantom: le pagine della collezione (Collezione, Dettaglio carta, Raccoglitore, Set,
+   Desideri, Fusione, Statistiche). Prefisso cx- per i pezzi nuovi.
+   Cornici, titoli, schede e bottoni parlano P5 (tagli, diagonali, ombre nette); liste,
+   filtri, numeri e testi restano dritti e leggibili. Tutto sotto data-skin="phantom".
+   ========================================================================== */
+
+/* ---------- Testata delle pagine: titolo a ritaglio su una lama magenta ---------- */
+:root[data-skin="phantom"] .cx-head {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 8px 0 18px;
+}
+/* Sotto il titolo una lama magenta in diagonale e un filo bianco: la firma di ogni pagina. */
+:root[data-skin="phantom"] .cx-head::before,
+:root[data-skin="phantom"] .cx-head::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  transform: rotate(-2deg);
+  transform-origin: left;
+  pointer-events: none;
+}
+:root[data-skin="phantom"] .cx-head::before {
+  left: -6px;
+  bottom: 6px;
+  width: min(82%, 520px);
+  height: 14px;
+  background: var(--p5-red);
+  clip-path: polygon(0 45%, 100% 0, 97% 100%, 0 100%);
+}
+:root[data-skin="phantom"] .cx-head::after {
+  left: 28px;
+  bottom: 0;
+  width: min(50%, 300px);
+  height: 3px;
+  background: var(--p5-ink);
+}
+:root[data-skin="phantom"] .cx-title {
+  font-size: clamp(1.75rem, 6.4vw, 3rem);
+  transform: rotate(-2deg);
+  transform-origin: left;
+}
+/* L'ombra va sulla parola (non sul tassello, che e' ritagliato e la taglierebbe). */
+:root[data-skin="phantom"] .cx-title .p5-ransom-word { filter: drop-shadow(3px 3px 0 #000); }
+
+/* Testi introduttivi delle pagine */
+:root[data-skin="phantom"] :is(.collection-page, .binder-page, .sets-page, .wishlist-page, .fusion-page, .stats-page) .page-subtitle {
+  margin-top: 0;
+  max-width: 72ch;
+  color: var(--p5-ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+/* Stati vuoti dentro le pagine della collezione */
+:root[data-skin="phantom"] :is(.collection-page, .card-detail-page, .wishlist-page, .stats-page) .empty-state { padding: 36px 20px; }
+:root[data-skin="phantom"] :is(.collection-page, .card-detail-page, .wishlist-page, .stats-page) .empty-state-icon {
+  opacity: 1;
+  color: var(--p5-red);
+  font-size: 2.8rem;
+  filter: drop-shadow(3px 3px 0 #000);
+}
+:root[data-skin="phantom"] :is(.collection-page, .card-detail-page, .wishlist-page, .stats-page) .empty-state-title {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 78%;
+  font-size: 1.6rem;
+  text-transform: uppercase;
+  transform: skewX(-6deg);
+  text-shadow: 3px 3px 0 var(--p5-red);
+}
+:root[data-skin="phantom"] :is(.collection-page, .card-detail-page, .wishlist-page, .stats-page) .empty-state p { color: var(--p5-ink-soft); }
+
+/* ==========================================================================
+   COLLEZIONE
+   ========================================================================== */
+/* Numeri in alto: un tabellone. Tre cifre in fila, il valore su tutta la riga in un blocco magenta. */
+:root[data-skin="phantom"] .collection-page .collection-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  padding: 8px;
+}
+:root[data-skin="phantom"] .collection-page .collection-stat {
+  position: relative;
+  min-width: 0;
+  padding: 10px 12px;
+  text-align: left;
+}
+:root[data-skin="phantom"] .collection-page .collection-stat + .collection-stat::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18%;
+  bottom: 18%;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.22);
+  transform: skewX(-12deg);
+}
+:root[data-skin="phantom"] .collection-page .collection-stat-value {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: clamp(1.7rem, 7vw, 2.6rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--p5-ink);
+  text-shadow: 3px 3px 0 #000;
+}
+:root[data-skin="phantom"] .collection-page .collection-stat-label {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: var(--p5-ink-soft);
+}
+:root[data-skin="phantom"] .collection-page .collection-stat.collection-stat-value-worth {
+  grid-column: 1 / -1;
+  isolation: isolate;
+  margin: 6px 4px 2px;
+  padding: 12px 18px;
+}
+:root[data-skin="phantom"] .collection-page .collection-stat.collection-stat-value-worth::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  top: 0;
+  bottom: 0;
+  width: auto;
+  z-index: -1;
+  background: var(--p5-red-deep);
+  clip-path: polygon(0 6%, 100% 0, 98% 100%, 1% 94%);
+  transform: none;
+}
+:root[data-skin="phantom"] .collection-page .collection-stat-value-worth .collection-stat-value {
+  color: var(--p5-ink);
+  font-size: clamp(1.8rem, 7.5vw, 2.6rem);
+}
+:root[data-skin="phantom"] .collection-page .collection-stat-value-worth .collection-stat-label { color: var(--p5-ink); }
+@media (min-width: 768px) {
+  :root[data-skin="phantom"] .collection-page .collection-stats { grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.5fr); align-items: center; }
+  :root[data-skin="phantom"] .collection-page .collection-stat.collection-stat-value-worth { grid-column: auto; margin: 0 0 0 10px; }
+}
+
+/* Rarita': schede inclinate col colore della rarita' sul bordo; la scelta e' bianca e ruotata. */
+:root[data-skin="phantom"] .collection-page .rarity-counts { padding: 10px; }
+:root[data-skin="phantom"] .collection-page .rarity-counts-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+@media (min-width: 576px) { :root[data-skin="phantom"] .collection-page .rarity-counts-row { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { :root[data-skin="phantom"] .collection-page .rarity-counts-row { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+:root[data-skin="phantom"] .collection-page .rarity-count-item {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  align-items: center;
+  min-width: 0;
+  min-height: 56px;
+  padding: 6px 16px 6px 12px;
+  border-radius: 0;
+  background: none;
+  color: var(--p5-ink);
+  text-align: left;
+  transition: transform var(--p5-fast) var(--p5-snap);
+}
+:root[data-skin="phantom"] .collection-page .rarity-count-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #0a0619;
+  border-left: 5px solid var(--rarity-color, var(--p5-ink));
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+:root[data-skin="phantom"] .collection-page .rarity-count-icon { grid-row: 1 / span 2; margin: 0; }
+:root[data-skin="phantom"] .collection-page .rarity-count-label {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--p5-ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-skin="phantom"] .collection-page .rarity-count-value {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1.45rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+:root[data-skin="phantom"] .collection-page .rarity-count-item:hover { background: none; transform: translate(-2px, -2px); }
+:root[data-skin="phantom"] .collection-page .rarity-count-item:hover::before { background: #1a1036; }
+:root[data-skin="phantom"] .collection-page .rarity-count-item.active {
+  color: var(--p5-black);
+  transform: rotate(-2deg);
+  filter: drop-shadow(4px 4px 0 var(--rarity-color, var(--p5-red)));
+}
+:root[data-skin="phantom"] .collection-page .rarity-count-item.active::before { background: var(--p5-ink); }
+:root[data-skin="phantom"] .collection-page .rarity-count-item.active .rarity-count-label { color: #3a3550; }
+
+/* Filtri: dritti; etichette nel carattere dei titoli, campi alti abbastanza per il dito. */
+:root[data-skin="phantom"] .collection-page .collection-filters .filter-label {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  letter-spacing: 0.1em;
+  color: var(--p5-ink-soft);
+}
+:root[data-skin="phantom"] .collection-page .filter-select { min-height: 44px; font-size: 0.92rem; }
+
+/* ==========================================================================
+   DETTAGLIO CARTA
+   ========================================================================== */
+:root[data-skin="phantom"] .card-detail-page .cx-nameplate {
+  margin: 8px 0 0;
+  max-width: 100%;
+  text-align: center;
+  text-shadow: none;
+}
+:root[data-skin="phantom"] .card-detail-page .cx-nameplate span {
+  display: inline-block;
+  max-width: 100%;
+  padding: 8px 20px 6px;
+  background: #000;
+  color: var(--p5-ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: clamp(1.5rem, 6vw, 2.3rem);
+  line-height: 1.02;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  transform: skewX(-8deg) rotate(-2deg);
+  box-shadow: 6px 6px 0 var(--rarity-color);
+}
+:root[data-skin="phantom"] .card-detail-page .cx-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 14px;
+}
+:root[data-skin="phantom"] .card-detail-page .card-detail-rarity-chip {
+  padding: 6px 20px;
+  border-radius: 0;
+  clip-path: var(--p5-slant);
+  box-shadow: none;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-stretch: 85%;
+  letter-spacing: 0.12em;
+}
+:root[data-skin="phantom"] .card-detail-page .card-detail-missing { background: var(--p5-ink); color: var(--p5-black); }
+/* Timbro "in collezione": bordo magenta su nero, ruotato come un timbro vero. */
+:root[data-skin="phantom"] .card-detail-page .cx-owned-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border: 3px solid var(--p5-red);
+  background: rgba(7, 4, 15, 0.9);
+  color: var(--p5-red);
+  box-shadow: 3px 3px 0 #000;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Dati della carta: righe dritte, etichetta a sinistra in maiuscoletto, fascia della rarita' a sinistra. */
+:root[data-skin="phantom"] .card-detail-page .card-detail-meta {
+  width: 100%;
+  gap: 0;
+  padding: 6px 16px;
+  border: 0;
+  border-left: 5px solid var(--rarity-color);
+  border-radius: 0;
+  background: #0a0619;
+  box-shadow: 5px 5px 0 #000;
+}
+:root[data-skin="phantom"] .card-detail-page .card-detail-meta-item {
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.16);
+  font-size: 0.9rem;
+}
+:root[data-skin="phantom"] .card-detail-page .card-detail-meta-item:last-child { border-bottom: 0; }
+:root[data-skin="phantom"] .card-detail-page .meta-label {
+  color: var(--p5-ink-soft);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+:root[data-skin="phantom"] .card-detail-page .meta-value { text-align: right; font-weight: 700; }
+:root[data-skin="phantom"] .card-detail-page .cx-meta-price {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 85%;
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Consiglio per le carte che non hai */
+:root[data-skin="phantom"] .card-detail-page .cx-hint {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 18px;
+}
+:root[data-skin="phantom"] .card-detail-page .cx-hint p { margin: 0; }
+:root[data-skin="phantom"] .card-detail-page .cx-hint-kicker { color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .card-detail-page .cx-hint-kicker i { color: var(--p5-red); }
+:root[data-skin="phantom"] .card-detail-page .cx-hint-pack {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 78%;
+  font-size: 1.5rem;
+  line-height: 1.05;
+  text-transform: uppercase;
+  text-shadow: 3px 3px 0 var(--p5-red);
+}
+:root[data-skin="phantom"] .card-detail-page .cx-hint-rate { color: var(--p5-ink-soft); font-size: 0.85rem; }
+:root[data-skin="phantom"] .card-detail-page .cx-hint-rate strong { color: var(--p5-ink); font-size: 1rem; }
+:root[data-skin="phantom"] .card-detail-page .cx-hint-guarantee {
+  margin-top: 4px;
+  padding: 3px 12px;
+  background: var(--p5-ink);
+  color: var(--p5-black);
+  font-weight: 800;
+  font-size: 0.82rem;
+  clip-path: var(--p5-slant);
+}
+:root[data-skin="phantom"] .card-detail-page .cx-hint .btn { margin-top: 12px; }
+
+/* Andamento del prezzo */
+:root[data-skin="phantom"] .price-history { padding: 16px; }
+:root[data-skin="phantom"] .price-history h3 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+:root[data-skin="phantom"] .price-history h3 i { color: var(--p5-red); }
+:root[data-skin="phantom"] .price-chart figcaption span { color: var(--p5-ink-soft); opacity: 1; }
+:root[data-skin="phantom"] .price-chart figcaption b { font-family: var(--font-display); font-weight: 900; font-size: 1.05rem; }
+
+/* ---------- Il perito ---------- */
+:root[data-skin="phantom"] .grading-box {
+  position: relative;
+  isolation: isolate;
+  gap: 12px;
+  padding: 18px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+:root[data-skin="phantom"] .grading-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  clip-path: var(--p5-shape);
+  border: 1.5px solid transparent;
+  background:
+    var(--p5-halftone) padding-box,
+    linear-gradient(var(--p5-panel), var(--p5-panel)) padding-box,
+    linear-gradient(135deg, var(--p5-ink), rgba(139, 92, 246, 0.4) 45%, var(--p5-red)) border-box;
+}
+:root[data-skin="phantom"] .grading-head { gap: 14px; }
+:root[data-skin="phantom"] .grading-head > i {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  background: var(--p5-ink);
+  color: var(--p5-black);
+  font-size: 1.6rem;
+  clip-path: var(--p5-shape-sm);
+  transform: rotate(-4deg);
+}
+:root[data-skin="phantom"] .grading-head strong {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+}
+:root[data-skin="phantom"] :is(.grading-head span, .grading-result span, .grading-note) { opacity: 1; color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .grading-error { color: #ff9a9a; font-weight: 700; }
+
+/* Voto: blocco nero con la cifra grande; 9-10 in oro (e' un premio). */
+:root[data-skin="phantom"] .grade-badge {
+  align-items: baseline;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  color: var(--p5-ink);
+  box-shadow: 3px 3px 0 #6b6480;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  letter-spacing: 0.08em;
+}
+:root[data-skin="phantom"] .grade-badge b { font-size: 1.2rem; }
+:root[data-skin="phantom"] .grade-top { background: var(--p5-gold); color: #1a1000; box-shadow: 3px 3px 0 #000; }
+:root[data-skin="phantom"] .grade-good { box-shadow: 3px 3px 0 var(--neon-cyan); }
+:root[data-skin="phantom"] .grading-result { position: relative; isolation: isolate; gap: 18px; padding: 8px 0 8px 6px; }
+:root[data-skin="phantom"] .grading-result .grade-badge { padding: 8px 14px; }
+:root[data-skin="phantom"] .grading-result .grade-badge b { font-size: 2.2rem; line-height: 0.9; }
+:root[data-skin="phantom"] .grading-result strong {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1.3rem;
+  text-transform: uppercase;
+}
+/* L'arrivo lo fa Motion (GradingBox): le vecchie animazioni CSS si spengono per non sommarsi. */
+:root[data-skin="phantom"] .grading-result.just-graded .grade-badge,
+:root[data-skin="phantom"] .grading-sealed { animation: none; }
+:root[data-skin="phantom"] .cx-grade-stamp { position: relative; isolation: isolate; display: inline-grid; place-items: center; flex: 0 0 auto; }
+:root[data-skin="phantom"] .cx-grade-star {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  z-index: -1;
+}
+:root[data-skin="phantom"] .cx-grade-slash {
+  position: absolute;
+  z-index: -2;
+  left: -24px;
+  top: calc(50% - 22px);
+  width: 170px;
+  height: 44px;
+  background: var(--p5-red);
+  clip-path: polygon(0 30%, 100% 0, 92% 100%, 4% 80%);
+  transform-origin: left;
+  rotate: -6deg;
+  pointer-events: none;
+}
+
+/* Desideri: il cuore acceso e' l'azione scelta (magenta), non un premio. */
+:root[data-skin="phantom"] .wish-button { align-self: center; }
+
+/* ==========================================================================
+   RACCOGLITORE
+   ========================================================================== */
+:root[data-skin="phantom"] .binder-page .binder-controls { gap: 12px 14px; }
+:root[data-skin="phantom"] .binder-page .binder-controls label {
+  gap: 6px;
+  opacity: 1;
+  color: var(--p5-ink-soft);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+/* Il campo sta dentro l'etichetta: torna al carattere del testo. */
+:root[data-skin="phantom"] .binder-page .binder-controls select {
+  min-height: 44px;
+  padding: 8px 12px;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-weight: 600;
+  font-stretch: 100%;
+  font-size: 0.95rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+:root[data-skin="phantom"] .binder-page .binder-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--p5-ink-soft);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 80%;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+:root[data-skin="phantom"] .binder-page .binder-count strong {
+  color: var(--p5-ink);
+  font-size: 2.1rem;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 3px 3px 0 var(--p5-red);
+  font-variant-numeric: tabular-nums;
+}
+/* Il nome del raccoglitore: targa nera con l'ombra nel colore del gioco. */
+:root[data-skin="phantom"] .binder-page .binder-title {
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 6px 18px 6px 8px;
+  background: #000;
+  color: var(--p5-ink);
+  box-shadow: 5px 5px 0 var(--binder-accent);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  transform: skewX(-8deg);
+}
+:root[data-skin="phantom"] .binder-page .binder-title img { border-radius: 0; transform: skewX(8deg); }
+:root[data-skin="phantom"] .binder-page .binder { border-radius: 0; box-shadow: inset 0 0 0 4px var(--binder-accent), 8px 8px 0 #000; }
+:root[data-skin="phantom"] .binder-page .binder-pocket { border-radius: 0; }
+:root[data-skin="phantom"] .binder-page .binder-page-number { font-family: var(--font-display); font-weight: 800; opacity: 0.8; }
+:root[data-skin="phantom"] .binder-3d canvas { border-radius: 0; }
+:root[data-skin="phantom"] .binder-3d-tool {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  color: var(--p5-ink);
+  clip-path: var(--p5-shape-sm);
+  box-shadow: inset 0 0 0 2px var(--p5-ink);
+}
+:root[data-skin="phantom"] .binder-3d-tool:hover { background: var(--p5-ink); color: var(--p5-black); }
+:root[data-skin="phantom"] .binder-3d-hint {
+  border-radius: 0;
+  border-left: 3px solid var(--p5-red);
+  background: rgba(0, 0, 0, 0.82);
+  color: var(--p5-ink);
+}
+:root[data-skin="phantom"] .binder-page .binder-nav { gap: 18px; }
+:root[data-skin="phantom"] .binder-page .binder-nav .btn { min-width: 56px; }
+:root[data-skin="phantom"] .binder-page .binder-nav-count {
+  min-width: 84px;
+  text-align: center;
+  color: var(--p5-ink-soft);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 80%;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+:root[data-skin="phantom"] .binder-page .binder-nav-count strong { color: var(--p5-ink); font-size: 1.9rem; font-weight: 900; }
+
+/* ==========================================================================
+   SET
+   ========================================================================== */
+/* Distintivi = premi: tasselli d'oro inclinati. */
+:root[data-skin="phantom"] .sets-page .sets-badge {
+  min-height: 32px;
+  padding: 5px 18px;
+  border: 0;
+  border-radius: 0;
+  background: var(--p5-gold);
+  color: #1a1000;
+  clip-path: var(--p5-slant);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+:root[data-skin="phantom"] .sets-page .sets-badge i { color: #1a1000; }
+:root[data-skin="phantom"] .sets-page .sets-notice { color: var(--p5-ink); font-weight: 700; }
+
+:root[data-skin="phantom"] .sets-page .set-card { gap: 12px; padding: 16px; border-radius: 0; box-shadow: none; }
+:root[data-skin="phantom"] .sets-page .set-card header { gap: 12px; }
+:root[data-skin="phantom"] .sets-page .set-card header > i {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  background: var(--p5-ink);
+  color: var(--p5-black);
+  font-size: 1.5rem;
+  clip-path: var(--p5-shape-sm);
+}
+:root[data-skin="phantom"] .sets-page .set-card h3 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 78%;
+  font-size: 1.25rem;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+:root[data-skin="phantom"] .sets-page .set-card header span { opacity: 1; color: var(--p5-ink-soft); font-size: 0.82rem; }
+:root[data-skin="phantom"] .sets-page .set-reward {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.15rem;
+  color: var(--p5-gold);
+  font-variant-numeric: tabular-nums;
+}
+:root[data-skin="phantom"] .sets-page .set-progress {
+  height: 12px;
+  margin: 0 6px;
+  border-radius: 0;
+  background: #000;
+  outline: 1.5px solid rgba(255, 255, 255, 0.5);
+  transform: skewX(-12deg);
+}
+:root[data-skin="phantom"] .sets-page .set-progress span { background: repeating-linear-gradient(-45deg, var(--p5-red) 0 6px, var(--p5-red-deep) 6px 10px); }
+:root[data-skin="phantom"] .sets-page .set-card:is(.ready, .claimed) .set-progress span { background: repeating-linear-gradient(-45deg, var(--p5-gold) 0 6px, #b98a00 6px 10px); }
+:root[data-skin="phantom"] .sets-page .set-footer > span:first-child {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+/* Pronto da ritirare: la busta prende il bordo d'oro. */
+:root[data-skin="phantom"] .sets-page .set-card.ready::before {
+  border-width: 2px;
+  background:
+    linear-gradient(var(--p5-panel-raised), var(--p5-panel-raised)) padding-box,
+    linear-gradient(135deg, var(--p5-gold), rgba(255, 255, 255, 0.35) 50%, var(--p5-gold)) border-box;
+}
+:root[data-skin="phantom"] .sets-page .set-card.claimed { opacity: 1; }
+/* Completato: timbro d'oro ruotato. */
+:root[data-skin="phantom"] .sets-page .set-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 3px solid var(--p5-gold);
+  color: var(--p5-gold);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: rotate(-6deg);
+}
+:root[data-skin="phantom"] .sets-page .set-cards img { border-radius: 0; }
+:root[data-skin="phantom"] .sets-page .set-cards small { opacity: 1; color: var(--p5-ink-soft); }
+
+/* Set completato: riquadro bianco tagliato con la stella d'oro e l'ombra magenta. */
+:root[data-skin="phantom"] .cx-win {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  min-height: 104px;
+  padding: 16px 22px 16px 104px;
+  color: var(--p5-black);
+  filter: drop-shadow(6px 6px 0 var(--p5-red));
+}
+:root[data-skin="phantom"] .cx-win::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--p5-paper);
+  clip-path: polygon(0 8%, 100% 0, 98% 100%, 1% 92%);
+}
+:root[data-skin="phantom"] .cx-win-star { position: absolute; left: 14px; top: calc(50% - 38px); display: block; line-height: 0; }
+:root[data-skin="phantom"] .cx-win-text { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; flex: 1 1 200px; min-width: 0; }
+:root[data-skin="phantom"] .cx-win-kicker {
+  padding: 2px 12px;
+  background: var(--p5-black);
+  color: var(--p5-ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: skewX(-10deg);
+}
+:root[data-skin="phantom"] .cx-win-text strong {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: clamp(1.4rem, 5vw, 2rem);
+  line-height: 1;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+:root[data-skin="phantom"] .cx-win-text b { padding: 0 5px; background: var(--p5-gold); color: #1a1000; }
+
+/* ==========================================================================
+   DESIDERI
+   ========================================================================== */
+:root[data-skin="phantom"] .wishlist-page { display: flex; flex-direction: column; gap: 16px; }
+:root[data-skin="phantom"] .wishlist-page .wish-available-count { padding: 0 6px; background: var(--p5-red-deep); color: var(--p5-ink); }
+:root[data-skin="phantom"] .wishlist-page .wish-list { grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 16px; }
+:root[data-skin="phantom"] .wishlist-page .wish-item { gap: 16px; padding: 16px; border-left: 0; box-shadow: none; }
+:root[data-skin="phantom"] .wishlist-page .wish-item.available::before {
+  border-width: 2px;
+  background:
+    linear-gradient(var(--p5-panel-raised), var(--p5-panel-raised)) padding-box,
+    linear-gradient(135deg, var(--p5-red), var(--p5-red) 35%, rgba(255, 255, 255, 0.3)) border-box;
+}
+/* La carta e' un oggetto sul tavolo: leggermente ruotata, bordo bianco e ombra nel colore della rarita'. */
+:root[data-skin="phantom"] .wishlist-page .wish-card { min-height: 44px; margin: 4px 0 0 4px; }
+:root[data-skin="phantom"] .wishlist-page .wish-card img {
+  border-radius: 0;
+  outline: 3px solid var(--p5-ink);
+  box-shadow: 5px 5px 0 var(--rarity-color);
+  transform: rotate(-4deg);
+  transition: transform var(--p5-fast) var(--p5-snap);
+}
+:root[data-skin="phantom"] .wishlist-page .wish-card:hover img { transform: rotate(0deg) scale(1.04); }
+:root[data-skin="phantom"] .wishlist-page .wish-info { padding-right: 52px; gap: 6px; }
+:root[data-skin="phantom"] .wishlist-page .wish-info strong {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1.15rem;
+  line-height: 1.05;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+:root[data-skin="phantom"] .wishlist-page .wish-meta { color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .wishlist-page .wish-none { color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .wishlist-page .cx-wish-tag {
+  align-self: flex-start;
+  padding: 2px 14px;
+  background: var(--p5-red-deep);
+  color: var(--p5-ink);
+  clip-path: var(--p5-slant);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 85%;
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+:root[data-skin="phantom"] .wishlist-page .wish-offers { gap: 6px; }
+:root[data-skin="phantom"] .wishlist-page .wish-offer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 18px 8px 12px;
+  border: 0;
+  border-radius: 0;
+  background: var(--p5-ink);
+  color: var(--p5-black);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  transition: background var(--p5-fast), color var(--p5-fast);
+}
+:root[data-skin="phantom"] .wishlist-page .wish-offer:hover { background: var(--p5-red-deep); color: var(--p5-ink); }
+:root[data-skin="phantom"] .wishlist-page .wish-remove { top: 12px; right: 12px; width: 44px; padding: 0; }
+
+/* ==========================================================================
+   FUSIONE
+   ========================================================================== */
+:root[data-skin="phantom"] .fusion-page .fusion-tabs { gap: 10px; padding: 4px 0 6px; }
+:root[data-skin="phantom"] .fusion-page .fusion-tab {
+  position: relative;
+  isolation: isolate;
+  min-height: 52px;
+  justify-content: center;
+  padding: 6px 20px 6px 14px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--p5-ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1rem;
+  text-transform: uppercase;
+  transition: transform var(--p5-fast) var(--p5-snap);
+}
+:root[data-skin="phantom"] .fusion-page .fusion-tab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #0a0619;
+  border-bottom: 4px solid var(--rarity-color);
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+:root[data-skin="phantom"] .fusion-page .fusion-tab small {
+  opacity: 1;
+  color: var(--p5-ink-soft);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-weight: 600;
+  font-stretch: 100%;
+  font-size: 0.74rem;
+  text-transform: none;
+}
+:root[data-skin="phantom"] .fusion-page .fusion-tab:hover { transform: translateY(-2px); }
+:root[data-skin="phantom"] .fusion-page .fusion-tab.active {
+  color: var(--p5-black);
+  box-shadow: none;
+  transform: rotate(-3deg) scale(1.05);
+  filter: drop-shadow(4px 4px 0 var(--rarity-color));
+}
+:root[data-skin="phantom"] .fusion-page .fusion-tab.active::before { background: var(--p5-ink); }
+:root[data-skin="phantom"] .fusion-page .fusion-tab.active small { color: #3a3550; }
+
+/* Il banco: notte a retino, le tre tasche come sagome di carta un po' storte. */
+:root[data-skin="phantom"] .fusion-page .fusion-bench {
+  position: relative;
+  isolation: isolate;
+  gap: 18px;
+  padding: 26px 16px 28px;
+  border-radius: 0;
+  background: none;
+}
+:root[data-skin="phantom"] .fusion-page .fusion-bench::before,
+:root[data-skin="phantom"] .fusion-page .fusion-bench::after { content: ''; position: absolute; z-index: -1; pointer-events: none; }
+:root[data-skin="phantom"] .fusion-page .fusion-bench::before {
+  inset: 0;
+  background:
+    var(--p5-halftone),
+    radial-gradient(ellipse at 50% 40%, rgba(139, 92, 246, 0.35), transparent 65%),
+    #07040f;
+  clip-path: polygon(0 4%, 100% 0, 100% 96%, 0 100%);
+}
+:root[data-skin="phantom"] .fusion-page .fusion-bench::after {
+  left: 8%;
+  right: 8%;
+  bottom: 12px;
+  height: 4px;
+  background: var(--p5-red);
+  transform: rotate(-1.5deg);
+}
+:root[data-skin="phantom"] .fusion-page .fusion-slots { gap: 12px; }
+:root[data-skin="phantom"] .fusion-page .fusion-slot {
+  width: clamp(76px, 24vw, 112px);
+  border: 2px dashed rgba(255, 255, 255, 0.5);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.7);
+  opacity: 1;
+  transform: rotate(-4deg);
+}
+:root[data-skin="phantom"] .fusion-page .fusion-slot:nth-child(2) { transform: translateY(-6px); }
+:root[data-skin="phantom"] .fusion-page .fusion-slot:nth-child(3) { transform: rotate(4deg); }
+:root[data-skin="phantom"] .fusion-page .fusion-slot.filled { border: 3px solid var(--p5-ink); box-shadow: 5px 5px 0 var(--rarity-color); }
+:root[data-skin="phantom"] .fusion-page .fusion-go { min-width: 200px; }
+:root[data-skin="phantom"] .fusion-page .fusion-error { color: #ff9a9a; font-weight: 700; }
+
+/* Fusione riuscita */
+:root[data-skin="phantom"] .fusion-page .fusion-result {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  flex-wrap: wrap;
+  gap: 22px 28px;
+  padding: 28px 20px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  animation: none;
+}
+:root[data-skin="phantom"] .fusion-page .fusion-result::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--p5-stripes), #07040f;
+  box-shadow: inset 0 0 0 2px var(--rarity-color);
+  clip-path: var(--p5-shape);
+}
+:root[data-skin="phantom"] .cx-fuse-flash {
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  z-index: 3;
+  width: 60%;
+  background: var(--p5-red);
+  clip-path: polygon(30% 0, 100% 0, 70% 100%, 0 100%);
+  pointer-events: none;
+}
+:root[data-skin="phantom"] .fusion-page .fusion-result .cx-fuse-card { position: relative; isolation: isolate; display: grid; place-items: center; }
+:root[data-skin="phantom"] .cx-fuse-star { position: absolute; left: 50%; top: 50%; translate: -50% -50%; z-index: -1; }
+:root[data-skin="phantom"] .fusion-page .fusion-result img {
+  width: 130px;
+  border-radius: 0;
+  outline: 3px solid var(--p5-ink);
+  box-shadow: 7px 7px 0 #000;
+}
+:root[data-skin="phantom"] .fusion-page .fusion-result .cx-fuse-text { align-items: flex-start; gap: 6px; min-width: 0; }
+:root[data-skin="phantom"] .cx-fuse-kicker {
+  padding: 2px 12px;
+  background: var(--p5-ink);
+  color: var(--p5-black);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transform: skewX(-10deg);
+}
+:root[data-skin="phantom"] .fusion-page .fusion-result strong {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 76%;
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow: 3px 3px 0 var(--p5-red);
+  overflow-wrap: anywhere;
+}
+:root[data-skin="phantom"] .cx-fuse-rarity { color: var(--rarity-color); font-weight: 800; }
+
+/* Doppioni da scegliere */
+:root[data-skin="phantom"] .fusion-page .fusion-card {
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  transition: transform var(--p5-fast) var(--p5-snap);
+}
+:root[data-skin="phantom"] .fusion-page .fusion-card:hover { transform: translate(-2px, -2px); }
+:root[data-skin="phantom"] .fusion-page .fusion-card.picked { box-shadow: none; transform: rotate(-2deg); }
+:root[data-skin="phantom"] .fusion-page .fusion-card.picked img { outline: 3px solid var(--p5-ink); box-shadow: 5px 5px 0 var(--rarity-color); }
+:root[data-skin="phantom"] .fusion-page .fusion-spare {
+  right: 6px;
+  bottom: 6px;
+  padding: 2px 10px;
+  border-radius: 0;
+  background: #000;
+  clip-path: var(--p5-slant);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.74rem;
+}
+:root[data-skin="phantom"] .fusion-page .fusion-card.picked .fusion-spare { background: var(--p5-red-deep); }
+
+/* ==========================================================================
+   STATISTICHE
+   ========================================================================== */
+/* I sei numeri in un unico tabellone a griglia (le righe sottili sono lo spazio fra le caselle),
+   non sei schede uguali con l'icona sopra. */
+:root[data-skin="phantom"] .stats-page .stats-numbers {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.16);
+  clip-path: var(--p5-shape);
+  box-shadow: none;
+}
+@media (min-width: 768px) { :root[data-skin="phantom"] .stats-page .stats-numbers { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+:root[data-skin="phantom"] .stats-page .stats-numbers li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: center;
+  align-content: center;
+  padding: 16px 14px;
+  text-align: left;
+  background: var(--p5-panel);
+}
+:root[data-skin="phantom"] .stats-page .stats-numbers li::before { display: none; }
+:root[data-skin="phantom"] .stats-page .stats-numbers strong {
+  grid-column: 1 / -1;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: clamp(1.6rem, 4.2vw, 2.4rem);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 3px 3px 0 #000;
+  white-space: nowrap;
+}
+:root[data-skin="phantom"] .stats-page .stats-numbers i { grid-row: 2; font-size: 1rem; color: var(--p5-red); }
+:root[data-skin="phantom"] .stats-page .stats-numbers span {
+  grid-row: 2;
+  margin-top: 4px;
+  color: var(--p5-ink-soft);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+:root[data-skin="phantom"] .stats-page .stats-numbers li.is-gold strong { color: var(--p5-gold); }
+:root[data-skin="phantom"] .stats-page .stats-numbers li.is-gold i { color: var(--p5-gold); }
+
+:root[data-skin="phantom"] .stats-page .stats-grid { stroke: rgba(255, 255, 255, 0.14); stroke-dasharray: 4 6; }
+:root[data-skin="phantom"] .stats-page .stats-note { color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .stats-page .stats-bars li { font-size: 0.85rem; }
+:root[data-skin="phantom"] .stats-page .stats-bar-label { color: var(--p5-ink-soft); }
+:root[data-skin="phantom"] .stats-page .stats-bar-track {
+  height: 12px;
+  border-radius: 0;
+  background: #000;
+  outline: 1px solid rgba(255, 255, 255, 0.28);
+}
+:root[data-skin="phantom"] .stats-page .stats-bar-track > span { border-radius: 0; clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
+:root[data-skin="phantom"] .stats-page .stats-bars strong { font-family: var(--font-display); font-weight: 900; font-variant-numeric: tabular-nums; }
+
+/* Fortuna: tu contro la media, con il "VS" su una stella magenta. */
+:root[data-skin="phantom"] .stats-page .stats-luck-row { align-items: center; gap: 14px 18px; }
+:root[data-skin="phantom"] .stats-page .stats-luck-row > span:not(.stats-luck-vs) {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--p5-ink-soft);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+:root[data-skin="phantom"] .stats-page .stats-luck-row strong {
+  color: var(--p5-ink);
+  font-size: 2.3rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+:root[data-skin="phantom"] .stats-page .stats-luck-you strong { text-shadow: 3px 3px 0 var(--p5-red); }
+:root[data-skin="phantom"] .stats-page .stats-luck-vs {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  background: var(--p5-red);
+  color: var(--p5-ink);
+  clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.95rem;
+  padding-top: 6px;
+  transform: rotate(-8deg);
+}
+:root[data-skin="phantom"] .stats-page :is(.stats-lucky, .stats-unlucky) { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; font-size: 1.05rem; }
+
+/* ---------- Telefono in orizzontale: testate e banchi piu' bassi ---------- */
+@media (max-height: 520px) and (orientation: landscape) {
+  :root[data-skin="phantom"] .cx-head { padding: 4px 0 12px; }
+  :root[data-skin="phantom"] .cx-title { font-size: 1.7rem; }
+  :root[data-skin="phantom"] .fusion-page .fusion-bench { padding: 16px; }
+  :root[data-skin="phantom"] .fusion-page .fusion-slot { width: 76px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-skin="phantom"] :is(.rarity-count-item, .fusion-tab, .fusion-card, .wish-card img) { transition: none; }
+}

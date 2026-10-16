@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useApiResource } from '../hooks/useApiResource.js';
 import { tradeApi } from '../services/tradeApi.js';
@@ -7,6 +7,11 @@ import EmptyState from '../components/common/EmptyState.jsx';
 import CardOwnership from '../components/trade/CardOwnership.jsx';
 import TradeComposer from '../components/trade/TradeComposer.jsx';
 import { useOwnedCounts } from '../hooks/useOwnedCounts.js';
+import PhantomTitle from '../components/phantom/PhantomTitle.jsx';
+import DealBanner from '../components/trade/DealBanner.jsx';
+import { newDeal } from '../components/trade/newDeal.js';
+import '../styles/pages/social-phantom.css';
+import '../styles/pages/social-market.css';
 
 /** Messaggi per i codici d'errore degli scambi. */
 const TRADE_ERRORS = {
@@ -60,21 +65,29 @@ function TradeList({ trades, loading, error, onReload, direction, onAccept, onRe
     );
   }
   if (!trades.length) {
-    return <EmptyState icon="ph-arrows-left-right" title="Nessuno scambio" description={`Non hai scambi ${direction === 'incoming' ? 'ricevuti' : 'inviati'} al momento.`} />;
+    return (
+      <EmptyState
+        icon="ph-arrows-left-right"
+        title={direction === 'incoming' ? 'Nessuna proposta' : 'Nessun invio'}
+        description={direction === 'incoming'
+          ? 'Nessuno ti ha ancora proposto uno scambio. Fai tu la prima mossa: scrivi uno username qui sopra.'
+          : 'Non hai proposte in corso. Scegli un giocatore qui sopra e metti insieme la tua offerta.'}
+      />
+    );
   }
   return (
     <div className="trade-list">
       {trades.map((trade) => (
-        <div className="trade-item glass-panel" key={trade.id}>
-          <div className="listing-item-info">
-            <span className="listing-item-name">
-              {direction === 'incoming' ? `Da: ${trade.fromUser?.username}` : `A: ${trade.toUser?.username}`}
-            </span>
-            <span className="listing-item-meta trade-item-cards">
-              <span className="trade-item-side">Offre: <TradeCards items={trade.offeredCards} gold={trade.offeredGold} owned={owned} /></span>
-              <span className="trade-item-side">Richiede: <TradeCards items={trade.requestedCards} gold={trade.requestedGold} owned={owned} /></span>
-            </span>
-          </div>
+        <div className={`trade-item glass-panel${statusOf(trade) === 'pending' ? '' : ' is-closed'}`} key={trade.id}>
+          <p className="st-who">
+            {direction === 'incoming'
+              ? <><small>Da</small>{trade.fromUser?.username}</>
+              : <><small>A</small>{trade.toUser?.username}</>}
+          </p>
+          <dl className="st-sides">
+            <div className="st-side"><dt>{direction === 'incoming' ? 'Ti offre' : 'Offri'}</dt><dd><TradeCards items={trade.offeredCards} gold={trade.offeredGold} owned={owned} /></dd></div>
+            <div className="st-side"><dt>{direction === 'incoming' ? 'Ti chiede' : 'Chiedi'}</dt><dd><TradeCards items={trade.requestedCards} gold={trade.requestedGold} owned={owned} /></dd></div>
+          </dl>
           <TradeStatusBadge status={trade.status} />
           {statusOf(trade) === 'pending' && (
             <div className="listing-item-actions">
@@ -97,15 +110,18 @@ function TradeList({ trades, loading, error, onReload, direction, onAccept, onRe
 export default function TradesPage() {
   const [tab, setTab] = useState('incoming');
   const [actionError, setActionError] = useState(null);
+  const [deal, setDeal] = useState(null);
+  const clearDeal = useCallback(() => setDeal(null), []);
   // Dall'hotel si arriva con ?to=nome: il destinatario e' gia' compilato.
   const [searchParams] = useSearchParams();
   const incoming = useApiResource(() => tradeApi.getIncoming(), []);
   const outgoing = useApiResource(() => tradeApi.getOutgoing(), []);
 
-  async function act(fn, trade, reload) {
+  async function act(fn, trade, reload, onDone) {
     setActionError(null);
     try {
       await fn(trade.id);
+      onDone?.();
       reload();
     } catch (err) {
       setActionError(TRADE_ERRORS[err.code] || err.message);
@@ -113,20 +129,30 @@ export default function TradesPage() {
   }
 
   return (
-    <section className="trades-page">
-      <h2 className="section-title text-gradient"><i className="ph-fill ph-arrows-left-right" /> Scambi</h2>
-      <p className="page-subtitle">Scambia carte (ed eventualmente gold) con altri giocatori.</p>
+    <section className="trades-page sp-page">
+      <header className="sp-head">
+        <PhantomTitle as="h2" text="Scambi" />
+        <p className="sp-sub">Scambia carte (ed eventualmente gold) con altri giocatori.</p>
+      </header>
+      <DealBanner deal={deal} onDone={clearDeal} />
 
-      <div className="glass-panel">
+      <div className="glass-panel st-compose">
         <h3 className="panel-title"><i className="ph-fill ph-plus-circle" /> Proponi uno scambio</h3>
         <TradeComposer initialTo={searchParams.get('to') || ''} onSent={() => { outgoing.reload(); }} />
       </div>
 
       {actionError && <div className="auth-message auth-message-error">{actionError}</div>}
 
-      <div className="tabs-row">
-        <button className={`btn ${tab === 'incoming' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setTab('incoming')}>Ricevuti</button>
-        <button className={`btn ${tab === 'outgoing' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setTab('outgoing')}>Inviati</button>
+      <div className="sp-tabs st-tabs" role="group" aria-label="Elenco degli scambi">
+        {[['incoming', 'Ricevuti', incoming], ['outgoing', 'Inviati', outgoing]].map(([key, label, res]) => {
+          const waiting = (res.data?.trades || []).filter((t) => statusOf(t) === 'pending').length;
+          return (
+            <button key={key} type="button" className={`sp-tab${tab === key ? ' is-active' : ''}`} aria-pressed={tab === key} onClick={() => setTab(key)}>
+              {label}
+              {waiting > 0 && <span className="sp-tab-count" aria-label={`${waiting} in attesa`}>{waiting}</span>}
+            </button>
+          );
+        })}
       </div>
 
       {tab === 'incoming' ? (
@@ -136,7 +162,7 @@ export default function TradesPage() {
           error={incoming.error}
           onReload={incoming.reload}
           direction="incoming"
-          onAccept={(t) => act(tradeApi.accept, t, incoming.reload)}
+          onAccept={(t) => act(tradeApi.accept, t, incoming.reload, () => setDeal(newDeal('Scambio concluso!', `Affare chiuso con ${t.fromUser?.username || "l'altro giocatore"}: le carte sono già nella tua collezione.`)))}
           onReject={(t) => act(tradeApi.reject, t, incoming.reload)}
         />
       ) : (

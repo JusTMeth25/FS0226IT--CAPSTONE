@@ -8,6 +8,8 @@ import { coverImage, themeFor } from '../components/binder/binderThemes.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import ThreeGate from '../components/three/ThreeGate.jsx';
 import GradedSlab from '../components/card/GradedSlab.jsx';
+import PhantomTitle from '../components/phantom/PhantomTitle.jsx';
+import '../styles/pages/collection-phantom.css';
 
 // Il libro 3D porta con se' three.js: si scarica solo quando si apre il raccoglitore.
 const BinderBook3D = lazy(() => import('../components/binder/BinderBook3D.jsx'));
@@ -214,7 +216,9 @@ export default function BinderPage() {
   const flatView = <FlatBinder pages={pages} spread={spread} single={single} turning={turning} />;
   return (
     <section className="binder-page" style={{ '--binder-accent': theme.accent, '--binder-page': theme.page, '--binder-pocket': theme.pocket, '--binder-cover': `url(${coverImage(theme)})` }}>
-      <h2 className="section-title text-gradient"><i className="ph-fill ph-book-open" /> Raccoglitore</h2>
+      <header className="cx-head">
+        <PhantomTitle text="Raccoglitore" className="cx-title" />
+      </header>
       <div className="binder-controls">
         <label>
           Gioco
@@ -232,7 +236,7 @@ export default function BinderPage() {
         <button type="button" className="btn btn-secondary btn-small" onClick={toggleView}>
           <i className={`ph-fill ${flat ? 'ph-cube' : 'ph-squares-four'}`} /> {flat ? 'Vista 3D' : 'Vista piatta'}
         </button>
-        <span className="binder-count">{owned} / {cards?.cardsTotal || total} carte</span>
+        <span className="binder-count"><strong>{owned}</strong> / {cards?.cardsTotal || total} carte</span>
       </div>
       <p className="binder-title"><img src={coverImage(theme)} alt="" /> {theme.title}</p>
 
@@ -249,7 +253,7 @@ export default function BinderPage() {
         <button type="button" className="btn btn-secondary" onClick={() => turn(-1)} disabled={spread === 0} aria-label="Pagina precedente">
           <i className="ph-fill ph-caret-left" />
         </button>
-        <span>{spread + 1} / {spreads}</span>
+        <span className="binder-nav-count"><strong>{spread + 1}</strong> / {spreads}</span>
         <button type="button" className="btn btn-secondary" onClick={() => turn(1)} disabled={spread >= spreads - 1} aria-label="Pagina successiva">
           <i className="ph-fill ph-caret-right" />
         </button>

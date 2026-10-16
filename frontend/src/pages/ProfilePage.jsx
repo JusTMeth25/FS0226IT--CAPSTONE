@@ -9,6 +9,9 @@ import AnimatedNumber from '../components/fx/AnimatedNumber.jsx';
 import PhotoGallery from '../components/common/PhotoGallery.jsx';
 import InstallApp from '../components/common/InstallApp.jsx';
 import TwoFactorPanel from '../components/profile/TwoFactorPanel.jsx';
+import PhantomTitle from '../components/phantom/PhantomTitle.jsx';
+import '../styles/pages/social-phantom.css';
+import '../styles/pages/social-account.css';
 
 export default function ProfilePage() {
   const { user, logout, refreshUser } = useAuth();
@@ -36,17 +39,49 @@ export default function ProfilePage() {
     }
   }
 
-  return (
-    <section className="profile-page">
-      <h2 className="section-title text-gradient"><i className="ph-fill ph-user-circle" /> Profilo</h2>
+  // Scheda dei numeri, come la pagina di stato di un personaggio: etichetta a sinistra, valore a destra.
+  const stats = [
+    { key: 'gold', label: 'Gold', value: <AnimatedNumber value={game.gold} />, tone: 'gold' },
+    { key: 'album', label: 'Album', value: <><AnimatedNumber value={uniqueCount} /><small>/{totalCatalogCards}</small></>, bar: progressPercent },
+    { key: 'packs', label: 'Pacchetti aperti', value: <AnimatedNumber value={game.stats.totalPacksOpened || 0} /> },
+    { key: 'wins', label: 'Battaglie vinte', value: <AnimatedNumber value={game.stats.totalBattlesWon || 0} /> },
+    { key: 'legend', label: 'Leggendarie', value: <AnimatedNumber value={game.stats.legendaryCount || 0} /> },
+    { key: 'streak', label: 'Serie login', value: <AnimatedNumber value={game.loginStreak} /> }
+  ];
 
-      <div className="glass-panel profile-header">
-        <UserAvatar avatar={user.avatar} className="auth-profile-avatar" fallbackIcon="ph-vinyl-record" />
-        <div>
+  return (
+    <section className="profile-page sp-page">
+      <header className="sp-head">
+        <PhantomTitle as="h2" text="Profilo" />
+      </header>
+
+      <div className="glass-panel profile-header sr-card">
+        <div className="sr-avatar">
+          <UserAvatar avatar={user.avatar} className="auth-profile-avatar" fallbackIcon="ph-vinyl-record" />
+          <span className="sr-lv" aria-label={`Livello ${game.levelInfo.level}`}>
+            <small aria-hidden="true">Lv</small><span aria-hidden="true">{game.levelInfo.level}</span>
+          </span>
+        </div>
+        <div className="sr-id">
           <div className="auth-profile-username">{user.username}</div>
           <div className="auth-profile-email">{user.email}</div>
         </div>
-        <button className="btn btn-secondary" style={{ marginLeft: 'auto' }} onClick={logout}>Logout</button>
+        <button type="button" className="btn btn-secondary sr-logout" onClick={logout}><i className="ph ph-sign-out" /> Logout</button>
+      </div>
+
+      <div className="glass-panel sr-stats-panel">
+        <h3 className="panel-title"><i className="ph-fill ph-chart-bar" /> Statistiche</h3>
+        <dl className="sr-stats">
+          {stats.map((s) => (
+            <div key={s.key} className={`sr-stat${s.tone ? ` is-${s.tone}` : ''}`}>
+              <dt>{s.label}{s.bar !== undefined && <span className="sr-stat-pct"> {s.bar}%</span>}</dt>
+              <dd>{s.value}</dd>
+              {s.bar !== undefined && (
+                <span className="sr-stat-bar" aria-hidden="true"><span style={{ width: `${Math.min(100, Math.max(s.bar, s.bar > 0 ? 2 : 0))}%` }} /></span>
+              )}
+            </div>
+          ))}
+        </dl>
       </div>
 
       <div className="glass-panel avatar-picker-panel">
@@ -66,7 +101,7 @@ export default function ProfilePage() {
                 aria-label={`Seleziona ${avatar}`}
               >
                 <img src={getAvatarUrl(avatar)} alt="" loading="lazy" />
-                {selected && <span className="avatar-picker-check"><i className="ph-fill ph-check-circle" /></span>}
+                {selected && <span className="avatar-picker-check"><i className="ph-fill ph-check" /></span>}
                 {savingAvatar === avatar && <span className="avatar-picker-spinner" />}
               </button>
             );
@@ -74,36 +109,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="profile-stats-grid">
-        <div className="glass-panel profile-stat-box">
-          <span className="profile-stat-value"><AnimatedNumber value={game.levelInfo.level} /></span>
-          <span className="profile-stat-label">Livello</span>
-        </div>
-        <div className="glass-panel profile-stat-box">
-          <span className="profile-stat-value"><AnimatedNumber value={game.gold} /></span>
-          <span className="profile-stat-label">Gold</span>
-        </div>
-        <div className="glass-panel profile-stat-box">
-          <span className="profile-stat-value"><AnimatedNumber value={uniqueCount} />/{totalCatalogCards}</span>
-          <span className="profile-stat-label">Album ({progressPercent}%)</span>
-        </div>
-        <div className="glass-panel profile-stat-box">
-          <span className="profile-stat-value"><AnimatedNumber value={game.stats.totalPacksOpened || 0} /></span>
-          <span className="profile-stat-label">Pacchetti aperti</span>
-        </div>
-        <div className="glass-panel profile-stat-box">
-          <span className="profile-stat-value"><AnimatedNumber value={game.stats.totalBattlesWon || 0} /></span>
-          <span className="profile-stat-label">Battaglie vinte</span>
-        </div>
-        <div className="glass-panel profile-stat-box">
-          <span className="profile-stat-value"><AnimatedNumber value={game.stats.legendaryCount || 0} /></span>
-          <span className="profile-stat-label">Leggendarie</span>
-        </div>
-        <div className="glass-panel profile-stat-box">
-          <span className="profile-stat-value"><AnimatedNumber value={game.loginStreak} /></span>
-          <span className="profile-stat-label">Serie login</span>
-        </div>
-      </div>
       <TwoFactorPanel onChange={refreshUser} />
       <InstallApp />
       <PhotoGallery />
