@@ -14,6 +14,8 @@
 }
 
 .hotel-stage {
+  /* Lo scorrimento non scappa dall'hotel verso la pagina (vedi useScrollContainment). */
+  overscroll-behavior: contain;
   position: relative;
   flex: 1;
   min-height: 0;
@@ -1807,3 +1809,6 @@ button.hotel-badge:hover:not(:disabled) { transform: translateY(-2px) scale(1.08
 .hotel-replaced-box h3 { margin: 0; }
 .hotel-replaced-box p { margin: 0; color: var(--text-secondary, #c7cbe0); }
 .hotel-replaced-box small { color: var(--text-muted, #8a90a8); }
+
+/* Pannelli e liste dell'hotel: arrivati in fondo si fermano, senza trascinare la pagina. */
+.hotel-page, .hotel-page * { overscroll-behavior: contain; }

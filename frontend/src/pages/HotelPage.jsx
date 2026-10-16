@@ -62,6 +62,7 @@ import { canRide } from '../hotel/sprites/vehicles.js';
 import { authApi } from '../services/authApi.js';
 import { QUEUE_TRACK, RADIO_TRACK, TRACKS, getJukebox } from '../hotel/music.js';
 import { isLiteDevice } from '../utils/perfMode.js';
+import { useScrollContainment } from '../hooks/useScrollContainment.js';
 import '../hotel/hotel.css';
 
 /** L'Arena: solo qui si gioca contro gli NPC sfidanti. */
@@ -349,6 +350,8 @@ export default function HotelPage() {
   /** Stagione e tempo di oggi (HotelWeather): uguali in tutto l'hotel. */
   const [weather, setWeather] = useState(null);
   const pageRef = useRef(null);
+  // Rotella e dito dentro l'hotel non fanno scorrere il sito (solo i pannelli con qualcosa da scorrere).
+  useScrollContainment(pageRef);
   // I pannelli si spostano trascinandoli per la testata.
   useDraggablePanels(pageRef);
   // Tastiera: Esc chiude il pannello aperto; il pannello appena aperto prende il focus, cosi' chi
