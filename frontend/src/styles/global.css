@@ -543,7 +543,7 @@ ul, ol { list-style: none; }
 .pack-modal .btn { margin-top: var(--space-lg); }
 
 .pack-inspect-modal {
-  max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto; overflow-x: hidden;
+  max-width: 420px; width: 100%; max-height: 90dvh; overflow-y: auto; overflow-x: hidden;
   animation: modalSlideUp 0.3s ease;
   scrollbar-width: none; -ms-overflow-style: none;
 }
@@ -642,7 +642,10 @@ ul, ol { list-style: none; }
 .collection-stat-value { display: block; font-size: 1.3rem; font-weight: 900; color: var(--text-primary); }
 .collection-stat-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
 /* Il valore in dollari e' la cifra piu' lunga del pannello: oro come il prezzo nel dettaglio carta. */
-.collection-stat-value-worth .collection-stat-value { color: var(--neon-gold); white-space: nowrap; }
+.collection-stat-value-worth .collection-stat-value { color: var(--neon-gold); white-space: nowrap; font-size: clamp(1rem, 3.4vw, 1.6rem); }
+/* Larga quanto la cifra (le altre caselle si stringono): con flex: 1 tutte avevano la stessa
+   larghezza e il valore usciva dal riquadro. */
+.collection-stat.collection-stat-value-worth { flex: 1 1 auto; }
 .collection-stat-value-worth { cursor: help; }
 
 .rarity-counts { padding: var(--space-md); }

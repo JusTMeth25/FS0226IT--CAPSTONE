@@ -985,7 +985,21 @@
 }
 /* Stesse proporzioni della carta, cosi' la carta riempie quasi tutto il riquadro e testi,
    descrizione e punti restano leggibili. max-height evita che su schermi bassi esca dalla vista. */
-.card-3d-canvas { width: 100%; aspect-ratio: 5 / 6.6; max-height: 78vh; touch-action: none; }
+/* La larghezza segue l'altezza massima: con solo max-height, su un telefono in orizzontale il
+   riquadro restava largo quanto la pagina e la carta usciva sopra la barra e sotto il menu. */
+.card-3d-stage { --card-3d-max-h: 78dvh; }
+.card-3d-canvas {
+  width: min(100%, calc(var(--card-3d-max-h) * 5 / 6.6));
+  aspect-ratio: 5 / 6.6;
+  max-height: var(--card-3d-max-h);
+  margin-inline: auto;
+  touch-action: none;
+}
+/* Telefono in orizzontale: la carta intera fra la barra in alto, il menu in basso e i pulsanti. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .card-3d-stage { --card-3d-max-h: calc(100dvh - 150px); }
+  .pack-overlay .card-3d-stage, .pack-inspect-modal .card-3d-stage { --card-3d-max-h: calc(100dvh - 130px); }
+}
 .card-3d-flip { font-size: 0.8rem; }
 
 @media (min-width: 992px) {

@@ -124,6 +124,11 @@ const HotelCanvas = forwardRef(function HotelCanvas({ walkKeys = true, zoom, onZ
    * davvero: con i pointer event Safari su iPhone a volte non manda il rilascio di un dito e
    * il conto restava sbagliato (zoom che non partiva o andava a scatti). `pinched` resta vero
    * finche' non si alzano tutte le dita: alzando l'ultima non parte un passo per sbaglio.
+   *
+   * Si ascolta tutta la stanza (.hotel-stage), non solo il canvas: in verticale la stanza e'
+   * piccola e un dito finisce spesso su un nome, un fumetto o il riquadro della stanza; prima
+   * il pizzico partiva solo con tutte e due le dita sul canvas. I pannelli (negozi, liste, chat)
+   * restano fuori: li' due dita fanno quello che fanno di solito.
    */
   const pinch = useRef(null);
   const pinched = useRef(false);
@@ -136,6 +141,16 @@ const HotelCanvas = forwardRef(function HotelCanvas({ walkKeys = true, zoom, onZ
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    const area = canvas.closest('.hotel-stage') || canvas.parentElement;
+    const inPanel = (target) => target instanceof Element && !!target.closest('.hotel-panel, .pack-overlay, .casino-panel, .hotel-minigame, input, textarea, select');
+    // Basta un dito sulla stanza (anche su un nome o un pulsante sopra di lei): l'evento porta
+    // il bersaglio del dito appena arrivato, che spesso non e' il canvas.
+    const onRoom = (event) => [...event.touches].some((t) => !inPanel(t.target));
+    const begin = (event) => {
+      pinch.current = { distance: two(event).distance, zoom: zoomRef.current };
+      pinched.current = true;
+      gesture.current = null;
+    };
     const two = (event) => {
       const rect = canvas.getBoundingClientRect();
       const [a, b] = [event.touches[0], event.touches[1]];
@@ -145,14 +160,17 @@ const HotelCanvas = forwardRef(function HotelCanvas({ walkKeys = true, zoom, onZ
       };
     };
     const onTouchStart = (event) => {
-      if (event.touches.length < 2) return;
+      if (event.touches.length < 2 || !onRoom(event)) return;
       event.preventDefault();
-      pinch.current = { distance: two(event).distance, zoom: zoomRef.current };
-      pinched.current = true;
-      gesture.current = null;
+      begin(event);
     };
     const onTouchMove = (event) => {
-      if (!pinch.current || event.touches.length < 2) return;
+      if (event.touches.length < 2) return;
+      if (!pinch.current) {
+        // Il secondo dito e' arrivato su qualcosa che non ascoltiamo: si parte da qui.
+        if (!onRoom(event)) return;
+        begin(event);
+      }
       event.preventDefault();
       const { distance, mid } = two(event);
       const next = Math.round(Math.max(0.5, Math.min(2, pinch.current.zoom * (distance / pinch.current.distance))) * 100) / 100;
@@ -164,15 +182,15 @@ const HotelCanvas = forwardRef(function HotelCanvas({ walkKeys = true, zoom, onZ
       if (event.touches.length < 2) pinch.current = null;
       if (event.touches.length === 0) setTimeout(() => { pinched.current = false; }, 0);
     };
-    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
-    canvas.addEventListener('touchmove', onTouchMove, { passive: false });
-    canvas.addEventListener('touchend', onTouchEnd);
-    canvas.addEventListener('touchcancel', onTouchEnd);
+    area.addEventListener('touchstart', onTouchStart, { passive: false });
+    area.addEventListener('touchmove', onTouchMove, { passive: false });
+    area.addEventListener('touchend', onTouchEnd);
+    area.addEventListener('touchcancel', onTouchEnd);
     return () => {
-      canvas.removeEventListener('touchstart', onTouchStart);
-      canvas.removeEventListener('touchmove', onTouchMove);
-      canvas.removeEventListener('touchend', onTouchEnd);
-      canvas.removeEventListener('touchcancel', onTouchEnd);
+      area.removeEventListener('touchstart', onTouchStart);
+      area.removeEventListener('touchmove', onTouchMove);
+      area.removeEventListener('touchend', onTouchEnd);
+      area.removeEventListener('touchcancel', onTouchEnd);
     };
   }, []);
 
