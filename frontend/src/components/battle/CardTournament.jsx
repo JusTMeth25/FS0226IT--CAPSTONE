@@ -12,6 +12,19 @@ function useNow(enabled) {
   return now;
 }
 
+/** Telefono (stretto, o girato in orizzontale): tabellone a schede, un turno alla volta. */
+const COMPACT_QUERY = '(max-width: 760px), (orientation: landscape) and (max-height: 520px)';
+function useCompact() {
+  const [compact, setCompact] = useState(() => typeof window !== 'undefined' && window.matchMedia(COMPACT_QUERY).matches);
+  useEffect(() => {
+    const query = window.matchMedia(COMPACT_QUERY);
+    const onChange = () => setCompact(query.matches);
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  }, []);
+  return compact;
+}
+
 function clock(ms) {
   const s = Math.max(0, Math.ceil(ms / 1000));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -52,6 +65,44 @@ function MatchBox({ match, me }) {
  * finale al centro, come nelle coppe vere. Su schermi stretti si scorre in orizzontale.
  */
 export function TournamentBracket({ state, me }) {
+  const compact = useCompact();
+  if (compact) return <CompactBracket state={state} me={me} />;
+  return <WideBracket state={state} me={me} />;
+}
+
+/**
+ * Su telefono: una scheda per turno (si apre su quello in corso, o su quello della propria
+ * partita) e le partite in griglia, piu' colonne se lo schermo e' girato.
+ */
+function CompactBracket({ state, me }) {
+  const live = state.status === 'running' ? state.round : state.status === 'finished' ? 3 : 0;
+  const [picked, setPicked] = useState(null);
+  const shown = picked ?? live;
+  const final = state.rounds[3][0];
+  const champion = final.status === 'done' ? (final.winner === final.a?.id ? final.a : final.b) : null;
+  return (
+    <div className="cup-compact">
+      <div className="cup-round-tabs" role="tablist" aria-label="Turni del torneo">
+        {SHORT.map((name, r) => (
+          <button key={name} type="button" role="tab" aria-selected={shown === r}
+            className={`cup-round-tab${shown === r ? ' active' : ''}${live === r && state.status === 'running' ? ' current' : ''}`}
+            onClick={() => setPicked(r)}>
+            {name}
+            {live === r && state.status === 'running' && <span className="cup-dot" aria-hidden="true" />}
+          </button>
+        ))}
+      </div>
+      {champion && shown === 3 && (
+        <p className="cup-champion"><i className="ph-fill ph-trophy" /> {champion.id === me ? 'Hai vinto tu!' : `Vince ${champion.name}`}</p>
+      )}
+      <div className={`cup-compact-grid cup-compact-r${shown}`}>
+        {state.rounds[shown].map((m) => <MatchBox key={m.slot} match={m} me={me} />)}
+      </div>
+    </div>
+  );
+}
+
+function WideBracket({ state, me }) {
   const rounds = state.rounds;
   const half = (r, side) => {
     const list = rounds[r];

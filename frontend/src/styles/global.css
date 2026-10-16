@@ -2002,3 +2002,26 @@ input.filter-select { cursor: text; }
 .cup-trophy { text-align: center; font-size: 3rem; color: var(--neon-gold); filter: drop-shadow(0 0 16px rgba(255, 200, 60, 0.55)); line-height: 1; }
 .cup-champion { margin: 0; text-align: center; font-weight: 900; color: var(--neon-gold); }
 @media (prefers-reduced-motion: reduce) { .cup-live { animation: none; } }
+
+/* Tabellone da telefono: schede per turno e partite in griglia. */
+.cup-compact { display: flex; flex-direction: column; gap: 10px; }
+.cup-round-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.cup-round-tab { position: relative; padding: 8px 4px; border-radius: 8px; background: var(--bg-card); border: 1px solid var(--border-color);
+  color: var(--text-secondary); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; }
+.cup-round-tab.active { background: rgba(139, 92, 246, 0.25); border-color: var(--neon-purple); color: var(--text-primary); }
+.cup-dot { position: absolute; top: 5px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: #ff2d55; animation: cupPulse 1.2s ease-in-out infinite; }
+.cup-compact-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px 8px; padding-top: 4px; }
+.cup-compact-r3 { grid-template-columns: minmax(0, 320px); justify-content: center; }
+.cup-compact .cup-match::after { display: none; }
+.cup-compact .cup-side { font-size: 0.8rem; padding: 7px 9px; }
+@media (max-width: 760px), (orientation: landscape) and (max-height: 520px) {
+  .cup-head { gap: 6px; }
+  .cup-title > i { font-size: 1.5rem; }
+  .cup-title h3 { font-size: 0.95rem; }
+  .cup-pool { flex-direction: row; align-items: baseline; gap: 8px; padding: 4px 10px; flex-wrap: wrap; }
+  .cup-pool b { font-size: 1rem; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .cup-compact-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .cup-compact-r3 { grid-template-columns: minmax(0, 320px); }
+}
