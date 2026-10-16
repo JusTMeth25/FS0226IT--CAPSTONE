@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
 import { useSound } from '../hooks/useSound.js';
@@ -14,6 +14,11 @@ import ScrollToTopButton from '../components/common/ScrollToTopButton.jsx';
 import { useProgressiveList } from '../hooks/useProgressiveList.js';
 import SavedTeams from '../components/card/SavedTeams.jsx';
 import { applySynergies, teamSynergies } from '../utils/battleSynergy.js';
+import { OnlineOpponents, OpponentModeTabs, PlayerOpponents } from '../components/battle/OpponentPicker.jsx';
+import { battleApi } from '../services/battleApi.js';
+import { useOnlinePvp } from '../hotel/useOnlinePvp.js';
+import OnlineMatch from '../components/battle/OnlineMatch.jsx';
+import { useAuth } from '../hooks/useAuth.js';
 
 const CATEGORIES = ['fans', 'style', 'influence', 'energy'];
 const CATEGORY_NAMES = { fans: 'Fans', style: 'Style', influence: 'Influence', energy: 'Energy' };
@@ -67,7 +72,7 @@ function SynergyList({ team, compact = false }) {
 }
 
 /** Riepilogo di potenza della squadra: numero animato con useCountUp + ingresso "a molla". */
-function VsScreen({ team, aiTeamLength, tournamentBadge, onStartRound }) {
+function VsScreen({ team, aiTeamLength, tournamentBadge, onStartRound, opponentName }) {
   const playerTotal = team.reduce((sum, c) => sum + getTotalScore(c), 0);
   const displayTotal = useCountUp(playerTotal, 900);
 
@@ -100,8 +105,8 @@ function VsScreen({ team, aiTeamLength, tournamentBadge, onStartRound }) {
           </div>
 
           <div className="battle-vs-player battle-vs-ai battle-vs-enter-right">
-            <div className="battle-vs-avatar"><i className="ph-fill ph-robot" /></div>
-            <h3>AI Opponent</h3>
+            <div className="battle-vs-avatar"><i className={`ph-fill ${opponentName ? 'ph-user' : 'ph-robot'}`} /></div>
+            <h3>{opponentName ? `Squadra di ${opponentName}` : 'NPC'}</h3>
             <div className="battle-vs-cards">
               {Array.from({ length: aiTeamLength }, (_, i) => (
                 <div key={i} className="battle-vs-mini battle-vs-mystery">
@@ -221,8 +226,45 @@ const INITIAL_BATTLE = {
   tournamentGold: 0,
   tournamentXP: 0,
   finalKind: null,
-  rewards: { gold: 0, xp: 0 }
+  rewards: { gold: 0, xp: 0 },
+  // Battaglia contro la squadra di un giocatore: il suo nome (null = NPC).
+  opponentName: null
 };
+
+/** Sfida online in arrivo o in attesa di risposta, dentro la pagina (non una finestra sopra). */
+function OnlineInvite({ pvp, canAccept, send, onClose }) {
+  const [now, setNow] = useState(() => Date.now());
+  const expiresAt = pvp?.stage === 'incoming' ? pvp.expiresAt : null;
+  useEffect(() => {
+    if (!expiresAt) return undefined;
+    const id = setInterval(() => setNow(Date.now()), 500);
+    return () => clearInterval(id);
+  }, [expiresAt]);
+  const left = expiresAt ? Math.max(0, Math.ceil((expiresAt - now) / 1000)) : null;
+  useEffect(() => {
+    if (left === 0) onClose();
+  }, [left, onClose]);
+  if (!pvp || (pvp.stage !== 'incoming' && pvp.stage !== 'sent')) return null;
+  if (pvp.stage === 'sent') {
+    return (
+      <div className="battle-online-invite glass-panel" role="status">
+        <i className="ph-fill ph-hourglass-medium" />
+        <span>Sfida mandata a <strong>{pvp.to?.username || pvp.to}</strong>: aspetto che risponda…</span>
+      </div>
+    );
+  }
+  return (
+    <div className="battle-online-invite battle-online-invite-incoming glass-panel" role="alert">
+      <i className="ph-fill ph-lightning" />
+      <span><strong>{pvp.from?.username}</strong> ti sfida!{left != null && ` (${left}s)`}{!canAccept && ' Scegli 3 carte per accettare.'}</span>
+      <button type="button" className="btn btn-secondary btn-small" onClick={() => send({ type: 'challenge_reply', challengeId: pvp.challengeId, accept: false })}>Rifiuta</button>
+      <button type="button" className="btn btn-primary btn-small" disabled={!canAccept}
+        onClick={() => send({ type: 'challenge_reply', challengeId: pvp.challengeId, accept: true })}>
+        <i className="ph-fill ph-sword" /> Accetta
+      </button>
+    </div>
+  );
+}
 
 export default function BattlePage() {
   const game = useGame();
@@ -234,6 +276,23 @@ export default function BattlePage() {
   const [battleSourceFilter, setBattleSourceFilter] = useState('');
   const [synced, setSynced] = useState(false);
   const { refreshCollection } = game;
+  const { refreshUser } = useAuth();
+  // Contro chi: NPC, squadra di un giocatore (anche offline) o giocatore online in tempo reale.
+  const [opponentMode, setOpponentMode] = useState('npc');
+  const [pickingId, setPickingId] = useState(null);
+  const [pickError, setPickError] = useState(null);
+  const onlinePvp = useOnlinePvp({ active: opponentMode === 'online', onEnd: () => { refreshUser?.(); refreshCollection?.(); } });
+
+  // Sfida online: la squadra e' quella scelta qui sopra, la mando da sola appena parte la partita.
+  const sentTeamFor = useRef(null);
+  const onlineStage = onlinePvp.pvp?.stage;
+  const onlineMatchId = onlinePvp.pvp?.matchId;
+  const sendOnline = onlinePvp.send;
+  useEffect(() => {
+    if (onlineStage !== 'team' || !onlineMatchId || sentTeamFor.current === onlineMatchId) return;
+    sentTeamFor.current = onlineMatchId;
+    sendOnline({ type: 'pvp_team', cards: b.team.filter(Boolean).map((c) => c.id) });
+  }, [onlineStage, onlineMatchId, sendOnline, b.team]);
 
   // Le carte prese altrove (hotel, scambi, mercato) arrivano qui solo ricaricando la collezione.
   useEffect(() => {
@@ -303,14 +362,14 @@ export default function BattlePage() {
     update({ team, selectedSlot: index });
   }
 
-  function startMatch(difficulty, extra = {}) {
+  function startMatch(difficulty, extra = {}, opponentTeam = null) {
     setB((prev) => ({
       ...prev,
       ...extra,
       difficulty,
       // Le carte entrano in campo con i bonus di squadra; la squadra scelta resta com'e'.
       fightTeam: applySynergies(prev.team),
-      aiTeam: applySynergies(generateAiTeam(difficulty)),
+      aiTeam: applySynergies(opponentTeam || generateAiTeam(difficulty)),
       phase: 'vs',
       currentRound: 1,
       roundScores: { player: 0, ai: 0 },
@@ -323,12 +382,28 @@ export default function BattlePage() {
 
   function startBattle() {
     if (b.team.filter(Boolean).length < 3) return;
-    startMatch('normal', { tournamentMode: false, tournamentStage: 0, tournamentGold: 0, tournamentXP: 0 });
+    startMatch('normal', { tournamentMode: false, tournamentStage: 0, tournamentGold: 0, tournamentXP: 0, opponentName: null });
+  }
+
+  /** Battaglia contro la squadra di un altro giocatore, con le stesse regole e premi di quella normale. */
+  async function startPlayerBattle(opponent) {
+    if (b.team.filter(Boolean).length < 3) return;
+    setPickingId(opponent.id);
+    setPickError(null);
+    try {
+      const res = await battleApi.opponentTeam(opponent.id);
+      startMatch('normal', { tournamentMode: false, tournamentStage: 0, tournamentGold: 0, tournamentXP: 0,
+        opponentName: res.opponent.username }, res.team);
+    } catch (err) {
+      setPickError(err.code === 'opponent_no_team' ? 'Questo giocatore non ha ancora 3 carte.' : 'Non riesco a caricare la sua squadra.');
+    } finally {
+      setPickingId(null);
+    }
   }
 
   function startTournament() {
     if (b.team.filter(Boolean).length < 3) return;
-    startMatch(TOURNAMENT_ORDER[0], { tournamentMode: true, tournamentStage: 0, tournamentGold: 0, tournamentXP: 0 });
+    startMatch(TOURNAMENT_ORDER[0], { tournamentMode: true, tournamentStage: 0, tournamentGold: 0, tournamentXP: 0, opponentName: null });
   }
 
   function startRound() {
@@ -470,6 +545,14 @@ export default function BattlePage() {
     </div>
   );
 
+  // ---------- SFIDA ONLINE IN CORSO ----------
+  if (onlinePvp.pvp && ['team', 'round', 'reveal', 'end'].includes(onlinePvp.pvp.stage)) {
+    return (
+      <OnlineMatch pvp={onlinePvp.pvp} clockOffset={onlinePvp.clockOffset} send={onlinePvp.send} myTeam={b.team}
+        onExit={() => onlinePvp.setPvp(null)} />
+    );
+  }
+
   // ---------- SELECT TEAM ----------
   if (b.phase === 'select') {
     const teamTotals = { fans: 0, style: 0, influence: 0, energy: 0 };
@@ -502,10 +585,28 @@ export default function BattlePage() {
 
         <SavedTeams cards={collectionCards} team={b.team} onLoad={(team) => update({ team, selectedSlot: 0 })} />
 
-        <div className="battle-mode-actions">
-          <button className="btn btn-primary btn-large" disabled={filledCount < 3} onClick={startBattle}><i className="ph-fill ph-sword" /> Inizia Battaglia</button>
-          <button className="btn btn-gold btn-large" disabled={filledCount < 3} onClick={startTournament}><i className="ph-fill ph-trophy" /> Modalità Torneo</button>
-        </div>
+        <OpponentModeTabs mode={opponentMode} onChange={(m) => { setOpponentMode(m); setPickError(null); }} />
+        {opponentMode === 'npc' && (
+          <div className="battle-mode-actions">
+            <button className="btn btn-primary btn-large" disabled={filledCount < 3} onClick={startBattle}><i className="ph-fill ph-sword" /> Inizia Battaglia</button>
+            <button className="btn btn-gold btn-large" disabled={filledCount < 3} onClick={startTournament}><i className="ph-fill ph-trophy" /> Modalità Torneo</button>
+          </div>
+        )}
+        {opponentMode === 'player' && (
+          <>
+            {filledCount < 3 && <p className="battle-opponent-hint">Scegli prima le tue 3 carte, poi l&apos;avversario.</p>}
+            {pickError && <div className="auth-message auth-message-error">{pickError}</div>}
+            <PlayerOpponents disabled={filledCount < 3} busyId={pickingId} onPick={startPlayerBattle} />
+          </>
+        )}
+        {opponentMode === 'online' && (
+          <>
+            {onlinePvp.notice && <div className="auth-message auth-message-error">{onlinePvp.notice}</div>}
+            {filledCount < 3 && <p className="battle-opponent-hint">Scegli prima le 3 carte: giochi la sfida online con questa squadra.</p>}
+            <OnlineInvite pvp={onlinePvp.pvp} canAccept={filledCount >= 3} send={onlinePvp.send} onClose={() => onlinePvp.setPvp(null)} />
+            <OnlineOpponents online={onlinePvp.online} waiting={!!onlinePvp.pvp || filledCount < 3} onChallenge={onlinePvp.challenge} />
+          </>
+        )}
 
         <div className="battle-team-preview glass-panel">
           <h3>La tua squadra</h3>
@@ -577,7 +678,7 @@ export default function BattlePage() {
 
   // ---------- VS SCREEN ----------
   if (b.phase === 'vs') {
-    return <VsScreen team={b.fightTeam} aiTeamLength={b.aiTeam.length} tournamentBadge={tournamentBadge} onStartRound={startRound} />;
+    return <VsScreen team={b.fightTeam} aiTeamLength={b.aiTeam.length} tournamentBadge={tournamentBadge} onStartRound={startRound} opponentName={b.opponentName} />;
   }
 
   // ---------- CATEGORY PICKER ----------

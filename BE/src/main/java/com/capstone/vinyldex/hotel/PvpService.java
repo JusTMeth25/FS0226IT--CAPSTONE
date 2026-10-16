@@ -97,11 +97,32 @@ public class PvpService {
 
         HotelSession to = registry.sessionOf(toId);
         if (to == null) return "user_not_here";
+        return offer(from, to, room.data().id());
+    }
 
-        Challenge challenge = new Challenge(UUID.randomUUID(), fromId, toId, room.data().id());
+    /**
+     * Sfida dalla pagina Battaglie, fuori dall'hotel: basta che l'altro giocatore sia collegato
+     * (nell'hotel o anche lui in Battaglie). La partita non appartiene a nessuna stanza.
+     */
+    public String challengeOnline(HotelSession from, UUID toId) {
+        UUID fromId = from.user().id();
+        if (toId == null || toId.equals(fromId)) return "cannot_challenge_yourself";
+        if (isBusy(fromId)) return "already_in_match";
+        HotelSession to = registry.sessionOf(toId);
+        if (to == null || to.user() == null) return "user_offline";
+        if (isBusy(toId)) return "opponent_busy";
+        return offer(from, to, null);
+    }
+
+    /** Invia la sfida; roomId null = sfida online, senza stanza. */
+    private String offer(HotelSession from, HotelSession to, UUID roomId) {
+        UUID fromId = from.user().id();
+        UUID toId = to.user().id();
+        Challenge challenge = new Challenge(UUID.randomUUID(), fromId, toId, roomId);
         challenges.put(challenge.id(), challenge);
         to.send(Map.of("type", "challenge_received", "challengeId", challenge.id(),
-                "from", Map.of("id", fromId, "username", from.user().username()), "expiresIn", CHALLENGE_MILLIS));
+                "from", Map.of("id", fromId, "username", from.user().username()), "expiresIn", CHALLENGE_MILLIS,
+                "online", roomId == null));
         from.send(Map.of("type", "challenge_sent", "challengeId", challenge.id(),
                 "to", Map.of("id", toId, "username", to.user().username())));
 
@@ -119,6 +140,19 @@ public class PvpService {
         UUID userId = session.user().id();
         if (challenge == null || !challenge.to().equals(userId)) return "challenge_expired";
         challenges.remove(challengeId);
+        if (challenge.roomId() == null) {
+            // Sfida online: niente stanza, bastano i due collegati e liberi.
+            if (!accept) {
+                send(challenge.from(), Map.of("type", "challenge_declined", "challengeId", challengeId,
+                        "by", session.user().username()));
+                return null;
+            }
+            HotelUser challenger = userOf(challenge.from());
+            if (challenger == null) return "user_offline";
+            if (isBusy(challenge.from()) || isBusy(userId)) return "opponent_busy";
+            start(null, null, challenger, session.user());
+            return null;
+        }
         RoomInstance room = registry.get(challenge.roomId());
         boolean fromNpc = room != null && room.isNpc(challenge.from());
 
@@ -157,7 +191,7 @@ public class PvpService {
             live.timer = registry.schedule(() -> onTeamTimeout(live), TEAM_MILLIS);
         }
         for (HotelUser player : List.of(a, b)) {
-            if (room.isNpc(player.id())) {
+            if (room != null && room.isNpc(player.id())) {
                 room.npcBusy(player.id(), true);
                 npcLater(live, 2_500 + random.nextInt(2_000), () -> npcTeam(live, room, player.id()));
             }

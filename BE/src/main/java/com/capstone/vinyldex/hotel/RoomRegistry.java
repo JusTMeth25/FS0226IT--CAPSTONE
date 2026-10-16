@@ -116,6 +116,11 @@ public class RoomRegistry {
         }
     }
 
+    /** Tutte le connessioni aperte (una per utente), per chi cerca avversari online. */
+    public List<HotelSession> onlineSessions() {
+        return List.copyOf(sessionsByUser.values());
+    }
+
     /** Connessione aperta dell'utente, oppure null se non e' online. */
     public HotelSession sessionOf(UUID userId) {
         return userId == null ? null : sessionsByUser.get(userId);

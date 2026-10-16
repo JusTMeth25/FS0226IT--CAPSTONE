@@ -319,6 +319,8 @@ public class HotelSocketHandler extends TextWebSocketHandler {
                 if (room != null) reply(session, room.stopStation(userId));
             }
             case "challenge" -> reply(session, pvpService.challenge(session, uuid(node, "userId")));
+            // Dalla pagina Battaglie: sfida a un giocatore collegato, ovunque si trovi.
+            case "challenge_online" -> reply(session, pvpService.challengeOnline(session, uuid(node, "userId")));
             case "challenge_reply" -> reply(session, pvpService.reply(session, uuid(node, "challengeId"),
                     node.path("accept").asBoolean(false)));
             case "pvp_team" -> {

@@ -883,6 +883,24 @@ input.filter-select { cursor: text; }
 .battle-available-count { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); }
 .battle-filter-row { margin: var(--space-sm) 0; }
 .battle-mode-actions { display: flex; flex-direction: column; gap: var(--space-sm); }
+/* Scelta dell'avversario: NPC, squadra di un giocatore, giocatore online. */
+.battle-opponent-tabs { display: flex; flex-wrap: wrap; gap: var(--space-xs, 6px); justify-content: center; margin: var(--space-sm) 0; }
+.battle-opponent-hint { flex-basis: 100%; text-align: center; color: var(--text-muted); font-size: 0.8rem; margin: 4px 0 0; }
+.battle-opponents { display: flex; flex-direction: column; gap: var(--space-sm); }
+.battle-opponent-search { display: flex; gap: 6px; }
+.battle-opponent-search input { flex: 1; }
+.battle-opponent-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 360px; overflow-y: auto; overscroll-behavior: contain; }
+.battle-opponent-list li { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 10px; background: rgba(255, 255, 255, 0.04); }
+.battle-opponent-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex: none; display: inline-flex; align-items: center; justify-content: center; background: rgba(139, 92, 246, 0.25); }
+.battle-opponent-name { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.battle-opponent-name small { color: var(--text-muted); font-size: 0.72rem; }
+.battle-opponent-empty, .battle-opponent-status { color: var(--text-secondary); font-size: 0.85rem; margin: 0; }
+/* Pannello della sfida online sopra la pagina Battaglie (stesso pannello della PvP dell'hotel). */
+.battle-online-invite { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); margin-bottom: var(--space-sm); }
+.battle-online-invite > span { flex: 1; min-width: 180px; }
+.battle-online-invite-incoming { border-color: var(--neon-gold); box-shadow: 0 0 18px rgba(255, 200, 60, 0.25); }
+.battle-online-timer { font-weight: 700; color: var(--neon-cyan); font-variant-numeric: tabular-nums; }
+.battle-online-wait { padding: var(--space-lg); }
 .battle-tournament-badge { font-size: 0.8rem; font-weight: 700; color: var(--neon-gold); padding: var(--space-sm) var(--space-md); text-align: center; }
 .battle-vs-page { min-height: 50vh; display: flex; align-items: center; justify-content: center; }
 .battle-vs-wrapper { display: flex; flex-direction: column; align-items: center; gap: var(--space-md); width: 100%; }
