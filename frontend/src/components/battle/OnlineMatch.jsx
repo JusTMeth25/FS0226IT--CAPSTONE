@@ -19,10 +19,13 @@ function useSecondsLeft(deadline, clockOffset) {
   return Math.max(0, Math.ceil((deadline - (now + clockOffset)) / 1000));
 }
 
-function Header({ round, score, seconds, onForfeit }) {
+function Header({ round, score, seconds, onForfeit, tournament }) {
   return (
     <div className="battle-round-header">
-      <span className="battle-round-number">{round ? `Round ${round} / 3` : 'Sfida online'}</span>
+      <span className="battle-round-number">
+        {tournament && <><i className="ph-fill ph-trophy" /> {tournament} · </>}
+        {round ? `Round ${round} / 3` : tournament ? 'Partita del torneo' : 'Sfida online'}
+      </span>
       <span className="battle-round-score">{score ? `${score.you} - ${score.opponent}` : ''}</span>
       {seconds != null && <span className="battle-online-timer"><i className="ph-fill ph-timer" /> {seconds}s</span>}
       {onForfeit && (
@@ -45,13 +48,14 @@ export default function OnlineMatch({ pvp, clockOffset, send, myTeam, onExit }) 
   const opponent = pvp.opponent?.username || 'Avversario';
   const seconds = useSecondsLeft(pvp.deadline, clockOffset);
   const forfeit = () => send({ type: 'pvp_forfeit' });
+  const cup = pvp.tournament || null;
 
   // ---------- VS: si aspetta che anche l'altro mandi la squadra ----------
   if (pvp.stage === 'team') {
     return (
       <section className="battle-vs-page">
         <div className="battle-vs-wrapper">
-          <Header seconds={seconds} onForfeit={forfeit} />
+          <Header seconds={seconds} onForfeit={forfeit} tournament={cup} />
           <div className="battle-vs-content">
             <div className="battle-vs-player battle-vs-enter-left">
               <div className="battle-vs-avatar"><i className="ph-fill ph-vinyl-record" /></div>
@@ -97,7 +101,7 @@ export default function OnlineMatch({ pvp, clockOffset, send, myTeam, onExit }) 
       if (pvp.chooser === 'you') {
         return (
           <section className="battle-round-page">
-            <Header round={pvp.round} score={pvp.score} seconds={seconds} onForfeit={forfeit} />
+            <Header round={pvp.round} score={pvp.score} seconds={seconds} onForfeit={forfeit} tournament={cup} />
             <div className="glass-panel text-center">
               <h3>Scegli tu la categoria di questo round!</h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: 4 }}>Punta sul punto forte di una delle carte che ti restano.</p>
@@ -114,7 +118,7 @@ export default function OnlineMatch({ pvp, clockOffset, send, myTeam, onExit }) 
       }
       return (
         <section className="battle-round-page">
-          <Header round={pvp.round} score={pvp.score} seconds={seconds} onForfeit={forfeit} />
+          <Header round={pvp.round} score={pvp.score} seconds={seconds} onForfeit={forfeit} tournament={cup} />
           <div className="glass-panel text-center battle-online-wait">
             <h3>{pvp.chooser === 'server' ? 'Estraggo la categoria…' : `${opponent} sceglie la categoria…`}</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
@@ -128,7 +132,7 @@ export default function OnlineMatch({ pvp, clockOffset, send, myTeam, onExit }) 
     const used = new Set(pvp.used || []);
     return (
       <section className="battle-round-page">
-        <Header round={pvp.round} score={pvp.score} seconds={seconds} onForfeit={forfeit} />
+        <Header round={pvp.round} score={pvp.score} seconds={seconds} onForfeit={forfeit} tournament={cup} />
         <div className="battle-category-display glass-panel">
           <span className="battle-category-label">Categoria</span>
           <span className="battle-category-name">{CATEGORY_NAMES[pvp.category]}</span>
@@ -179,7 +183,7 @@ export default function OnlineMatch({ pvp, clockOffset, send, myTeam, onExit }) 
     const theirColor = getRarityColor(theirs.rarity);
     return (
       <section className="battle-round-result">
-        <Header round={r.round} score={r.score} />
+        <Header round={r.round} score={r.score} tournament={cup} />
         <div className="battle-comparison">
           <div className={`battle-comp-card battle-comp-enter-left ${playerWon ? 'battle-winner' : ''}`}>
             <div className="battle-comp-art">
@@ -222,14 +226,16 @@ export default function OnlineMatch({ pvp, clockOffset, send, myTeam, onExit }) 
     const won = pvp.result === 'win';
     const draw = pvp.result === 'draw';
     const icon = won ? 'ph-trophy' : draw ? 'ph-handshake' : 'ph-heart-break';
-    const title = won ? 'VITTORIA!' : draw ? 'PAREGGIO!' : 'SCONFITTA!';
+    const title = cup ? (won ? 'PASSI IL TURNO!' : 'ELIMINATO') : won ? 'VITTORIA!' : draw ? 'PAREGGIO!' : 'SCONFITTA!';
     const color = won ? 'var(--neon-gold)' : draw ? 'var(--neon-cyan)' : 'var(--text-secondary)';
     return (
       <section className="battle-final-page">
         <div className="battle-final-content glass-panel battle-final-enter">
           <div className="battle-final-icon"><i className={`ph-fill ${icon}`} /></div>
           <h2 className="battle-final-title" style={{ color }}>{title}</h2>
-          <p style={{ color: 'var(--text-secondary)' }}>Contro {opponent}{pvp.forfeit ? ' · a tavolino' : ''}</p>
+          <p style={{ color: 'var(--text-secondary)' }}>
+            {cup ? `${cup} · ` : ''}Contro {opponent}{pvp.forfeit ? ' · a tavolino' : ''}{pvp.tiebreak ? ' · deciso dai punti totali' : ''}
+          </p>
           <div className="battle-final-score">
             <span className="battle-final-score-you">{pvp.score?.you ?? 0}</span>
             <span className="battle-final-score-divider">-</span>
@@ -243,7 +249,7 @@ export default function OnlineMatch({ pvp, clockOffset, send, myTeam, onExit }) 
           )}
           {pvp.reward?.capped && <p className="battle-opponent-hint">Hai già preso i premi delle sfide di oggi.</p>}
           <button className="btn btn-primary btn-large" style={{ marginTop: 'var(--space-md)' }} onClick={onExit}>
-            <i className="ph-fill ph-sword" /> Nuova Battaglia
+            <i className={`ph-fill ${cup ? 'ph-tree-structure' : 'ph-sword'}`} /> {cup ? 'Torna al tabellone' : 'Nuova Battaglia'}
           </button>
         </div>
       </section>

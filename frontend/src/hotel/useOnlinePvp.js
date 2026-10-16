@@ -15,12 +15,13 @@ export function useOnlinePvp({ active, onEnd } = {}) {
   const endRef = useRef(onEnd);
   useEffect(() => { endRef.current = onEnd; });
 
-  const { activate, subscribe, send, status } = hotel;
+  const { activate, subscribe, send, status, takePendingMatch } = hotel;
   useEffect(() => {
     if (active) activate();
   }, [active, activate]);
 
-  useEffect(() => subscribe((message) => {
+  useEffect(() => {
+    const handle = (message) => {
     switch (message.type) {
       case 'challenge_received':
         setPvp({ stage: 'incoming', challengeId: message.challengeId, from: message.from,
@@ -39,7 +40,8 @@ export function useOnlinePvp({ active, onEnd } = {}) {
         break;
       case 'pvp_start':
         setClockOffset(message.serverTime - Date.now());
-        setPvp({ stage: 'team', matchId: message.matchId, opponent: message.opponent, deadline: message.teamDeadline });
+        setPvp({ stage: 'team', matchId: message.matchId, opponent: message.opponent, deadline: message.teamDeadline,
+          tournament: message.tournament || null });
         break;
       case 'pvp_team_ok':
         setPvp((p) => (p ? { ...p, teamSent: true } : p));
@@ -69,7 +71,7 @@ export function useOnlinePvp({ active, onEnd } = {}) {
         break;
       case 'pvp_end':
         setPvp((p) => ({ ...p, stage: 'end', result: message.result, score: message.score, reward: message.reward,
-          forfeit: message.forfeit, deadline: null }));
+          forfeit: message.forfeit, tiebreak: !!message.tiebreak, tournament: message.tournament || p?.tournament || null, deadline: null }));
         endRef.current?.(message);
         break;
       case 'pvp_cancelled':
@@ -84,7 +86,12 @@ export function useOnlinePvp({ active, onEnd } = {}) {
       default:
         break;
     }
-  }), [subscribe]);
+    };
+    // Partita del torneo partita mentre si era su un'altra pagina (vedi HotelProvider).
+    const pending = takePendingMatch?.();
+    if (pending) handle(pending);
+    return subscribe(handle);
+  }, [subscribe, takePendingMatch]);
 
   const challenge = useCallback((userId) => {
     setNotice(null);

@@ -18,6 +18,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * Sfide in tempo reale fra giocatori della stessa stanza.
@@ -53,11 +55,26 @@ public class PvpService {
         final UUID roomId;
         ScheduledFuture<?> timer;
         boolean finished;
+        /** Partita di torneo (CardTournamentService): NPC senza stanza, niente premi normali. */
+        Map<UUID, List<PvpGame.CardInfo>> bots = Map.of();
+        Consumer<MatchEnd> onEnd;
+        String label;
 
         LiveGame(PvpGame game, UUID roomId) {
             this.game = game;
             this.roomId = roomId;
         }
+
+        boolean tournament() {
+            return onEnd != null;
+        }
+    }
+
+    /**
+     * Esito di una partita di torneo, dal punto di vista dello sfidante (a). Nel torneo non ci
+     * sono pareggi: a parita' di round vinti passa chi ha fatto piu' punti in tutto, poi la sorte.
+     */
+    public record MatchEnd(UUID winnerId, int scoreA, int scoreB, boolean forfeit, boolean tiebreak) {
     }
 
     /** NPC che giocano: gli sfidanti dell'Arena. */
@@ -74,6 +91,8 @@ public class PvpService {
     private final Map<UUID, Challenge> challenges = new ConcurrentHashMap<>();
     private final Map<UUID, LiveGame> gamesByUser = new ConcurrentHashMap<>();
     private final Map<UUID, Long> npcChallengedAt = new ConcurrentHashMap<>();
+    /** Iscritti a un torneo ancora in gara: non accettano ne' mandano sfide normali. */
+    private volatile Predicate<UUID> inTournament = id -> false;
 
     public PvpService(RoomRegistry registry, UserCardRepository userCardRepository, PvpRewardService rewardService,
                       NpcDeals npcDeals) {
@@ -92,8 +111,9 @@ public class PvpService {
         if (toId == null || toId.equals(fromId)) return "cannot_challenge_yourself";
         if (room == null || !room.contains(toId)) return "user_not_here";
         if (isBusy(fromId)) return "already_in_match";
+        if (inTournament.test(fromId)) return "in_tournament";
         if (room.isNpc(toId)) return challengeNpc(from, room, toId);
-        if (isBusy(toId)) return "opponent_busy";
+        if (isBusy(toId) || inTournament.test(toId)) return "opponent_busy";
 
         HotelSession to = registry.sessionOf(toId);
         if (to == null) return "user_not_here";
@@ -108,9 +128,10 @@ public class PvpService {
         UUID fromId = from.user().id();
         if (toId == null || toId.equals(fromId)) return "cannot_challenge_yourself";
         if (isBusy(fromId)) return "already_in_match";
+        if (inTournament.test(fromId)) return "in_tournament";
         HotelSession to = registry.sessionOf(toId);
         if (to == null || to.user() == null) return "user_offline";
-        if (isBusy(toId)) return "opponent_busy";
+        if (isBusy(toId) || inTournament.test(toId)) return "opponent_busy";
         return offer(from, to, null);
     }
 
@@ -150,6 +171,7 @@ public class PvpService {
             HotelUser challenger = userOf(challenge.from());
             if (challenger == null) return "user_offline";
             if (isBusy(challenge.from()) || isBusy(userId)) return "opponent_busy";
+            if (inTournament.test(challenge.from()) || inTournament.test(userId)) return "in_tournament";
             start(null, null, challenger, session.user());
             return null;
         }
@@ -168,6 +190,7 @@ public class PvpService {
             return "user_not_here";
         }
         if (isBusy(challenge.from()) || isBusy(userId)) return "opponent_busy";
+        if (inTournament.test(userId)) return "in_tournament";
         start(room, challenge.roomId(), challenger, session.user());
         return null;
     }
@@ -186,8 +209,8 @@ public class PvpService {
 
         synchronized (live) {
             long deadline = System.currentTimeMillis() + TEAM_MILLIS;
-            send(a.id(), startMessage(game, a, b, "a", deadline));
-            send(b.id(), startMessage(game, b, a, "b", deadline));
+            send(a.id(), startMessage(game, a, b, "a", deadline, null));
+            send(b.id(), startMessage(game, b, a, "b", deadline, null));
             live.timer = registry.schedule(() -> onTeamTimeout(live), TEAM_MILLIS);
         }
         for (HotelUser player : List.of(a, b)) {
@@ -196,6 +219,40 @@ public class PvpService {
                 npcLater(live, 2_500 + random.nextInt(2_000), () -> npcTeam(live, room, player.id()));
             }
         }
+    }
+
+    // ------------------------------------------------------------------ torneo
+
+    /** Chi e' in gara in un torneo (lo imposta CardTournamentService). */
+    public void setTournamentFilter(Predicate<UUID> filter) {
+        this.inTournament = filter == null ? id -> false : filter;
+    }
+
+    /**
+     * Partita di un torneo fra a e b, fuori dalle stanze. `bots` sono gli NPC del torneo con la
+     * loro squadra: giocano da soli come gli sfidanti dell'Arena. A partita finita `onEnd` riceve
+     * l'esito (fuori dal lock della partita). False se uno dei due giocatori e' gia' impegnato.
+     */
+    public boolean startTournamentMatch(HotelUser a, HotelUser b, Map<UUID, List<PvpGame.CardInfo>> bots,
+                                        String label, Consumer<MatchEnd> onEnd) {
+        if (isBusy(a.id()) || isBusy(b.id())) return false;
+        PvpGame game = new PvpGame(a.id(), a.username(), b.id(), b.username(), random);
+        LiveGame live = new LiveGame(game, null);
+        live.bots = Map.copyOf(bots);
+        live.onEnd = onEnd;
+        live.label = label;
+        gamesByUser.put(a.id(), live);
+        gamesByUser.put(b.id(), live);
+        synchronized (live) {
+            long deadline = System.currentTimeMillis() + TEAM_MILLIS;
+            if (!bots.containsKey(a.id())) send(a.id(), startMessage(game, a, b, "a", deadline, label));
+            if (!bots.containsKey(b.id())) send(b.id(), startMessage(game, b, a, "b", deadline, label));
+            live.timer = registry.schedule(() -> onTeamTimeout(live), TEAM_MILLIS);
+        }
+        for (UUID bot : bots.keySet()) {
+            npcLater(live, 2_500 + random.nextInt(2_000), () -> npcTeam(live, null, bot));
+        }
+        return true;
     }
 
     // ------------------------------------------------------------------ NPC in Arena
@@ -233,7 +290,7 @@ public class PvpService {
         if (room == null) return;
         long now = System.currentTimeMillis();
         List<UUID> players = room.activePlayers().stream()
-                .filter(id -> !isBusy(id) && now - npcChallengedAt.getOrDefault(id, 0L) > NPC_CHALLENGE_COOLDOWN_MILLIS)
+                .filter(id -> !isBusy(id) && !inTournament.test(id) && now - npcChallengedAt.getOrDefault(id, 0L) > NPC_CHALLENGE_COOLDOWN_MILLIS)
                 .filter(id -> challenges.values().stream().noneMatch(c -> c.to().equals(id) || c.from().equals(id)))
                 .toList();
         List<UUID> fighters = room.npcsWithRole(PLAYING_NPCS).stream().filter(id -> !isBusy(id)).toList();
@@ -268,6 +325,10 @@ public class PvpService {
     }
 
     private UUID npcIn(LiveGame live, RoomInstance room) {
+        if (!live.bots.isEmpty()) {
+            if (live.bots.containsKey(live.game.a().userId())) return live.game.a().userId();
+            if (live.bots.containsKey(live.game.b().userId())) return live.game.b().userId();
+        }
         if (room == null) return null;
         if (room.isNpc(live.game.a().userId())) return live.game.a().userId();
         if (room.isNpc(live.game.b().userId())) return live.game.b().userId();
@@ -277,7 +338,8 @@ public class PvpService {
     private void npcTeam(LiveGame live, RoomInstance room, UUID npcId) {
         PvpGame game = live.game;
         if (game.phase() != PvpGame.Phase.TEAM) return;
-        boolean ready = game.setTeam(npcId, npcDeals.team(room.npcRole(npcId), random));
+        List<PvpGame.CardInfo> team = live.bots.containsKey(npcId) ? live.bots.get(npcId) : npcDeals.team(room.npcRole(npcId), random);
+        boolean ready = game.setTeam(npcId, team);
         send(game.opponent(npcId).userId(), Map.of("type", "pvp_opponent_ready"));
         if (ready) beginRound(live);
     }
@@ -406,6 +468,25 @@ public class PvpService {
         }
     }
 
+    /**
+     * Cambio di stanza: annulla le sfide in sospeso e fa perdere solo le partite giocate in una
+     * stanza. Le sfide online e quelle del torneo non dipendono dalla stanza in cui si sta.
+     */
+    public void roomChanged(UUID userId) {
+        LiveGame live = gamesByUser.get(userId);
+        if (live != null && live.roomId == null) {
+            challenges.values().removeIf(c -> {
+                if (!c.from().equals(userId) && !c.to().equals(userId)) return false;
+                Map<String, Object> expired = Map.of("type", "challenge_expired", "challengeId", c.id());
+                send(c.from(), expired);
+                send(c.to(), expired);
+                return true;
+            });
+            return;
+        }
+        userLeft(userId);
+    }
+
     public boolean isBusy(UUID userId) {
         return gamesByUser.containsKey(userId);
     }
@@ -475,6 +556,11 @@ public class PvpService {
             PvpGame game = live.game;
             boolean aReady = game.a().team() != null;
             boolean bReady = game.b().team() != null;
+            if (aReady == bReady && live.tournament()) {
+                // Torneo: qualcuno deve passare il turno, si tira a sorte.
+                finish(live, random.nextBoolean() ? game.a().userId() : game.b().userId(), true);
+                return;
+            }
             if (aReady == bReady) {
                 // Nessuno dei due ha scelto: partita annullata, senza vincitori ne' ricompense.
                 live.finished = true;
@@ -494,6 +580,10 @@ public class PvpService {
         PvpGame game = live.game;
         game.end();
         release(live);
+        if (live.tournament()) {
+            finishTournament(live, winnerId, forfeit);
+            return;
+        }
 
         RoomInstance npcRoom = registry.get(live.roomId);
         UUID npc = npcIn(live, npcRoom);
@@ -530,6 +620,38 @@ public class PvpService {
             announce.put("forfeit", forfeit);
             room.announce(announce);
         }
+    }
+
+    /** Fine di una partita di torneo: niente premi qui (li da' il torneo), pareggi spareggiati. */
+    private void finishTournament(LiveGame live, UUID winnerId, boolean forfeit) {
+        PvpGame game = live.game;
+        boolean tiebreak = false;
+        if (winnerId == null) {
+            winnerId = tiebreakWinner(game, random);
+            tiebreak = true;
+        }
+        for (PvpGame.Player p : List.of(game.a(), game.b())) {
+            if (live.bots.containsKey(p.userId())) continue;
+            Map<String, Object> message = endMessage(game, p == game.a(), winnerId, forfeit, null);
+            message.put("tournament", live.label);
+            message.put("tiebreak", tiebreak);
+            send(p.userId(), message);
+        }
+        MatchEnd end = new MatchEnd(winnerId, game.a().score(), game.b().score(), forfeit, tiebreak);
+        Consumer<MatchEnd> onEnd = live.onEnd;
+        registry.schedule(() -> onEnd.accept(end), 0);
+    }
+
+    /** Pareggio nel torneo: passa chi ha fatto piu' punti nei tre round, a parita' la sorte. */
+    static UUID tiebreakWinner(PvpGame game, java.util.Random random) {
+        int a = 0;
+        int b = 0;
+        for (Map<String, Object> round : game.history()) {
+            a += ((Number) round.get("valueA")).intValue();
+            b += ((Number) round.get("valueB")).intValue();
+        }
+        if (a != b) return a > b ? game.a().userId() : game.b().userId();
+        return random.nextBoolean() ? game.a().userId() : game.b().userId();
     }
 
     /** Partita contro un NPC: premio solo al giocatore, con il limite giornaliero delle partite con gli NPC. */
@@ -569,9 +691,11 @@ public class PvpService {
                 card.getSetName() != null ? card.getSetName() : card.getGroup(), 0);
     }
 
-    private static Map<String, Object> startMessage(PvpGame game, HotelUser me, HotelUser opponent, String side, long deadline) {
+    private static Map<String, Object> startMessage(PvpGame game, HotelUser me, HotelUser opponent, String side, long deadline,
+                                                    String tournament) {
         Map<String, Object> message = new LinkedHashMap<>();
         message.put("type", "pvp_start");
+        if (tournament != null) message.put("tournament", tournament);
         message.put("matchId", game.id());
         message.put("side", side);
         message.put("opponent", opponent);

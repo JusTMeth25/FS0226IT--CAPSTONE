@@ -5,6 +5,16 @@
 export const NEWS = [
   {
     date: '2026-10-16',
+    title: 'La Coppa VinylDex',
+    icon: 'ph-trophy',
+    items: [
+      ['ph-tree-structure', 'Torneo a eliminazione diretta', 'Sedici posti, dagli ottavi alla finale: ti iscrivi in Arena (pulsante Torneo) o nella pagina Battaglie, i posti liberi li prendono gli NPC e il tabellone si aggiorna in diretta per tutti.'],
+      ['ph-coins', 'Montepremi di 1000 gold', '500 al vincitore, 250 al finalista, 125 a ogni semifinalista. I premi valgono per 3 tornei al giorno.'],
+      ['ph-users-three', 'Contro altri giocatori', 'In Battaglie puoi anche affrontare la squadra di un altro giocatore quando non è collegato, o sfidare in tempo reale chi è online, con le stesse schermate delle battaglie contro gli NPC.']
+    ]
+  },
+  {
+    date: '2026-10-16',
     title: 'Le corse dei cavalli',
     icon: 'ph-horse',
     items: [

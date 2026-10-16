@@ -29,6 +29,8 @@ import useDraggablePanels from '../hotel/useDraggablePanels.js';
 import HotelTutorial from '../hotel/ui/HotelTutorial.jsx';
 import FriendsPanel from '../hotel/ui/FriendsPanel.jsx';
 import EventsPanel, { EventBanner } from '../hotel/ui/EventsPanel.jsx';
+import { TournamentPanel } from '../components/battle/CardTournament.jsx';
+import { useCardTournament } from '../hotel/useCardTournament.js';
 import AuctionTab from '../hotel/ui/AuctionTab.jsx';
 import GalleryTab from '../hotel/ui/GalleryTab.jsx';
 import QuestsTab from '../hotel/ui/QuestsTab.jsx';
@@ -191,6 +193,11 @@ const ERRORS = {
   cannot_challenge_yourself: 'Non puoi sfidare te stesso.',
   already_in_match: 'Sei gia\' in una sfida.',
   opponent_busy: 'Quel giocatore e\' gia\' impegnato in una sfida.',
+  in_tournament: 'Sei in gara nel torneo: niente altre sfide finche\' non finisce.',
+  tournament_running: 'Il torneo e\' gia\' cominciato: aspetta il prossimo.',
+  tournament_full: 'Il tabellone e\' pieno: aspetta il prossimo torneo.',
+  tournament_need_cards: 'Ti servono almeno 3 carte per iscriverti al torneo.',
+  not_in_tournament: 'Non sei iscritto al torneo.',
   challenge_expired: 'La sfida e\' scaduta.',
   invalid_team: 'Scegli 3 carte diverse.',
   invalid_move: 'Mossa non valida in questo momento.',
@@ -543,8 +550,10 @@ export default function HotelPage() {
         break;
       case 'pvp_start':
         setClockOffset(message.serverTime - Date.now());
-        setPvp({ stage: 'team', matchId: message.matchId, opponent: message.opponent, deadline: message.teamDeadline });
+        setPvp({ stage: 'team', matchId: message.matchId, opponent: message.opponent, deadline: message.teamDeadline,
+          tournament: message.tournament || null });
         setSelected(null);
+        if (message.tournament) showNotice(`Torneo, ${message.tournament}: tocca a te contro ${message.opponent?.username}!`);
         break;
       case 'pvp_team_ok':
         setPvp((p) => (p ? { ...p, teamSent: true } : p));
@@ -576,7 +585,8 @@ export default function HotelPage() {
         else sound.roundDraw();
         break;
       case 'pvp_end':
-        setPvp((p) => ({ ...p, stage: 'end', result: message.result, score: message.score, reward: message.reward, forfeit: message.forfeit, deadline: null }));
+        setPvp((p) => ({ ...p, stage: 'end', result: message.result, score: message.score, reward: message.reward, forfeit: message.forfeit,
+          tournament: message.tournament || p?.tournament || null, deadline: null }));
         if (message.result === 'win') sound.battleWin();
         else if (message.result === 'loss') sound.battleLose();
         else sound.battleDraw();
@@ -585,6 +595,9 @@ export default function HotelPage() {
       case 'pvp_cancelled':
         setPvp(null);
         showNotice('Sfida annullata: nessuno ha scelto la squadra in tempo.');
+        break;
+      case 'tournament_champion':
+        showNotice(`Coppa VinylDex: ${message.winner} batte ${message.runnerUp} in finale!`);
         break;
       case 'pvp_result': {
         const mine = [message.a, message.b].includes(meRef.current?.username);
@@ -899,6 +912,10 @@ export default function HotelPage() {
     return () => { cancelled = true; clearInterval(id); };
   }, [inVault, showTreasure]);
   const isOwner = !!(room && me && room.ownerId === me.id);
+  // Torneo di carte: si segue il tabellone in Arena, col pannello aperto o se si e' iscritti.
+  const cardCup = useCardTournament({ active: room?.id === ARENA_ID || panel === 'cardcup', onPrize: () => refreshUser() });
+  const cardCupLive = !!(me && cardCup.state && cardCup.state.status !== 'finished'
+    && cardCup.state.entrants.some((e) => e.id === me.id));
   const selectedItem = selectedItemId ? items[selectedItemId] : null;
   const bagPacks = PACKS.reduce((sum, pack) => sum + (freePacks[pack.id] || 0), 0);
 
@@ -1625,6 +1642,18 @@ export default function HotelPage() {
             onBought={() => { refreshUser(); refreshCollection(); }} onViewCard={setViewingCard} />
         )}
         {photo && <PhotoModal image={photo} roomName={room?.name} onClose={() => setPhoto(null)} />}
+        {panel === 'cardcup' && (
+          <div className="hotel-panel hotel-cardcup" role="dialog" aria-label="Torneo di carte">
+            <header className="hotel-panel-header">
+              <h3><i className="ph-fill ph-trophy" /> Torneo dell&apos;Arena</h3>
+              <button type="button" className="hotel-panel-close" onClick={() => setPanel(null)} aria-label="Chiudi"><i className="ph ph-x" /></button>
+            </header>
+            <div className="hotel-cardcup-body">
+              <TournamentPanel tournament={cardCup} me={me?.id} compact
+                joinHint="Quando tocca a te si apre la partita: scegli la squadra e gioca come nelle sfide dell'Arena." />
+            </div>
+          </div>
+        )}
         {panel === 'events' && (
           <EventsPanel me={me} version={eventsVersion} onClose={() => setPanel(null)}
             tabs={[
@@ -1707,6 +1736,13 @@ export default function HotelPage() {
           onClick={() => { const image = canvasRef.current?.snapshot(); if (image) setPhoto(image); else showNotice('Foto non riuscita.'); }} title="Scatta una foto della stanza">
           <i className="ph-fill ph-camera" /><span>Foto</span>
         </button>
+        {(room?.id === ARENA_ID || cardCupLive) && (
+          <button type="button" className={`hotel-tool${panel === 'cardcup' ? ' active' : ''}`} onClick={() => setPanel(panel === 'cardcup' ? null : 'cardcup')}
+            title="Torneo di carte: dagli ottavi alla finale, montepremi 1000 gold">
+            <i className="ph-fill ph-trophy" /><span>Torneo</span>
+            {cardCupLive && <b className="hotel-tool-badge">!</b>}
+          </button>
+        )}
         <button type="button" className={`hotel-tool${panel === 'events' ? ' active' : ''}`} onClick={() => setPanel(panel === 'events' ? null : 'events')} title="Piazza: eventi, asta e mostra">
           <i className="ph-fill ph-confetti" /><span>Piazza</span>
           {liveEvents.length > 0 && <b className="hotel-tool-badge">!</b>}

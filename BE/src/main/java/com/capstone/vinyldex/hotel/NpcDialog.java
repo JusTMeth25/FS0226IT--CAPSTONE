@@ -143,7 +143,7 @@ public final class NpcDialog {
             case DJ -> "Yo " + user + "! Chiedimi un pezzo e lo metto su.";
             case ICE_CREAM -> "Ciao " + user + "! Un bel gelato?";
             case GARDENER -> "Ciao " + user + "! Attento alle aiuole, le ho appena sistemate.";
-            case REFEREE -> "Benvenuto nell'Arena, " + user + ". Clicca un giocatore e sfidalo!";
+            case REFEREE -> "Benvenuto nell'Arena, " + user + ". Clicca un giocatore e sfidalo, o iscriviti al Torneo: 1000 gold in palio!";
             case CHEF -> "Benvenuto in pizzeria, " + user + "! Il forno e' caldo, una margherita?";
             case LIBRARIAN -> "Benvenuto in biblioteca, " + user + ". Sussurra, qui si legge!";
             case NEWSAGENT -> pick(random, List.of("Ciao " + user + "! Giornali, fumetti e pacchetti di carte: cosa ti do?",

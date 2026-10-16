@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useGame } from '../hooks/useGame.js';
 import { useSound } from '../hooks/useSound.js';
 import { useCountUp } from '../hooks/useCountUp.js';
@@ -18,6 +18,8 @@ import { OnlineOpponents, OpponentModeTabs, PlayerOpponents } from '../component
 import { battleApi } from '../services/battleApi.js';
 import { useOnlinePvp } from '../hotel/useOnlinePvp.js';
 import OnlineMatch from '../components/battle/OnlineMatch.jsx';
+import { TournamentPanel } from '../components/battle/CardTournament.jsx';
+import { useCardTournament } from '../hotel/useCardTournament.js';
 import { useAuth } from '../hooks/useAuth.js';
 
 const CATEGORIES = ['fans', 'style', 'influence', 'energy'];
@@ -276,12 +278,17 @@ export default function BattlePage() {
   const [battleSourceFilter, setBattleSourceFilter] = useState('');
   const [synced, setSynced] = useState(false);
   const { refreshCollection } = game;
-  const { refreshUser } = useAuth();
-  // Contro chi: NPC, squadra di un giocatore (anche offline) o giocatore online in tempo reale.
-  const [opponentMode, setOpponentMode] = useState('npc');
+  const { user, refreshUser } = useAuth();
+  const [searchParams] = useSearchParams();
+  // Contro chi: NPC, squadra di un giocatore (anche offline), giocatore online in tempo reale o torneo.
+  const [opponentMode, setOpponentMode] = useState(() => (searchParams.get('mode') === 'tournament' ? 'tournament' : 'npc'));
   const [pickingId, setPickingId] = useState(null);
   const [pickError, setPickError] = useState(null);
-  const onlinePvp = useOnlinePvp({ active: opponentMode === 'online', onEnd: () => { refreshUser?.(); refreshCollection?.(); } });
+  const realtime = opponentMode === 'online' || opponentMode === 'tournament';
+  const onlinePvp = useOnlinePvp({ active: realtime, onEnd: () => { refreshUser?.(); refreshCollection?.(); } });
+  const tournament = useCardTournament({ active: opponentMode === 'tournament', onPrize: () => refreshUser?.() });
+  /** Squadra di riserva per il torneo, se quando tocca a te non ne hai scelta una: le tre carte piu' forti. */
+  const bestTeam = useRef([]);
 
   // Sfida online: la squadra e' quella scelta qui sopra, la mando da sola appena parte la partita.
   const sentTeamFor = useRef(null);
@@ -291,7 +298,9 @@ export default function BattlePage() {
   useEffect(() => {
     if (onlineStage !== 'team' || !onlineMatchId || sentTeamFor.current === onlineMatchId) return;
     sentTeamFor.current = onlineMatchId;
-    sendOnline({ type: 'pvp_team', cards: b.team.filter(Boolean).map((c) => c.id) });
+    const chosen = b.team.filter(Boolean);
+    const team = chosen.length === 3 ? chosen : bestTeam.current;
+    sendOnline({ type: 'pvp_team', cards: team.map((c) => c.id) });
   }, [onlineStage, onlineMatchId, sendOnline, b.team]);
 
   // Le carte prese altrove (hotel, scambi, mercato) arrivano qui solo ricaricando la collezione.
@@ -302,6 +311,11 @@ export default function BattlePage() {
   }, [refreshCollection]);
 
   const collectionCards = useMemo(() => uniqueCollectionCards(game.collection), [game.collection]);
+  const bestCards = useMemo(() => {
+    const total = (c) => CATEGORIES.reduce((sum, k) => sum + (c.stats?.[k] || 0), 0);
+    return [...collectionCards].sort((x, y) => total(y) - total(x)).slice(0, 3);
+  }, [collectionCards]);
+  useEffect(() => { bestTeam.current = bestCards; }, [bestCards]);
   const availableBattleSources = useMemo(() => {
     const present = new Set(collectionCards.map((c) => c.source).filter(Boolean));
     return Object.keys(SOURCE_LABELS).filter((s) => present.has(s));
@@ -548,7 +562,8 @@ export default function BattlePage() {
   // ---------- SFIDA ONLINE IN CORSO ----------
   if (onlinePvp.pvp && ['team', 'round', 'reveal', 'end'].includes(onlinePvp.pvp.stage)) {
     return (
-      <OnlineMatch pvp={onlinePvp.pvp} clockOffset={onlinePvp.clockOffset} send={onlinePvp.send} myTeam={b.team}
+      <OnlineMatch pvp={onlinePvp.pvp} clockOffset={onlinePvp.clockOffset} send={onlinePvp.send}
+        myTeam={b.team.filter(Boolean).length === 3 ? b.team : bestCards}
         onExit={() => onlinePvp.setPvp(null)} />
     );
   }
@@ -606,6 +621,10 @@ export default function BattlePage() {
             <OnlineInvite pvp={onlinePvp.pvp} canAccept={filledCount >= 3} send={onlinePvp.send} onClose={() => onlinePvp.setPvp(null)} />
             <OnlineOpponents online={onlinePvp.online} waiting={!!onlinePvp.pvp || filledCount < 3} onChallenge={onlinePvp.challenge} />
           </>
+        )}
+        {opponentMode === 'tournament' && (
+          <TournamentPanel tournament={tournament} me={user?.id}
+            joinHint={filledCount < 3 ? 'Scegli le 3 carte qui sopra: giochi il torneo con questa squadra (senza, con le tue 3 più forti).' : null} />
         )}
 
         <div className="battle-team-preview glass-panel">

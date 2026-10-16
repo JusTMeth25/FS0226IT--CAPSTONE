@@ -20,6 +20,8 @@ export default function HotelProvider({ children }) {
   const [roomId, setRoomId] = useState(null);
   const [toast, setToast] = useState(null);
   const [pendingChallenge, setPendingChallenge] = useState(null);
+  /** Inizio di una partita del torneo arrivato quando nessuna pagina lo ascoltava. */
+  const pendingMatch = useRef(null);
   const [tradeVersion, setTradeVersion] = useState(0);
   const listeners = useRef(new Set());
   const roomIdRef = useRef(null);
@@ -52,9 +54,14 @@ export default function HotelProvider({ children }) {
       setToast((t) => (t?.kind === 'challenge' ? null : t));
     }
 
+    if (message.type === 'pvp_end' || message.type === 'pvp_cancelled') pendingMatch.current = null;
+
     // Nessuna pagina hotel aperta: sfide e scambi diventano un avviso globale.
     if (listeners.current.size === 0) {
-      if (message.type === 'challenge_received') {
+      if (message.type === 'pvp_start' && message.tournament) {
+        pendingMatch.current = message;
+        setToast({ kind: 'tournament', text: `Torneo: tocca a te (${message.tournament}) contro ${message.opponent?.username}!` });
+      } else if (message.type === 'challenge_received') {
         setPendingChallenge({ ...message, receivedAt: Date.now() });
         setToast({ kind: 'challenge', text: `${message.from.username} ti sfida nell'hotel!` });
       } else if (message.type === 'trade_event' && message.kind === 'received') {
@@ -91,6 +98,12 @@ export default function HotelProvider({ children }) {
       return challenge;
     },
     tradeVersion,
+    /** La partita del torneo cominciata altrove (una volta sola), per chi apre adesso la pagina. */
+    takePendingMatch: () => {
+      const match = pendingMatch.current;
+      pendingMatch.current = null;
+      return match;
+    },
     clearToast: () => setToast(null)
   }), [status, send, resume, subscribe, me, roomId, pendingChallenge, tradeVersion]);
 
@@ -110,15 +123,15 @@ function HotelToast({ toast, onClose }) {
 
   const go = () => {
     onClose();
-    navigate(toast.kind === 'trade' ? '/hotel?panel=trades' : '/hotel');
+    navigate(toast.kind === 'trade' ? '/hotel?panel=trades' : toast.kind === 'tournament' ? '/battle?mode=tournament' : '/hotel');
   };
 
   return (
     <div className="hotel-toast" role="status">
-      <i className={`ph-fill ${toast.kind === 'challenge' ? 'ph-sword' : 'ph-arrows-left-right'}`} />
+      <i className={`ph-fill ${toast.kind === 'challenge' ? 'ph-sword' : toast.kind === 'tournament' ? 'ph-trophy' : 'ph-arrows-left-right'}`} />
       <span>{toast.text}</span>
       <button type="button" className="btn btn-primary btn-small" onClick={go}>
-        {toast.kind === 'challenge' ? 'Vai all\'hotel' : 'Vedi'}
+        {toast.kind === 'challenge' ? 'Vai all\'hotel' : toast.kind === 'tournament' ? 'Gioca' : 'Vedi'}
       </button>
       <button type="button" className="hotel-toast-close" onClick={onClose} aria-label="Chiudi"><i className="ph ph-x" /></button>
     </div>

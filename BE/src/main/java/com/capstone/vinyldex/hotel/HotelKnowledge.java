@@ -54,6 +54,7 @@ public class HotelKnowledge implements Supplier<String> {
                 - Gold si guadagna: accesso giornaliero (10 gold piu' 2 per ogni giorno di fila), missioni, battaglie \
                 contro il computer, sfide in Arena (vittoria 80 gold, al massimo 5 sfide premiate al giorno), vendendo \
                 carte al mercato, salendo di livello e completando gli album.
+                - Coppa VinylDex: torneo di carte a eliminazione diretta da 16 posti (ottavi, quarti, semifinali,                 finale) con giocatori veri e NPC; ci si iscrive in Arena (pulsante Torneo) o nella pagina Battaglie.                 Montepremi 1000 gold: 500 al vincitore, 250 al finalista, 125 ai semifinalisti, per 3 tornei al giorno.
                 - Nell'hotel: rispetto (3 al giorno da dare ad altri giocatori), stanza personale da arredare con i \
                 mobili del negozio pagati in gold, vetrine per esporre le carte, sfide PvP cliccando un giocatore.
                 - In Edicola (stanza pubblica dell'hotel) si comprano i pacchetti allo stesso prezzo del sito: vanno \

@@ -126,7 +126,7 @@ export default function PvpPanel({ pvp, clockOffset, send, onClose }) {
 
   const header = (
     <header className="hotel-panel-header">
-      <h3><i className="ph-fill ph-sword" /> Tu contro {pvp.opponent?.username}</h3>
+      <h3><i className={`ph-fill ${pvp.tournament ? 'ph-trophy' : 'ph-sword'}`} /> {pvp.tournament ? `${pvp.tournament}: ` : 'Tu '}contro {pvp.opponent?.username}</h3>
       {pvp.stage !== 'end' && countdown !== null && <span className={`pvp-timer${countdown <= 5 ? ' urgent' : ''}`}>{countdown}s</span>}
       {pvp.stage !== 'end' && (
         <button type="button" className="hotel-panel-close" onClick={() => send({ type: 'pvp_forfeit' })} title="Abbandona (perdi a tavolino)" aria-label="Abbandona"><i className="ph ph-flag" /></button>
@@ -260,7 +260,9 @@ export default function PvpPanel({ pvp, clockOffset, send, onClose }) {
   }
 
   // Fine partita.
-  const titles = { win: 'Hai vinto!', loss: 'Hai perso', draw: 'Pareggio' };
+  const titles = pvp.tournament
+    ? { win: 'Passi il turno!', loss: 'Eliminato', draw: 'Pareggio' }
+    : { win: 'Hai vinto!', loss: 'Hai perso', draw: 'Pareggio' };
   return (
     <div className="hotel-panel pvp-panel" role="dialog" aria-label="Fine partita">
       <header className="hotel-panel-header"><h3><i className="ph-fill ph-trophy" /> {titles[pvp.result]}</h3></header>
