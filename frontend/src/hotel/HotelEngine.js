@@ -197,6 +197,8 @@ export class HotelEngine {
   }
 
   resize(cssWidth, cssHeight, dpr) {
+    // Stessa misura (tastiera che si apre, seconda misura dopo una rotazione): la vista resta dov'e'.
+    if (cssWidth === this.cssWidth && cssHeight === this.cssHeight && dpr === this.dpr) return;
     this.cssWidth = cssWidth;
     this.cssHeight = cssHeight;
     this.dpr = dpr;
@@ -207,9 +209,23 @@ export class HotelEngine {
     this.centerCamera();
   }
 
-  setZoom(zoom) {
+  /**
+   * Con `anchor` ({x, y} nel canvas) lo zoom tiene fermo il punto sotto le dita o sotto il
+   * mouse, come le mappe; senza, la stanza si rimette al centro.
+   */
+  setZoom(zoom, anchor) {
+    const before = this.zoom;
     this.zoom = zoom;
-    this.centerCamera();
+    if (!anchor || !this.roomImage || !before) {
+      this.centerCamera();
+      return;
+    }
+    const { canvas } = this.roomImage;
+    const keep = 120;
+    const x = anchor.x - ((anchor.x - this.camera.x) / before) * zoom;
+    const y = anchor.y - ((anchor.y - this.camera.y) / before) * zoom;
+    this.camera.x = clamp(x, keep - canvas.width * zoom, this.cssWidth - keep);
+    this.camera.y = clamp(y, keep - canvas.height * zoom, this.cssHeight - keep);
   }
 
   /**

@@ -61,7 +61,10 @@
 
 /* ---------- Reset & Base ---------- */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html { font-size: 16px; scroll-behavior: smooth; scrollbar-gutter: stable; }
+/* iPhone in orizzontale: senza text-size-adjust Safari ingrandisce i testi da solo e, girando di
+   nuovo il telefono, la pagina restava "zoomata". overflow-x: clip non lascia allargare la pagina
+   oltre lo schermo (anche questo, su iOS, la faceva rimpicciolire o restare spostata). */
+html { font-size: 16px; scroll-behavior: smooth; scrollbar-gutter: stable; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overflow-x: clip; }
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   background-color: var(--bg-primary);
@@ -72,6 +75,7 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
+  overflow-x: clip;
 }
 a { color: var(--neon-cyan); text-decoration: none; transition: color var(--transition-fast); }
 a:hover { color: var(--neon-purple); }

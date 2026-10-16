@@ -65,11 +65,18 @@ export function useScrollContainment(ref) {
       if (!scrollableAncestor(event.target, root, deltaX, deltaY)) event.preventDefault();
     };
 
+    // Safari (iPhone, iPad, Mac col trackpad) zooma tutta la pagina con questi eventi suoi.
+    const onGesture = (event) => event.preventDefault();
+
     root.addEventListener('wheel', onWheel, { passive: false });
+    root.addEventListener('gesturestart', onGesture, { passive: false });
+    root.addEventListener('gesturechange', onGesture, { passive: false });
     root.addEventListener('touchstart', onTouchStart, { passive: true });
     root.addEventListener('touchmove', onTouchMove, { passive: false });
     return () => {
       root.removeEventListener('wheel', onWheel);
+      root.removeEventListener('gesturestart', onGesture);
+      root.removeEventListener('gesturechange', onGesture);
       root.removeEventListener('touchstart', onTouchStart);
       root.removeEventListener('touchmove', onTouchMove);
     };
