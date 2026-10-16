@@ -253,3 +253,111 @@
 
 /* L'aurora sfocata dello sfondo non e' P5: con Phantom il fondo e' notte, strisce e retino. */
 :root[data-skin="phantom"] .aurora { display: none; }
+
+/* ---------- Scheda carta (CardHero): riquadro e statistiche ----------
+   Dettaglio carta, ispezione dal riepilogo pacchetti, vetrine. Il riquadro e' una lastra nera
+   con il filo magenta; ogni statistica e' un tassello tagliato col suo colore sul bordo sinistro,
+   cifra grande condensata; il totale e' un blocco bianco inclinato con la cifra magenta. */
+:root[data-skin="phantom"] .card-hero {
+  border: 0;
+  border-radius: 0;
+  background: var(--p5-halftone), var(--p5-panel);
+  box-shadow: inset 4px 0 0 var(--p5-red), inset 0 0 0 1.5px rgba(255, 255, 255, 0.12), 6px 6px 0 #000;
+}
+:root[data-skin="phantom"] .card-hero-name { font-family: var(--font-display); font-stretch: 75%; text-shadow: 3px 3px 0 #000; }
+:root[data-skin="phantom"] .card-hero-rarity-badge,
+:root[data-skin="phantom"] .card-hero-qty-badge {
+  border-radius: 0;
+  clip-path: var(--p5-shape-sm);
+  background: #000;
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+:root[data-skin="phantom"] .card-hero-tag {
+  border-radius: 0;
+  background: #000;
+  box-shadow: inset 3px 0 0 var(--p5-red);
+}
+:root[data-skin="phantom"] .card-hero-tag-label { font-family: var(--font-display); font-weight: 800; letter-spacing: 0.12em; color: var(--p5-ink-soft); }
+
+:root[data-skin="phantom"] .card-hero-stats-grid { gap: 10px; }
+:root[data-skin="phantom"] .card-hero-stat {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "icon value" "label label";
+  align-items: center;
+  justify-items: start;
+  column-gap: 8px;
+  row-gap: 0;
+  padding: 10px 14px 10px 16px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+:root[data-skin="phantom"] .card-hero-stat::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #000;
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 90% 100%, 0 100%);
+  box-shadow: inset 5px 0 0 var(--stat-color, var(--p5-red));
+}
+:root[data-skin="phantom"] .card-hero-stat > i { grid-area: icon; font-size: 1.15rem; }
+:root[data-skin="phantom"] .card-hero-stat-value {
+  grid-area: value;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 72%;
+  font-size: 2.1rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  text-shadow: 2px 2px 0 var(--stat-color, var(--p5-red));
+}
+:root[data-skin="phantom"] .card-hero-stat-label {
+  grid-area: label;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  letter-spacing: 0.14em;
+  font-size: 0.68rem;
+  color: var(--p5-ink-soft);
+}
+/* Totale: blocco bianco inclinato, cifra magenta enorme. */
+:root[data-skin="phantom"] .card-hero-stat-total {
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "value label" "value sub";
+  column-gap: 14px;
+  padding: 12px 22px;
+  transform: rotate(-1.2deg);
+  filter: drop-shadow(5px 5px 0 #000);
+}
+:root[data-skin="phantom"] .card-hero-stat-total::before {
+  background: var(--p5-paper);
+  box-shadow: none;
+  clip-path: polygon(2% 0, 100% 0, 98% 100%, 0 100%);
+}
+:root[data-skin="phantom"] .card-hero-stat-total .card-hero-stat-value {
+  color: var(--p5-red);
+  font-size: 2.8rem;
+  text-shadow: 3px 3px 0 #000;
+}
+:root[data-skin="phantom"] .card-hero-stat-total .card-hero-stat-label { color: #07040f; font-size: 0.85rem; align-self: end; }
+:root[data-skin="phantom"] .card-hero-stat-total .card-hero-stat-sublabel {
+  grid-area: sub;
+  align-self: start;
+  color: #5a4f72;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+/* Il totale ha sempre una riga tutta sua (su 5 colonne strette veniva tagliato); da tablet in su
+   le quattro statistiche stanno in fila. Il riquadro senza immagine non taglia piu' i bordi. */
+:root[data-skin="phantom"] .card-hero-stat-total { grid-column: 1 / -1; }
+:root[data-skin="phantom"] .card-hero-stats-only { overflow: visible; }
+@media (min-width: 576px) {
+  :root[data-skin="phantom"] .card-hero-stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  :root[data-skin="phantom"] .card-hero-stat { grid-template-columns: 1fr; grid-template-areas: "icon" "value" "label"; }
+}
