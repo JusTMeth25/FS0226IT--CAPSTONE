@@ -24,7 +24,13 @@
    card — se centrassimo l'intera card, il pacchetto Base (2 pulsanti, card più alta) resterebbe
    in cima mentre gli altri due (1 pulsante) verrebbero centrati nella riga più alta, spostando
    la LORO immagine più in basso e disallineandola da quella del Base. */
-.packs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-sm); justify-items: center; align-items: start; }
+.packs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-sm); justify-items: center; align-items: start; }
+/* Le colonne non si allargano per il contenuto (etichette, bottoni): con 1fr la terza usciva dallo
+   schermo. Sul telefono in verticale due pacchetti per riga, cosi' nomi e bottoni si leggono. */
+.packs-grid > * { min-width: 0; }
+@media (max-width: 559px) {
+  .packs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 .packs-group { width: 100%; display: flex; flex-direction: column; gap: var(--space-sm); }
 .packs-group-title { font-size: 1rem; color: var(--text-secondary); letter-spacing: 0.08em; text-transform: uppercase; margin: var(--space-md) 0 0; }
 /* Niente più cornice "glass-panel" attorno all'immagine: solo l'artwork del pacchetto (con angoli
