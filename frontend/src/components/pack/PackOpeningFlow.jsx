@@ -96,11 +96,13 @@ function RevealCard({ card, size = 'grid' }) {
  * @param actions pulsanti del riepilogo: [{ label, icon, onClick, primary }]
  * @param onSummary chiamato una volta, quando si arriva al riepilogo (tutte le carte viste)
  */
-export default function PackOpeningFlow({ packId, cards, actions = [], onSummary }) {
+export default function PackOpeningFlow({ packId, cards, actions = [], onSummary, phantom: phantomProp }) {
   const { sound } = useSound();
   const threeEnabled = useThreeEnabled();
   // Gli scatti in stile Phantom solo fuori dall'hotel: li' l'apertura resta quella di sempre.
-  const phantom = usePhantomSkin();
+  // Nell'hotel lo stile Phantom e' spento, tranne nell'apertura dei pacchetti (HotelPackOpening lo chiede).
+  const phantomPage = usePhantomSkin();
+  const phantom = phantomProp ?? phantomPage;
 
   const [phase, setPhase] = useState('opening');
   const [revealIndex, setRevealIndex] = useState(0);

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { m } from 'motion/react';
+import StarBurst from '../../components/phantom/StarBurst.jsx';
 import { useGame } from '../../hooks/useGame.js';
 import { dedupeCollection } from '../../utils/collectionUtils.js';
 import SavedTeams from '../../components/card/SavedTeams.jsx';
@@ -48,7 +50,7 @@ function MiniCard({ card, highlight, value, boost, dim, selected, onClick }) {
       <span className="pvp-card-name">{card.name}</span>
       {card.synergy > 0 && <span className="battle-synergy-chip"><i className="ph-fill ph-link" /> +{card.synergy}%</span>}
       {highlight && (
-        <span className="pvp-card-stat">{CATEGORY_LABEL[highlight]} <strong>{value ?? card.stats?.[highlight] ?? 0}</strong>{boost && ' ⚡'}</span>
+        <span className="pvp-card-stat">{CATEGORY_LABEL[highlight]} <strong>{value ?? card.stats?.[highlight] ?? 0}{boost && <i className="ph-fill ph-lightning pvp-boost-mark" aria-label="con il bonus" />}</strong></span>
       )}
     </button>
   );
@@ -136,8 +138,10 @@ export default function PvpPanel({ pvp, clockOffset, send, onClose }) {
 
   const scoreBar = pvp.score && (
     <div className="pvp-score">
-      <span>Round {Math.min(pvp.round || 1, 3)} di 3</span>
-      <strong>Tu {pvp.score.you} – {pvp.score.opponent} {pvp.opponent?.username}</strong>
+      <span className="pvp-score-round">Round {Math.min(pvp.round || 1, 3)} di 3</span>
+      <strong className="pvp-score-tally">
+        <span>Tu</span> <b className="is-you">{pvp.score.you}</b> – <b>{pvp.score.opponent}</b> <span>{pvp.opponent?.username}</span>
+      </strong>
     </div>
   );
 
@@ -243,17 +247,32 @@ export default function PvpPanel({ pvp, clockOffset, send, onClose }) {
 
   if (pvp.stage === 'reveal') {
     const r = pvp.reveal;
+    const tone = r.winner === 'you' ? 'win' : r.winner === 'opponent' ? 'loss' : 'draw';
     return (
-      <div className="hotel-panel pvp-panel" role="dialog" aria-label="Risultato del round">
+      <div className={`hotel-panel pvp-panel pvp-reveal is-${tone}`} role="dialog" aria-label="Risultato del round">
         {header}
         {scoreBar}
-        <p className="pvp-text pvp-verdict">
+        {/* Il verdetto piomba sul pannello e le due carte arrivano dai lati (scatti brevi). */}
+        <m.p
+          key={pvp.round}
+          className="pvp-text pvp-verdict"
+          initial={{ scale: 1.9, rotate: -10, opacity: 0 }}
+          animate={{ scale: 1, rotate: -2, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 640, damping: 26 }}
+        >
           {r.winner === 'you' ? 'Round vinto!' : r.winner === 'opponent' ? 'Round perso' : 'Pareggio'} · {CATEGORY_LABEL[r.category]}
-        </p>
+        </m.p>
         <div className="pvp-versus">
-          <div className={r.winner === 'you' ? 'winner' : ''}><span>Tu</span><MiniCard card={r.you.card} highlight={r.category} value={r.you.value} boost={r.you.boost} /></div>
-          <strong>VS</strong>
-          <div className={r.winner === 'opponent' ? 'winner' : ''}><span>{pvp.opponent?.username}</span><MiniCard card={r.opponent.card} highlight={r.category} value={r.opponent.value} boost={r.opponent.boost} /></div>
+          <m.div className={`pvp-side is-you${r.winner === 'you' ? ' winner' : ''}`}
+            initial={{ x: -40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.22, ease: [0.2, 1, 0.3, 1] }}>
+            <span>Tu</span><MiniCard card={r.you.card} highlight={r.category} value={r.you.value} boost={r.you.boost} />
+          </m.div>
+          <m.strong className="pvp-vs" initial={{ scale: 2.2, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 700, damping: 22, delay: 0.08 }}>VS</m.strong>
+          <m.div className={`pvp-side is-opponent${r.winner === 'opponent' ? ' winner' : ''}`}
+            initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.22, ease: [0.2, 1, 0.3, 1] }}>
+            <span>{pvp.opponent?.username}</span><MiniCard card={r.opponent.card} highlight={r.category} value={r.opponent.value} boost={r.opponent.boost} />
+          </m.div>
         </div>
       </div>
     );
@@ -263,13 +282,34 @@ export default function PvpPanel({ pvp, clockOffset, send, onClose }) {
   const titles = pvp.tournament
     ? { win: 'Passi il turno!', loss: 'Eliminato', draw: 'Pareggio' }
     : { win: 'Hai vinto!', loss: 'Hai perso', draw: 'Pareggio' };
+  const won = pvp.result === 'win';
   return (
-    <div className="hotel-panel pvp-panel" role="dialog" aria-label="Fine partita">
-      <header className="hotel-panel-header"><h3><i className="ph-fill ph-trophy" /> {titles[pvp.result]}</h3></header>
-      <p className="pvp-text pvp-verdict">Tu {pvp.score?.you} – {pvp.score?.opponent} {pvp.opponent?.username}{pvp.forfeit ? ' (a tavolino)' : ''}</p>
+    <div className={`hotel-panel pvp-panel pvp-end is-${pvp.result}`} role="dialog" aria-label={`Fine partita: ${titles[pvp.result]}`}>
+      <header className="hotel-panel-header"><h3><i className="ph-fill ph-trophy" /> {pvp.tournament || 'Fine partita'}</h3></header>
+      {/* Risultato: fascia diagonale, titolo che piomba e, se hai vinto, la stella dietro. */}
+      <div className="pvp-end-hero">
+        {won && (
+          <m.span className="pvp-end-star" aria-hidden="true" initial={{ scale: 0, rotate: -50 }} animate={{ scale: 1, rotate: -12 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 16, delay: 0.1 }}>
+            <StarBurst size={128} />
+          </m.span>
+        )}
+        <m.strong className="pvp-end-title" initial={{ scale: 2.4, rotate: -14, opacity: 0 }} animate={{ scale: 1, rotate: -3, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 600, damping: 24 }}>
+          {titles[pvp.result]}
+        </m.strong>
+        <p className="pvp-end-score">
+          <span>Tu</span> <b className="is-you">{pvp.score?.you}</b> – <b>{pvp.score?.opponent}</b> <span>{pvp.opponent?.username}</span>
+          {pvp.forfeit && <small> (a tavolino)</small>}
+        </p>
+      </div>
       {pvp.reward && (pvp.reward.capped
         ? <p className="pvp-text">Limite giornaliero raggiunto: questa partita non da&apos; ricompense (5 al giorno, 2 contro lo stesso avversario).</p>
-        : <p className="pvp-text pvp-reward"><i className="ph-fill ph-coin" /> +{pvp.reward.gold} gold · <i className="ph-fill ph-star" /> +{pvp.reward.xp} XP</p>)}
+        : (
+          <m.p className="pvp-text pvp-reward" initial={{ x: -24, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.2, delay: 0.3 }}>
+            <i className="ph-fill ph-coin" /> +{pvp.reward.gold} gold · <i className="ph-fill ph-star" /> +{pvp.reward.xp} XP
+          </m.p>
+        ))}
       <div className="pvp-actions">
         <button type="button" className="btn btn-primary btn-small" onClick={onClose}>Chiudi</button>
       </div>

@@ -1,0 +1,777 @@
+/* ==========================================================================
+   Hotel: sfide e minigiochi in stile Phantom (Persona 5)
+   --------------------------------------------------------------------------
+   Solo l'HTML attorno ai giochi: cornici, punteggi, conti alla rovescia, istruzioni, schermate
+   di fine, sfide dell'Arena, torneo, quiz, tabellone dello stadio. Canvas, disegni e corsie dei
+   minigiochi restano come sono (e nessuna animazione gira mentre si gioca).
+   Usa i token --hpx-* della base (hotel-phantom.css). Il casino' non e' toccato.
+   ========================================================================== */
+
+/* ---------- Conto alla rovescia (sfide, minigiochi, quiz): tassello nero inclinato ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .pvp-timer {
+  margin-left: auto;
+  min-width: 3.2em;
+  padding: 2px 12px;
+  background: #000;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: 1.05rem;
+  text-align: center;
+  clip-path: var(--hpx-slant);
+}
+/* Ultimi secondi: oro pieno che lampeggia a scatti col bianco (niente dissolvenze). */
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .pvp-timer.urgent {
+  background: var(--neon-gold);
+  color: #000;
+  animation: hpxTick 1s steps(1) infinite;
+}
+@keyframes hpxTick { 50% { background: #fff; } }
+
+/* ==========================================================================
+   Sfide fra giocatori (Arena)
+   ========================================================================== */
+:root[data-shell="phantom"] .hotel-page .pvp-text { font-size: 0.88rem; color: var(--hpx-ink-soft); }
+:root[data-shell="phantom"] .hotel-page .pvp-text strong { color: var(--hpx-ink); }
+:root[data-shell="phantom"] .hotel-page .pvp-incoming .pvp-text strong {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1.05rem;
+  text-shadow: 2px 2px 0 var(--hpx-red);
+}
+:root[data-shell="phantom"] .hotel-page .pvp-hint {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  text-transform: uppercase;
+  color: var(--hpx-ink-soft);
+}
+
+/* Barra del punteggio: round su tassello viola, punteggio in cifre grandi. */
+:root[data-shell="phantom"] .hotel-page .pvp-score {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  padding: 0;
+  background: #000;
+  border-bottom: 2px solid #000;
+}
+:root[data-shell="phantom"] .hotel-page .pvp-score-round {
+  display: flex;
+  align-items: center;
+  padding: 4px 22px 4px 14px;
+  background: #2a1a55;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page :is(.pvp-score-tally, .pvp-end-score) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 2px 12px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  color: var(--hpx-ink-soft);
+}
+:root[data-shell="phantom"] .hotel-page :is(.pvp-score-tally, .pvp-end-score) span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:root[data-shell="phantom"] .hotel-page :is(.pvp-score-tally, .pvp-end-score) b {
+  font-weight: 900;
+  font-stretch: 70%;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+:root[data-shell="phantom"] .hotel-page :is(.pvp-score-tally, .pvp-end-score) b.is-you { text-shadow: 2px 2px 0 var(--hpx-red); }
+
+/* Carte: lastra nera tagliata col filo del colore della rarita'. */
+:root[data-shell="phantom"] .hotel-page .pvp-card {
+  border: 0;
+  border-radius: 0;
+  background: #07040f;
+  clip-path: var(--hpx-shape-sm);
+  box-shadow: inset 0 0 0 2px var(--rarity-color, #8b5cf6);
+  transition: transform 140ms var(--hpx-snap), background 140ms;
+}
+:root[data-shell="phantom"] .hotel-page .pvp-card:not(:disabled):hover { transform: translate(-1px, -2px); }
+:root[data-shell="phantom"] .hotel-page .pvp-card:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page .pvp-card img { border-radius: 0; }
+:root[data-shell="phantom"] .hotel-page .pvp-card-name { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; font-size: 0.66rem; }
+:root[data-shell="phantom"] .hotel-page .pvp-card.selected {
+  background: var(--hpx-red-deep);
+  box-shadow: inset 0 0 0 3px #fff;
+}
+:root[data-shell="phantom"] .hotel-page .pvp-card.used { opacity: 0.4; filter: grayscale(0.8); }
+:root[data-shell="phantom"] .hotel-page .pvp-card-stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 1px 5px;
+  background: #000;
+  color: var(--hpx-ink-soft);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+}
+:root[data-shell="phantom"] .hotel-page .pvp-card-stat strong { font-weight: 900; font-size: 1rem; color: #fff; }
+:root[data-shell="phantom"] .hotel-page .pvp-boost-mark { margin-left: 2px; color: var(--neon-gold); font-size: 0.8em; }
+
+/* Scelta della categoria e bonus: bersagli grandi da dito. */
+:root[data-shell="phantom"] .hotel-page .pvp-categories .btn { flex: 1 1 40%; min-height: 44px; text-transform: uppercase; }
+:root[data-shell="phantom"] .hotel-page .pvp-boost {
+  margin: 0 12px 10px;
+  padding: 8px 18px;
+  min-height: 44px;
+  background: #000;
+  color: var(--neon-gold);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  cursor: pointer;
+}
+:root[data-shell="phantom"] .hotel-page .pvp-boost input { width: 18px; height: 18px; accent-color: var(--hpx-red); }
+
+/* Filtri della squadra. */
+:root[data-shell="phantom"] .hotel-page .pvp-filter {
+  min-height: 36px;
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.3);
+}
+:root[data-shell="phantom"] .hotel-page .pvp-filter:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page .pvp-panel .battle-synergy-list li {
+  border: 0;
+  border-radius: 0;
+  padding: 4px 14px;
+  background: #2a1a55;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+
+/* Verdetto del round: scritta storta in display (l'inclinazione la da' Motion). */
+:root[data-shell="phantom"] .hotel-page .pvp-verdict {
+  /* Largo quanto il testo: inclinato non sborda dal pannello. */
+  width: fit-content;
+  max-width: 90%;
+  margin: 10px auto 0;
+  padding: 0 4px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 72%;
+  font-size: 1.5rem;
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 3px 3px 0 var(--hpx-red);
+}
+:root[data-shell="phantom"] .hotel-page .pvp-reveal.is-loss .pvp-verdict { color: var(--hpx-ink-soft); text-shadow: 3px 3px 0 #000; }
+:root[data-shell="phantom"] .hotel-page .pvp-reveal.is-draw .pvp-verdict { text-shadow: 3px 3px 0 #2a1a55; }
+
+/* VS: fascia magenta che taglia il pannello, tu su lastra nera e l'avversario su lastra bianca. */
+:root[data-shell="phantom"] .hotel-page .pvp-versus {
+  position: relative;
+  isolation: isolate;
+  gap: 10px;
+  padding: 14px 12px 16px;
+  background:
+    linear-gradient(-12deg, transparent 0 40%, rgba(236, 72, 153, 0.4) 40% 60%, transparent 60%),
+    var(--hpx-halftone);
+}
+:root[data-shell="phantom"] .hotel-page .pvp-versus > .pvp-side {
+  padding: 8px 8px 10px;
+  border-radius: 0;
+  background: #000;
+  color: #fff;
+  box-shadow: none;
+  clip-path: var(--hpx-shape);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+:root[data-shell="phantom"] .hotel-page .pvp-versus > .pvp-side.is-opponent { background: var(--hpx-paper); color: var(--hpx-black); }
+:root[data-shell="phantom"] .hotel-page .pvp-versus > .pvp-side > span { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Chi vince il round: lastra oro (e' un premio). */
+:root[data-shell="phantom"] .hotel-page .pvp-versus > .pvp-side.winner { background: var(--neon-gold); color: #000; box-shadow: none; }
+:root[data-shell="phantom"] .hotel-page .pvp-versus > .pvp-vs {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 70%;
+  font-size: 2.4rem;
+  line-height: 1;
+  font-style: italic;
+  color: #fff;
+  text-shadow: 3px 3px 0 var(--hpx-red), 6px 6px 0 #000;
+}
+
+/* Fine partita. */
+:root[data-shell="phantom"] .hotel-page .pvp-end-hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 22px 12px 12px;
+  overflow: hidden;
+}
+:root[data-shell="phantom"] .hotel-page .pvp-end-hero::before {
+  content: '';
+  position: absolute;
+  z-index: -2;
+  left: -10%;
+  right: -10%;
+  top: 14px;
+  height: 64px;
+  background: var(--hpx-halftone), var(--hpx-red-deep);
+  transform: rotate(-4deg);
+}
+:root[data-shell="phantom"] .hotel-page .pvp-end.is-loss .pvp-end-hero::before { background: var(--hpx-halftone), #000; }
+:root[data-shell="phantom"] .hotel-page .pvp-end.is-draw .pvp-end-hero::before { background: var(--hpx-halftone), #2a1a55; }
+:root[data-shell="phantom"] .hotel-page .pvp-end-star { position: absolute; z-index: -1; top: 2px; left: calc(50% - 200px); line-height: 0; }
+:root[data-shell="phantom"] .hotel-page .pvp-end-star .p5-star { width: 96px; height: 96px; }
+:root[data-shell="phantom"] .hotel-page .pvp-end-title {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 70%;
+  font-size: 2.6rem;
+  line-height: 1;
+  text-transform: uppercase;
+  text-align: center;
+  color: #fff;
+  text-shadow: 4px 4px 0 #000;
+}
+:root[data-shell="phantom"] .hotel-page .pvp-end.is-loss .pvp-end-title { color: var(--hpx-ink-soft); text-shadow: 4px 4px 0 var(--hpx-red-deep); }
+:root[data-shell="phantom"] .hotel-page .pvp-end-score { margin: 0; padding: 0; color: var(--hpx-ink-soft); }
+:root[data-shell="phantom"] .hotel-page .pvp-end-score small { font-size: 0.7rem; text-transform: none; }
+
+/* Premio: tassello oro inclinato. */
+:root[data-shell="phantom"] .hotel-page .pvp-reward {
+  width: fit-content;
+  margin: 6px auto 0;
+  padding: 6px 24px;
+  background: var(--neon-gold);
+  color: #000;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1.05rem;
+  clip-path: var(--hpx-slant);
+}
+
+/* ==========================================================================
+   Torneo dell'Arena: lo stesso tabellone "All-Out Attack" del sito (game-battle.css, che vale
+   solo con data-skin), qui ripetuto per l'hotel.
+   ========================================================================== */
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup :is(.cup-title > i) { font-size: 2.2rem; color: var(--neon-gold); filter: none; text-shadow: 3px 3px 0 #000; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-title h3 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 72%;
+  font-size: 1.5rem;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: skewX(-6deg);
+  transform-origin: left;
+  text-shadow: 3px 3px 0 var(--hpx-red);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-title p { color: var(--hpx-ink-soft); }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-pool {
+  border: 0;
+  border-radius: 0;
+  padding: 6px 24px 6px 20px;
+  background: var(--neon-gold);
+  color: #000;
+  clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-pool :is(span, small) { color: #3d2c00; font-weight: 700; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-pool b { color: #000; font-family: var(--font-display); font-weight: 900; font-size: 1.4rem; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-pool i { color: #000; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-notice { border: 0; border-radius: 0; background: #000; border-left: 4px solid var(--hpx-red); }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-notice-win { border-left-color: var(--neon-gold); color: var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-entered { color: var(--hpx-ink); font-weight: 700; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-entered i { color: var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-bracket-scroll {
+  padding: 10px 6px 12px;
+  background:
+    linear-gradient(-12deg, transparent 0 44%, rgba(236, 72, 153, 0.16) 44% 56%, transparent 56%),
+    var(--hpx-halftone);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-col h4 {
+  align-self: center;
+  padding: 3px 12px;
+  background: #000;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  transform: skewX(-10deg);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-col.current h4 { background: var(--hpx-red-deep); }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-match {
+  border: 0;
+  border-radius: 0;
+  background: #0a0619;
+  outline: 1.5px solid rgba(255, 255, 255, 0.32);
+  box-shadow: 4px 4px 0 #000;
+  animation: hpxCupCut 220ms cubic-bezier(0.2, 1, 0.3, 1) both;
+}
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup :is(.cup-col-matches, .cup-compact-grid) > .cup-match:nth-child(2) { animation-delay: 40ms; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup :is(.cup-col-matches, .cup-compact-grid) > .cup-match:nth-child(3) { animation-delay: 80ms; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup :is(.cup-col-matches, .cup-compact-grid) > .cup-match:nth-child(n + 4) { animation-delay: 120ms; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-match.live { outline: 2px solid var(--hpx-red); box-shadow: 5px 5px 0 var(--hpx-red); }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-match.mine { outline: 2px solid #fff; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup :is(.cup-col-left, .cup-col-right) .cup-match::after { height: 3px; background: rgba(255, 255, 255, 0.4); }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-match.done::after { background: var(--hpx-red); }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-side { min-height: 30px; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-side + .cup-side { border-top-color: rgba(255, 255, 255, 0.16); }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-side.me .cup-name { color: var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-side.won { background: var(--hpx-paper); color: var(--hpx-black); }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-side.won > i { color: var(--hpx-black); }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-side.won .cup-score { color: var(--hpx-red-deep); }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-side.me.won .cup-name { color: var(--hpx-red-deep); }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-side.lost { opacity: 0.55; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-score { font-family: var(--font-display); font-weight: 900; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-live {
+  top: -9px;
+  padding: 0 9px;
+  border-radius: 0;
+  background: var(--hpx-red);
+  color: #000;
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-note { border-radius: 0; background: #000; color: var(--hpx-ink-soft); outline: 1px solid rgba(255, 255, 255, 0.3); }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-final { position: relative; isolation: isolate; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-final::before {
+  content: '';
+  position: absolute;
+  inset: 12% -10px;
+  z-index: -1;
+  background: var(--hpx-halftone), var(--hpx-red-deep);
+  clip-path: polygon(22% 0, 100% 0, 78% 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-final .cup-match { outline: 2px solid var(--neon-gold); box-shadow: 6px 6px 0 #000; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-final h4 { background: var(--neon-gold); color: #000; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-trophy { color: var(--neon-gold); filter: none; text-shadow: 4px 4px 0 #000; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-champion {
+  align-self: center;
+  padding: 4px 14px;
+  border-radius: 0;
+  background: #000;
+  color: var(--neon-gold);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  outline: 2px solid var(--neon-gold);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-round-tabs { gap: 6px; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-round-tab {
+  min-height: 44px;
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  outline: 1.5px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 0.8rem;
+  clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-round-tab.active { background: var(--hpx-paper); color: var(--hpx-black); outline: 0; }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-round-tab:focus-visible { outline: 0; box-shadow: inset 0 0 0 3px var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-dot { border-radius: 0; background: var(--hpx-red); top: 6px; right: 12%; }
+@keyframes hpxCupCut {
+  from { opacity: 0; transform: translateX(-22px) skewX(-14deg); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ==========================================================================
+   Minigiochi: cornice, istruzioni, record, punteggio, fine partita
+   ========================================================================== */
+:root[data-shell="phantom"] .hotel-page .hotel-minigame .hotel-panel-hint { padding: 8px 12px 2px; color: var(--hpx-ink-soft); }
+/* Record della stanza: striscia nera col filo oro. */
+:root[data-shell="phantom"] .hotel-page .mg-record {
+  width: fit-content;
+  max-width: calc(100% - 24px);
+  margin: 6px 12px 8px;
+  padding: 4px 18px 4px 10px;
+  background: #000;
+  color: var(--neon-gold);
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--neon-gold);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-minigame.is-compact .mg-record { margin: 2px 12px 6px; }
+:root[data-shell="phantom"] .hotel-page .mg-countdown {
+  padding: 10px 0 14px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 70%;
+  font-size: 4.5rem;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 5px 5px 0 var(--hpx-red), 9px 9px 0 #000;
+}
+:root[data-shell="phantom"] .hotel-page .mg-countdown > span { display: inline-block; }
+
+/* Cifre del punteggio mentre si gioca (solo tipografia: nessuna animazione). */
+:root[data-shell="phantom"] .hotel-page .mg-big {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 72%;
+  font-size: 2.3rem;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 3px 3px 0 var(--hpx-red);
+}
+:root[data-shell="phantom"] .hotel-page .mg-big small {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--hpx-ink-soft);
+  text-shadow: none;
+}
+:root[data-shell="phantom"] .hotel-page .mg-row { color: var(--hpx-ink-soft); }
+/* Barre (velocita', energia, forza): nere, dritte, riempimento a strisce magenta. */
+:root[data-shell="phantom"] .hotel-page .mg-meter {
+  border-radius: 0;
+  background: #000;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.4);
+}
+:root[data-shell="phantom"] .hotel-page .mg-meter > span:not(.mg-zone):not(.mg-cue):not(.sweet):not(.safe):not(.needle) {
+  background: repeating-linear-gradient(-45deg, var(--hpx-red) 0 6px, var(--hpx-red-deep) 6px 10px);
+}
+:root[data-shell="phantom"] .hotel-page .mg-meter-vertical > span {
+  background: repeating-linear-gradient(45deg, var(--neon-gold) 0 6px, var(--hpx-red) 6px 10px) !important;
+}
+:root[data-shell="phantom"] .hotel-page .mg-kart-hud {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  text-transform: uppercase;
+}
+:root[data-shell="phantom"] .hotel-page .mg-kart-hud b { color: var(--neon-gold); font-weight: 900; }
+/* Il bordo del canvas segue i tagli dei pannelli (il disegno dentro non cambia). */
+:root[data-shell="phantom"] .hotel-page .hotel-minigame :is(.rock-canvas, .mg-kart-canvas, .mg-pong-canvas) {
+  border-radius: 0;
+  box-shadow: 0 0 0 2px #000, 4px 4px 0 2px #000;
+}
+
+/* Pulsanti dei comandi: restano grandi; premuti diventano bianchi (riscontro immediato, niente animazioni). */
+:root[data-shell="phantom"] .hotel-page .mg-buttons .mg-button { min-height: 48px; text-transform: uppercase; }
+:root[data-shell="phantom"] .hotel-page .mg-buttons .mg-button:active { color: #000; transform: translate(1px, 1px); transition: none; }
+:root[data-shell="phantom"] .hotel-page .mg-buttons .mg-button:active::before { background: #fff; }
+
+/* Fine partita: punteggio grande, nuovo record su tassello oro storto. */
+:root[data-shell="phantom"] .hotel-page .mg-result { gap: 8px; padding: 10px 12px 2px; }
+:root[data-shell="phantom"] .hotel-page .mg-result > .mg-final {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 70%;
+  font-size: 3rem;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 4px 4px 0 var(--hpx-red);
+}
+:root[data-shell="phantom"] .hotel-page .mg-final small {
+  font-weight: 800;
+  font-stretch: 85%;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  color: var(--hpx-ink-soft);
+  text-shadow: none;
+}
+:root[data-shell="phantom"] .hotel-page .mg-new-record {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 22px;
+  background: var(--neon-gold);
+  color: #000;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  clip-path: var(--hpx-slant);
+}
+:root[data-shell="phantom"] .hotel-page .mg-reward {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  font-size: 1.3rem;
+  color: var(--neon-gold);
+  text-shadow: 2px 2px 0 #000;
+}
+:root[data-shell="phantom"] .hotel-page .mg-reward-note { color: var(--hpx-ink-soft); }
+:root[data-shell="phantom"] .hotel-page .mg-result .mg-buttons { justify-content: center; padding-top: 4px; }
+
+/* ---------- Scelta di canzone, difficolta' e sfidante (rock e karaoke) ---------- */
+:root[data-shell="phantom"] .hotel-page :is(.rock-song, .rock-diff, .rock-rival) {
+  border: 0;
+  border-radius: 0;
+  background: var(--hpx-halftone), #0a0619;
+  color: #fff;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.22);
+  transition: transform 140ms var(--hpx-snap);
+}
+:root[data-shell="phantom"] .hotel-page .rock-song { clip-path: var(--hpx-shape-sm); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.22), inset 4px 0 0 #2a1a55; }
+:root[data-shell="phantom"] .hotel-page .rock-song strong { font-family: var(--font-display); font-weight: 900; font-stretch: 80%; font-size: 1rem; }
+:root[data-shell="phantom"] .hotel-page .rock-song small { color: var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page :is(.rock-song, .rock-diff, .rock-rival):hover { transform: translate(-1px, -1px); }
+:root[data-shell="phantom"] .hotel-page :is(.rock-song, .rock-diff, .rock-rival):focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--neon-cyan); }
+/* Selezionata: lastra bianca col filo magenta, come le schede attive. */
+:root[data-shell="phantom"] .hotel-page :is(.rock-song, .karaoke-song).active {
+  background: var(--hpx-paper);
+  color: var(--hpx-black);
+  box-shadow: inset 5px 0 0 var(--hpx-red);
+}
+:root[data-shell="phantom"] .hotel-page .rock-song.active :is(small, .rock-song-style) { color: var(--hpx-red-deep); }
+:root[data-shell="phantom"] .hotel-page .rock-song.active span { opacity: 1; }
+:root[data-shell="phantom"] .hotel-page .rock-diff {
+  min-height: 48px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  text-transform: uppercase;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .rock-diff small { text-transform: none; font-family: system-ui, sans-serif; font-stretch: normal; }
+:root[data-shell="phantom"] .hotel-page .rock-diff.active { background: var(--hpx-paper); color: var(--hpx-black); box-shadow: none; }
+:root[data-shell="phantom"] .hotel-page .rock-rival { clip-path: var(--hpx-shape-sm); }
+:root[data-shell="phantom"] .hotel-page .rock-rival :is(img, .rock-rival-none) { border-radius: 0; }
+:root[data-shell="phantom"] .hotel-page .rock-rival b { color: var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page .rock-rival.active { background: var(--hpx-red-deep); box-shadow: inset 0 0 0 3px #fff; }
+:root[data-shell="phantom"] .hotel-page .rock-rival.active b { color: #fff; }
+:root[data-shell="phantom"] .hotel-page :is(.rock-rivals > strong, .rock-board strong) {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 2px 2px 0 var(--hpx-red);
+}
+:root[data-shell="phantom"] .hotel-page .rock-board {
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  box-shadow: inset 3px 0 0 var(--neon-gold);
+  clip-path: var(--hpx-shape-sm);
+}
+:root[data-shell="phantom"] .hotel-page .rock-board li b { color: var(--neon-gold); font-family: var(--font-display); font-weight: 900; }
+:root[data-shell="phantom"] .hotel-page .rock-gear { color: var(--hpx-ink-soft); opacity: 1; }
+:root[data-shell="phantom"] .hotel-page .rock-go { min-height: 48px; font-size: 1.15rem; text-transform: uppercase; }
+
+/* Risultato a fine canzone: fascia diagonale, stelle oro con ombra netta, voto in display. */
+:root[data-shell="phantom"] .hotel-page .rock-results {
+  border-radius: 0;
+  background:
+    linear-gradient(-10deg, transparent 0 34%, rgba(236, 72, 153, 0.45) 34% 52%, transparent 52%),
+    rgba(7, 4, 15, 0.9);
+}
+:root[data-shell="phantom"] .hotel-page .rock-results h4 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 70%;
+  font-size: 2rem;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 3px 3px 0 var(--hpx-red), 6px 6px 0 #000;
+  transform: rotate(-3deg);
+  animation: hpxSlam 260ms cubic-bezier(0.2, 1.4, 0.3, 1) both;
+}
+@keyframes hpxSlam { from { opacity: 0; transform: scale(2) rotate(-12deg); } to { opacity: 1; transform: rotate(-3deg); } }
+:root[data-shell="phantom"] .hotel-page .rock-stars .on { color: var(--neon-gold); filter: drop-shadow(2px 2px 0 #000); }
+:root[data-shell="phantom"] .hotel-page .rock-grade strong {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 72%;
+  font-size: 1.8rem;
+  color: #fff;
+  text-shadow: 3px 3px 0 var(--hpx-red);
+}
+
+/* Testo del karaoke: si legge dritto, senza aloni. */
+:root[data-shell="phantom"] .hotel-page .mg-lyrics .sung { text-shadow: none; color: var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page .karaoke-lyrics p span.sung.good { text-shadow: none; }
+
+/* ---------- Prova delle chitarre (Rock Store): stessa lastra dei pannelli ---------- */
+:root[data-shell="phantom"] .hotel-page .guitar-tester {
+  border: 0;
+  border-radius: 0;
+  background: var(--hpx-halftone), var(--hpx-panel);
+  clip-path: var(--hpx-shape);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.14), inset 4px 0 0 var(--hpx-red);
+}
+:root[data-shell="phantom"] .hotel-page .guitar-tester header strong {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 78%;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 var(--hpx-red);
+}
+:root[data-shell="phantom"] .hotel-page .guitar-tester .hotel-panel-close {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  color: #fff;
+  clip-path: var(--hpx-shape-sm);
+}
+:root[data-shell="phantom"] .hotel-page .guitar-tester .hotel-panel-close:hover { background: #fff; color: #000; }
+:root[data-shell="phantom"] .hotel-page .guitar-tester kbd { border-radius: 0; background: #000; }
+
+/* ==========================================================================
+   Quiz "Indovina la carta"
+   ========================================================================== */
+:root[data-shell="phantom"] .hotel-page .quiz-card-wrap {
+  padding: 3px;
+  border-radius: 0;
+  background: var(--hpx-red);
+  box-shadow: none;
+  clip-path: var(--hpx-shape);
+}
+:root[data-shell="phantom"] .hotel-page .quiz-card-wrap.is-revealed { background: var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page .quiz-result .quiz-card-wrap .quiz-card,
+:root[data-shell="phantom"] .hotel-page .quiz-card-wrap .quiz-card { width: 164px; border-radius: 0; }
+:root[data-shell="phantom"] .hotel-page .quiz-hint { color: var(--hpx-ink-soft); }
+:root[data-shell="phantom"] .hotel-page .quiz-hint strong {
+  display: inline-block;
+  padding: 0 8px;
+  background: #000;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.15rem;
+  box-shadow: 2px 2px 0 var(--hpx-red);
+}
+:root[data-shell="phantom"] .hotel-page .quiz-answer strong {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 78%;
+  font-size: 1.25rem;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 var(--hpx-red);
+}
+:root[data-shell="phantom"] .hotel-page .quiz-winner {
+  padding: 5px 20px;
+  background: var(--neon-gold);
+  color: #000;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  clip-path: var(--hpx-slant);
+}
+:root[data-shell="phantom"] .hotel-page .quiz-nobody { color: var(--hpx-ink-soft); font-family: var(--font-display); font-weight: 800; text-transform: uppercase; }
+
+/* ==========================================================================
+   Stadio: tabellone e barra della partita a squadre (sopra la stanza, non sono pannelli)
+   Lo sfondo tagliato sta nel ::before, cosi' l'ombra netta del filtro segue il taglio.
+   ========================================================================== */
+:root[data-shell="phantom"] .hotel-page :is(.hotel-scoreboard, .hotel-match-bar) {
+  isolation: isolate;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  filter: drop-shadow(4px 4px 0 #000);
+}
+:root[data-shell="phantom"] .hotel-page :is(.hotel-scoreboard, .hotel-match-bar)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--hpx-halftone), #000;
+  box-shadow: inset 0 -3px 0 var(--hpx-red);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-scoreboard { padding: 6px 26px; color: #fff; font-family: var(--font-display); font-stretch: 72%; font-size: 1.5rem; }
+:root[data-shell="phantom"] .hotel-page .hotel-scoreboard::before { clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%); }
+:root[data-shell="phantom"] .hotel-page .hotel-scoreboard strong { font-weight: 900; font-variant-numeric: tabular-nums; }
+:root[data-shell="phantom"] .hotel-page .hotel-scoreboard-sep { color: var(--hpx-red); }
+:root[data-shell="phantom"] .hotel-page :is(.hotel-scoreboard-team, .match-team b) {
+  border-radius: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 85%;
+  text-transform: uppercase;
+  clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-match-bar::before { clip-path: var(--hpx-shape-sm); }
+:root[data-shell="phantom"] .hotel-page .hotel-match-bar.is-playing::before { box-shadow: inset 0 0 0 2px var(--neon-gold), inset 0 -3px 0 var(--hpx-red); }
+:root[data-shell="phantom"] .hotel-page .match-team li.me { color: var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page .match-phase { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; text-transform: uppercase; opacity: 1; color: var(--hpx-ink-soft); }
+:root[data-shell="phantom"] .hotel-page .match-clock {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 72%;
+  font-size: 1.7rem;
+  color: #fff;
+  text-shadow: 2px 2px 0 var(--hpx-red);
+}
+@media (max-width: 600px) {
+  :root[data-shell="phantom"] .hotel-page .hotel-scoreboard { font-size: 1.15rem; padding: 2px 22px; }
+}
+
+/* ---------- Telefono: pannelli in basso, cifre un po' piu' piccole ---------- */
+@media (max-width: 600px) {
+  :root[data-shell="phantom"] .hotel-page .pvp-end-title { font-size: 2.1rem; }
+  :root[data-shell="phantom"] .hotel-page .pvp-versus > .pvp-vs { font-size: 1.9rem; }
+  :root[data-shell="phantom"] .hotel-page .pvp-versus { gap: 6px; padding-left: 4px; padding-right: 4px; }
+  /* Sul telefono i bottoni piccoli delle sfide e della fine partita diventano bersagli da dito. */
+  :root[data-shell="phantom"] .hotel-page :is(.pvp-actions, .mg-result .mg-buttons) .btn-small { min-height: 44px; padding-left: 18px; padding-right: 18px; }
+  :root[data-shell="phantom"] .hotel-page .mg-countdown { font-size: 3.6rem; padding: 6px 0 10px; }
+}
+/* Telefono in orizzontale: poca altezza, il pannello del gioco non deve crescere. */
+@media (orientation: landscape) and (max-height: 520px) {
+  :root[data-shell="phantom"] .hotel-page .mg-countdown { font-size: 3rem; padding: 4px 0 6px; }
+  :root[data-shell="phantom"] .hotel-page .mg-big { font-size: 1.8rem; }
+  :root[data-shell="phantom"] .hotel-page .mg-result { gap: 3px; padding-top: 4px; }
+  :root[data-shell="phantom"] .hotel-page .mg-result > .mg-final { font-size: 2rem; }
+  :root[data-shell="phantom"] .hotel-page .mg-new-record { padding: 3px 16px; font-size: 0.9rem; }
+  :root[data-shell="phantom"] .hotel-page .mg-reward { font-size: 1.05rem; }
+  :root[data-shell="phantom"] .hotel-page .mg-record { margin: 2px 12px 4px; }
+  :root[data-shell="phantom"] .hotel-page .hotel-minigame .hotel-panel-hint { padding-top: 4px; font-size: 0.72rem; }
+  :root[data-shell="phantom"] .hotel-page .pvp-end-hero { padding: 14px 12px 8px; }
+  :root[data-shell="phantom"] .hotel-page .pvp-verdict { margin-top: 4px; font-size: 1.15rem; }
+  :root[data-shell="phantom"] .hotel-page .pvp-versus { padding-top: 6px; padding-bottom: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .pvp-timer.urgent,
+  :root[data-shell="phantom"] .hotel-page .hotel-cardcup .cup-match,
+  :root[data-shell="phantom"] .hotel-page .rock-results h4 { animation: none; }
+  :root[data-shell="phantom"] .hotel-page :is(.pvp-card, .rock-song, .rock-diff, .rock-rival) { transition: none; }
+  :root[data-shell="phantom"] .hotel-page :is(.pvp-card, .rock-song, .rock-diff, .rock-rival):hover { transform: none; }
+}

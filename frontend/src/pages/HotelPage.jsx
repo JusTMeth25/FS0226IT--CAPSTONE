@@ -66,6 +66,11 @@ import { QUEUE_TRACK, RADIO_TRACK, TRACKS, getJukebox } from '../hotel/music.js'
 import { isLiteDevice } from '../utils/perfMode.js';
 import { useScrollContainment } from '../hooks/useScrollContainment.js';
 import '../hotel/hotel.css';
+// Pannelli e riquadri in stile Phantom (Persona 5); la stanza resta in pixel art.
+import '../hotel/phantom/hotel-phantom.css';
+import '../hotel/phantom/hotel-phantom-frame.css';
+import '../hotel/phantom/hotel-phantom-shops.css';
+import '../hotel/phantom/hotel-phantom-games.css';
 
 /** L'Arena: solo qui si gioca contro gli NPC sfidanti. */
 const ARENA_ID = '00000000-0000-0000-0000-00000000a002';

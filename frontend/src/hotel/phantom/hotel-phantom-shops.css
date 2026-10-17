@@ -1,0 +1,567 @@
+/* ==========================================================================
+   Hotel Phantom: negozi, borsa e scambi
+   --------------------------------------------------------------------------
+   Negozio mobili, borsa, guardaroba, edicola, negozi del quartiere, animali, tabaccheria,
+   banchetto, borsa valori, viaggi, jukebox, scambi (anche con gli NPC), vendita carte,
+   scelta carte, foto e apertura dei pacchetti. Veste solo le cornici: i disegni in pixel
+   (mobili, avatar, animali, veicoli) restano com'erano. Usa i token --hpx-* della base.
+   ========================================================================== */
+
+/* ---------- Cartellini prezzo e gold: blocchetti oro inclinati ---------- */
+:root[data-shell="phantom"] .hotel-page :is(.hotel-gold, .stock-gold, .lux-price, .lux-serial, .hotel-pack-owned, .hotel-trade-card-label, .trade-chip-gold) {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 0;
+  background: var(--neon-gold);
+  color: #1a1000;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: none;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page :is(.hotel-gold, .stock-gold) { padding: 3px 14px; font-size: 0.92rem; }
+:root[data-shell="phantom"] .hotel-page :is(.hotel-gold, .stock-gold, .lux-price, .trade-chip-gold) i { color: inherit; }
+:root[data-shell="phantom"] .hotel-page .lux-price { justify-content: center; padding: 3px 12px; font-size: 0.95rem; }
+:root[data-shell="phantom"] .hotel-page .lux-serial { padding: 1px 8px; font-size: 0.7rem; vertical-align: middle; }
+:root[data-shell="phantom"] .hotel-page .hotel-pack-owned { padding: 1px 9px; font-size: 0.74rem; }
+:root[data-shell="phantom"] .hotel-page .hotel-trade-card-label { padding: 1px 10px; font-size: 0.66rem; color: #1a1000; }
+
+/* ---------- Schede: quella dei soldi in oro, contatori leggibili anche sulla scheda bianca ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .hotel-tab-sell:not(.active) { color: var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page .hotel-tab.active .hotel-count { color: var(--hpx-red-deep); }
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .hotel-tab-badge {
+  border-radius: 0;
+  background: var(--hpx-red);
+  clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
+  font-family: var(--font-display);
+}
+
+/* Schede "fatte a mano" dei negozi, del jukebox, dei periodi della borsa e delle viste:
+   come le schede dell'hotel, blocchi neri inclinati e quella attiva bianca. */
+:root[data-shell="phantom"] .hotel-page :is(.lux-tabs, .jukebox-tabs) { gap: 4px; }
+:root[data-shell="phantom"] .hotel-page :is(.lux-tabs button, .jukebox-tabs button, .stock-ranges button, .picker-view) {
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  color: var(--hpx-ink-soft);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+  transition: background 120ms, color 120ms;
+}
+:root[data-shell="phantom"] .hotel-page .picker-view { clip-path: var(--hpx-shape-sm); }
+:root[data-shell="phantom"] .hotel-page :is(.lux-tabs button, .jukebox-tabs button, .stock-ranges button, .picker-view):hover { background: var(--hpx-raised); color: var(--hpx-ink); }
+:root[data-shell="phantom"] .hotel-page :is(.lux-tabs button, .jukebox-tabs button, .stock-ranges button, .picker-view).active {
+  background: var(--hpx-ink);
+  color: var(--hpx-black);
+  font-weight: 900;
+}
+:root[data-shell="phantom"] .hotel-page :is(.lux-tabs button, .jukebox-tabs button, .stock-ranges button, .picker-view, .hotel-arrow, .stock-qty, .hotel-travel-list button, .stock-row, .trade-chip, .stall-card, .stall-pick, .hotel-card-thumb, button.hotel-trade-card):focus-visible {
+  outline: 2px solid var(--neon-cyan);
+  outline-offset: 2px;
+}
+/* Il taglio nasconderebbe il contorno esterno: per chi ce l'ha, il fuoco va dentro. */
+:root[data-shell="phantom"] .hotel-page :is(.lux-tabs button, .jukebox-tabs button, .stock-ranges button, .picker-view, .hotel-arrow, .stock-qty, .hotel-travel-list button, .stock-row, .hotel-card-thumb, .stall-card, .stall-pick):focus-visible {
+  outline-offset: -3px;
+}
+
+/* ---------- Tasselli della vetrina (mobili, animali, pacchetti) ---------- */
+/* Il fondo tagliato sta nel ::before: il bollino dei pacchetti posseduti esce dall'angolo. */
+:root[data-shell="phantom"] .hotel-page :is(.hotel-furni-card, .hotel-pack-card) {
+  --tile-edge: rgba(255, 255, 255, 0.14);
+  position: relative;
+  isolation: isolate;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  transition: transform 140ms var(--hpx-snap), filter 140ms;
+}
+:root[data-shell="phantom"] .hotel-page :is(.hotel-furni-card, .hotel-pack-card)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border: 2px solid transparent;
+  clip-path: var(--hpx-shape-sm);
+  background:
+    var(--hpx-halftone) padding-box,
+    linear-gradient(var(--hpx-raised), var(--hpx-raised)) padding-box,
+    linear-gradient(var(--tile-edge), var(--tile-edge)) border-box;
+}
+/* Filo magenta in basso: il "piedistallo" del tassello. */
+:root[data-shell="phantom"] .hotel-page :is(.hotel-furni-card, .hotel-pack-card)::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 0;
+  height: 3px;
+  z-index: -1;
+  background: var(--hpx-red);
+  clip-path: var(--hpx-slant);
+}
+:root[data-shell="phantom"] .hotel-page :is(.hotel-furni-card, .hotel-pack-card):is(:hover, :focus-within) {
+  --tile-edge: #fff;
+  transform: translate(-2px, -2px);
+  box-shadow: none;
+  filter: drop-shadow(3px 3px 0 var(--hpx-red));
+}
+:root[data-shell="phantom"] .hotel-page :is(.hotel-furni-card, .hotel-pack-card) strong {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+}
+:root[data-shell="phantom"] .hotel-page :is(.hotel-furni-card, .hotel-pack-card) small { color: var(--hpx-ink-soft); }
+:root[data-shell="phantom"] .hotel-page :is(.hotel-furni-card, .hotel-pack-card) .btn { border-radius: 0; }
+:root[data-shell="phantom"] .hotel-page .hotel-furni-card .btn:hover:not(:disabled) { filter: drop-shadow(3px 3px 0 #000) brightness(1.08); }
+
+/* Cornice dell'anteprima del mobile (il disegno in pixel resta com'e'): vetrinetta tagliata
+   a retino con la pedana in diagonale. */
+:root[data-shell="phantom"] .hotel-page .hotel-furni-preview {
+  border: 0;
+  border-radius: 0;
+  clip-path: var(--hpx-shape-sm);
+  background:
+    linear-gradient(170deg, transparent 0 70%, rgba(236, 72, 153, 0.32) 70.5% 100%),
+    var(--hpx-halftone),
+    #07040f;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.16);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-pack-art { border-radius: 0; }
+:root[data-shell="phantom"] .hotel-page .hotel-pack-art:has(> i) { clip-path: var(--hpx-shape-sm); }
+:root[data-shell="phantom"] .hotel-page .hotel-pack-art img { filter: drop-shadow(4px 4px 0 #000); }
+
+/* ---------- Righe delle liste: lastre tagliate con la barra colorata a sinistra ---------- */
+:root[data-shell="phantom"] .hotel-page :is(.hotel-buyback-row, .lux-item, .smoke-items li, .hotel-trade, .jukebox-list li, .jukebox-now, .jukebox-station, .stock-portfolio, .stock-feed, .pet-mine) {
+  border: 0;
+  border-radius: 0;
+  clip-path: var(--hpx-shape-sm);
+  background: var(--hpx-halftone), var(--hpx-raised);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), inset 4px 0 0 var(--row-bar, rgba(255, 255, 255, 0.3));
+}
+:root[data-shell="phantom"] .hotel-page .hotel-buyback-row { --row-bar: var(--rarity-color); }
+:root[data-shell="phantom"] .hotel-page .hotel-buyback-info strong { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; }
+:root[data-shell="phantom"] .hotel-page .hotel-buyback-info .hotel-buyback-offer { color: var(--neon-gold); font-weight: 700; }
+:root[data-shell="phantom"] .hotel-page .hotel-buyback-row img { border-radius: 0; box-shadow: 2px 2px 0 #000; }
+
+/* ---------- Guardaroba ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-wardrobe-stage,
+:root[data-shell="phantom"] .hotel-page .lux-mirror {
+  border: 0;
+  border-radius: 0;
+  clip-path: var(--hpx-shape);
+  /* Il "camerino": nero a retino con la pedana magenta in diagonale sotto i piedi
+     (alta sempre uguale, qualunque sia l'altezza del riquadro). */
+  background:
+    linear-gradient(172deg, transparent 0 34%, var(--hpx-red) 35% 44%, var(--hpx-red-deep) 45% 100%) left bottom / 100% 54px no-repeat,
+    var(--hpx-halftone),
+    #07040f;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.16);
+}
+:root[data-shell="phantom"] .hotel-page .lux-mirror {
+  background:
+    /* Lo specchio cambia forma su telefono: niente pedana, solo l'angolo magenta. */
+    linear-gradient(225deg, var(--hpx-red) 0 22px, transparent 22.5px),
+    var(--hpx-halftone),
+    #07040f;
+}
+:root[data-shell="phantom"] .hotel-page .lux-mirror small { color: var(--hpx-ink-soft); opacity: 1; }
+:root[data-shell="phantom"] .hotel-page .hotel-wardrobe-label {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 82%;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--hpx-ink-soft);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-wardrobe-value {
+  min-height: 28px;
+  background: rgba(0, 0, 0, 0.45);
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-swatch { border-radius: 0; border: 2px solid #fff; box-shadow: 1px 1px 0 #000; }
+:root[data-shell="phantom"] .hotel-page .hotel-arrow {
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  color: #fff;
+  clip-path: var(--hpx-shape-sm);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.4);
+  transition: background 120ms, color 120ms;
+}
+:root[data-shell="phantom"] .hotel-page .hotel-arrow:hover { background: var(--hpx-red); color: #fff; }
+:root[data-shell="phantom"] .hotel-page .hotel-arrow:active { background: #fff; color: var(--hpx-black); }
+
+/* ---------- Negozi del quartiere (atelier, gioielleria, garage...) ---------- */
+:root[data-shell="phantom"] .hotel-page .lux-item { --row-bar: rgba(255, 255, 255, 0.22); }
+:root[data-shell="phantom"] .hotel-page .lux-item.owned { --row-bar: #4ade80; }
+:root[data-shell="phantom"] .hotel-page .lux-item.worn {
+  --row-bar: var(--hpx-red);
+  box-shadow: inset 0 0 0 2px #fff, inset 6px 0 0 var(--hpx-red);
+}
+:root[data-shell="phantom"] .hotel-page .lux-item-art {
+  align-self: stretch;
+  background: rgba(0, 0, 0, 0.4);
+  clip-path: var(--hpx-shape-sm);
+}
+:root[data-shell="phantom"] .hotel-page .lux-item-info small {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 82%;
+  color: var(--neon-gold);
+}
+:root[data-shell="phantom"] .hotel-page .lux-item-info strong { font-family: var(--font-display); font-weight: 900; font-stretch: 82%; }
+:root[data-shell="phantom"] .hotel-page .lux-item-info p { color: var(--hpx-ink-soft); opacity: 1; }
+:root[data-shell="phantom"] .hotel-page .lux-speed { color: var(--neon-cyan); font-weight: 700; }
+:root[data-shell="phantom"] .hotel-page .lux-credit { color: var(--hpx-ink-soft); opacity: 1; }
+:root[data-shell="phantom"] .hotel-page .lux-sell input { border-radius: 0; border: 0; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.4); background: #000; }
+/* Il consiglio del sarto: il "fumetto" bianco di P5, testo nero. */
+:root[data-shell="phantom"] .hotel-page .lux-advice {
+  border: 0;
+  border-radius: 0;
+  background: var(--hpx-paper);
+  color: var(--hpx-black);
+  clip-path: var(--hpx-shape-sm);
+  box-shadow: inset 5px 0 0 var(--hpx-red);
+}
+:root[data-shell="phantom"] .hotel-page .lux-advice strong { font-family: var(--font-display); font-weight: 900; font-stretch: 82%; text-transform: uppercase; }
+:root[data-shell="phantom"] .hotel-page .lux-advice strong i { color: var(--hpx-red-deep); }
+
+/* ---------- Tabaccheria e simili ---------- */
+:root[data-shell="phantom"] .hotel-page .smoke-items { padding: 8px 10px 0; }
+:root[data-shell="phantom"] .hotel-page .smoke-items li { --row-bar: var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page .smoke-green .smoke-items li { --row-bar: #4ade80; }
+:root[data-shell="phantom"] .hotel-page .smoke-dealer .smoke-items li { --row-bar: #e879f9; }
+:root[data-shell="phantom"] .hotel-page .smoke-icon { border-radius: 0; background: #000; clip-path: var(--hpx-shape-sm); }
+:root[data-shell="phantom"] .hotel-page .smoke-text b { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; }
+:root[data-shell="phantom"] .hotel-page .smoke-text small { color: var(--hpx-ink-soft); }
+:root[data-shell="phantom"] .hotel-page .smoke-note { margin: 8px 10px 10px; color: var(--hpx-ink-soft); }
+
+/* ---------- Banchetto delle carte ---------- */
+:root[data-shell="phantom"] .hotel-page :is(.stall-card, .stall-pick) {
+  border-radius: 0;
+  clip-path: var(--hpx-shape-sm);
+}
+:root[data-shell="phantom"] .hotel-page .stall-pick.picked { border-color: #fff; box-shadow: none; outline: 3px solid var(--hpx-red); outline-offset: -5px; }
+:root[data-shell="phantom"] .hotel-page .stall-items small { color: var(--hpx-ink-soft); opacity: 1; }
+:root[data-shell="phantom"] .hotel-page :is(.stall-add input, .pet-name, .stock-trade input, .jukebox-search-row input) {
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  color: #fff;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.4);
+}
+:root[data-shell="phantom"] .hotel-page :is(.stall-add input, .pet-name, .stock-trade input, .jukebox-search-row input):focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--neon-cyan);
+}
+:root[data-shell="phantom"] .hotel-page .events-sub { font-family: var(--font-display); font-weight: 900; font-stretch: 80%; text-transform: uppercase; }
+
+/* ---------- Animali ---------- */
+:root[data-shell="phantom"] .hotel-page .pet-mine { --row-bar: var(--hpx-red); margin: 8px; }
+:root[data-shell="phantom"] .hotel-page .pet-mine strong { font-family: var(--font-display); font-weight: 900; font-stretch: 80%; }
+
+/* ---------- Borsa di Wall Street ---------- */
+:root[data-shell="phantom"] .hotel-page .stock-body { padding: 10px 12px 12px; }
+:root[data-shell="phantom"] .hotel-page .stock-row {
+  border: 0;
+  border-radius: 0;
+  clip-path: var(--hpx-shape-sm);
+  background: var(--hpx-raised);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), inset 4px 0 0 transparent;
+  transition: background 120ms;
+}
+:root[data-shell="phantom"] .hotel-page .stock-row:hover { background: #22164a; box-shadow: inset 0 0 0 1px #fff, inset 4px 0 0 var(--hpx-red); }
+:root[data-shell="phantom"] .hotel-page .stock-row.active { background: var(--hpx-paper); color: var(--hpx-black); box-shadow: inset 6px 0 0 var(--hpx-red); }
+:root[data-shell="phantom"] .hotel-page .stock-row.active .stock-sym small { color: #3d3556; }
+/* Sul tassello bianco verde e rosso piu' scuri, se no non si leggono. */
+:root[data-shell="phantom"] .hotel-page .stock-row.active .up { color: #15803d; }
+:root[data-shell="phantom"] .hotel-page .stock-row.active .down { color: #b91c1c; }
+:root[data-shell="phantom"] .hotel-page :is(.stock-sym b, .stock-head h4, .stock-head strong, .stock-portfolio h4, .stock-feed h4) {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  letter-spacing: 0.02em;
+}
+:root[data-shell="phantom"] .hotel-page :is(.stock-portfolio, .stock-feed) h4 { text-transform: uppercase; }
+:root[data-shell="phantom"] .hotel-page .stock-portfolio { --row-bar: var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page .stock-feed { --row-bar: var(--hpx-red); }
+:root[data-shell="phantom"] .hotel-page .stock-portfolio button { color: var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page .stock-head-price { font-family: var(--font-display); font-weight: 900; font-stretch: 80%; }
+:root[data-shell="phantom"] .hotel-page .stock-chart { border: 0; border-radius: 0; clip-path: var(--hpx-shape); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.14); }
+:root[data-shell="phantom"] .hotel-page .stock-chart.empty { background: var(--hpx-halftone), #07040f; }
+:root[data-shell="phantom"] .hotel-page .stock-qty {
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  clip-path: var(--hpx-shape-sm);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.4);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+:root[data-shell="phantom"] .hotel-page .stock-qty:hover { background: #fff; color: var(--hpx-black); }
+:root[data-shell="phantom"] .hotel-page .stock-cost { color: var(--hpx-ink-soft); }
+:root[data-shell="phantom"] .hotel-page :is(.stock-buy, .stock-sell) { clip-path: var(--hpx-slant); padding-inline: 18px; }
+
+/* ---------- Autobus e taxi: la lista delle fermate (il viaggio animato resta com'e') ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-travel-list button {
+  border: 0;
+  border-radius: 0;
+  clip-path: var(--hpx-shape-sm);
+  background: var(--hpx-halftone), var(--hpx-raised);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), inset 4px 0 0 var(--neon-gold);
+  transition: background 120ms, color 120ms;
+}
+:root[data-shell="phantom"] .hotel-page .hotel-travel-list button:hover { background: var(--hpx-paper); color: var(--hpx-black); box-shadow: inset 6px 0 0 var(--hpx-red); }
+:root[data-shell="phantom"] .hotel-page .hotel-travel-list strong { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; }
+:root[data-shell="phantom"] .hotel-page .hotel-travel-overlay p { font-family: var(--font-display); font-weight: 900; font-stretch: 78%; text-transform: uppercase; text-shadow: 3px 3px 0 var(--hpx-red), 5px 5px 0 #000; }
+
+/* ---------- Jukebox ---------- */
+/* Il pannello non aveva margini: col taglio degli angoli il contenuto finiva sul bordo. */
+:root[data-shell="phantom"] .hotel-page .hotel-jukebox-panel > :not(.hotel-panel-header) { margin-left: 10px; margin-right: 10px; }
+:root[data-shell="phantom"] .hotel-page .hotel-jukebox-panel > :nth-child(2) { margin-top: 10px; }
+:root[data-shell="phantom"] .hotel-page .hotel-jukebox-panel > :last-child { margin-bottom: 12px; }
+:root[data-shell="phantom"] .hotel-page .jukebox-now { --row-bar: var(--hpx-red); }
+:root[data-shell="phantom"] .hotel-page .jukebox-station { --row-bar: var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page :is(.jukebox-now, .jukebox-list li, .jukebox-album-head) img { border-radius: 0; box-shadow: 2px 2px 0 #000; }
+:root[data-shell="phantom"] .hotel-page .jukebox-avatar { border-radius: 0; background: #000; clip-path: var(--hpx-shape-sm); }
+:root[data-shell="phantom"] .hotel-page .jukebox-queue-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 2px 2px 0 var(--hpx-red);
+}
+:root[data-shell="phantom"] .hotel-page .jukebox-pos { font-family: var(--font-display); font-weight: 900; color: var(--hpx-red); }
+:root[data-shell="phantom"] .hotel-page .jukebox-explicit { border-radius: 0; }
+
+/* ---------- Scambi fra giocatori ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-trade { --row-bar: rgba(255, 255, 255, 0.25); }
+:root[data-shell="phantom"] .hotel-page .hotel-trade.pending { --row-bar: var(--neon-gold); box-shadow: inset 0 0 0 1.5px rgba(255, 215, 0, 0.6), inset 4px 0 0 var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page .hotel-trade-head strong { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; }
+:root[data-shell="phantom"] .hotel-page .hotel-trade-status {
+  border-radius: 0;
+  font-family: var(--font-display);
+  font-stretch: 85%;
+  background: #000;
+  color: var(--hpx-ink-soft);
+  clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+  padding: 2px 8px;
+}
+:root[data-shell="phantom"] .hotel-page .hotel-trade-status.status-pending { background: var(--neon-gold); color: #1a1000; }
+:root[data-shell="phantom"] .hotel-page .hotel-trade-status.status-accepted { background: #4ade80; color: #052e16; }
+:root[data-shell="phantom"] .hotel-page :is(.hotel-trade-status.status-rejected, .hotel-trade-status.status-cancelled) { background: #fca5a5; color: #450a0a; }
+:root[data-shell="phantom"] .hotel-page .hotel-trade-label { font-family: var(--font-display); font-stretch: 82%; color: var(--hpx-ink-soft); }
+:root[data-shell="phantom"] .hotel-page .trade-chip {
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  box-shadow: inset 0 0 0 1.5px var(--rarity-color, rgba(255, 255, 255, 0.3));
+  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+}
+:root[data-shell="phantom"] .hotel-page button.trade-chip:hover { background: var(--hpx-raised); box-shadow: inset 0 0 0 2px #fff; }
+:root[data-shell="phantom"] .hotel-page .trade-chip img { border-radius: 0; }
+:root[data-shell="phantom"] .hotel-page .trade-chip-gold { box-shadow: none; color: #1a1000; }
+
+/* ---------- Scambi con gli NPC: carte come tasselli col bordo della rarita' ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-trade-card {
+  isolation: isolate;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  transition: transform 140ms var(--hpx-snap), filter 140ms;
+}
+:root[data-shell="phantom"] .hotel-page .hotel-trade-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border: 2px solid transparent;
+  clip-path: var(--hpx-shape-sm);
+  background:
+    linear-gradient(var(--card-bg, var(--hpx-raised)), var(--card-bg, var(--hpx-raised))) padding-box,
+    linear-gradient(var(--card-edge, var(--rarity-color, #8b5cf6)), var(--card-edge, var(--rarity-color, #8b5cf6))) border-box;
+}
+:root[data-shell="phantom"] .hotel-page button.hotel-trade-card:hover { background: none; --card-edge: #fff; transform: translate(-1px, -2px); }
+:root[data-shell="phantom"] .hotel-page .hotel-trade-card.selected {
+  --card-edge: #fff;
+  --card-bg: var(--hpx-red-deep);
+  box-shadow: none;
+  filter: drop-shadow(3px 3px 0 var(--hpx-red));
+}
+:root[data-shell="phantom"] .hotel-page .hotel-trade-card img { border-radius: 0; box-shadow: 2px 2px 0 #000; }
+:root[data-shell="phantom"] .hotel-page .hotel-trade-card-name { font-family: var(--font-display); font-stretch: 85%; }
+:root[data-shell="phantom"] .hotel-page .hotel-trade-card-rarity { font-family: var(--font-display); font-stretch: 82%; }
+:root[data-shell="phantom"] .hotel-page .hotel-trade-card.selected .hotel-trade-card-rarity { color: #fff; }
+:root[data-shell="phantom"] .hotel-page .hotel-trade-card.selected .card-ownership { color: #fff; }
+:root[data-shell="phantom"] .hotel-page .hotel-npc-trade-timer {
+  padding: 2px 10px;
+  background: #000;
+  font-family: var(--font-display);
+  font-stretch: 80%;
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-npc-trade-arrow { color: var(--neon-gold); filter: drop-shadow(2px 2px 0 #000); }
+:root[data-shell="phantom"] .hotel-page .hotel-npc-menu-title { font-family: var(--font-display); font-weight: 900; font-stretch: 82%; text-transform: uppercase; letter-spacing: 0.03em; }
+:root[data-shell="phantom"] .hotel-page :is(.hotel-npc-trade, .hotel-npc-trade-offer) .hotel-chat-input { border: 0; border-radius: 0; background: #000; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.4); }
+:root[data-shell="phantom"] .hotel-page :is(.hotel-npc-trade, .hotel-npc-trade-offer) .hotel-chat-input:focus { outline: none; box-shadow: inset 0 0 0 2px var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page .hotel-trade-fair { font-family: var(--font-display); font-stretch: 85%; }
+
+/* ---------- Scelta della carta ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-card-thumb {
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  clip-path: var(--hpx-shape-sm);
+  box-shadow: inset 0 0 0 2px var(--rarity-color, rgba(255, 255, 255, 0.3));
+  transition: background 120ms;
+}
+:root[data-shell="phantom"] .hotel-page .hotel-card-thumb:hover { background: var(--hpx-raised); box-shadow: inset 0 0 0 2px #fff; }
+:root[data-shell="phantom"] .hotel-page .hotel-card-thumb.selected { background: var(--hpx-red-deep); box-shadow: inset 0 0 0 3px #fff; }
+:root[data-shell="phantom"] .hotel-page .hotel-card-thumb img { border-radius: 0; }
+:root[data-shell="phantom"] .hotel-page .hotel-card-thumb .thumb-name { font-family: var(--font-display); font-stretch: 85%; }
+:root[data-shell="phantom"] .hotel-page .hotel-card-thumb.selected .thumb-meta { color: #fff; }
+
+/* ---------- Foto: stampa bianca con l'ombra netta ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-photo-frame {
+  border-radius: 0;
+  background: var(--hpx-paper);
+  box-shadow: 6px 6px 0 #000, 6px 6px 0 2px var(--hpx-red);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-photo-frame figcaption {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--hpx-black);
+}
+
+/* ---------- Carta in grande e apertura del pacchetto sopra la stanza ---------- */
+/* Fuori dal resto della pagina l'hotel non ha data-skin: qui solo cornice, titolo e chiusura
+   (il flusso dell'apertura e' quello condiviso col sito). */
+:root[data-shell="phantom"] .hotel-card-viewer.pack-overlay {
+  background: var(--hpx-halftone, radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1.6px) 0 0 / 7px 7px), rgba(7, 4, 15, 0.86);
+}
+:root[data-shell="phantom"] .hotel-pack-overlay {
+  background:
+    linear-gradient(115deg, transparent 0 78%, rgba(236, 72, 153, 0.22) 78.2% 86%, transparent 86.2%),
+    radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1.6px) 0 0 / 7px 7px,
+    rgba(7, 4, 15, 0.96);
+}
+:root[data-shell="phantom"] .hotel-pack-overlay .hotel-pack-opening > .section-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 70%;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  line-height: 0.95;
+  color: #fff;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  text-shadow: 3px 3px 0 var(--neon-magenta);
+  transform: skewX(-6deg);
+  transform-origin: left;
+}
+:root[data-shell="phantom"] .hotel-pack-overlay .hotel-pack-overlay-close {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  color: #fff;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  box-shadow: inset 0 0 0 2px #fff;
+}
+:root[data-shell="phantom"] .hotel-pack-overlay .hotel-pack-overlay-close:hover { background: var(--neon-magenta); }
+:root[data-shell="phantom"] .hotel-pack-overlay .hotel-pack-overlay-close:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: -5px; }
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-shell="phantom"] .hotel-page :is(.hotel-furni-card, .hotel-pack-card, .hotel-trade-card) { transition: none; }
+  :root[data-shell="phantom"] .hotel-page :is(.hotel-furni-card, .hotel-pack-card, button.hotel-trade-card):hover { transform: none; }
+}
+
+/* Apertura pacchetti in hotel: il titolo a ritaglio lascia spazio alla X di chiusura. */
+:root[data-shell="phantom"] .hotel-pack-opening .game-page-title { padding-right: 56px; }
+
+/* Righe del guardaroba: l'etichetta sta sopra, a tutta larghezza, e sotto le due frecce col
+   valore in mezzo. Cosi' etichetta e valore hanno sempre lo spazio intero e si leggono per
+   esteso a qualsiasi larghezza (niente iniziali o puntini); i nomi lunghi vanno a capo. */
+:root[data-shell="phantom"] .hotel-page .hotel-wardrobe-row {
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  grid-template-areas: "label label label" "prev value next";
+  row-gap: 3px;
+  column-gap: 4px;
+}
+:root[data-shell="phantom"] .hotel-page .hotel-wardrobe-label {
+  grid-area: label;
+  font-size: 0.7rem;
+  line-height: 1.15;
+  white-space: normal;
+}
+:root[data-shell="phantom"] .hotel-page .hotel-wardrobe-row > .hotel-arrow:first-of-type { grid-area: prev; }
+:root[data-shell="phantom"] .hotel-page .hotel-wardrobe-row > .hotel-arrow:last-of-type { grid-area: next; }
+:root[data-shell="phantom"] .hotel-page .hotel-wardrobe-value {
+  grid-area: value;
+  min-width: 0;
+  min-height: 36px;
+  padding: 4px 12px;
+  gap: 6px;
+  text-align: center;
+}
+:root[data-shell="phantom"] .hotel-page .hotel-wardrobe-value .hotel-swatch { flex: 0 0 auto; }
+:root[data-shell="phantom"] .hotel-page .hotel-wardrobe-name { min-width: 0; white-space: normal; overflow-wrap: anywhere; line-height: 1.15; }
+:root[data-shell="phantom"] .hotel-page .hotel-arrow { min-height: 36px; }
+
+/* Telefono in orizzontale: il camerino resta in alto a sinistra con la sua altezza (prima si
+   allungava quanto tutte le righe e i personaggi finivano in fondo, fuori vista), le righe
+   scorrono accanto. */
+@media (orientation: landscape) and (max-height: 520px) {
+  :root[data-shell="phantom"] .hotel-page .hotel-wardrobe { width: min(560px, calc(100% - 16px)); }
+  :root[data-shell="phantom"] .hotel-page .hotel-wardrobe-body { flex-wrap: nowrap; align-items: flex-start; }
+  :root[data-shell="phantom"] .hotel-page .hotel-wardrobe-stage {
+    flex: 0 0 auto;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    padding-bottom: 34px;
+  }
+  :root[data-shell="phantom"] .hotel-page .hotel-wardrobe-parts { min-width: 0; flex: 1 1 auto; }
+}
+/* Camerino accanto alle righe (desktop, tablet): alto quanto serve e fermo in cima, non lungo
+   quanto tutte le righe coi personaggi in fondo. */
+:root[data-shell="phantom"] .hotel-page .hotel-wardrobe-body { align-items: flex-start; }
+:root[data-shell="phantom"] .hotel-page .hotel-wardrobe-stage { align-self: flex-start; position: sticky; top: 0; padding-bottom: 34px; }
+
+/* Schermi larghi (computer): pannello un po' piu' largo e righe compatte su una riga sola,
+   etichetta a sinistra e valore fra le frecce a destra, entrambi interi. Il pannello torna
+   basso come prima invece di raddoppiare l'altezza con le etichette sopra. */
+@media (min-width: 900px) and (min-height: 521px) {
+  :root[data-shell="phantom"] .hotel-page .hotel-wardrobe { width: min(620px, calc(100% - 16px)); }
+  :root[data-shell="phantom"] .hotel-page .hotel-wardrobe-body { flex-wrap: nowrap; }
+  :root[data-shell="phantom"] .hotel-page .hotel-wardrobe-parts { gap: 4px; min-width: 0; }
+  :root[data-shell="phantom"] .hotel-page .hotel-wardrobe-row {
+    grid-template-columns: 112px 32px minmax(0, 1fr) 32px;
+    grid-template-areas: "label prev value next";
+    row-gap: 0;
+  }
+  :root[data-shell="phantom"] .hotel-page .hotel-wardrobe-label { white-space: nowrap; }
+  :root[data-shell="phantom"] .hotel-page .hotel-wardrobe-value { min-height: 32px; padding: 2px 10px; }
+  :root[data-shell="phantom"] .hotel-page .hotel-arrow { min-height: 32px; }
+}

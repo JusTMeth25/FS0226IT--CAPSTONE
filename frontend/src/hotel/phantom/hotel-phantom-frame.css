@@ -1,0 +1,576 @@
+/* ==========================================================================
+   Hotel: cornice e social in stile Phantom (Persona 5)
+   --------------------------------------------------------------------------
+   Barra degli strumenti (e colonna col telefono in orizzontale), chat, riquadro della stanza,
+   avvisi, Piazza con le sue schede, navigatore, schede di giocatori e NPC, menu dei mobili,
+   tutorial, impostazioni, partita allo stadio, amici, posta e club.
+   Usa i token --hpx-* della base (hotel-phantom.css). La stanza resta protagonista: stesse
+   misure di prima, cambia solo la veste. Fumetti e nomi sopra gli avatar sono disegnati nel
+   canvas e restano in pixel art.
+   ========================================================================== */
+
+/* ---------- Barra degli strumenti: lastra nera a retino col filo magenta in alto ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-toolbar {
+  border: 0;
+  border-radius: 0;
+  background: var(--hpx-halftone), var(--hpx-black);
+  box-shadow: inset 0 3px 0 var(--hpx-red), inset 0 0 0 1.5px rgba(255, 255, 255, 0.1);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+
+/* Strumento: il fondo tagliato sta nel ::before, cosi' il contatore che sporge non si taglia. */
+:root[data-shell="phantom"] .hotel-page .hotel-tool {
+  isolation: isolate;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--hpx-ink);
+  transition: transform 140ms var(--hpx-snap), color 140ms;
+}
+:root[data-shell="phantom"] .hotel-page .hotel-tool::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--hpx-raised);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.16);
+  clip-path: var(--hpx-shape-sm);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-tool span {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 80%;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+}
+:root[data-shell="phantom"] .hotel-page .hotel-tool:hover:not(:disabled) { border-color: transparent; transform: translateY(-1px); }
+:root[data-shell="phantom"] .hotel-page .hotel-tool:hover:not(:disabled)::before { box-shadow: inset 0 0 0 2px var(--hpx-red); }
+/* Attivo: blocco magenta inclinato, come la voce scelta nei menu del sito. */
+:root[data-shell="phantom"] .hotel-page .hotel-tool.active { background: none; }
+:root[data-shell="phantom"] .hotel-page .hotel-tool.active::before {
+  background: var(--hpx-red);
+  box-shadow: inset 0 -3px 0 #000;
+  clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-tool:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 2px; }
+:root[data-shell="phantom"] .hotel-page .hotel-tool:disabled { opacity: 0.4; }
+
+/* Contatore: tassello bianco con l'ombra magenta, leggibile anche sopra lo strumento attivo. */
+:root[data-shell="phantom"] .hotel-page .hotel-tool-badge,
+:root[data-shell="phantom"] .hotel-page .hotel-tab-badge {
+  border: 0;
+  border-radius: 0;
+  background: var(--hpx-ink);
+  color: var(--hpx-black);
+  font-family: var(--font-display);
+  font-weight: 900;
+  box-shadow: 2px 2px 0 var(--hpx-red);
+}
+
+/* Bevi / mangia l'oggetto in mano: blocco oro inclinato. */
+:root[data-shell="phantom"] .hotel-page .hotel-tool-consume { background: none !important; color: #1a1000 !important; }
+:root[data-shell="phantom"] .hotel-page .hotel-tool-consume::before { background: var(--neon-gold); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.35); clip-path: var(--hpx-slant); }
+:root[data-shell="phantom"] .hotel-page .hotel-tool-consume span { font-size: 0.68rem; }
+
+/* Tutorial: lo strumento indicato ha un anello netto oro e nero invece dell'alone. */
+:root[data-shell="phantom"] .hotel-page .tutorial-highlight {
+  box-shadow: 0 0 0 3px var(--neon-gold), 0 0 0 6px #000 !important;
+  animation: hpx-tutorial-pulse 0.9s steps(2, end) infinite;
+}
+@keyframes hpx-tutorial-pulse { 50% { transform: translateY(-3px); } }
+
+/* ---------- Chat ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-chat-input {
+  border: 0;
+  border-radius: 0;
+  background: var(--hpx-paper);
+  color: var(--hpx-black);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+  clip-path: var(--hpx-shape-sm);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-chat-input::placeholder { color: #5b5470; }
+:root[data-shell="phantom"] .hotel-page .hotel-chat-input:focus { outline: none; box-shadow: inset 0 0 0 3px var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page .hotel-chat-send,
+:root[data-shell="phantom"] .hotel-page .hotel-chat-mode {
+  border: 0;
+  border-radius: 0;
+  clip-path: var(--hpx-shape-sm);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-chat-send { background: var(--hpx-red); color: #fff; clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%); }
+:root[data-shell="phantom"] .hotel-page .hotel-chat-send:hover:not(:disabled) { background: #fff; color: var(--hpx-black); }
+:root[data-shell="phantom"] .hotel-page .hotel-chat-send:disabled { opacity: 1; background: var(--hpx-raised); color: rgba(255, 255, 255, 0.45); }
+:root[data-shell="phantom"] .hotel-page .hotel-chat-mode { background: var(--hpx-raised); color: #fff; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.2); }
+:root[data-shell="phantom"] .hotel-page .hotel-chat-mode.active { background: var(--neon-gold); color: #1a1000; box-shadow: none; }
+:root[data-shell="phantom"] .hotel-page :is(.hotel-chat-send, .hotel-chat-mode, .hotel-chat-whisper):focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page .hotel-chat-whisper {
+  border: 0;
+  border-radius: 0;
+  background: var(--hpx-ink);
+  color: var(--hpx-black);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  text-transform: uppercase;
+  clip-path: var(--hpx-shape-sm);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-chat-whisper .ph-ear { color: var(--hpx-red-deep); }
+
+/* ---------- Riquadro della stanza: cartellino nero col nome a ritaglio ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-room-info {
+  border: 0;
+  border-radius: 0;
+  padding: 6px 22px 7px 14px;
+  background: var(--hpx-halftone), rgba(7, 4, 15, 0.9);
+  box-shadow: inset 4px 0 0 var(--hpx-red);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  color: var(--hpx-ink-soft);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-room-info > strong {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  transform: skewX(-8deg);
+  transform-origin: left;
+  text-shadow: 2px 2px 0 var(--hpx-red-deep);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-like,
+:root[data-shell="phantom"] .hotel-page .hotel-now-playing {
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  box-shadow: inset 0 0 0 1.5px var(--hpx-red);
+  clip-path: var(--hpx-shape-sm);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-like { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; }
+:root[data-shell="phantom"] .hotel-page .hotel-like:hover:not(:disabled) { background: var(--hpx-red-deep); }
+:root[data-shell="phantom"] .hotel-page .hotel-like.liked { background: var(--hpx-red-deep); box-shadow: inset 0 0 0 1.5px #fff; }
+:root[data-shell="phantom"] .hotel-page .hotel-now-playing { box-shadow: inset 0 0 0 1.5px var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page :is(.hotel-like, .hotel-now-playing button, .hotel-radio-apple):focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: -2px; }
+:root[data-shell="phantom"] .hotel-page .hotel-radio img,
+:root[data-shell="phantom"] .hotel-page .hotel-radio-apple { border-radius: 0; }
+:root[data-shell="phantom"] .hotel-page .hotel-radio-text strong { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; }
+
+/* ---------- Avvisi e stato della connessione ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-notice,
+:root[data-shell="phantom"] .hotel-page .hotel-status {
+  border: 0;
+  border-radius: 0;
+  padding: 8px 18px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  letter-spacing: 0.02em;
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-notice { background: var(--hpx-black); color: #fff; box-shadow: inset 0 -3px 0 var(--hpx-red), inset 0 0 0 1.5px rgba(255, 255, 255, 0.16); }
+:root[data-shell="phantom"] .hotel-page .hotel-status { background: var(--neon-gold); color: #1a1000; }
+
+/* ---------- Evento in corso: striscia nera con l'oro dei premi ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-event-banner {
+  border: 0;
+  border-radius: 0;
+  background: var(--hpx-halftone), var(--hpx-black);
+  color: var(--hpx-ink);
+  box-shadow: inset 4px 0 0 var(--neon-gold), inset 0 0 0 1.5px rgba(255, 215, 0, 0.45);
+  clip-path: var(--hpx-shape-sm);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-event-banner b { font-family: var(--font-display); font-weight: 900; font-stretch: 80%; text-transform: uppercase; letter-spacing: 0.02em; }
+:root[data-shell="phantom"] .hotel-page .hotel-event-banner i,
+:root[data-shell="phantom"] .hotel-page .hotel-event-banner time { color: var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page .hotel-event-banner time { font-family: var(--font-display); font-weight: 900; }
+:root[data-shell="phantom"] .hotel-page .hotel-event-banner:hover { background: var(--hpx-halftone), var(--hpx-raised); }
+:root[data-shell="phantom"] .hotel-page .hotel-event-banner:focus-visible { outline: none; box-shadow: inset 4px 0 0 var(--neon-gold), inset 0 0 0 2px var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page .hotel-event-banner-go { opacity: 1; color: var(--hpx-ink-soft); font-family: var(--font-display); font-weight: 800; font-stretch: 85%; font-size: 0.72rem; text-transform: uppercase; }
+
+/* ---------- Partita allo stadio: tabellone e squadre ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-scoreboard,
+:root[data-shell="phantom"] .hotel-page .hotel-match-bar {
+  border: 0;
+  border-radius: 0;
+  background: var(--hpx-halftone), var(--hpx-black);
+  clip-path: var(--hpx-shape-sm);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-scoreboard { box-shadow: inset 0 0 0 2px var(--neon-gold); font-family: var(--font-display); font-stretch: 80%; }
+:root[data-shell="phantom"] .hotel-page .hotel-scoreboard-team,
+:root[data-shell="phantom"] .hotel-page .match-team b {
+  border-radius: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  text-transform: uppercase;
+  clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-match-bar { box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.16); }
+:root[data-shell="phantom"] .hotel-page .hotel-match-bar.is-playing { box-shadow: inset 0 0 0 2px var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page .match-phase { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; text-transform: uppercase; }
+:root[data-shell="phantom"] .hotel-page .match-clock { font-family: var(--font-display); font-weight: 900; font-stretch: 80%; color: var(--neon-gold); }
+
+/* ---------- Tutorial: fumetto bianco, bordo nero e ombra netta magenta ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-tutorial-guide { filter: drop-shadow(3px 3px 0 #000); }
+:root[data-shell="phantom"] .hotel-page .hotel-tutorial-bubble {
+  border: 3px solid #000;
+  border-radius: 0;
+  background: var(--hpx-paper);
+  color: var(--hpx-black);
+  box-shadow: 6px 6px 0 var(--hpx-red);
+}
+/* La punta verso la guida. */
+:root[data-shell="phantom"] .hotel-page .hotel-tutorial-bubble::before {
+  content: '';
+  position: absolute;
+  left: -15px;
+  bottom: 14px;
+  width: 13px;
+  height: 16px;
+  background: #000;
+  clip-path: polygon(100% 0, 0 70%, 100% 100%);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-tutorial-bubble h3 {
+  padding-right: 44px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  transform: skewX(-8deg);
+  transform-origin: left;
+}
+:root[data-shell="phantom"] .hotel-page .hotel-tutorial-count {
+  padding: 1px 7px;
+  background: #000;
+  color: #fff;
+  font-family: var(--font-display);
+  font-stretch: 85%;
+  clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+}
+
+/* ---------- Dentro i pannelli: sottotitoli, campi, etichette ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .events-sub {
+  padding-left: 10px;
+  color: var(--hpx-ink);
+  opacity: 1;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  box-shadow: inset 4px 0 0 var(--hpx-red);
+}
+/* Campi di testo dei pannelli social: neri con la riga bianca sotto, focus ciano. */
+:root[data-shell="phantom"] .hotel-page :is(.friends-add input, .friends-chat-form input, .club-form input, .mail-compose input, .mail-compose select, .hotel-party-box input, .auction-form input, .gallery-search, .quest-filters input[type="search"], .hotel-settings .hotel-chat-input) {
+  border: 0;
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--hpx-ink);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22), inset 0 -2px 0 rgba(255, 255, 255, 0.6);
+  clip-path: none;
+}
+/* Nelle impostazioni i campi in colonna avevano flex: 1 e si schiacciavano a una riga sottile. */
+:root[data-shell="phantom"] .hotel-page .hotel-settings-body label > .hotel-chat-input { flex: 0 0 auto; height: 30px; padding: 0 10px; }
+:root[data-shell="phantom"] .hotel-page .hotel-settings .hotel-chat-input option { background: var(--hpx-panel); color: var(--hpx-ink); }
+:root[data-shell="phantom"] .hotel-page :is(.friends-add input, .friends-chat-form input, .club-form input, .mail-compose input, .mail-compose select, .hotel-party-box input, .auction-form input, .gallery-search, .quest-filters input[type="search"], .hotel-settings .hotel-chat-input):focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--neon-cyan);
+}
+:root[data-shell="phantom"] .hotel-page :is(.hotel-settings-body label, .club-form label, .mail-compose label, .hotel-party-box legend) {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+:root[data-shell="phantom"] .hotel-page .hotel-settings-body label { color: var(--hpx-ink-soft); }
+
+/* ---------- Navigatore ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-room { border: 0; border-radius: 0; }
+:root[data-shell="phantom"] .hotel-page .hotel-room:hover:not(:disabled) { background: var(--hp-surface-hover); box-shadow: inset 3px 0 0 var(--hpx-red); }
+:root[data-shell="phantom"] .hotel-page .hotel-room.current { background: var(--hpx-raised); box-shadow: inset 4px 0 0 var(--hpx-red), inset 0 0 0 1px rgba(236, 72, 153, 0.45); }
+:root[data-shell="phantom"] .hotel-page .hotel-room:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: -2px; }
+:root[data-shell="phantom"] .hotel-page .hotel-room-list > li + li { border-top: 1px dashed rgba(255, 255, 255, 0.08); }
+:root[data-shell="phantom"] .hotel-page .hotel-room-text strong { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; font-size: 0.9rem; }
+:root[data-shell="phantom"] .hotel-page .hotel-room-occupancy {
+  border-radius: 0;
+  background: #000;
+  color: var(--hpx-ink-soft);
+  font-family: var(--font-display);
+  font-stretch: 85%;
+  clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-room-occupancy.busy { background: #15803d; color: #fff; box-shadow: none; }
+:root[data-shell="phantom"] .hotel-page .hotel-room-here {
+  padding: 1px 7px;
+  background: var(--hpx-red-deep);
+  color: #fff;
+  font-family: var(--font-display);
+  font-stretch: 85%;
+  clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-room-likes { color: #f472b6; }
+/* "Vai alla mia stanza": blocco oro inclinato. */
+:root[data-shell="phantom"] .hotel-page .hotel-my-room {
+  border: 0;
+  border-radius: 0;
+  background: var(--neon-gold);
+  color: #1a1000;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 80%;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.3);
+  clip-path: polygon(2% 0, 100% 0, 98% 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-my-room:hover { filter: none; background: #fff; }
+:root[data-shell="phantom"] .hotel-page .hotel-my-room:active { transform: translateY(1px); box-shadow: none; }
+:root[data-shell="phantom"] .hotel-page .hotel-my-room:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page .hotel-party {
+  border: 0;
+  border-radius: 0;
+  background: var(--hpx-halftone), var(--hpx-raised);
+  box-shadow: inset 4px 0 0 var(--hpx-red), inset 0 0 0 1px rgba(236, 72, 153, 0.5);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-party:hover { background: var(--hpx-halftone), var(--hpx-red-deep); }
+:root[data-shell="phantom"] .hotel-page .hotel-party:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: -2px; }
+:root[data-shell="phantom"] .hotel-page .hotel-party > i { color: var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page .hotel-party strong { font-family: var(--font-display); font-weight: 900; font-stretch: 80%; text-transform: uppercase; }
+:root[data-shell="phantom"] .hotel-page .hotel-party-box { border: 0; border-radius: 0; box-shadow: inset 4px 0 0 var(--hpx-red), inset 0 0 0 1px rgba(236, 72, 153, 0.5); }
+
+/* ---------- Schede di giocatori e NPC ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-user-card-info strong {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: 1.15rem;
+  text-transform: uppercase;
+  line-height: 1;
+  transform: skewX(-8deg);
+  transform-origin: left;
+  text-shadow: 2px 2px 0 var(--hpx-red-deep);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-user-stats { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; }
+:root[data-shell="phantom"] .hotel-page .hotel-user-stats i { color: var(--hpx-red); }
+:root[data-shell="phantom"] .hotel-page .hotel-badge {
+  border: 0;
+  border-radius: 0;
+  background: var(--neon-purple);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.35);
+  clip-path: var(--hpx-shape-sm);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-badge-legend { background: var(--neon-gold); color: #3a2600; }
+:root[data-shell="phantom"] .hotel-page :is(.hotel-badge-champion, .hotel-badge-fighter) { background: var(--hpx-red-deep); }
+/* Distintivo indossato: anello bianco e striscia oro sotto (l'outline verrebbe tagliato). */
+:root[data-shell="phantom"] .hotel-page .hotel-badge.worn { outline: 0; box-shadow: inset 0 0 0 2px #fff, inset 0 -5px 0 var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page button.hotel-badge:hover:not(:disabled) { transform: translateY(-2px); }
+:root[data-shell="phantom"] .hotel-page button.hotel-badge:focus-visible { box-shadow: inset 0 0 0 2px var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page .hotel-best-card {
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  box-shadow: inset 4px 0 0 var(--rarity-color, var(--neon-purple)), inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-best-card:hover { background: var(--hpx-raised); }
+:root[data-shell="phantom"] .hotel-page .hotel-best-card:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: -2px; }
+:root[data-shell="phantom"] .hotel-page .hotel-top-cards-head > span { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; text-transform: uppercase; }
+:root[data-shell="phantom"] .hotel-page .hotel-top-card { border-radius: 0; box-shadow: 3px 3px 0 #000; }
+:root[data-shell="phantom"] .hotel-page .hotel-top-card:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 2px; }
+:root[data-shell="phantom"] .hotel-page .hotel-top-card-edit { background: rgba(0, 0, 0, 0.82); font-family: var(--font-display); font-stretch: 85%; text-transform: uppercase; }
+:root[data-shell="phantom"] .hotel-page .hotel-npc-role {
+  padding: 1px 10px;
+  border-radius: 0;
+  background: var(--neon-gold);
+  font-family: var(--font-display);
+  font-stretch: 85%;
+  clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-npc-menu-title { color: var(--hpx-ink-soft); font-family: var(--font-display); font-stretch: 85%; }
+:root[data-shell="phantom"] .hotel-page .hotel-npc-order {
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  clip-path: var(--hpx-shape-sm);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-npc-order:hover { background: var(--hpx-raised); box-shadow: inset 0 0 0 2px var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page .hotel-npc-order:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page .hotel-npc-legend-card { border-radius: 0; box-shadow: 3px 3px 0 #000; }
+
+/* ---------- Menu dei mobili ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-item-actions .btn { justify-content: flex-start; }
+
+/* ---------- Amici, chat privata e posta ---------- */
+:root[data-shell="phantom"] .hotel-page .friends-tabs { gap: 4px; padding: 6px 10px 0; }
+:root[data-shell="phantom"] .hotel-page .friends-tabs button {
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  color: var(--hpx-ink-soft);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  text-transform: uppercase;
+  clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .friends-tabs button:hover { background: var(--hpx-raised); color: #fff; }
+:root[data-shell="phantom"] .hotel-page .friends-tabs button.active { background: var(--hpx-ink); color: var(--hpx-black); }
+:root[data-shell="phantom"] .hotel-page .friends-tabs button:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--neon-cyan); }
+/* Nella scheda tagliata il contatore resta dentro. */
+:root[data-shell="phantom"] .hotel-page .friends-tabs .hotel-tool-badge { position: static; margin-left: 4px; background: var(--hpx-red-deep); color: #fff; box-shadow: none; }
+:root[data-shell="phantom"] .hotel-page .friends-list .hotel-tool-badge { position: static; }
+:root[data-shell="phantom"] .hotel-page :is(.friends-list li, .mail-list li, .event-list li, .gallery-entries li, .club-list li, .club-members li) {
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.18);
+}
+:root[data-shell="phantom"] .hotel-page .friends-list li.online { box-shadow: inset 4px 0 0 #22c55e; }
+:root[data-shell="phantom"] .hotel-page .friends-list li.hotel-panel-hint { background: none; box-shadow: none; }
+:root[data-shell="phantom"] .hotel-page :is(.friends-who strong, .mail-list strong, .club-list strong, .club-members strong, .event-list strong) { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; }
+/* Messaggi: fumetti tagliati, i miei in magenta scuro (contrasto AA col bianco). */
+:root[data-shell="phantom"] .hotel-page .friends-msg {
+  border-radius: 0;
+  background: var(--hpx-raised);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .friends-msg.mine {
+  border-radius: 0;
+  background: var(--hpx-red-deep);
+  box-shadow: none;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+}
+:root[data-shell="phantom"] .hotel-page .mail-list li.new { background: rgba(255, 215, 0, 0.1); box-shadow: inset 4px 0 0 var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page .mail-list li > i { color: var(--neon-gold); }
+
+/* ---------- Club ---------- */
+:root[data-shell="phantom"] .hotel-page .club-mine {
+  border: 0;
+  border-radius: 0;
+  background: var(--hpx-halftone), color-mix(in srgb, var(--club-color) 14%, #000);
+  box-shadow: inset 4px 0 0 var(--club-color), inset 0 0 0 1px color-mix(in srgb, var(--club-color) 60%, transparent);
+}
+:root[data-shell="phantom"] .hotel-page .club-mine header strong { font-family: var(--font-display); font-weight: 900; font-stretch: 78%; font-size: 1.05rem; text-transform: uppercase; }
+:root[data-shell="phantom"] .hotel-page .club-crest { border-radius: 0; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.35); clip-path: var(--hpx-shape-sm); }
+:root[data-shell="phantom"] .hotel-page .club-tag { padding: 0 7px; border-radius: 0; font-family: var(--font-display); font-weight: 900; font-stretch: 85%; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
+:root[data-shell="phantom"] .hotel-page .club-colors button { border-radius: 0; clip-path: var(--hpx-shape-sm); }
+:root[data-shell="phantom"] .hotel-page .club-icons button { border-radius: 0; background: #000; clip-path: var(--hpx-shape-sm); }
+:root[data-shell="phantom"] .hotel-page :is(.club-colors, .club-icons) button.active { border-color: #fff; box-shadow: inset 0 0 0 2px #000; }
+:root[data-shell="phantom"] .hotel-page :is(.club-colors, .club-icons) button:focus-visible { outline: none; border-color: var(--neon-cyan); }
+
+/* ---------- Piazza: eventi, classifiche, asta, mostra, tornei, incarichi ---------- */
+:root[data-shell="phantom"] .hotel-page .event-live {
+  border: 0;
+  border-radius: 0;
+  background: var(--hpx-halftone), rgba(255, 215, 0, 0.07);
+  box-shadow: inset 4px 0 0 var(--neon-gold), inset 0 0 0 1px rgba(255, 215, 0, 0.35);
+}
+:root[data-shell="phantom"] .hotel-page .event-live header strong { font-family: var(--font-display); font-weight: 900; font-stretch: 80%; font-size: 1rem; text-transform: uppercase; }
+:root[data-shell="phantom"] .hotel-page :is(.event-live header > i, .event-list li > i) { color: var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page :is(.event-clock, .auction-price b) { font-family: var(--font-display); font-weight: 900; font-stretch: 80%; color: var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page .event-board li { border-radius: 0; }
+:root[data-shell="phantom"] .hotel-page .event-board li.mine { background: rgba(236, 72, 153, 0.16); box-shadow: inset 3px 0 0 var(--hpx-red); }
+:root[data-shell="phantom"] .hotel-page .event-rank {
+  width: 26px;
+  border-radius: 0;
+  background: #000;
+  font-family: var(--font-display);
+  font-weight: 900;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  clip-path: polygon(15% 0, 100% 0, 85% 100%, 0 100%);
+}
+:root[data-shell="phantom"] .hotel-page .event-board li:nth-child(-n + 3) .event-rank { box-shadow: none; }
+:root[data-shell="phantom"] .hotel-page .event-board li:nth-child(1) .event-rank { background: var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page .event-board li:nth-child(2) .event-rank { background: #d6dbe4; }
+
+:root[data-shell="phantom"] .hotel-page .auction-lot {
+  border: 0;
+  border-radius: 0;
+  background: var(--hpx-halftone), #000;
+  box-shadow: inset 4px 0 0 var(--rarity, var(--neon-purple)), inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+:root[data-shell="phantom"] .hotel-page .auction-card img { border-radius: 0; box-shadow: 4px 4px 0 var(--rarity, #000); }
+:root[data-shell="phantom"] .hotel-page .auction-thumb { border-radius: 0; }
+:root[data-shell="phantom"] .hotel-page .auction-card:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 3px; }
+
+:root[data-shell="phantom"] .hotel-page .gallery-entries li.mine { background: rgba(236, 72, 153, 0.12); box-shadow: inset 4px 0 0 var(--hpx-red); }
+:root[data-shell="phantom"] .hotel-page .gallery-entries header strong { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; }
+:root[data-shell="phantom"] .hotel-page .gallery-card { border-radius: 0; }
+:root[data-shell="phantom"] .hotel-page .gallery-card.picked { outline: 3px solid var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page .gallery-card:focus-visible { outline: 3px solid var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page .gallery-votes { color: #f472b6; }
+
+:root[data-shell="phantom"] .hotel-page .tournament-card {
+  border: 0;
+  border-radius: 0;
+  background: var(--hpx-halftone), rgba(255, 215, 0, 0.05);
+  box-shadow: inset 4px 0 0 var(--neon-gold), inset 0 0 0 1px rgba(255, 215, 0, 0.3);
+}
+:root[data-shell="phantom"] .hotel-page .tournament-card header strong { font-family: var(--font-display); font-weight: 900; font-stretch: 80%; text-transform: uppercase; }
+:root[data-shell="phantom"] .hotel-page .tournament-card header > i { color: var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page .tournament-players li { padding: 2px 10px; border-radius: 0; background: #000; clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%); }
+:root[data-shell="phantom"] .hotel-page .tournament-round h5 { opacity: 1; color: var(--hpx-ink-soft); font-family: var(--font-display); font-weight: 900; font-stretch: 85%; }
+:root[data-shell="phantom"] .hotel-page .tournament-match { border: 0; border-radius: 0; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), 3px 3px 0 #000; }
+:root[data-shell="phantom"] .hotel-page .tournament-match span.won { background: rgba(34, 197, 94, 0.25); }
+
+:root[data-shell="phantom"] .hotel-page .quest {
+  border: 0;
+  border-radius: 0;
+  box-shadow: inset 3px 0 0 var(--hpx-red), inset 0 0 0 1px var(--hp-line);
+}
+:root[data-shell="phantom"] .hotel-page .quest.done { box-shadow: inset 3px 0 0 #22c55e, inset 0 0 0 1px var(--hp-line); }
+:root[data-shell="phantom"] .hotel-page .quest-head strong { font-family: var(--font-display); font-weight: 800; font-stretch: 85%; }
+:root[data-shell="phantom"] .hotel-page .quest-room {
+  border-radius: 0;
+  background: #000;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  clip-path: var(--hpx-shape-sm);
+}
+:root[data-shell="phantom"] .hotel-page .quest-room:hover { background: var(--hpx-red-deep); }
+:root[data-shell="phantom"] .hotel-page .quest-room:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--neon-cyan); }
+:root[data-shell="phantom"] .hotel-page .quest-reward { color: var(--neon-gold); font-family: var(--font-display); font-weight: 900; font-stretch: 85%; }
+:root[data-shell="phantom"] .hotel-page :is(.quest-card, .quest-card img, .quest-card-qty) { border-radius: 0; }
+:root[data-shell="phantom"] .hotel-page .quest-card.picked { border-color: var(--neon-gold); box-shadow: 3px 3px 0 #000; }
+
+/* ---------- Telefono in orizzontale: colonna degli strumenti a destra ---------- */
+@media (orientation: landscape) and (max-height: 520px) {
+  :root[data-shell="phantom"] .hotel-page .hotel-toolbar { clip-path: none; box-shadow: none; }
+  :root[data-shell="phantom"] .hotel-page .hotel-rail {
+    border: 0;
+    border-radius: 0;
+    background: var(--hpx-halftone), var(--hpx-black);
+    box-shadow: inset 0 3px 0 var(--hpx-red), inset 0 0 0 1.5px rgba(255, 255, 255, 0.1);
+    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  }
+  :root[data-shell="phantom"] .hotel-page .hotel-gold-pill {
+    border-radius: 0;
+    background: #000;
+    box-shadow: inset 0 0 0 1.5px rgba(255, 215, 0, 0.5);
+    clip-path: var(--hpx-shape-sm);
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-stretch: 85%;
+  }
+  :root[data-shell="phantom"] .hotel-page .hotel-gold-pill i { color: var(--neon-gold); }
+  :root[data-shell="phantom"] .hotel-page .hotel-chat {
+    border: 0;
+    border-radius: 0;
+    background: var(--hpx-halftone), var(--hpx-black);
+    box-shadow: inset 4px 0 0 var(--hpx-red);
+    clip-path: polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 6px);
+  }
+}
+
+@media (max-width: 600px) {
+  :root[data-shell="phantom"] .hotel-page .hotel-room-info > strong { font-size: 0.88rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-shell="phantom"] .hotel-page .hotel-tool { transition: none; }
+  :root[data-shell="phantom"] .hotel-page .hotel-tool:hover:not(:disabled) { transform: none; }
+  :root[data-shell="phantom"] .hotel-page .tutorial-highlight { animation: none; }
+}

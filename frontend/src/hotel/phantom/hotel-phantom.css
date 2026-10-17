@@ -1,0 +1,150 @@
+/* ==========================================================================
+   Hotel: pannelli e riquadri in stile Phantom (Persona 5)
+   --------------------------------------------------------------------------
+   Solo l'interfaccia sopra la stanza (pannelli, schede, bottoni, barre): la stanza, gli
+   avatar, i mobili e i minigiochi restano in pixel art come in Habbo. Regole sotto
+   :root[data-shell="phantom"] (App.jsx lo imposta sempre; data-skin nell'hotel non c'e').
+   Il casino' (.casino-panel) resta com'e': ha la sua grafica da tavolo da gioco.
+   Base comune scritta dal coordinatore: gli altri file di questa cartella (uno per area)
+   vestono i pannelli specifici e usano questi stessi token.
+   ========================================================================== */
+
+:root[data-shell="phantom"] .hotel-page {
+  --hpx-red: var(--neon-magenta);
+  --hpx-red-deep: #b0136a;
+  --hpx-ink: #ffffff;
+  --hpx-ink-soft: #c9c4dc;
+  --hpx-black: #07040f;
+  --hpx-panel: #0d0820;
+  --hpx-raised: #150d2e;
+  --hpx-paper: #f4f1fa;
+  --hpx-cut: 12px;
+  --hpx-cut-sm: 7px;
+  --hpx-shape: polygon(var(--hpx-cut) 0, 100% 0, 100% calc(100% - var(--hpx-cut)), calc(100% - var(--hpx-cut)) 100%, 0 100%, 0 var(--hpx-cut));
+  --hpx-shape-sm: polygon(var(--hpx-cut-sm) 0, 100% 0, 100% calc(100% - var(--hpx-cut-sm)), calc(100% - var(--hpx-cut-sm)) 100%, 0 100%, 0 var(--hpx-cut-sm));
+  --hpx-slant: polygon(5% 0, 100% 0, 95% 100%, 0 100%);
+  --hpx-halftone: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1.6px) 0 0 / 7px 7px;
+  --hpx-snap: cubic-bezier(0.2, 1.4, 0.3, 1);
+  --font-display: 'Archivo Variable', 'Arial Narrow', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ---------- Pannello: lastra nera a retino, angoli tagliati, filo magenta, ombra netta ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) {
+  --hp-surface: rgba(255, 255, 255, 0.05);
+  --hp-surface-hover: rgba(236, 72, 153, 0.22);
+  --hp-line: rgba(255, 255, 255, 0.14);
+  --hp-accent: var(--neon-gold);
+  background: var(--hpx-halftone), var(--hpx-panel);
+  border: 0;
+  border-radius: 0;
+  clip-path: var(--hpx-shape);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.14), inset 4px 0 0 var(--hpx-red);
+  filter: drop-shadow(6px 6px 0 #000);
+}
+/* Testata: fascia magenta con la striscia nera in diagonale e il titolo bianco condensato. */
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .hotel-panel-header {
+  padding: 8px 10px 8px 16px;
+  background: linear-gradient(100deg, var(--hpx-red) 0 72%, #000 72.2% 76%, var(--hpx-red-deep) 76.2%);
+  border-bottom: 2px solid #000;
+  box-shadow: none;
+}
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .hotel-panel-header::before { display: none; }
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .hotel-panel-header h3 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 78%;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  transform: skewX(-8deg);
+  text-shadow: 2px 2px 0 #000;
+}
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .hotel-panel-close {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  clip-path: var(--hpx-shape-sm);
+}
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .hotel-panel-close:hover { background: var(--hpx-ink); color: var(--hpx-black); }
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .hotel-panel-footer { border-top: 2px dashed rgba(255, 255, 255, 0.16); background: rgba(0, 0, 0, 0.4); }
+
+/* ---------- Schede: blocchi inclinati, quella attiva bianca ---------- */
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .hotel-tabs { gap: 4px; padding: 6px 8px 0; border-bottom: 2px solid #000; background: rgba(0, 0, 0, 0.35); }
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .hotel-tab {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  text-transform: uppercase;
+  border: 0;
+  border-bottom: 0;
+  clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+  background: #000;
+  color: var(--hpx-ink-soft);
+  text-shadow: none;
+}
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .hotel-tab:hover { color: var(--hpx-ink); background: var(--hpx-raised); }
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .hotel-tab.active { background: var(--hpx-ink); color: var(--hpx-black); text-shadow: none; }
+
+/* ---------- Bottoni comuni dentro l'hotel (gli stessi del resto del sito) ---------- */
+:root[data-shell="phantom"] .hotel-page .btn:not(.casino-panel *) {
+  position: relative;
+  isolation: isolate;
+  border-radius: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 85%;
+  letter-spacing: 0.04em;
+  transition: transform 140ms var(--hpx-snap), color 140ms;
+}
+:root[data-shell="phantom"] .hotel-page .btn-primary:not(.casino-panel *),
+:root[data-shell="phantom"] .hotel-page .btn-gold:not(.casino-panel *) {
+  background: none;
+  box-shadow: none;
+  overflow: visible;
+  filter: drop-shadow(3px 3px 0 #000);
+}
+:root[data-shell="phantom"] .hotel-page .btn-primary:not(.casino-panel *) { color: #fff; }
+:root[data-shell="phantom"] .hotel-page .btn-gold:not(.casino-panel *) { color: #1a1000; }
+:root[data-shell="phantom"] .hotel-page :is(.btn-primary, .btn-gold):not(.casino-panel *)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  left: 0;
+  width: auto;
+  height: auto;
+  z-index: -1;
+  transform: none;
+  animation: none;
+  clip-path: var(--hpx-slant);
+}
+:root[data-shell="phantom"] .hotel-page .btn-primary:not(.casino-panel *)::before { background: var(--hpx-red); }
+:root[data-shell="phantom"] .hotel-page .btn-gold:not(.casino-panel *)::before { background: var(--neon-gold); }
+:root[data-shell="phantom"] .hotel-page :is(.btn-primary, .btn-gold):not(.casino-panel *):hover:not(:disabled) { transform: translate(-1px, -1px) rotate(-1deg); box-shadow: none; }
+:root[data-shell="phantom"] .hotel-page .btn-secondary:not(.casino-panel *) {
+  background: #000;
+  color: #fff;
+  border: 0;
+  clip-path: var(--hpx-shape-sm);
+  box-shadow: inset 0 0 0 2px #fff;
+}
+:root[data-shell="phantom"] .hotel-page .btn-secondary:not(.casino-panel *):hover:not(:disabled) { background: #fff; color: var(--hpx-black); transform: none; }
+
+/* ---------- Campi ---------- */
+:root[data-shell="phantom"] .hotel-page :is(input, select, textarea):not(.casino-panel *):not([type="range"]):not([type="checkbox"]):not([type="radio"]) {
+  border-radius: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-shell="phantom"] .hotel-page .btn:not(.casino-panel *) { transition: none; }
+  :root[data-shell="phantom"] .hotel-page .btn:not(.casino-panel *):hover { transform: none !important; }
+}
+
+/* Focus: sui bottoni tagliati con clip-path il contorno esterno verrebbe tagliato, quindi
+   l'anello ciano sta dentro il bottone. */
+:root[data-shell="phantom"] .hotel-page .btn-secondary:not(.casino-panel *):focus-visible,
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .hotel-panel-close:focus-visible,
+:root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .hotel-tab:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px var(--neon-cyan);
+}

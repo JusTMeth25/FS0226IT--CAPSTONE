@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { m } from 'motion/react';
 import { basket, bowling, golf } from './sportGames.jsx';
 import { pool } from './billiards.jsx';
 import { fish } from './leisureGames.jsx';
@@ -456,7 +457,13 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
         {' · '}batterlo vale fino a 50 gold
       </p>
 
-      {phase === 'ready' && <div className="mg-countdown">{countdown}</div>}
+      {/* Il numero scatta a ogni secondo: solo prima della partita, mai mentre si gioca. */}
+      {phase === 'ready' && (
+        <div className="mg-countdown">
+          <m.span key={countdown} initial={{ scale: 1.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 700, damping: 26 }}>{countdown}</m.span>
+        </div>
+      )}
 
       {phase === 'play' && snap && (
         <div className="mg-stage"><GameView game={game} snap={snap} act={act} extra={extra} /></div>
@@ -476,8 +483,16 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
 
       {phase === 'done' && (
         <div className="mg-result">
-          <strong>{result ? result.score : finalScore} {start.unit}</strong>
-          {result?.record && <span className="mg-new-record"><i className="ph-fill ph-crown" /> Nuovo record della stanza!</span>}
+          <m.strong className="mg-final" initial={{ scale: 1.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 620, damping: 24 }}>
+            {result ? result.score : finalScore} <small>{start.unit}</small>
+          </m.strong>
+          {result?.record && (
+            <m.span className="mg-new-record" initial={{ scale: 2.2, rotate: -12, opacity: 0 }} animate={{ scale: 1, rotate: -3, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 560, damping: 22 }}>
+              <i className="ph-fill ph-crown" /> Nuovo record della stanza!
+            </m.span>
+          )}
           {result?.reward?.gold > 0 && <span className="mg-reward"><i className="ph-fill ph-coin" /> +{result.reward.gold} gold</span>}
           {result?.reward?.reason === 'limit' && <span className="mg-reward-note">Per oggi i record premiati sono finiti: torna domani.</span>}
           {result?.reward?.reason === 'low_score' && <span className="mg-reward-note">Record troppo basso per un premio: punta piu&apos; in alto!</span>}

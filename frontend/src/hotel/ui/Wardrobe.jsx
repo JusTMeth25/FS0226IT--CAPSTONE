@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { authApi } from '../../services/authApi.js';
 import { hotelApi } from '../../services/hotelApi.js';
 import {
@@ -41,15 +41,28 @@ export default function Wardrobe({ look, onClose, onSaved }) {
     });
   };
 
+  // Capelli e maglia cambiati da soli passando a donna: tornando a uomo si rimettono com'erano
+  // (se nel frattempo non li si e' cambiati a mano), altrimenti l'anteprima restava "da donna".
+  const autoSwap = useRef(null);
   // Con la corporatura da donna il tipo di maglia salta il petto nudo.
   const countOf = (key, count, p) => (key === 't' && p.b === 1 ? BARE_CHEST : count);
   const cycle = (key, count, delta) => {
     setParts((p) => {
       const n = countOf(key, count, p);
-      const next = { ...p, [key]: (p[key] + delta + n) % n };
-      // Passando a donna con i capelli corti (corto, a punta, cresta, rasato) si parte dai lunghi:
-      // il corpo cambia poco a quella scala, i capelli si notano. Poi si cambiano come si vuole.
-      if (key === 'b' && next.b === 1 && SHORT_HAIR.includes(p.h)) next.h = LONG_HAIR;
+      let next = { ...p, [key]: (p[key] + delta + n) % n };
+      if (key === 'b' && next.b === 1) {
+        // Passando a donna con i capelli corti (corto, a punta, cresta, rasato) si parte dai lunghi:
+        // il corpo cambia poco a quella scala, i capelli si notano. Poi si cambiano come si vuole.
+        if (SHORT_HAIR.includes(p.h)) next.h = LONG_HAIR;
+        next = fixLook(next);
+        autoSwap.current = { before: { h: p.h, t: p.t }, after: { h: next.h, t: next.t } };
+        return next;
+      }
+      if (key === 'b' && next.b === 0 && autoSwap.current) {
+        const { before, after } = autoSwap.current;
+        if (next.h === after.h) next.h = before.h;
+        if (next.t === after.t) next.t = before.t;
+      }
       return fixLook(next);
     });
   };
@@ -93,7 +106,7 @@ export default function Wardrobe({ look, onClose, onSaved }) {
               </button>
               <span className="hotel-wardrobe-value">
                 {SWATCHES[key] && <span className="hotel-swatch" style={{ background: SWATCHES[key][parts[key]] }} />}
-                {NAMES[key] ? NAMES[key][parts[key]] : `${parts[key] + 1}/${count}`}
+                <span className="hotel-wardrobe-name">{NAMES[key] ? NAMES[key][parts[key]] : `${parts[key] + 1}/${count}`}</span>
               </span>
               <button type="button" className="hotel-arrow" onClick={() => cycle(key, count, 1)} aria-label={`${label} successivo`}>
                 <i className="ph-fill ph-caret-right" />
@@ -106,7 +119,7 @@ export default function Wardrobe({ look, onClose, onSaved }) {
               <button type="button" className="hotel-arrow" onClick={() => cycleLuxury(key, -1)} aria-label={`${label} precedente`}>
                 <i className="ph-fill ph-caret-left" />
               </button>
-              <span className="hotel-wardrobe-value">{names[parts[key]]}</span>
+              <span className="hotel-wardrobe-value"><span className="hotel-wardrobe-name">{names[parts[key]]}</span></span>
               <button type="button" className="hotel-arrow" onClick={() => cycleLuxury(key, 1)} aria-label={`${label} successivo`}>
                 <i className="ph-fill ph-caret-right" />
               </button>

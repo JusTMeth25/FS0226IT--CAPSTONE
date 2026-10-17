@@ -1,5 +1,6 @@
 import PackOpeningFlow from '../../components/pack/PackOpeningFlow.jsx';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock.js';
+import PhantomTitle from '../../components/phantom/PhantomTitle.jsx';
 
 /**
  * Apertura di un pacchetto della borsa, sopra la stanza: e' la stessa della pagina Pacchetti
@@ -17,8 +18,8 @@ export default function HotelPackOpening({ opening, left, onAgain, onClose, onSu
     <div className="hotel-pack-overlay" role="dialog" aria-label="Apertura pacchetto">
       <button type="button" className="hotel-panel-close hotel-pack-overlay-close" onClick={onClose} aria-label="Chiudi"><i className="ph ph-x" /></button>
       <div className="pack-opening-page hotel-pack-opening">
-        <h2 className="section-title text-gradient">Apertura Pacchetto</h2>
-        <PackOpeningFlow key={opening.id} packId={opening.packId} cards={opening.cards} actions={actions} onSummary={onSummary} />
+        <PhantomTitle text="Apertura" className="game-page-title" />
+        <PackOpeningFlow key={opening.id} packId={opening.packId} cards={opening.cards} actions={actions} onSummary={onSummary} phantom />
       </div>
     </div>
   );

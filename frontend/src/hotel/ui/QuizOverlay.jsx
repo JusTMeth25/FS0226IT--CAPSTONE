@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { m } from 'motion/react';
 import { resolveCardImage } from '../../utils/cardUtils.js';
 
 /**
@@ -21,11 +22,18 @@ export default function QuizOverlay({ quiz, result, clockOffset = 0, onClose }) 
           <button type="button" className="hotel-panel-close" onClick={onClose} aria-label="Chiudi"><i className="ph ph-x" /></button>
         </header>
         <div className="quiz-body">
-          <img className="quiz-card" src={resolveCardImage(result.card)} alt={result.name} />
-          <p className="quiz-answer">Era <strong>{result.name}</strong></p>
-          <p className={result.winner ? 'quiz-winner' : 'quiz-nobody'}>
+          {/* Fine del quiz: la carta si rivela con uno scatto, poi il nome e chi ha vinto. */}
+          <m.div className="quiz-card-wrap is-revealed" initial={{ scale: 0.86, rotate: -6, opacity: 0 }} animate={{ scale: 1, rotate: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 520, damping: 24 }}>
+            <img className="quiz-card" src={resolveCardImage(result.card)} alt={result.name} />
+          </m.div>
+          <m.p className="quiz-answer" initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.2, delay: 0.15 }}>
+            Era <strong>{result.name}</strong>
+          </m.p>
+          <m.p className={result.winner ? 'quiz-winner' : 'quiz-nobody'} initial={{ scale: 1.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 600, damping: 24, delay: 0.25 }}>
             {result.winner ? <><i className="ph-fill ph-trophy" /> Indovinata da {result.winner}! (+30 gold)</> : 'Nessuno l\'ha indovinata.'}
-          </p>
+          </m.p>
         </div>
       </div>
     );
