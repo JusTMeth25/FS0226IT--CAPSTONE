@@ -437,7 +437,7 @@ export default function Minigame({ start, result, onFinish, onReplay, onClose, o
   const seconds = Math.max(0, Math.ceil((snap?.time || 0) / 1000));
 
   return (
-    <div className={`hotel-panel hotel-minigame${game.compact ? ' is-compact' : ''}${game.wide ? ' is-wide' : ''}`} data-phase={phase} role="dialog" aria-label={start.title}>
+    <div className={`hotel-panel hotel-minigame${game.compact ? ' is-compact' : ''}${game.wide ? ' is-wide' : ''}`} data-phase={phase} data-game={start.game} role="dialog" aria-label={start.title}>
       <header className="hotel-panel-header">
         <h3><i className="ph-fill ph-trophy" /> {start.title}</h3>
         {phase === 'play' && game.duration > 0 && <span className={`pvp-timer${seconds <= 5 ? ' urgent' : ''}`}>{seconds}s</span>}

@@ -1,12 +1,16 @@
 /* ==========================================================================
    Minigiochi su telefono (verticale e orizzontale): tutto in uno schermo, senza scorrere.
-   Il pannello copre lo schermo; in alto la testata, poi il campo di gioco che si adatta
-   all'altezza rimasta (tavolo, piste, canvas), in basso i pulsanti sempre a portata di dito.
+   Due casi.
+   - Giochi col loro campo (biliardo, minigolf, ping pong, kart, gara in citta', rock, batteria,
+     karaoke, disco, freccette, hockey, ritmo): il pannello copre lo schermo; in alto la testata, poi il campo che si adatta
+     all'altezza rimasta (tavolo, piste, canvas), in basso i pulsanti sempre a portata di dito.
+   - Giochi che si vedono nella stanza (canestro, bowling, pesca, palestra, pesca-peluche): il pannello e' una striscia compatta in basso (o a destra, in
+     orizzontale) e sopra si vede l'avatar che tira, lancia, pesca.
    Le istruzioni e il record si vedono durante il conto alla rovescia e a fine partita; mentre
    si gioca restano solo il gioco e i comandi.
    ========================================================================== */
 @media (max-width: 760px), (orientation: landscape) and (max-height: 520px) {
-  .hotel-page .hotel-panel.hotel-minigame {
+  .hotel-page .hotel-panel.hotel-minigame:is([data-game="pool"], [data-game^="golf"], [data-game="pong"], [data-game="kart"], [data-game="street"], [data-game="rock"], [data-game="drums"], [data-game="sing"], [data-game="disco"], [data-game="darts"], [data-game="hockey"], [data-game="rhythm"]) {
     position: fixed !important;
     inset: max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left)) !important;
     width: auto !important;
@@ -64,7 +68,7 @@
     object-fit: contain;
   }
   /* Piste, corsie e bersagli crescono con lo spazio invece di restare piccoli in mezzo. */
-  .hotel-page .hotel-minigame .mg-stage > :is(.mg-disco, .mg-rhythm, .mg-claw, .mg-box) {
+  .hotel-page .hotel-minigame .mg-stage > :is(.mg-disco, .mg-rhythm, .mg-claw, .mg-box, .mg-sport) {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
@@ -90,7 +94,7 @@
 
 /* Orizzontale: pochissima altezza. Testata sottile, comandi accanto al campo di gioco. */
 @media (orientation: landscape) and (max-height: 520px) {
-  .hotel-page .hotel-minigame[data-phase="play"] {
+  .hotel-page .hotel-minigame:is([data-game="pool"], [data-game^="golf"], [data-game="pong"], [data-game="kart"], [data-game="street"], [data-game="rock"], [data-game="drums"], [data-game="sing"], [data-game="disco"], [data-game="darts"], [data-game="hockey"], [data-game="rhythm"])[data-phase="play"] {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: auto minmax(0, 1fr);
@@ -109,4 +113,41 @@
   }
   .hotel-page .hotel-minigame[data-phase="play"] > .mg-buttons .mg-button { flex: 0 1 64px; min-width: 0; font-size: 0.85rem; }
   .hotel-page .hotel-minigame .hotel-panel-header { padding-top: 4px; padding-bottom: 4px; }
+}
+
+/* ---------- Giochi che si vedono nella stanza: striscia compatta, la stanza resta visibile ---------- */
+@media (max-width: 760px), (orientation: landscape) and (max-height: 520px) {
+  .hotel-page .hotel-panel.hotel-minigame:not(:is([data-game="pool"], [data-game^="golf"], [data-game="pong"], [data-game="kart"], [data-game="street"], [data-game="rock"], [data-game="drums"], [data-game="sing"], [data-game="disco"], [data-game="darts"], [data-game="hockey"], [data-game="rhythm"])) {
+    position: fixed !important;
+    left: max(6px, env(safe-area-inset-left)) !important;
+    right: max(6px, env(safe-area-inset-right)) !important;
+    bottom: max(6px, env(safe-area-inset-bottom)) !important;
+    top: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: 46dvh !important;
+    transform: none !important;
+    z-index: 1450;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .hotel-page .hotel-minigame:not(:is([data-game="pool"], [data-game^="golf"], [data-game="pong"], [data-game="kart"], [data-game="street"], [data-game="rock"], [data-game="drums"], [data-game="sing"], [data-game="disco"], [data-game="darts"], [data-game="hockey"], [data-game="rhythm"]))[data-phase="play"] > :is(.hotel-panel-hint, .mg-pad-legend, .mg-record) { display: none; }
+  .hotel-page .hotel-minigame:not(:is([data-game="pool"], [data-game^="golf"], [data-game="pong"], [data-game="kart"], [data-game="street"], [data-game="rock"], [data-game="drums"], [data-game="sing"], [data-game="disco"], [data-game="darts"], [data-game="hockey"], [data-game="rhythm"])) .mg-stage { padding: 6px 12px 2px; }
+  .hotel-page .hotel-minigame:not(:is([data-game="pool"], [data-game^="golf"], [data-game="pong"], [data-game="kart"], [data-game="street"], [data-game="rock"], [data-game="drums"], [data-game="sing"], [data-game="disco"], [data-game="darts"], [data-game="hockey"], [data-game="rhythm"])) .mg-stage .mg-big { font-size: 1.5rem; }
+  .hotel-page .hotel-minigame:not(:is([data-game="pool"], [data-game^="golf"], [data-game="pong"], [data-game="kart"], [data-game="street"], [data-game="rock"], [data-game="drums"], [data-game="sing"], [data-game="disco"], [data-game="darts"], [data-game="hockey"], [data-game="rhythm"])) .mg-stage :is(.mg-lanes, .mg-claw-box, .mg-target) { max-height: 22dvh; }
+  .hotel-page .hotel-minigame:not(:is([data-game="pool"], [data-game^="golf"], [data-game="pong"], [data-game="kart"], [data-game="street"], [data-game="rock"], [data-game="drums"], [data-game="sing"], [data-game="disco"], [data-game="darts"], [data-game="hockey"], [data-game="rhythm"])) .mg-meter-vertical { height: 80px; }
+  .hotel-page .hotel-minigame:not(:is([data-game="pool"], [data-game^="golf"], [data-game="pong"], [data-game="kart"], [data-game="street"], [data-game="rock"], [data-game="drums"], [data-game="sing"], [data-game="disco"], [data-game="darts"], [data-game="hockey"], [data-game="rhythm"])) .mg-buttons { padding: 6px 12px 10px; }
+  .hotel-page .hotel-minigame:not(:is([data-game="pool"], [data-game^="golf"], [data-game="pong"], [data-game="kart"], [data-game="street"], [data-game="rock"], [data-game="drums"], [data-game="sing"], [data-game="disco"], [data-game="darts"], [data-game="hockey"], [data-game="rhythm"])) .mg-buttons .mg-button { min-height: 52px; font-size: 1rem; }
+  .hotel-page .hotel-minigame:not(:is([data-game="pool"], [data-game^="golf"], [data-game="pong"], [data-game="kart"], [data-game="street"], [data-game="rock"], [data-game="drums"], [data-game="sing"], [data-game="disco"], [data-game="darts"], [data-game="hockey"], [data-game="rhythm"])) .mg-countdown { padding: 6px 0; font-size: 2.4rem; }
+}
+/* Orizzontale: striscia sul lato destro, sopra la colonna degli strumenti; la stanza a sinistra. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .hotel-page .hotel-panel.hotel-minigame:not(:is([data-game="pool"], [data-game^="golf"], [data-game="pong"], [data-game="kart"], [data-game="street"], [data-game="rock"], [data-game="drums"], [data-game="sing"], [data-game="disco"], [data-game="darts"], [data-game="hockey"], [data-game="rhythm"])) {
+    left: auto !important;
+    top: max(6px, env(safe-area-inset-top)) !important;
+    width: min(300px, 38vw) !important;
+    max-height: none !important;
+  }
+  .hotel-page .hotel-minigame:not(:is([data-game="pool"], [data-game^="golf"], [data-game="pong"], [data-game="kart"], [data-game="street"], [data-game="rock"], [data-game="drums"], [data-game="sing"], [data-game="disco"], [data-game="darts"], [data-game="hockey"], [data-game="rhythm"])) .mg-buttons { margin-top: auto; }
 }
