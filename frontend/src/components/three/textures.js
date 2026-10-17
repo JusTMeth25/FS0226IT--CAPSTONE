@@ -212,6 +212,21 @@ function keyOutBackground(image, threshold = 40, maxSize = 1024) {
     if (i < w * (h - 1)) stack.push(i + w);
   }
 
+  // Le parti scure dentro la busta (la giacca nera del gatto) toccano lo sfondo nero e il
+  // riempimento le toglieva: su un fondo colorato sembravano buchi. In ogni riga si toglie solo
+  // lo sfondo fuori dalla busta, cioe' prima del primo pixel tenuto e dopo l'ultimo.
+  for (let y = 0; y < h; y += 1) {
+    const row = y * w;
+    let first = -1;
+    let last = -1;
+    for (let x = 0; x < w; x += 1) {
+      if (!visited[row + x]) { if (first < 0) first = x; last = x; }
+    }
+    for (let x = first + 1; first >= 0 && x < last; x += 1) {
+      if (visited[row + x]) { visited[row + x] = 0; data[(row + x) * 4 + 3] = 255; }
+    }
+  }
+
   // Bordo morbido: i pixel opachi accanto allo sfondo tolto diventano semitrasparenti,
   // altrimenti il contorno della busta resterebbe seghettato.
   for (let i = 0; i < w * h; i += 1) {

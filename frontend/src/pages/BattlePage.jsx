@@ -310,6 +310,16 @@ export default function BattlePage() {
     sendOnline({ type: 'pvp_team', cards: team.map((c) => c.id) });
   }, [onlineStage, onlineMatchId, sendOnline, b.team]);
 
+  // Le immagini delle due squadre si scaricano e decodificano gia' alla schermata VS: nel
+  // confronto del round compaiono subito, senza il riquadro nero che lampeggia (iPhone).
+  useEffect(() => {
+    for (const card of [...b.fightTeam, ...b.aiTeam]) {
+      const img = new Image();
+      img.src = resolveCardImage(card);
+      img.decode?.().catch(() => {});
+    }
+  }, [b.fightTeam, b.aiTeam]);
+
   // Le carte prese altrove (hotel, scambi, mercato) arrivano qui solo ricaricando la collezione.
   useEffect(() => {
     let cancelled = false;

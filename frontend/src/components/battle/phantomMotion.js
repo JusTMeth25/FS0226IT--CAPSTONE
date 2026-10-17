@@ -19,6 +19,20 @@ export const SNAP = { type: 'spring', stiffness: 520, damping: 30 };
 export const FROM_LEFT = { initial: { x: -90, opacity: 0 }, animate: { x: 0, opacity: 1 }, transition: SNAP };
 export const FROM_RIGHT = { initial: { x: 90, opacity: 0 }, animate: { x: 0, opacity: 1 }, transition: { ...SNAP, delay: 0.07 } };
 
+/**
+ * Confronto del round: le carte scivolano dai lati ma restano visibili dal primo fotogramma.
+ * Con l'ingresso da opacita' 0, tra la scelta della carta e il confronto lo schermo restava
+ * vuoto per un istante e sembrava un lampo. Chi perde il round si attenua (lo fa Motion: lo
+ * stile in linea vincerebbe sull'opacita' del CSS).
+ */
+export function clashSide(fromRight, lost) {
+  return {
+    initial: { x: fromRight ? 48 : -48 },
+    animate: { x: 0, opacity: lost ? 0.72 : 1 },
+    transition: { ...SNAP, delay: fromRight ? 0.05 : 0 }
+  };
+}
+
 /** Entrata del pannello di risultato, con la scossa all'impatto solo se si vince. Props per un m.div. */
 export function impactProps(shake) {
   return {
