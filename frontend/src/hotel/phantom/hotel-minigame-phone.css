@@ -1,0 +1,112 @@
+/* ==========================================================================
+   Minigiochi su telefono (verticale e orizzontale): tutto in uno schermo, senza scorrere.
+   Il pannello copre lo schermo; in alto la testata, poi il campo di gioco che si adatta
+   all'altezza rimasta (tavolo, piste, canvas), in basso i pulsanti sempre a portata di dito.
+   Le istruzioni e il record si vedono durante il conto alla rovescia e a fine partita; mentre
+   si gioca restano solo il gioco e i comandi.
+   ========================================================================== */
+@media (max-width: 760px), (orientation: landscape) and (max-height: 520px) {
+  .hotel-page .hotel-panel.hotel-minigame {
+    position: fixed !important;
+    inset: max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left)) !important;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
+    transform: none !important;
+    z-index: 1450;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .hotel-page .hotel-minigame > * { flex-shrink: 0; }
+
+  /* Mentre si gioca: via istruzioni, legenda del controller e record. */
+  .hotel-page .hotel-minigame[data-phase="play"] > :is(.hotel-panel-hint, .mg-pad-legend, .mg-record) { display: none; }
+
+  /* Il campo di gioco prende tutta l'altezza libera e la passa al disegno. */
+  .hotel-page .hotel-minigame .mg-stage {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+    padding: 6px 10px;
+  }
+  .hotel-page .hotel-minigame .mg-stage > * { min-height: 0; }
+  .hotel-page .hotel-minigame .mg-stage > :has(svg, canvas) {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+  }
+  .hotel-page .hotel-minigame .mg-stage :is(.mg-sport, .mg-pool) > :not(svg):not(canvas) { flex-shrink: 0; }
+  /* Tavoli e campi (SVG): si rimpiccioliscono per stare nell'altezza, sempre interi. */
+  .hotel-page .hotel-minigame .mg-stage .mg-svg {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+  }
+  /* Canvas (ping pong, rock, karaoke, kart, gara in citta'): alti quanto lo spazio, larghezza
+     dalle proporzioni. */
+  .hotel-page .hotel-minigame .mg-stage canvas {
+    flex: 1 1 0;
+    min-height: 0;
+    width: 100% !important;
+    height: auto;
+    max-width: 100%;
+    aspect-ratio: auto !important;
+    /* Il riquadro riempie lo spazio, il disegno dentro mantiene le sue proporzioni. */
+    object-fit: contain;
+  }
+  /* Piste, corsie e bersagli crescono con lo spazio invece di restare piccoli in mezzo. */
+  .hotel-page .hotel-minigame .mg-stage > :is(.mg-disco, .mg-rhythm, .mg-claw, .mg-box) {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+  }
+  .hotel-page .hotel-minigame .mg-stage :is(.mg-disco-lanes, .mg-lanes, .mg-claw-box, .mg-target) {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 110px;
+    max-height: 62dvh;
+  }
+  .hotel-page .hotel-minigame .mg-stage .mg-big { font-size: 1.6rem; }
+  .hotel-page .hotel-minigame .mg-stage .mg-row { margin-top: 4px; }
+
+  /* Pulsanti sempre in fondo e grandi. */
+  .hotel-page .hotel-minigame .mg-buttons { padding: 6px 10px 10px; margin-top: auto; }
+  .hotel-page .hotel-minigame .mg-buttons .mg-button { min-height: 52px; font-size: 1rem; }
+
+  .hotel-page .hotel-minigame .mg-result { flex: 1 1 auto; justify-content: center; overflow-y: auto; }
+  .hotel-page .hotel-minigame .mg-countdown { flex: 1 1 auto; display: grid; place-items: center; }
+}
+
+/* Orizzontale: pochissima altezza. Testata sottile, comandi accanto al campo di gioco. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .hotel-page .hotel-minigame[data-phase="play"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: "head head" "stage buttons";
+  }
+  .hotel-page .hotel-minigame[data-phase="play"] > .hotel-panel-header { grid-area: head; }
+  .hotel-page .hotel-minigame[data-phase="play"] > .mg-stage { grid-area: stage; }
+  .hotel-page .hotel-minigame[data-phase="play"] > .mg-buttons {
+    grid-area: buttons;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: center;
+    width: clamp(108px, 17vw, 156px);
+    padding: 6px 10px 6px 0;
+    margin: 0;
+  }
+  .hotel-page .hotel-minigame[data-phase="play"] > .mg-buttons .mg-button { flex: 0 1 64px; min-width: 0; font-size: 0.85rem; }
+  .hotel-page .hotel-minigame .hotel-panel-header { padding-top: 4px; padding-bottom: 4px; }
+}

@@ -71,6 +71,8 @@ import '../hotel/phantom/hotel-phantom.css';
 import '../hotel/phantom/hotel-phantom-frame.css';
 import '../hotel/phantom/hotel-phantom-shops.css';
 import '../hotel/phantom/hotel-phantom-games.css';
+// Minigiochi su telefono: tutto in uno schermo, comandi sempre visibili.
+import '../hotel/phantom/hotel-minigame-phone.css';
 
 /** L'Arena: solo qui si gioca contro gli NPC sfidanti. */
 const ARENA_ID = '00000000-0000-0000-0000-00000000a002';
