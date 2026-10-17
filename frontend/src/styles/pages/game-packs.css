@@ -294,7 +294,16 @@
     width: calc(var(--pk-free) * 260 / 365);
   }
 
-  /* Riepilogo: carte piu' piccole su piu' colonne. */
-  .pack-reveal-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
-  .pack-reveal-grid .pack-reveal-card { width: 110px; height: 160px; }
+  /* Riepilogo: carte piu' piccole con le proporzioni giuste, in fila centrata (va a capo se serve).
+     Le carte sono CardTile (.card): si ridimensionano con --card-width/--card-height. */
+  .pack-reveal-grid {
+    --card-width: 128px;
+    --card-height: 183px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+  .pack-reveal-grid .pack-reveal-slot { width: auto; min-height: 0; }
+  .pack-reveal-grid .card { flex-shrink: 0; }
 }
