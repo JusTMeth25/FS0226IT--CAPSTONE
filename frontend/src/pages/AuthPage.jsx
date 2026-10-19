@@ -73,16 +73,19 @@ export default function AuthPage() {
 
   function updateField(e) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    if (e.target.name === 'email') setEmailBad(false);
   }
 
-  // Email scritta male: si dice subito sotto il campo e il modulo non parte.
-  const emailBad = form.email.trim() !== '' && !isValidEmail(form.email);
+  // Email scritta male: si controlla solo quando si prova a inviare il modulo (non a ogni
+  // lettera); l'avviso sotto il campo resta finche' non si torna a scrivere l'email.
+  const [emailBad, setEmailBad] = useState(false);
   const emailHint = emailBad && (
     <span className="auth-field-error" role="alert">Email non valida: controlla che sia nella forma nome@dominio.it</span>
   );
   function rejectBadEmail() {
     if (isValidEmail(form.email)) return false;
-    setMessage({ type: 'error', text: 'Email non valida.' });
+    setEmailBad(true);
+    setMessage(null);
     sound.error();
     return true;
   }
@@ -159,6 +162,7 @@ export default function AuthPage() {
   function switchTab(next) {
     setTab(next);
     setMessage(null);
+    setEmailBad(false);
     setChallenge(null);
     navigate(next === 'forgot' ? '/forgot-password' : `/${next}`, { replace: true });
   }
@@ -313,7 +317,7 @@ export default function AuthPage() {
           <>
             <h3 className="auth-form-title"><i className="ph-fill ph-key" /> Non ricordo la password</h3>
             <p className="auth-2fa-hint">Scrivi l&apos;email del tuo account: ti mandiamo un link per sceglierne una nuova.</p>
-            <form className="auth-form" onSubmit={handleForgot}>
+            <form className="auth-form" onSubmit={handleForgot} noValidate>
               <div className="auth-field">
                 <label className="filter-label" htmlFor="auth-forgot-email">Email</label>
                 <input className="ai-input" id="auth-forgot-email" name="email" type="email" value={form.email} onChange={updateField} autoFocus required aria-invalid={emailBad} />
@@ -354,7 +358,7 @@ export default function AuthPage() {
         ) : tab === 'login' ? (
           <>
             <h3 className="auth-form-title"><i className="ph-fill ph-lock" /> Accedi</h3>
-            <form className="auth-form" onSubmit={handleLogin}>
+            <form className="auth-form" onSubmit={handleLogin} noValidate>
               <div className="auth-field">
                 <label className="filter-label" htmlFor="auth-email">Email</label>
                 <input className="ai-input" id="auth-email" name="email" type="email" value={form.email} onChange={updateField} required aria-invalid={emailBad} />
@@ -373,7 +377,7 @@ export default function AuthPage() {
         ) : (
           <>
             <h3 className="auth-form-title"><i className="ph-fill ph-sparkle" /> Crea un Account</h3>
-            <form className="auth-form" onSubmit={handleRegister}>
+            <form className="auth-form" onSubmit={handleRegister} noValidate>
               <div className="auth-field">
                 <label className="filter-label" htmlFor="auth-username">Username</label>
                 <input className="ai-input" id="auth-username" name="username" value={form.username} onChange={updateField} required />

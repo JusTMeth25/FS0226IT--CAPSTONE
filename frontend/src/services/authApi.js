@@ -18,11 +18,15 @@ const AUTH_ERRORS = {
   reset_token_invalid: 'Il link non è più valido: è scaduto o è già stato usato. Chiedine uno nuovo.',
   too_many_requests: 'Troppe richieste: riprova fra un po\'.',
   too_many_attempts: 'Troppi tentativi: riprova fra qualche minuto.',
-  invalid_email: 'Email non valida.'
+  invalid_email: 'Email non valida.',
+  missing_fields: 'Compila tutti i campi.',
+  invalid_input: 'Controlla i campi: qualcosa non va.'
 };
 
 export function authErrorText(err, fallback = 'Qualcosa è andato storto.') {
-  return AUTH_ERRORS[err?.code] || (err?.status === 0 ? err.message : null) || fallback;
+  // Campi non validi: il server manda { error: 'invalid_input', fields: { email: 'invalid_email' } }.
+  const field = Object.values(err?.payload?.fields || {}).find((code) => AUTH_ERRORS[code]);
+  return AUTH_ERRORS[field] || AUTH_ERRORS[err?.code] || (err?.status === 0 ? err.message : null) || fallback;
 }
 
 /**
