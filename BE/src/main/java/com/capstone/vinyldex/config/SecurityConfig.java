@@ -1,5 +1,6 @@
 package com.capstone.vinyldex.config;
 
+import com.capstone.vinyldex.security.AuthCookies;
 import com.capstone.vinyldex.security.JwtAuthenticationFilter;
 import com.capstone.vinyldex.security.RestAccessDeniedHandler;
 import com.capstone.vinyldex.security.RestAuthenticationEntryPoint;
@@ -62,7 +63,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.stream(allowedOrigins.split(",")).map(String::trim).toList());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", HotelDeviceConfig.HEADER));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", HotelDeviceConfig.HEADER, AuthCookies.CLIENT_HEADER));
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -82,11 +83,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/health", "/actuator/health").permitAll()
 
-                        // L'hotel autentica la connessione con il primo messaggio WebSocket
-                        // (vedi HotelSocketHandler): l'handshake HTTP non porta il token.
+                        // L'hotel autentica la connessione con il primo messaggio WebSocket (vedi
+                        // HotelSocketHandler): il token e' nel messaggio (app nativa) o nel cookie
+                        // di sessione arrivato con l'handshake (sito).
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login", "/api/auth/social", "/api/auth/2fa/verify",
-                                "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
+                                "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/providers").permitAll()
 
                         // Vetrine pubbliche: leggibili anche senza login. Il filtro JWT popola comunque

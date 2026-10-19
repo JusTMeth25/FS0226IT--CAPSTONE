@@ -31,7 +31,8 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
                          AuthenticationException authException) throws IOException {
 
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        String code = (header == null || !header.startsWith("Bearer ")) ? "missing_token" : "invalid_token";
+        boolean sent = (header != null && header.startsWith("Bearer ")) || AuthCookies.read(request) != null;
+        String code = sent ? "invalid_token" : "missing_token";
 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

@@ -1,5 +1,6 @@
 package com.capstone.vinyldex.config;
 
+import com.capstone.vinyldex.security.ClientIp;
 import tools.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -65,7 +66,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         boolean image = isCardImage(request);
         int limit = image ? maxImageRequests : maxRequests;
-        String clientKey = resolveClientKey(request) + (image ? "|img" : "");
+        String clientKey = ClientIp.of(request) + (image ? "|img" : "");
         long now = System.currentTimeMillis();
 
         Window window = windows.compute(clientKey, (key, existing) -> {
@@ -99,15 +100,6 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         return path.startsWith("/api/cards/")
                 && (path.endsWith("/image") || path.endsWith("/fc-card.svg") || path.endsWith("/nba-card.svg"));
-    }
-
-    /** X-Forwarded-For e' il primo IP della catena quando l'app sta dietro a un proxy. */
-    private String resolveClientKey(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
     }
 
     /**

@@ -60,7 +60,9 @@ export function useHotelSocket({ onMessage, onReconnect, enabled = true }) {
       let greeted = false;
 
       socket.onopen = () => {
-        socket.send(JSON.stringify({ type: 'auth', token: getToken() }));
+        // Sito: il token e' nel cookie HttpOnly arrivato con l'handshake. App nativa: nel messaggio.
+        const token = getToken();
+        socket.send(JSON.stringify(token ? { type: 'auth', token } : { type: 'auth' }));
       };
 
       socket.onmessage = (event) => {

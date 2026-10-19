@@ -67,6 +67,11 @@ public class JwtService {
         };
     }
 
+    /** Durata del token di accesso: e' anche la durata del cookie di sessione (AuthCookies). */
+    public Duration expiration() {
+        return expiration;
+    }
+
     public String generateToken(UUID userId, String username, String email) {
         Date now = new Date();
         return Jwts.builder()

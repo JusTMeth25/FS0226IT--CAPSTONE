@@ -3,11 +3,16 @@ package com.capstone.vinyldex.controller;
 import com.capstone.vinyldex.dto.request.AuthRequests;
 import com.capstone.vinyldex.dto.response.AuthResponse;
 import com.capstone.vinyldex.dto.response.AuthUserDto;
+import com.capstone.vinyldex.exception.ApiException;
+import com.capstone.vinyldex.security.AuthCookies;
+import com.capstone.vinyldex.security.ClientIp;
 import com.capstone.vinyldex.security.CurrentUser;
+import com.capstone.vinyldex.security.LoginThrottle;
 import com.capstone.vinyldex.security.UserPrincipal;
 import com.capstone.vinyldex.service.AuthService;
 import com.capstone.vinyldex.service.PasswordResetService;
 import com.capstone.vinyldex.service.TwoFactorService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -20,12 +25,22 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthController {
 
+    /**
+     * Durata minima della risposta di "Non ricordo la password": con l'email registrata il server
+     * fa qualche query in piu', e senza questa attesa i tempi direbbero quali email esistono.
+     */
+    private static final long FORGOT_MIN_MILLIS = 300;
+
     private final AuthService authService;
+    private final AuthCookies cookies;
+    private final LoginThrottle throttle;
 
     private PasswordResetService passwordReset;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, AuthCookies cookies, LoginThrottle throttle) {
         this.authService = authService;
+        this.cookies = cookies;
+        this.throttle = throttle;
     }
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -36,27 +51,58 @@ public class AuthController {
     /** Manda il link per reimpostare la password: risponde sempre ok, che l'email esista o no. */
     @PostMapping("/forgot-password")
     public Map<String, Boolean> forgotPassword(@Valid @RequestBody AuthRequests.ForgotPasswordRequest request,
-                                               jakarta.servlet.http.HttpServletRequest http) {
-        String forwarded = http.getHeader("X-Forwarded-For");
-        String ip = forwarded != null && !forwarded.isBlank() ? forwarded.split(",")[0].trim() : http.getRemoteAddr();
-        passwordReset.request(request.email(), ip);
-        return Map.of("sent", true);
+                                               HttpServletRequest http) {
+        long started = System.nanoTime();
+        String ip = ClientIp.of(http);
+        try {
+            throttle.checkIp(ip);
+            passwordReset.request(request.email(), ip);
+            return Map.of("sent", true);
+        } finally {
+            padTo(started, FORGOT_MIN_MILLIS);
+        }
     }
 
     @PostMapping("/reset-password")
-    public Map<String, Boolean> resetPassword(@Valid @RequestBody AuthRequests.ResetPasswordRequest request) {
+    public Map<String, Boolean> resetPassword(@Valid @RequestBody AuthRequests.ResetPasswordRequest request,
+                                              HttpServletRequest http) {
+        throttle.checkIp(ClientIp.of(http));
         passwordReset.reset(request.token(), request.password());
         return Map.of("reset", true);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody AuthRequests.RegisterRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody AuthRequests.RegisterRequest request,
+                                                 HttpServletRequest http) {
+        throttle.checkIp(ClientIp.of(http));
+        return session(HttpStatus.CREATED, authService.register(request), http);
     }
 
+    /**
+     * Accesso con email e password, col freno ai tentativi (LoginThrottle): il blocco scatta
+     * prima di guardare la password, e solo le password sbagliate fanno salire il contatore.
+     */
     @PostMapping("/login")
-    public AuthResponse login(@Valid @RequestBody AuthRequests.LoginRequest request) {
-        return authService.login(request);
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequests.LoginRequest request,
+                                              HttpServletRequest http) {
+        String ip = ClientIp.of(http);
+        throttle.checkIp(ip);
+        throttle.checkLogin(ip, request.email());
+        AuthResponse response;
+        try {
+            response = authService.login(request);
+        } catch (ApiException ex) {
+            if ("invalid_credentials".equals(ex.getCode())) throttle.failure(ip, request.email());
+            throw ex;
+        }
+        throttle.success(ip, request.email());
+        return session(HttpStatus.OK, response, http);
+    }
+
+    /** Esce: cancella il cookie di sessione (l'app nativa butta via il suo token da sola). */
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, Boolean>> logout() {
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookies.clear()).body(Map.of("loggedOut", true));
     }
 
     /** Fornitori di accesso attivi (Google, Apple) e i client id pubblici per i pulsanti. */
@@ -66,14 +112,18 @@ public class AuthController {
     }
 
     @PostMapping("/social")
-    public AuthResponse social(@Valid @RequestBody AuthRequests.SocialLoginRequest request) {
-        return authService.socialLogin(request);
+    public ResponseEntity<AuthResponse> social(@Valid @RequestBody AuthRequests.SocialLoginRequest request,
+                                               HttpServletRequest http) {
+        throttle.checkIp(ClientIp.of(http));
+        return session(HttpStatus.OK, authService.socialLogin(request), http);
     }
 
     @PostMapping("/2fa/verify")
-    public AuthResponse verifySecondStep(@Valid @RequestBody AuthRequests.TwoFactorVerifyRequest request,
-                                         @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent) {
-        return authService.verifySecondStep(request, deviceLabel(userAgent));
+    public ResponseEntity<AuthResponse> verifySecondStep(@Valid @RequestBody AuthRequests.TwoFactorVerifyRequest request,
+                                                         @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent,
+                                                         HttpServletRequest http) {
+        throttle.checkIp(ClientIp.of(http));
+        return session(HttpStatus.OK, authService.verifySecondStep(request, deviceLabel(userAgent)), http);
     }
 
     @GetMapping("/2fa")
@@ -110,6 +160,29 @@ public class AuthController {
     public Map<String, Integer> forgetDevices(@CurrentUser UserPrincipal principal,
                                               @Valid @RequestBody AuthRequests.ForgetDevicesRequest request) {
         return Map.of("forgotten", authService.forgetOtherDevices(principal.getId(), request.deviceToken()));
+    }
+
+    /**
+     * Risposta di un accesso riuscito. Il sito riceve il token solo nel cookie HttpOnly (il corpo
+     * non lo contiene); l'app nativa lo riceve nel corpo, come prima. Il challenge della verifica
+     * in due passaggi non e' un token di accesso: passa invariato.
+     */
+    private ResponseEntity<AuthResponse> session(HttpStatus status, AuthResponse response, HttpServletRequest http) {
+        if (response.token() == null) return ResponseEntity.status(status).body(response);
+        return ResponseEntity.status(status)
+                .header(HttpHeaders.SET_COOKIE, cookies.issue(response.token()))
+                .body(AuthCookies.isNative(http) ? response : response.withoutToken());
+    }
+
+    /** Aspetta quanto manca perche' la risposta duri almeno minMillis. */
+    private static void padTo(long startedNanos, long minMillis) {
+        long left = minMillis - (System.nanoTime() - startedNanos) / 1_000_000;
+        if (left <= 0) return;
+        try {
+            Thread.sleep(left);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     /** Nome leggibile del dispositivo fidato ("Chrome su Windows"), dallo User-Agent. */

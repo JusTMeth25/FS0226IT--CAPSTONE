@@ -9,6 +9,7 @@ import { authApi, authErrorText } from '../services/authApi.js';
 import { availableProviders, prepareSocial, socialSignIn } from '../services/socialLogin.js';
 import '../styles/pages/social-phantom.css';
 import '../styles/pages/social-auth.css';
+import { isValidEmail } from '../utils/validation.js';
 
 const snap = { type: 'spring', stiffness: 520, damping: 28 };
 
@@ -74,6 +75,18 @@ export default function AuthPage() {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   }
 
+  // Email scritta male: si dice subito sotto il campo e il modulo non parte.
+  const emailBad = form.email.trim() !== '' && !isValidEmail(form.email);
+  const emailHint = emailBad && (
+    <span className="auth-field-error" role="alert">Email non valida: controlla che sia nella forma nome@dominio.it</span>
+  );
+  function rejectBadEmail() {
+    if (isValidEmail(form.email)) return false;
+    setMessage({ type: 'error', text: 'Email non valida.' });
+    sound.error();
+    return true;
+  }
+
   /** Esito di un accesso: entrato, serve il codice, annullato oppure errore. */
   function outcome(res, fallback) {
     if (res.twoFactor) {
@@ -111,6 +124,7 @@ export default function AuthPage() {
 
   async function handleLogin(e) {
     e.preventDefault();
+    if (rejectBadEmail()) return;
     setSubmitting(true);
     const res = await login(form.email, form.password);
     setSubmitting(false);
@@ -129,6 +143,7 @@ export default function AuthPage() {
 
   async function handleRegister(e) {
     e.preventDefault();
+    if (rejectBadEmail()) return;
     setSubmitting(true);
     const res = await register(form.username, form.email, form.password);
     setSubmitting(false);
@@ -150,6 +165,7 @@ export default function AuthPage() {
 
   async function handleForgot(e) {
     e.preventDefault();
+    if (rejectBadEmail()) return;
     setSubmitting(true);
     setMessage(null);
     try {
@@ -300,7 +316,8 @@ export default function AuthPage() {
             <form className="auth-form" onSubmit={handleForgot}>
               <div className="auth-field">
                 <label className="filter-label" htmlFor="auth-forgot-email">Email</label>
-                <input className="ai-input" id="auth-forgot-email" name="email" type="email" value={form.email} onChange={updateField} autoFocus required />
+                <input className="ai-input" id="auth-forgot-email" name="email" type="email" value={form.email} onChange={updateField} autoFocus required aria-invalid={emailBad} />
+                {emailHint}
               </div>
               <button type="submit" className="btn btn-primary auth-submit" disabled={submitting || !form.email.trim()}>Mandami il link</button>
               {message && <div className={`auth-message auth-message-${message.type}`}>{message.text}</div>}
@@ -340,7 +357,8 @@ export default function AuthPage() {
             <form className="auth-form" onSubmit={handleLogin}>
               <div className="auth-field">
                 <label className="filter-label" htmlFor="auth-email">Email</label>
-                <input className="ai-input" id="auth-email" name="email" type="email" value={form.email} onChange={updateField} required />
+                <input className="ai-input" id="auth-email" name="email" type="email" value={form.email} onChange={updateField} required aria-invalid={emailBad} />
+                {emailHint}
               </div>
               <div className="auth-field">
                 <label className="filter-label" htmlFor="auth-pass">Password</label>
@@ -362,7 +380,8 @@ export default function AuthPage() {
               </div>
               <div className="auth-field">
                 <label className="filter-label" htmlFor="auth-reg-email">Email</label>
-                <input className="ai-input" id="auth-reg-email" name="email" type="email" value={form.email} onChange={updateField} required />
+                <input className="ai-input" id="auth-reg-email" name="email" type="email" value={form.email} onChange={updateField} required aria-invalid={emailBad} />
+                {emailHint}
               </div>
               <div className="auth-field">
                 <label className="filter-label" htmlFor="auth-reg-pass">Password</label>

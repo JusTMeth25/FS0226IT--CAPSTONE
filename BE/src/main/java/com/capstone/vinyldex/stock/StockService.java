@@ -107,12 +107,13 @@ public class StockService {
      * delle 300 piu' preziose di tutto il catalogo.
      */
     double fundamental(StockMarket.Listing l) {
-        String filter = l.sources().isEmpty() ? "" : " and source in (" + String.join(",", l.sources().stream().map(s -> "'" + s + "'").toList()) + ")";
+        // I giochi vanno nella query come parametri (?), non scritti dentro il testo.
+        String filter = l.sources().isEmpty() ? "" : " and source in (" + String.join(",", l.sources().stream().map(s -> "?").toList()) + ")";
         int top = l.sources().isEmpty() ? 300 : 100;
         String sql = "select avg(p) from (select (metadata->>'marketPrice')::numeric as p from cards"
                 + " where is_active and (metadata->>'marketPrice') ~ '^[0-9.]+$'" + filter
                 + " order by p desc limit " + top + ") t";
-        Double v = jdbc.queryForObject(sql, Double.class);
+        Double v = jdbc.queryForObject(sql, Double.class, l.sources().toArray());
         return v == null ? 0 : v;
     }
 

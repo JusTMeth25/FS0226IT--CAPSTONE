@@ -30,14 +30,22 @@ public class AuthService {
     private static final List<String> AVAILABLE_AVATARS =
             List.of("avatar1", "avatar2", "avatar3", "avatar4", "avatar5", "avatar6", "avatar7");
 
+    private static final java.util.regex.Pattern EMAIL = java.util.regex.Pattern.compile(AuthRequests.EMAIL_REGEX);
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    /**
+     * Hash di una password a caso, calcolato una volta con lo stesso costo: il login lo confronta
+     * quando l'email non esiste, cosi' la risposta impiega lo stesso tempo di una password sbagliata.
+     */
+    private final String dummyHash;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.dummyHash = passwordEncoder.encode(UUID.randomUUID().toString());
     }
 
     /** Verifica in due passaggi e accesso con Google/Apple: facoltativi come il guardaroba, per i test fatti a mano. */
@@ -79,12 +87,15 @@ public class AuthService {
 
     @Transactional
     public AuthResponse login(AuthRequests.LoginRequest request) {
-        User user = userRepository.findByEmailIgnoreCase(request.email().trim())
-                .orElse(null);
+        String email = request.email().trim();
+        User user = EMAIL.matcher(email).matches() ? userRepository.findByEmailIgnoreCase(email).orElse(null) : null;
 
-        // Stessa risposta per email inesistente e password errata: un messaggio diverso
-        // direbbe a un attaccante quali indirizzi sono registrati.
-        if (user == null || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+        // Stessa risposta e stesso tempo per email non valida, inesistente o password errata: la
+        // password si confronta sempre (con l'hash fittizio se l'account non c'e' o non ha password),
+        // altrimenti dai tempi di risposta si capirebbe quali indirizzi sono registrati.
+        boolean hasPassword = user != null && user.getPasswordHash() != null && !user.getPasswordHash().isBlank();
+        boolean matches = passwordEncoder.matches(request.password(), hasPassword ? user.getPasswordHash() : dummyHash);
+        if (!hasPassword || !matches) {
             throw ApiException.unauthorized("invalid_credentials");
         }
         if (user.isBanned()) {

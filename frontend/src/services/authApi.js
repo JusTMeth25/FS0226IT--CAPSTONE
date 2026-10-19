@@ -1,4 +1,4 @@
-import { apiClient, getDeviceToken, setDeviceToken, setToken } from './apiClient.js';
+import { apiClient, getDeviceToken, markSession, setDeviceToken, setToken } from './apiClient.js';
 
 /** Messaggi per i codici d'errore dell'accesso. */
 const AUTH_ERRORS = {
@@ -16,16 +16,22 @@ const AUTH_ERRORS = {
   username_taken: 'Username già in uso.',
   weak_password: 'La password deve avere almeno 8 caratteri.',
   reset_token_invalid: 'Il link non è più valido: è scaduto o è già stato usato. Chiedine uno nuovo.',
-  too_many_requests: 'Troppe richieste: riprova fra un po\'.'
+  too_many_requests: 'Troppe richieste: riprova fra un po\'.',
+  too_many_attempts: 'Troppi tentativi: riprova fra qualche minuto.',
+  invalid_email: 'Email non valida.'
 };
 
 export function authErrorText(err, fallback = 'Qualcosa è andato storto.') {
   return AUTH_ERRORS[err?.code] || (err?.status === 0 ? err.message : null) || fallback;
 }
 
-/** Salva token e dispositivo fidato da una risposta di accesso. */
+/**
+ * Dopo un accesso riuscito: sul sito il token e' gia' nel cookie HttpOnly (il server non lo
+ * manda nel corpo), qui si segna solo che c'e' una sessione; l'app nativa salva il token.
+ */
 function keep(res) {
   if (res?.token) setToken(res.token);
+  if (res?.user) markSession();
   if (res?.deviceToken) setDeviceToken(res.deviceToken);
   return res;
 }
@@ -75,7 +81,13 @@ export const authApi = {
     backupCodes: (code) => apiClient.post('/auth/2fa/backup-codes', { code }),
     forgetOtherDevices: () => apiClient.post('/auth/2fa/forget-devices', { deviceToken: getDeviceToken() })
   },
-  logout() {
+  /** Esce: il server cancella il cookie di sessione; anche se non risponde, qui si dimentica tutto. */
+  async logout() {
+    try {
+      await apiClient.post('/auth/logout', {});
+    } catch {
+      // Offline o server giu': il cookie scade da solo, intanto l'app risulta uscita.
+    }
     setToken(null);
   }
 };

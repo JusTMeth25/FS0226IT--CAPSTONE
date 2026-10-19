@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { authApi, authErrorText } from '../services/authApi.js';
-import { getToken, setToken } from '../services/apiClient.js';
+import { hasSession, setToken } from '../services/apiClient.js';
 import { AuthContext } from './auth-context.js';
 
 export function AuthProvider({ children }) {
@@ -11,7 +11,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let cancelled = false;
     async function bootstrap() {
-      if (!getToken()) {
+      if (!hasSession()) {
         setLoading(false);
         return;
       }
@@ -65,7 +65,7 @@ export function AuthProvider({ children }) {
 
   /** Ri-legge il profilo dal server (gold/xp/level/lastLoginDate cambiano dopo azioni di gioco). */
   const refreshUser = useCallback(async () => {
-    if (!getToken()) return null;
+    if (!hasSession()) return null;
     try {
       const res = await authApi.profile();
       setUser(res?.user || null);

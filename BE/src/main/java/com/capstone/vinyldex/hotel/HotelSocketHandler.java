@@ -3,6 +3,7 @@ package com.capstone.vinyldex.hotel;
 import com.capstone.vinyldex.entity.User;
 import com.capstone.vinyldex.exception.ApiException;
 import com.capstone.vinyldex.repository.UserRepository;
+import com.capstone.vinyldex.security.AuthCookies;
 import com.capstone.vinyldex.security.JwtService;
 import com.capstone.vinyldex.service.PackService;
 import org.slf4j.Logger;
@@ -30,7 +31,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Punto d'ingresso WebSocket dell'hotel: /ws/hotel.
  *
  * Protocollo: messaggi JSON con un campo "type". Il primo deve essere
- * {"type":"auth","token":"<jwt>"}; il token viaggia nel messaggio e non nell'URL, cosi' non
+ * {"type":"auth","token":"<jwt>"} (dal sito basta {"type":"auth"}: il token e' nel cookie di
+ * sessione dell'handshake); il token viaggia nel messaggio o nel cookie e non nell'URL, cosi' non
  * finisce nei log di accesso. Chi non si autentica entro 5 secondi viene disconnesso.
  *
  * Comandi accettati dopo l'autenticazione:
@@ -146,7 +148,11 @@ public class HotelSocketHandler extends TextWebSocketHandler {
         String type = text(node, "type");
 
         if (!session.isAuthenticated()) {
-            if ("auth".equals(type)) authenticate(session, text(node, "token"));
+            if ("auth".equals(type)) {
+                // App nativa: token nel messaggio. Sito: token nel cookie arrivato con l'handshake.
+                String token = text(node, "token");
+                authenticate(session, token != null ? token : (String) raw.getAttributes().get(AuthCookies.NAME));
+            }
             else session.close(AUTH_FAILED);
             return;
         }

@@ -21,6 +21,11 @@ public record AuthResponse(AuthUserDto user, String token, Boolean twoFactorRequ
         return new AuthResponse(null, null, true, challenge, null);
     }
 
+    /** Stessa risposta senza il token: il sito lo riceve solo nel cookie HttpOnly (AuthCookies). */
+    public AuthResponse withoutToken() {
+        return new AuthResponse(user, null, twoFactorRequired, challenge, deviceToken);
+    }
+
     public AuthResponse withDevice(String device) {
         return new AuthResponse(user, token, twoFactorRequired, challenge, device);
     }

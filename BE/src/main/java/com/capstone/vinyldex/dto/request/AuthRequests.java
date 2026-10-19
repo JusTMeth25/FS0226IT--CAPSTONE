@@ -8,6 +8,12 @@ import jakarta.validation.constraints.Size;
 /** Corpi delle richieste di autenticazione. */
 public final class AuthRequests {
 
+    /**
+     * Forma di un'email: niente spazi, un solo @, dominio con almeno un punto e suffisso di 2+
+     * lettere. Si aggiunge a @Email, che da sola accetta anche "a@b".
+     */
+    public static final String EMAIL_REGEX = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*\\.[A-Za-z]{2,}$";
+
     private AuthRequests() {
     }
 
@@ -19,6 +25,7 @@ public final class AuthRequests {
 
             @NotBlank(message = "missing_fields")
             @Email(message = "invalid_email")
+            @Pattern(regexp = EMAIL_REGEX, message = "invalid_email")
             @Size(max = 255, message = "invalid_email")
             String email,
 
@@ -31,7 +38,8 @@ public final class AuthRequests {
 
     /** "Non ricordo la password": l'email dell'account. */
     public record ForgotPasswordRequest(
-            @NotBlank(message = "missing_fields") @Size(max = 255, message = "invalid_email") String email
+            @NotBlank(message = "missing_fields") @Size(max = 255, message = "invalid_email")
+            @Pattern(regexp = EMAIL_REGEX, message = "invalid_email") String email
     ) {
     }
 
