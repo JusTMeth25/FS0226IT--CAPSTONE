@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useGame } from '../../hooks/useGame.js';
-import { RARITY_ORDER, getRarityColor, getRarityName, resolveCardImage } from '../../utils/cardUtils.js';
+import { useCardFilters } from '../../hooks/useCardFilters.js';
+import { getRarityColor, getRarityName, resolveCardImage } from '../../utils/cardUtils.js';
 import { dedupeCollection } from '../../utils/collectionUtils.js';
 import { useOwnedCounts } from '../../hooks/useOwnedCounts.js';
 import CardOwnership from '../../components/trade/CardOwnership.jsx';
+import CardFilterBar from '../../components/card/CardFilterBar.jsx';
 
 /** Stessa formula del server (NpcDeals.value): serve solo per dire in anticipo se l'offerta e' equa. */
 const RARITY_VALUE = { common: 10, uncommon: 25, rare: 60, epic: 150, legendary: 400 };
@@ -77,19 +79,15 @@ export function NpcTradePanel({ npc, showcase, send, onClose }) {
   const owned = useOwnedCounts();
   const [want, setWant] = useState(null);
   const [give, setGive] = useState(null);
-  const [query, setQuery] = useState('');
 
   useEffect(() => {
     send({ type: 'npc_showcase', npcId: npc.id });
   }, [npc.id, send]);
 
-  const mine = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return dedupeCollection(collection)
-      .filter((c) => (c.quantity ?? 1) > 0 && (!q || c.name.toLowerCase().includes(q)))
-      .sort((a, b) => (RARITY_ORDER[b.rarity] || 0) - (RARITY_ORDER[a.rarity] || 0))
-      .slice(0, 90);
-  }, [collection, query]);
+  // Le tue carte con gli stessi filtri della Collezione (nome, classe, rarita', fonte, ordine).
+  const yours = useMemo(() => dedupeCollection(collection).filter((c) => (c.quantity ?? 1) > 0), [collection]);
+  const filter = useCardFilters(yours, undefined, { sort: 'rarity' });
+  const mine = filter.result.slice(0, 120);
 
   // Il valore delle carte dell'NPC arriva dal server insieme alla vetrina.
   const fair = want && give ? cardValue(give) >= want.value * 0.9 : null;
@@ -114,7 +112,7 @@ export function NpcTradePanel({ npc, showcase, send, onClose }) {
         </section>
         <section>
           <span className="hotel-npc-menu-title">Cosa gli dai in cambio</span>
-          <input className="hotel-chat-input" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cerca fra le tue carte…" aria-label="Cerca carta" />
+          <CardFilterBar compact items={yours} {...filter} count={filter.result.length} />
           <div className="hotel-trade-row hotel-trade-mine">
             {mine.length === 0 && <span className="hotel-room-empty">Nessuna carta.</span>}
             {mine.map((card) => (

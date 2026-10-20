@@ -46,14 +46,17 @@ export default function TradesPanel({ version, onPendingChange, onClose, onViewC
   const [tab, setTab] = useState('incoming');
   const [incoming, setIncoming] = useState(null);
   const [outgoing, setOutgoing] = useState(null);
+  const [npcTrades, setNpcTrades] = useState(null);
   const [busy, setBusy] = useState(null);
   const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
     try {
-      const [inRes, outRes] = await Promise.all([tradeApi.getIncoming(), tradeApi.getOutgoing()]);
+      const [inRes, outRes, npcRes] = await Promise.all([tradeApi.getIncoming(), tradeApi.getOutgoing(),
+        tradeApi.getNpc().catch(() => ({ trades: [] }))]);
       setIncoming(inRes.trades || []);
       setOutgoing(outRes.trades || []);
+      setNpcTrades(npcRes.trades || []);
       onPendingChange?.((inRes.trades || []).filter(isPending).length);
     } catch {
       setError('Scambi non raggiungibili. Riprova tra poco.');
@@ -63,7 +66,7 @@ export default function TradesPanel({ version, onPendingChange, onClose, onViewC
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- caricamento dal server all'apertura e a ogni evento
     load();
-  }, [load, version]);
+  }, [load, version, tab]);
 
   async function act(fn, trade) {
     setBusy(trade.id);
@@ -94,8 +97,37 @@ export default function TradesPanel({ version, onPendingChange, onClose, onViewC
         <button type="button" role="tab" aria-selected={tab === 'outgoing'} className={`hotel-tab${tab === 'outgoing' ? ' active' : ''}`} onClick={() => setTab('outgoing')}>
           Inviati
         </button>
+        <button type="button" role="tab" aria-selected={tab === 'npc'} className={`hotel-tab${tab === 'npc' ? ' active' : ''}`} onClick={() => setTab('npc')}>
+          Con gli NPC
+        </button>
       </div>
       {error && <p className="hotel-panel-error">{error}</p>}
+      {tab === 'npc' ? (
+        <ul className="hotel-trade-list">
+          {!npcTrades && !error && <li className="hotel-room-empty">Carico gli scambi…</li>}
+          {npcTrades && npcTrades.length === 0 && (
+            <li className="hotel-room-empty">Nessuno scambio con gli NPC. Clicca un ospite dell&apos;hotel e scegli &quot;Scambia carte&quot;.</li>
+          )}
+          {npcTrades?.map((trade) => (
+            <li key={trade.id} className="hotel-trade">
+              <div className="hotel-trade-head">
+                <strong>Con {trade.npcName}</strong>
+                <span className="hotel-trade-status status-accepted">
+                  Concluso · {new Date(trade.createdAt).toLocaleString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+              <div className="hotel-trade-row">
+                <span className="hotel-trade-label">Hai ricevuto</span>
+                <CardChips items={[{ card: trade.got, quantity: 1 }]} owned={owned} onViewCard={onViewCard} />
+              </div>
+              <div className="hotel-trade-row">
+                <span className="hotel-trade-label">Hai dato</span>
+                <CardChips items={[{ card: trade.gave, quantity: 1 }]} owned={owned} onViewCard={onViewCard} />
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
       <ul className="hotel-trade-list">
         {!incoming && !error && <li className="hotel-room-empty">Carico gli scambi…</li>}
         {incoming && list.length === 0 && (
@@ -144,6 +176,7 @@ export default function TradesPanel({ version, onPendingChange, onClose, onViewC
           );
         })}
       </ul>
+      )}
     </div>
   );
 }

@@ -244,6 +244,21 @@ public class NpcDeals {
         return verdict;
     }
 
+    /** Ultimi scambi conclusi con gli NPC, per il pannello Scambi (carte disattivate comprese). */
+    @Transactional(readOnly = true)
+    public List<com.capstone.vinyldex.dto.response.NpcTradeDto> history(UUID userId) {
+        List<NpcTrade> trades = npcTradeRepository.findTop50ByUserIdOrderByCreatedAtDesc(userId);
+        Set<UUID> ids = new java.util.HashSet<>();
+        trades.forEach(t -> { ids.add(t.getGaveCardId()); ids.add(t.getGotCardId()); });
+        Map<UUID, Card> cards = cardRepository.findAllById(ids).stream().collect(Collectors.toMap(Card::getId, c -> c));
+        return trades.stream()
+                .filter(t -> cards.containsKey(t.getGaveCardId()) && cards.containsKey(t.getGotCardId()))
+                .map(t -> new com.capstone.vinyldex.dto.response.NpcTradeDto(t.getId(), t.getNpcName(),
+                        com.capstone.vinyldex.dto.response.CardDto.from(cards.get(t.getGaveCardId())),
+                        com.capstone.vinyldex.dto.response.CardDto.from(cards.get(t.getGotCardId())), t.getCreatedAt()))
+                .toList();
+    }
+
     @Transactional(readOnly = true)
     public int recentTrades(UUID userId) {
         return (int) npcTradeRepository.countByUserIdAndCreatedAtAfter(userId,

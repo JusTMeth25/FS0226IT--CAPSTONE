@@ -11,6 +11,10 @@ export const tradeApi = {
   async getOutgoing() {
     return apiClient.get('/trades/outgoing');
   },
+  /** Scambi conclusi con gli NPC dell'hotel (gli ultimi 50). */
+  async getNpc() {
+    return apiClient.get('/trades/npc');
+  },
   async accept(tradeId) {
     return apiClient.post(`/trades/${tradeId}/accept`);
   },

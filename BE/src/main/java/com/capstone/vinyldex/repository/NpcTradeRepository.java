@@ -12,4 +12,7 @@ public interface NpcTradeRepository extends JpaRepository<NpcTrade, UUID> {
 
     /** Scambi con gli NPC conclusi dopo quell'istante (finestra di TradeLimits). */
     long countByUserIdAndCreatedAtAfter(UUID userId, java.time.Instant after);
+
+    /** Ultimi scambi con gli NPC del giocatore, dal piu' recente (pannello Scambi dell'hotel). */
+    java.util.List<NpcTrade> findTop50ByUserIdOrderByCreatedAtDesc(UUID userId);
 }
