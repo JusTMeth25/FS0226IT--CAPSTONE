@@ -77,7 +77,7 @@ ssh -i C:\percorso\chiave.key ubuntu@<IP>
 ## 4. Preparare il server (una volta sola)
 
 ```bash
-git clone https://github.com/JusTMeth25/FS0226IT---CAPSTONE---Draft.git vinyldex
+git clone https://github.com/JusTMeth25/FS0226IT--CAPSTONE.git vinyldex
 cd vinyldex
 sudo bash deploy/scripts/setup-server.sh
 exit          # esci e rientra con ssh: serve per usare docker senza sudo
