@@ -42,9 +42,17 @@ public class NpcTradeService {
     private final Map<UUID, PendingOffer> offers = new ConcurrentHashMap<>();
     private final Map<UUID, Long> offeredAt = new ConcurrentHashMap<>();
 
+    /** Chi gioca una sfida, un torneo o un minigioco non riceve offerte dagli NPC. */
+    private HotelActivity activity;
+
     public NpcTradeService(RoomRegistry registry, NpcDeals deals) {
         this.registry = registry;
         this.deals = deals;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setActivity(HotelActivity activity) {
+        this.activity = activity;
     }
 
     /** Ogni tanto, in una stanza pubblica con giocatori, un NPC fa un'offerta a uno di loro. */
@@ -58,6 +66,7 @@ public class NpcTradeService {
                     .filter(id -> now - offeredAt.getOrDefault(id, 0L) > OFFER_COOLDOWN_MILLIS)
                     .filter(id -> offers.values().stream().noneMatch(o -> o.userId().equals(id)))
                     .filter(id -> deals.recentTrades(id) < NpcDeals.TRADES_PER_WINDOW)
+                    .filter(id -> activity == null || !activity.isBusy(id))
                     .toList();
             List<UUID> traders = room.npcsWithRole(TRADERS);
             if (players.isEmpty() || traders.isEmpty()) continue;

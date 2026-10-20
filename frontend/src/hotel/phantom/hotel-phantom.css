@@ -40,6 +40,8 @@
   clip-path: var(--hpx-shape);
   box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.14), inset 4px 0 0 var(--hpx-red);
   filter: drop-shadow(6px 6px 0 #000);
+  /* Barra di scorrimento magenta: sul fondo nero quella grigia del sistema quasi non si vedeva. */
+  scrollbar-color: var(--hpx-red) rgba(0, 0, 0, 0.35);
 }
 /* Testata: fascia magenta con la striscia nera in diagonale e il titolo bianco condensato. */
 :root[data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .hotel-panel-header {

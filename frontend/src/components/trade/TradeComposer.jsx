@@ -11,7 +11,8 @@ import CardFilterBar from '../card/CardFilterBar.jsx';
 const PAGE = 60;
 const ERRORS = {
   recipient_not_found: 'Giocatore non trovato: controlla lo username.',
-  cannot_trade_with_yourself: 'Non puoi scambiare con te stesso.'
+  cannot_trade_with_yourself: 'Non puoi scambiare con te stesso.',
+  recipient_busy: 'Il giocatore è impegnato in una sfida, in un torneo o in un minigioco: riprova fra poco.'
 };
 
 /**

@@ -310,6 +310,15 @@ export default function BattlePage() {
     sendOnline({ type: 'pvp_team', cards: team.map((c) => c.id) });
   }, [onlineStage, onlineMatchId, sendOnline, b.team]);
 
+  // Battaglia contro gli NPC in corso: lo si dice al server, che nel frattempo non recapita
+  // proposte di scambio. Si dice anche quando finisce o si esce dalla pagina a meta'.
+  const fighting = ['vs', 'category', 'select-card', 'result'].includes(b.phase);
+  useEffect(() => {
+    if (!fighting) return undefined;
+    battleApi.activity(true).catch(() => {});
+    return () => { battleApi.activity(false).catch(() => {}); };
+  }, [fighting]);
+
   // Le immagini delle due squadre si scaricano e decodificano gia' alla schermata VS: nel
   // confronto del round compaiono subito, senza il riquadro nero che lampeggia (iPhone).
   useEffect(() => {

@@ -1810,8 +1810,10 @@ button.hotel-badge:hover:not(:disabled) { transform: translateY(-2px) scale(1.08
 .hotel-replaced-box p { margin: 0; color: var(--text-secondary, #c7cbe0); }
 .hotel-replaced-box small { color: var(--text-muted, #8a90a8); }
 
-/* Pannelli e liste dell'hotel: arrivati in fondo si fermano, senza trascinare la pagina. */
-.hotel-page, .hotel-page * { overscroll-behavior: contain; }
+/* Lo scorrimento si ferma al bordo dell'hotel, senza trascinare la pagina. Solo sull'hotel e non
+   su ogni elemento: con "contain" anche dentro, una lista che non ha niente da scorrere (le stanze
+   del Navigatore) tratteneva la rotella e il pannello attorno, che invece scorre, restava fermo. */
+.hotel-page { overscroll-behavior: contain; }
 
 /* ---------- Torneo di carte dell'Arena ---------- */
 .hotel-cardcup { width: min(980px, calc(100vw - 24px)); left: 50%; top: var(--space-sm); transform: translateX(-50%); z-index: 9; }

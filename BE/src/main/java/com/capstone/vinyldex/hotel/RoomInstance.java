@@ -1925,6 +1925,12 @@ public class RoomInstance {
         return partyTheme != null && partyEndsAt > System.currentTimeMillis();
     }
 
+    /** Sta giocando a un minigioco della stanza? (HotelActivity: niente scambi nel frattempo). */
+    public synchronized boolean inMinigame(UUID userId) {
+        Occupant occupant = occupants.get(userId);
+        return occupant != null && occupant.game != null;
+    }
+
     /** Il giocatore chiude il minigioco prima della fine. */
     public synchronized void minigameQuit(UUID userId) {
         Occupant occupant = occupants.get(userId);

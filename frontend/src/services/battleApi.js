@@ -12,6 +12,10 @@ export const battleApi = {
   async opponentTeam(userId) {
     return apiClient.get(`/battles/opponents/${userId}/team`);
   },
+  /** Battaglia contro gli NPC iniziata o finita: nel frattempo non si ricevono proposte di scambio. */
+  async activity(busy) {
+    return apiClient.post('/battles/activity', { busy });
+  },
   /** Giocatori collegati adesso, da sfidare in tempo reale. */
   async online() {
     return apiClient.get('/battles/online');

@@ -53,6 +53,14 @@ public class TradeService {
         this.events = events;
     }
 
+    /** Chi e' impegnato (sfida, torneo, minigioco): facoltativo, nei test senza hotel manca. */
+    private UserActivity activity;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setActivity(UserActivity activity) {
+        this.activity = activity;
+    }
+
     @Transactional
     public TradeDto create(UUID fromUserId, GameRequests.TradeCreateRequest request) {
         User fromUser = userRepository.findById(fromUserId)
@@ -63,6 +71,10 @@ public class TradeService {
 
         if (toUser.getId().equals(fromUserId)) {
             throw ApiException.badRequest("cannot_trade_with_yourself");
+        }
+        // Chi sta giocando una sfida, un torneo o un minigioco non riceve proposte in quel momento.
+        if (activity != null && activity.isBusy(toUser.getId())) {
+            throw ApiException.conflict("recipient_busy");
         }
 
         Trade trade = new Trade();
