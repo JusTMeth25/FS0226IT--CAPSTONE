@@ -5,7 +5,7 @@ import { getAvatarUrl } from '../../utils/avatarUtils.js';
 
 /** Contro chi si gioca: NPC (come prima), la squadra di un giocatore, o un giocatore online. */
 const OPPONENT_MODES = [
-  { key: 'npc', label: 'NPC', icon: 'ph-robot', hint: 'Avversari del computer, partita singola o torneo.' },
+  { key: 'npc', label: 'NPC', icon: 'ph-robot', hint: 'Avversari del computer, una partita a tre round.' },
   { key: 'player', label: 'Squadra di un giocatore', icon: 'ph-user', hint: 'Affronti la squadra di un altro giocatore, anche se non è collegato.' },
   { key: 'online', label: 'Giocatore online', icon: 'ph-broadcast', hint: 'Sfida in tempo reale: l\'altro accetta e giocate insieme turno per turno.' },
   { key: 'tournament', label: 'Torneo', icon: 'ph-trophy', hint: 'Coppa a eliminazione diretta con giocatori online e NPC: dagli ottavi alla finale, montepremi di 1000 gold.' }

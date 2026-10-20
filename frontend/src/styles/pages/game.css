@@ -251,7 +251,6 @@
 .battle-online-invite-incoming { border-color: var(--neon-gold); box-shadow: 0 0 18px rgba(255, 200, 60, 0.25); }
 .battle-online-timer { font-weight: 700; color: var(--neon-cyan); font-variant-numeric: tabular-nums; }
 .battle-online-wait { padding: var(--space-lg); }
-.battle-tournament-badge { font-size: 0.8rem; font-weight: 700; color: var(--neon-gold); padding: var(--space-sm) var(--space-md); text-align: center; }
 .battle-vs-page { min-height: 50vh; display: flex; align-items: center; justify-content: center; }
 .battle-vs-wrapper { display: flex; flex-direction: column; align-items: center; gap: var(--space-md); width: 100%; }
 .battle-vs-content { display: flex; flex-direction: column; align-items: center; gap: var(--space-md); width: 100%; max-width: 800px; }
@@ -326,13 +325,11 @@
 .battle-comp-enter-right { animation: battleSlideInRight 0.4s ease both; }
 .battle-final-enter { animation: battlePopIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 .battle-vs-label { animation: battleVsPulse 1.6s ease-in-out infinite; }
-.battle-final-icon-champion { animation: battleTrophyBounce 1.2s ease-in-out infinite; display: inline-block; }
-.battle-champion-cta { display: block; width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   .battle-vs-enter-left, .battle-vs-enter-right,
   .battle-comp-enter-left, .battle-comp-enter-right,
   .battle-final-enter { animation: none; }
-  .battle-vs-label, .battle-final-icon-champion { animation: none; }
+  .battle-vs-label { animation: none; }
 }
 .leaderboard-row { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm) var(--space-md); animation: leaderboardRowIn 0.35s ease both; }
 .leaderboard-rank { font-size: 1.1rem; font-weight: 900; color: var(--text-muted); width: 32px; text-align: center; flex-shrink: 0; }

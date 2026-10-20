@@ -80,24 +80,10 @@ public final class GameRequests {
      * manipolando la richiesta.
      */
     public record BattleRewardRequest(
-            String mode,
             String result,
-            Integer stagesCleared,
-            Boolean wonAllStages,
             // Carte schierate (code pubblici): contano per le "piu' usate" mostrate nell'hotel.
             List<String> cards
     ) {
-        public boolean isTournament() {
-            return "tournament".equalsIgnoreCase(mode);
-        }
-
-        public int stagesClearedOrZero() {
-            return stagesCleared == null || stagesCleared < 0 ? 0 : stagesCleared;
-        }
-
-        public boolean wonAllStagesOrFalse() {
-            return Boolean.TRUE.equals(wonAllStages);
-        }
 
         /** Al massimo tre carte diverse: una squadra non ne ha di piu'. */
         public List<String> teamCodes() {

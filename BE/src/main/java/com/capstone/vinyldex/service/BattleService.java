@@ -16,9 +16,10 @@ import java.util.UUID;
 /**
  * Ricompense di fine battaglia.
  *
- * Il client comunica solo l'esito: risultato, difficolta' e stage superati. Gli importi li
- * decide questa classe, cosi' modificare la richiesta non permette di ottenere ricompense
- * arbitrarie. Le tabelle devono restare allineate a quelle di BattlePage.jsx.
+ * Il client comunica solo l'esito (vittoria, pareggio, sconfitta). Gli importi li decide questa
+ * classe, cosi' modificare la richiesta non permette di ottenere ricompense arbitrarie. La
+ * tabella deve restare allineata a quella di BattlePage.jsx. Il torneo vero e' quello dell'hotel
+ * (CardTournamentService), con i suoi premi.
  */
 @Service
 public class BattleService {
@@ -27,15 +28,6 @@ public class BattleService {
             "win", new Reward(50, 100),
             "draw", new Reward(20, 40),
             "loss", new Reward(10, 20));
-
-    private static final List<String> TOURNAMENT_ORDER = List.of("easy", "normal", "hard");
-
-    private static final Map<String, Reward> DIFFICULTY_REWARDS = Map.of(
-            "easy", new Reward(30, 60),
-            "normal", new Reward(60, 120),
-            "hard", new Reward(100, 200));
-
-    private static final Reward CHAMPION_BONUS = new Reward(100, 150);
 
     private final UserRepository userRepository;
     private final WalletService walletService;
@@ -74,7 +66,7 @@ public class BattleService {
         List<String> team = request.teamCodes();
         if (!team.isEmpty()) userCardRepository.countBattle(userId, team);
         // Sfida della carta del giorno: vinta con quella carta in squadra.
-        int dailyGold = cardExtrasService.onBattle(userId, team, outcome.battlesWon() > 0 && !request.isTournament());
+        int dailyGold = cardExtrasService.onBattle(userId, team, outcome.battlesWon() > 0);
         if (dailyGold > 0) user = userRepository.findById(userId).orElse(user);
 
         return new BattleRewardResult(user.getGold(), user.getXp(), user.getLevel(),
@@ -82,23 +74,6 @@ public class BattleService {
     }
 
     private Outcome computeReward(GameRequests.BattleRewardRequest request) {
-        if (request.isTournament()) {
-            int stagesCleared = Math.min(TOURNAMENT_ORDER.size(), request.stagesClearedOrZero());
-            int gold = 0;
-            int xp = 0;
-            for (int i = 0; i < stagesCleared; i++) {
-                Reward reward = DIFFICULTY_REWARDS.get(TOURNAMENT_ORDER.get(i));
-                gold += reward.gold();
-                xp += reward.xp();
-            }
-            if (request.wonAllStagesOrFalse()) {
-                gold += CHAMPION_BONUS.gold();
-                xp += CHAMPION_BONUS.xp();
-            }
-            // Ogni stage superato conta come una battaglia vinta per la classifica.
-            return new Outcome(gold, xp, stagesCleared);
-        }
-
         String result = request.result() == null ? "loss" : request.result().toLowerCase();
         Reward reward = SINGLE_REWARDS.getOrDefault(result, SINGLE_REWARDS.get("loss"));
         return new Outcome(reward.gold(), reward.xp(), "win".equals(result) ? 1 : 0);

@@ -175,15 +175,6 @@
 :root[data-skin="phantom"] .saved-team-delete:hover { color: var(--p5-red); }
 :root[data-skin="phantom"] .saved-teams-notice { color: var(--p5-ink-soft); }
 
-:root[data-skin="phantom"] .battle-tournament-badge {
-  color: var(--p5-gold);
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-stretch: 85%;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
 /* ==========================================================================
    VS: i due schieramenti entrano dai lati, una fascia magenta taglia lo schermo e il VS
    ci piomba sopra. Tu su lastra nera, l'avversario su lastra bianca.
@@ -646,7 +637,6 @@
 :root[data-skin="phantom"] .battle-final-icon { font-size: 3rem; line-height: 1; color: var(--p5-ink-soft); }
 :root[data-skin="phantom"] .is-win .battle-final-icon { color: var(--p5-red); }
 :root[data-skin="phantom"] .is-champion .battle-final-icon { color: var(--p5-gold); }
-:root[data-skin="phantom"] .battle-final-icon-champion { animation: none; }
 :root[data-skin="phantom"] .battle-final-slam { display: flex; justify-content: center; }
 :root[data-skin="phantom"] .battle-final-title.p5-ransom { justify-content: center; font-size: clamp(2.3rem, 11vw, 3.8rem); }
 :root[data-skin="phantom"] .is-champion .battle-final-title .p5-ransom-tile.is-red { background: var(--p5-gold); color: #000; }

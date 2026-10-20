@@ -391,11 +391,6 @@ input.filter-select { cursor: text; }
   0%, 100% { text-shadow: 0 0 30px rgba(236, 72, 153, 0.5); }
   50% { text-shadow: 0 0 45px rgba(236, 72, 153, 0.85); }
 }
-@keyframes battleTrophyBounce {
-
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-6px) scale(1.08); }
-}
 /* ========================================
    MARKETPLACE / TRADES / EVENTS / LEADERBOARD / PROFILE / ADMIN
    ======================================== */

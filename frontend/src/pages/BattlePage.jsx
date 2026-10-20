@@ -9,7 +9,6 @@ import { CARDS } from '../data/cards.js';
 import EmptyState from '../components/common/EmptyState.jsx';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import CardTile from '../components/card/CardTile.jsx';
-import StarBorder from '../components/common/StarBorder.jsx';
 import ScrollToTopButton from '../components/common/ScrollToTopButton.jsx';
 import { useProgressiveList } from '../hooks/useProgressiveList.js';
 import SavedTeams from '../components/card/SavedTeams.jsx';
@@ -31,11 +30,8 @@ const CATEGORIES = ['fans', 'style', 'influence', 'energy'];
 const CATEGORY_NAMES = { fans: 'Fans', style: 'Style', influence: 'Influence', energy: 'Energy' };
 const CATEGORY_ICONS = { fans: 'ph-microphone-stage', style: 'ph-palette', influence: 'ph-megaphone', energy: 'ph-lightning' };
 const DIFFICULTY_CONFIG = {
-  easy: { label: 'Facile', smart: false, boost: 1, gold: 30, xp: 60 },
-  normal: { label: 'Normale', smart: true, boost: 1, gold: 60, xp: 120 },
-  hard: { label: 'Difficile', smart: true, boost: 1.15, gold: 100, xp: 200 }
+  normal: { label: 'Normale', smart: true, boost: 1 }
 };
-const TOURNAMENT_ORDER = ['easy', 'normal', 'hard'];
 
 function uniqueCollectionCards(collection) {
   const seen = new Set();
@@ -79,14 +75,13 @@ function SynergyList({ team, compact = false }) {
 }
 
 /** Riepilogo di potenza della squadra: numero animato con useCountUp + ingresso "a molla". */
-function VsScreen({ team, aiTeamLength, tournamentBadge, onStartRound, opponentName }) {
+function VsScreen({ team, aiTeamLength, onStartRound, opponentName }) {
   const playerTotal = team.reduce((sum, c) => sum + getTotalScore(c), 0);
   const displayTotal = useCountUp(playerTotal, 900);
 
   return (
     <section className="battle-vs-page">
       <div className="battle-vs-wrapper">
-        {tournamentBadge}
         <div className="battle-vs-content">
           <m.div className="battle-vs-player" {...FROM_LEFT}>
             <div className="battle-vs-avatar"><i className="ph-fill ph-vinyl-record" /></div>
@@ -130,68 +125,32 @@ function VsScreen({ team, aiTeamLength, tournamentBadge, onStartRound, opponentN
   );
 }
 
-/** Schermata finale unificata (singola / tappa torneo / campione / eliminato): numeri animati + CTA speciale da campione. */
-function FinalScreen({ finalKind, rewards, tournamentStage, roundScores, historyPanel, onNewBattle, onNextTournamentMatch, onNavigateHome }) {
+/** Schermata finale: risultato, numeri animati, ricompense e riepilogo dei round. */
+function FinalScreen({ rewards, roundScores, historyPanel, onNewBattle, onNavigateHome }) {
   const displayGold = useCountUp(rewards.gold, 900);
   const displayXP = useCountUp(rewards.xp, 900);
 
-  if (finalKind === 'tournament-stage-cleared') {
-    return (
-      <section className="battle-final-page is-win">
-        <ResultBackdrop tone="win" />
-        <m.div className="battle-final-content glass-panel" {...impactProps(true)}>
-          <div className="battle-final-icon"><i className="ph-fill ph-trophy" /></div>
-          <FinalTitle tone="win" text={`Avversario ${tournamentStage + 1}/3 sconfitto!`} />
-          <p className="battle-final-sub">Punteggio: {roundScores.player} - {roundScores.ai}</p>
-          {historyPanel}
-          <button className="btn btn-gold btn-large battle-final-next" onClick={onNextTournamentMatch}>
-            <i className="ph-fill ph-sword" /> Prossimo Avversario
-          </button>
-        </m.div>
-      </section>
-    );
-  }
-
-  const wonAllStages = finalKind === 'tournament-champion';
-  const eliminated = finalKind === 'tournament-eliminated';
-  const playerWon = finalKind === 'single' && roundScores.player > roundScores.ai;
-  const draw = finalKind === 'single' && roundScores.player === roundScores.ai;
-
-  let icon = 'ph-heart-break';
-  let title = 'SCONFITTA!';
-  let tone = 'lose';
-  if (finalKind === 'single') {
-    icon = playerWon ? 'ph-trophy' : draw ? 'ph-handshake' : 'ph-heart-break';
-    title = playerWon ? 'VITTORIA!' : draw ? 'PAREGGIO!' : 'SCONFITTA!';
-    tone = playerWon ? 'win' : draw ? 'draw' : 'lose';
-  } else if (wonAllStages) {
-    icon = 'ph-trophy'; title = 'CAMPIONE DEL TORNEO!'; tone = 'champion';
-  } else if (eliminated) {
-    icon = 'ph-heart-break'; title = `ELIMINATO — AVVERSARIO ${tournamentStage + 1}/3`;
-  }
+  const playerWon = roundScores.player > roundScores.ai;
+  const draw = roundScores.player === roundScores.ai;
+  const icon = playerWon ? 'ph-trophy' : draw ? 'ph-handshake' : 'ph-heart-break';
+  const title = playerWon ? 'VITTORIA!' : draw ? 'PAREGGIO!' : 'SCONFITTA!';
+  const tone = playerWon ? 'win' : draw ? 'draw' : 'lose';
 
   return (
     <section className={`battle-final-page is-${tone}`}>
       <ResultBackdrop tone={tone} />
-      <m.div className="battle-final-content glass-panel" {...impactProps(tone === 'win' || tone === 'champion')}>
-        <div className={`battle-final-icon ${wonAllStages ? 'battle-final-icon-champion' : ''}`}><i className={`ph-fill ${icon}`} /></div>
+      <m.div className="battle-final-content glass-panel" {...impactProps(tone === 'win')}>
+        <div className="battle-final-icon"><i className={`ph-fill ${icon}`} /></div>
         <FinalTitle tone={tone} text={title} />
 
-        {finalKind === 'single' && (
-          <div className="battle-final-score">
-            <span className="battle-final-score-you">{roundScores.player}</span>
-            <span className="battle-final-score-divider">-</span>
-            <span className="battle-final-score-ai">{roundScores.ai}</span>
-          </div>
-        )}
-        {finalKind !== 'single' && (
-          <p className="battle-final-sub">
-            {wonAllStages ? 'Hai sconfitto tutti e 3 gli avversari!' : `Hai superato ${tournamentStage} avversari su 3.`}
-          </p>
-        )}
+        <div className="battle-final-score">
+          <span className="battle-final-score-you">{roundScores.player}</span>
+          <span className="battle-final-score-divider">-</span>
+          <span className="battle-final-score-ai">{roundScores.ai}</span>
+        </div>
 
         <div className="battle-final-rewards">
-          <h3>Ricompense{finalKind !== 'single' ? ' Totali' : ''}</h3>
+          <h3>Ricompense</h3>
           <div className="battle-reward-item"><span><i className="ph-fill ph-coin" /></span><span>+{displayGold} Gold</span></div>
           <div className="battle-reward-item"><span><i className="ph-fill ph-lightning" /></span><span>+{displayXP} XP</span></div>
         </div>
@@ -199,13 +158,7 @@ function FinalScreen({ finalKind, rewards, tournamentStage, roundScores, history
         {historyPanel}
 
         <div className="battle-final-actions">
-          {wonAllStages ? (
-            <StarBorder color="#FFD700" speed="3s" className="battle-champion-cta">
-              <button className="btn btn-gold" style={{ width: '100%' }} onClick={onNewBattle}><i className="ph-fill ph-sword" /> Nuova Battaglia</button>
-            </StarBorder>
-          ) : (
-            <button className="btn btn-primary" onClick={onNewBattle}><i className="ph-fill ph-sword" /> Nuova Battaglia</button>
-          )}
+          <button className="btn btn-primary" onClick={onNewBattle}><i className="ph-fill ph-sword" /> Nuova Battaglia</button>
           <button className="btn btn-secondary" onClick={onNavigateHome}><i className="ph-fill ph-house" /> Torna alla Home</button>
         </div>
       </m.div>
@@ -230,11 +183,6 @@ const INITIAL_BATTLE = {
   usedPlayerIndices: [],
   usedAiIndices: [],
   roundHistory: [],
-  tournamentMode: false,
-  tournamentStage: 0,
-  tournamentGold: 0,
-  tournamentXP: 0,
-  finalKind: null,
   rewards: { gold: 0, xp: 0 },
   // Battaglia contro la squadra di un giocatore: il suo nome (null = NPC).
   opponentName: null
@@ -422,7 +370,7 @@ export default function BattlePage() {
 
   function startBattle() {
     if (b.team.filter(Boolean).length < 3) return;
-    startMatch('normal', { tournamentMode: false, tournamentStage: 0, tournamentGold: 0, tournamentXP: 0, opponentName: null });
+    startMatch('normal', { opponentName: null });
   }
 
   /** Battaglia contro la squadra di un altro giocatore, con le stesse regole e premi di quella normale. */
@@ -432,18 +380,12 @@ export default function BattlePage() {
     setPickError(null);
     try {
       const res = await battleApi.opponentTeam(opponent.id);
-      startMatch('normal', { tournamentMode: false, tournamentStage: 0, tournamentGold: 0, tournamentXP: 0,
-        opponentName: res.opponent.username }, res.team);
+      startMatch('normal', { opponentName: res.opponent.username }, res.team);
     } catch (err) {
       setPickError(err.code === 'opponent_no_team' ? 'Questo giocatore non ha ancora 3 carte.' : 'Non riesco a caricare la sua squadra.');
     } finally {
       setPickingId(null);
     }
-  }
-
-  function startTournament() {
-    if (b.team.filter(Boolean).length < 3) return;
-    startMatch(TOURNAMENT_ORDER[0], { tournamentMode: true, tournamentStage: 0, tournamentGold: 0, tournamentXP: 0, opponentName: null });
   }
 
   function startRound() {
@@ -535,31 +477,6 @@ export default function BattlePage() {
     const draw = b.roundScores.player === b.roundScores.ai;
     const result = playerWon ? 'win' : draw ? 'draw' : 'loss';
 
-    if (b.tournamentMode) {
-      game.recordBattleResult(result);
-      const config = DIFFICULTY_CONFIG[b.difficulty];
-      const tournamentGold = b.tournamentGold + (playerWon ? config.gold : 0);
-      const tournamentXP = b.tournamentXP + (playerWon ? config.xp : 0);
-      const wonAllStages = playerWon && b.tournamentStage === TOURNAMENT_ORDER.length - 1;
-      const eliminated = !playerWon;
-
-      if (eliminated) sound.battleLose();
-      else if (wonAllStages) sound.battleWin();
-      else sound.roundWin();
-
-      if (eliminated || wonAllStages) {
-        const bonusGold = wonAllStages ? 100 : 0;
-        const bonusXP = wonAllStages ? 150 : 0;
-        const finalGold = tournamentGold + bonusGold;
-        const finalXP = tournamentXP + bonusXP;
-        game.claimBattleReward({ mode: 'tournament', stagesCleared: wonAllStages ? TOURNAMENT_ORDER.length : b.tournamentStage, wonAllStages, cards: teamCodes });
-        update({ phase: 'final', finalKind: wonAllStages ? 'tournament-champion' : 'tournament-eliminated', rewards: { gold: finalGold, xp: finalXP }, tournamentGold, tournamentXP });
-      } else {
-        update({ phase: 'final', finalKind: 'tournament-stage-cleared', tournamentGold, tournamentXP });
-      }
-      return;
-    }
-
     const goldReward = playerWon ? 50 : draw ? 20 : 10;
     const xpReward = playerWon ? 100 : draw ? 40 : 20;
     if (playerWon) sound.battleWin();
@@ -567,23 +484,13 @@ export default function BattlePage() {
     else sound.battleLose();
 
     game.recordBattleResult(result);
-    game.claimBattleReward({ mode: 'single', result, cards: teamCodes });
-    update({ phase: 'final', finalKind: 'single', rewards: { gold: goldReward, xp: xpReward } });
-  }
-
-  function nextTournamentMatch() {
-    startMatch(TOURNAMENT_ORDER[b.tournamentStage + 1], { tournamentStage: b.tournamentStage + 1 });
+    game.claimBattleReward({ result, cards: teamCodes });
+    update({ phase: 'final', rewards: { gold: goldReward, xp: xpReward } });
   }
 
   function newBattle() {
     setB(INITIAL_BATTLE);
   }
-
-  const tournamentBadge = b.tournamentMode && (
-    <div className="battle-tournament-badge glass-panel">
-      <i className="ph-fill ph-trophy" /> Torneo — Avversario {b.tournamentStage + 1}/3 · {DIFFICULTY_CONFIG[b.difficulty].label}
-    </div>
-  );
 
   // ---------- SFIDA ONLINE IN CORSO ----------
   if (onlinePvp.pvp && ['team', 'round', 'reveal', 'end'].includes(onlinePvp.pvp.stage)) {
@@ -634,7 +541,6 @@ export default function BattlePage() {
         {opponentMode === 'npc' && (
           <div className="battle-mode-actions">
             <button className="btn btn-primary btn-large" disabled={filledCount < 3} onClick={startBattle}><i className="ph-fill ph-sword" /> Inizia Battaglia</button>
-            <button className="btn btn-gold btn-large" disabled={filledCount < 3} onClick={startTournament}><i className="ph-fill ph-trophy" /> Modalità Torneo</button>
           </div>
         )}
         {opponentMode === 'player' && (
@@ -727,14 +633,13 @@ export default function BattlePage() {
 
   // ---------- VS SCREEN ----------
   if (b.phase === 'vs') {
-    return <VsScreen team={b.fightTeam} aiTeamLength={b.aiTeam.length} tournamentBadge={tournamentBadge} onStartRound={startRound} opponentName={b.opponentName} />;
+    return <VsScreen team={b.fightTeam} aiTeamLength={b.aiTeam.length} onStartRound={startRound} opponentName={b.opponentName} />;
   }
 
   // ---------- CATEGORY PICKER ----------
   if (b.phase === 'category') {
     return (
       <section className="battle-round-page">
-        {tournamentBadge}
         <div className="battle-round-header">
           <span className="battle-round-number">Round {b.currentRound} / 3</span>
           <span className="battle-round-score">{b.roundScores.player} - {b.roundScores.ai}</span>
@@ -760,7 +665,6 @@ export default function BattlePage() {
     const availableIndices = [0, 1, 2].filter((i) => !b.usedPlayerIndices.includes(i));
     return (
       <section className="battle-round-page">
-        {tournamentBadge}
         <div className="battle-round-header">
           <span className="battle-round-number">Round {b.currentRound} / 3</span>
           <span className="battle-round-score">{b.roundScores.player} - {b.roundScores.ai}</span>
@@ -805,7 +709,6 @@ export default function BattlePage() {
 
     return (
       <section className="battle-round-result">
-        {tournamentBadge}
         <div className="battle-round-header">
           <span className="battle-round-number">Round {b.currentRound} — {CATEGORY_NAMES[b.currentCategory]}</span>
           <span className="battle-round-score">{b.roundScores.player} - {b.roundScores.ai}</span>
@@ -848,13 +751,10 @@ export default function BattlePage() {
 
   return (
     <FinalScreen
-      finalKind={b.finalKind}
       rewards={b.rewards}
-      tournamentStage={b.tournamentStage}
       roundScores={b.roundScores}
       historyPanel={historyPanel}
       onNewBattle={newBattle}
-      onNextTournamentMatch={nextTournamentMatch}
       onNavigateHome={() => navigate('/home')}
     />
   );
