@@ -45,6 +45,7 @@ battaglie online, mercato fra giocatori e oltre 140.000 carte da più di 20 gioc
 - [📦 Deploy](#-deploy)
 - [📱 App mobile](#-app-mobile)
 - [🗂️ Struttura del repository](#️-struttura-del-repository)
+- [💖 Ringraziamento speciale](#-ringraziamento-speciale)
 - [⚖️ Note legali](#️-note-legali)
 
 ---
@@ -348,6 +349,12 @@ Servono Android Studio e/o Xcode. Il login nativo con Google e Apple si configur
 - 🃏 I dati delle carte dei giochi di terzi vengono da API e archivi pubblici (Pokémon TCG API, Scryfall,
   YGOPRODeck, TCGCSV, OPTCG API, Lorcana API, apitcg.com, Riftcodex, FUTDB e altri): ogni importatore sta in
   `BE/src/main/java/com/capstone/vinyldex/importer/sources/`.
+
+## 💖 Ringraziamento speciale
+
+Un grazie speciale alla mia ragazza, che mi ha sostenuto e spronato durante tutto il percorso: nelle serate
+passate a programmare, nei bug che sembravano impossibili e in ogni piccola vittoria. Senza di lei VinylDex non
+sarebbe quello che è. 🌹
 
 ## ⚖️ Note legali
 
