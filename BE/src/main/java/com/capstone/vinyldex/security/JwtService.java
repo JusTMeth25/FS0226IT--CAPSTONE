@@ -19,9 +19,8 @@ import java.util.UUID;
 /**
  * Emette e verifica i token JWT.
  *
- * Il payload resta quello che emetteva il backend Node (sub, username, email) e la firma
- * usa lo stesso JWT_SECRET: i token gia' in mano agli utenti continuano a funzionare
- * dopo il passaggio a Spring.
+ * Il payload contiene sub, username ed email, e la firma usa JWT_SECRET: finche' il segreto
+ * non cambia, i token gia' in mano agli utenti restano validi fino alla scadenza.
  *
  * Il token porta solo l'identita'. Gold, livello e ruolo si rileggono sempre dal database
  * a ogni richiesta, perche' possono cambiare dopo l'emissione del token.

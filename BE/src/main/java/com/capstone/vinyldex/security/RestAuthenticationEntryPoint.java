@@ -14,7 +14,7 @@ import java.util.Map;
 
 /**
  * Risponde 401 in JSON invece della pagina di login di Spring Security.
- * Distingue il token assente da quello non valido, come faceva il middleware Node.
+ * Distingue il token assente ("missing_token") da quello non valido o scaduto ("invalid_token").
  */
 @Component
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {

@@ -7,6 +7,10 @@ import com.capstone.vinyldex.service.CollectionService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import com.capstone.vinyldex.config.OpenApiConfig.Tags;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 
 @RestController
 @RequestMapping("/api")
@@ -18,6 +22,8 @@ public class CollectionController {
         this.collectionService = collectionService;
     }
 
+    @Tag(name = Tags.COLLEZIONE, description = Tags.COLLEZIONE_INFO)
+    @Operation(summary = "Collezione dell'utente collegato")
     @GetMapping("/collection")
     public CollectionService.CollectionView getCollection(
             @CurrentUser UserPrincipal principal,
@@ -32,6 +38,9 @@ public class CollectionController {
 
     /** id e' il code pubblico della carta, non lo UUID. */
     /** Raccoglitore a pagine: un gioco (source) o un set (set), dalle carte offset, al massimo limit. */
+    @Tag(name = Tags.COLLEZIONE, description = Tags.COLLEZIONE_INFO)
+    @Operation(summary = "Pagina del raccoglitore",
+            description = "Un gioco (source) o un set (set), dalle carte offset, al massimo limit.")
     @GetMapping("/collection/binder")
     public CollectionService.BinderPage binder(@CurrentUser UserPrincipal principal,
                                                @org.springframework.web.bind.annotation.RequestParam(required = false) String source,
@@ -41,11 +50,17 @@ public class CollectionController {
         return collectionService.binder(principal.getId(), source, set, offset, limit);
     }
 
+    @Tag(name = Tags.CARTE, description = Tags.CARTE_INFO)
+    @Operation(summary = "Dettaglio di una carta",
+            description = "id è il code pubblico della carta, non lo UUID.")
+    @SecurityRequirements
     @GetMapping("/cards/{id}")
     public Map<String, CardDto> getCard(@PathVariable String id) {
         return Map.of("card", collectionService.getCardByCode(id));
     }
 
+    @Tag(name = Tags.COLLEZIONE, description = Tags.COLLEZIONE_INFO)
+    @Operation(summary = "Mette o toglie una carta dai preferiti")
     @PostMapping("/collection/{cardId}/favorite")
     public Map<String, Boolean> toggleFavorite(@CurrentUser UserPrincipal principal, @PathVariable String cardId) {
         return Map.of("isFavorite", collectionService.toggleFavorite(principal.getId(), cardId));

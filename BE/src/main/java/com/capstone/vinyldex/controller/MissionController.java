@@ -8,7 +8,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import com.capstone.vinyldex.config.OpenApiConfig.Tags;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = Tags.MISSIONI, description = Tags.MISSIONI_INFO)
 @RestController
 @RequestMapping("/api/missions")
 public class MissionController {
@@ -19,6 +23,7 @@ public class MissionController {
         this.missionService = missionService;
     }
 
+    @Operation(summary = "Missioni e avanzamento")
     @GetMapping
     public Map<String, List<MissionDto>> listMissions(@CurrentUser UserPrincipal principal) {
         return Map.of("missions", missionService.listMissions(principal.getId()));
@@ -28,11 +33,13 @@ public class MissionController {
      * Dichiarata prima di /{missionId}/claim: altrimenti "daily-login" verrebbe trattato
      * come il code di una missione e la richiesta finirebbe nella rotta generica.
      */
+    @Operation(summary = "Riscuote il premio dell'accesso giornaliero")
     @PostMapping("/daily-login/claim")
     public MissionService.RewardResult claimDailyLogin(@CurrentUser UserPrincipal principal) {
         return missionService.claimDailyLogin(principal.getId());
     }
 
+    @Operation(summary = "Riscuote il premio di una missione completata")
     @PostMapping("/{missionId}/claim")
     public MissionService.RewardResult claim(@CurrentUser UserPrincipal principal,
                                              @PathVariable String missionId) {

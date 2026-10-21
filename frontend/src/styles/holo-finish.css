@@ -28,7 +28,7 @@
   --fy: calc(100% - var(--y, 50%));
 }
 
-/* Il vecchio arcobaleno generico lascia il posto alla finitura della carta. */
+/* Con una finitura propria l'arcobaleno generico delle carte olografiche si nasconde. */
 .holo-finish .card-holo-rainbow { display: none; }
 .holo-finish .card-holo-glare {
   mix-blend-mode: overlay;

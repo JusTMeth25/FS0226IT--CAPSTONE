@@ -20,8 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Rate limit per indirizzo IP, equivalente a express-rate-limit nel backend Node: un numero
- * massimo di richieste ogni 60 secondi con finestra fissa.
+ * Rate limit per indirizzo IP: un numero massimo di richieste ogni 60 secondi con finestra
+ * fissa; oltre il limite la risposta e' 429.
  *
  * Le immagini delle carte (il proxy /cards/{id}/image e le carte disegnate dal server) hanno un
  * contatore a parte e molto piu' largo: il raccoglitore 3D ne chiede centinaia mentre si sfoglia,

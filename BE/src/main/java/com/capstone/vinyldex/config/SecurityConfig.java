@@ -26,8 +26,10 @@ import java.util.List;
 /**
  * Regole di accesso alle API.
  *
- * L'API e' stateless e autenticata solo via Bearer token, quindi niente sessioni e niente CSRF:
- * senza cookie di sessione non esiste la richiesta cross-site da proteggere.
+ * L'API e' stateless: il JWT arriva nel cookie HttpOnly del sito oppure come Bearer dall'app
+ * nativa, e non ci sono sessioni lato server. Il CSRF di Spring e' spento perche' la difesa sta
+ * in JwtAuthenticationFilter: col cookie, le richieste che modificano dati devono avere l'header
+ * X-VinylDex-Client, che un altro sito non puo' aggiungere.
  */
 @Configuration
 @EnableMethodSecurity
@@ -91,6 +93,11 @@ public class SecurityConfig {
                                 "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/providers").permitAll()
 
+                        // Documentazione delle API (Swagger UI e OpenAPI, vedi OpenApiConfig): pubblica,
+                        // anche in produzione. Descrive le rotte, non da' accesso ai dati. /api/docs
+                        // reindirizza a /api/swagger-ui/index.html, dove springdoc serve i file della pagina.
+                        .requestMatchers(HttpMethod.GET, "/api/docs", "/api/docs/**", "/api/swagger-ui/**").permitAll()
+
                         // Vetrine pubbliche: leggibili anche senza login. Il filtro JWT popola comunque
                         // l'utente quando il token c'e', cosi' /api/packs puo' mostrare i pacchetti regalati.
                         .requestMatchers(HttpMethod.GET,
@@ -102,8 +109,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // La generazione immagini consuma credito OpenAI a pagamento: nel backend Node
-                        // l'endpoint era aperto a chiunque. Qui e' riservato agli amministratori.
+                        // La generazione immagini consuma credito OpenAI a pagamento: solo amministratori.
                         .requestMatchers("/api/ai/**").hasRole("ADMIN")
 
                         .anyRequest().authenticated())

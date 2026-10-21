@@ -132,7 +132,7 @@ public final class NpcRoster {
         return new NpcSpec(key, name, role, look, x, y, 4, List.of(menu), radius);
     }
 
-    /** Posizioni generate da BE/scripts/hotel_rooms.py insieme alla pianta delle stanze. */
+    /** Posizioni generate da tools/hotel_rooms.py insieme alla pianta delle stanze. */
     private static final Map<UUID, List<NpcSpec>> ROSTER = Map.ofEntries(
             Map.entry(LOBBY, List.of(
                     worker("vera", "Vera", Role.RECEPTIONIST, "s1.h8.hc6.sh0.p1.t2.f0.a1.b1", 3, 15, 2),

@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  *
  * I nomi dei marchi sono inventati (con un occhio alle case vere): orologi e auto non sono
  * prodotti ufficiali. I disegni stanno nel frontend (src/hotel/sprites/avatar.js e vehicles.js;
- * le auto usano i modelli 3D di Sketchfab, vedi BE/scripts/sketchfab_cars.py) con gli stessi
+ * le auto usano i modelli 3D di Sketchfab, vedi tools/sketchfab_cars.py) con gli stessi
  * indici; HotelLook controlla quanti ce ne sono.
  */
 public final class LuxuryCatalog {

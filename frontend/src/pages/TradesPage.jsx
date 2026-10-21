@@ -24,9 +24,9 @@ const TRADE_ERRORS = {
 const STATUS_LABELS = { pending: 'In attesa', accepted: 'Accettato', rejected: 'Rifiutato', cancelled: 'Annullato' };
 
 /**
- * Il backend scrive lo stato in maiuscolo (PENDING), il vecchio backend Node in minuscolo: si
- * confronta sempre in minuscolo. Con il confronto esatto i pulsanti Accetta e Rifiuta non
- * comparivano mai.
+ * Il backend scrive lo stato in maiuscolo (PENDING), etichette e classi CSS lo usano in
+ * minuscolo: si confronta sempre in minuscolo, altrimenti i pulsanti Accetta e Rifiuta non
+ * comparirebbero mai.
  */
 const statusOf = (trade) => trade.status?.toLowerCase();
 

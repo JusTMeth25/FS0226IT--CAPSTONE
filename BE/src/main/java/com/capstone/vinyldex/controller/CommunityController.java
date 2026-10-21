@@ -15,8 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import com.capstone.vinyldex.config.OpenApiConfig.Tags;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /** Club, feste, banchetti, foto e posta dell'hotel. */
+@Tag(name = Tags.COMMUNITY, description = Tags.COMMUNITY_INFO)
 @RestController
 @RequestMapping("/api/hotel")
 public class CommunityController {
@@ -47,21 +51,25 @@ public class CommunityController {
 
     // ---- club
 
+    @Operation(summary = "Club dell'hotel")
     @GetMapping("/clubs")
     public Map<String, Object> clubs(@CurrentUser UserPrincipal principal) {
         return clubService.mine(principal.getId());
     }
 
+    @Operation(summary = "Fonda un club")
     @PostMapping("/clubs")
     public Map<String, Object> createClub(@CurrentUser UserPrincipal principal, @RequestBody ClubDto body) {
         return clubService.create(principal.getId(), body.name(), body.tag(), body.color(), body.icon(), body.motto());
     }
 
+    @Operation(summary = "Entra in un club")
     @PostMapping("/clubs/{clubId}/join")
     public Map<String, Object> joinClub(@CurrentUser UserPrincipal principal, @PathVariable UUID clubId) {
         return clubService.join(principal.getId(), clubId);
     }
 
+    @Operation(summary = "Esce dal proprio club")
     @PostMapping("/clubs/leave")
     public Map<String, Object> leaveClub(@CurrentUser UserPrincipal principal) {
         return clubService.leave(principal.getId());
@@ -69,16 +77,19 @@ public class CommunityController {
 
     // ---- feste
 
+    @Operation(summary = "Feste in corso")
     @GetMapping("/parties")
     public List<Map<String, Object>> parties() {
         return community.parties();
     }
 
+    @Operation(summary = "Organizza una festa in una stanza")
     @PostMapping("/parties")
     public Map<String, Object> startParty(@CurrentUser UserPrincipal principal, @RequestBody PartyDto body) {
         return community.startParty(principal.getId(), body.roomId(), body.title(), body.theme());
     }
 
+    @Operation(summary = "Chiude una festa")
     @DeleteMapping("/parties/{roomId}")
     public Map<String, Object> stopParty(@CurrentUser UserPrincipal principal, @PathVariable UUID roomId) {
         community.stopParty(principal.getId(), roomId);
@@ -87,21 +98,25 @@ public class CommunityController {
 
     // ---- banchetti
 
+    @Operation(summary = "Carte in vendita su un banchetto")
     @GetMapping("/stalls/{itemId}")
     public Map<String, Object> stall(@PathVariable UUID itemId) {
         return community.stall(itemId);
     }
 
+    @Operation(summary = "Mette una carta in vendita sul banchetto")
     @PostMapping("/stalls/{itemId}")
     public Map<String, Object> stallAdd(@CurrentUser UserPrincipal principal, @PathVariable UUID itemId, @RequestBody StallDto body) {
         return community.stallAdd(principal.getId(), itemId, body.card(), body.price());
     }
 
+    @Operation(summary = "Ritira una carta dal banchetto")
     @DeleteMapping("/stalls/items/{stallItemId}")
     public Map<String, Object> stallRemove(@CurrentUser UserPrincipal principal, @PathVariable UUID stallItemId) {
         return community.stallRemove(principal.getId(), stallItemId);
     }
 
+    @Operation(summary = "Compra una carta da un banchetto")
     @PostMapping("/stalls/items/{stallItemId}/buy")
     public Map<String, Object> stallBuy(@CurrentUser UserPrincipal principal, @PathVariable UUID stallItemId) {
         return community.stallBuy(principal.getId(), stallItemId);
@@ -109,21 +124,25 @@ public class CommunityController {
 
     // ---- foto
 
+    @Operation(summary = "Le proprie foto dell'hotel")
     @GetMapping("/photos")
     public Map<String, Object> myPhotos(@CurrentUser UserPrincipal principal) {
         return Map.of("photos", community.photos(principal.getId()));
     }
 
+    @Operation(summary = "Foto di un giocatore")
     @GetMapping("/photos/users/{userId}")
     public Map<String, Object> photosOf(@PathVariable UUID userId) {
         return Map.of("photos", community.photos(userId));
     }
 
+    @Operation(summary = "Salva una foto")
     @PostMapping("/photos")
     public Map<String, Object> savePhoto(@CurrentUser UserPrincipal principal, @RequestBody PhotoDto body) {
         return community.savePhoto(principal.getId(), body.image(), body.roomName());
     }
 
+    @Operation(summary = "Elimina una foto")
     @DeleteMapping("/photos/{photoId}")
     public Map<String, Object> deletePhoto(@CurrentUser UserPrincipal principal, @PathVariable UUID photoId) {
         community.deletePhoto(principal.getId(), photoId);
@@ -132,16 +151,19 @@ public class CommunityController {
 
     // ---- posta
 
+    @Operation(summary = "Posta ricevuta")
     @GetMapping("/mail")
     public Map<String, Object> mailbox(@CurrentUser UserPrincipal principal) {
         return community.mailbox(principal.getId());
     }
 
+    @Operation(summary = "Manda una lettera con gold, carta o mobile in regalo")
     @PostMapping("/mail")
     public Map<String, Object> sendMail(@CurrentUser UserPrincipal principal, @RequestBody MailDto body) {
         return community.sendMail(principal.getId(), body.to(), body.gold(), body.card(), body.note(), body.furni());
     }
 
+    @Operation(summary = "Ritira il regalo di una lettera")
     @PostMapping("/mail/{mailId}/claim")
     public Map<String, Object> claimMail(@CurrentUser UserPrincipal principal, @PathVariable UUID mailId) {
         return community.claimMail(principal.getId(), mailId);

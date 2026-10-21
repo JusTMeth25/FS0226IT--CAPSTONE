@@ -5,6 +5,20 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: './',
+  // Test unitari con Vitest (npm test): DOM finto di jsdom, matcher di jest-dom da src/test/setup.js.
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['src/test/setup.js'],
+    include: ['src/**/*.test.{js,jsx}'],
+    restoreMocks: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      reportsDirectory: 'coverage',
+      include: ['src/**/*.{js,jsx}'],
+      exclude: ['src/**/*.test.{js,jsx}', 'src/test/**']
+    }
+  },
   build: {
     rollupOptions: {
       output: {

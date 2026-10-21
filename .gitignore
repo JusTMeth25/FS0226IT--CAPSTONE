@@ -11,10 +11,6 @@ dist/
 dist-ssr/
 build/
 
-# Prisma
-backend/prisma/dev.db
-backend/prisma/*.db
-
 # Capacitor (Fase mobile)
 ios/
 android/
@@ -24,8 +20,7 @@ android/
 npm-debug.log*
 
 # Editor / OS
-.vscode/*
-!.vscode/extensions.json
+.vscode/
 .idea
 .DS_Store
 *.local
@@ -34,6 +29,8 @@ npm-debug.log*
 .claude/
 .cline/
 .qodo/
+CLAUDE.md
+graphify-out/
 
 # Deploy: backup del database di produzione
 deploy/backups/

@@ -23,7 +23,7 @@ import java.util.UUID;
 public class AuthService {
 
     /**
-     * Le sei immagini presenti in frontend/public/assets/img/avatarN.png.
+     * Le sette immagini presenti in frontend/public/assets/img/avatarN.png.
      * Si salva solo la chiave, mai il percorso: il frontend resta libero di cambiare
      * cartella o estensione senza toccare il database.
      */

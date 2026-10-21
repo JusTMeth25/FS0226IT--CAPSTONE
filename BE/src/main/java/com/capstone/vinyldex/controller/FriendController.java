@@ -14,8 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import com.capstone.vinyldex.config.OpenApiConfig.Tags;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /** Amici e messaggi privati dell'hotel. */
+@Tag(name = Tags.AMICI, description = Tags.AMICI_INFO)
 @RestController
 @RequestMapping("/api/friends")
 public class FriendController {
@@ -32,33 +36,40 @@ public class FriendController {
     public record MessageDto(String text) {
     }
 
+    @Operation(summary = "Amici e richieste di amicizia")
     @GetMapping
     public Map<String, Object> list(@CurrentUser UserPrincipal principal) {
         return friendService.list(principal.getId());
     }
 
+    @Operation(summary = "Chiede l'amicizia a un giocatore")
     @PostMapping("/request")
     public Map<String, Object> request(@CurrentUser UserPrincipal principal, @RequestBody RequestBodyDto body) {
         return friendService.request(principal.getId(), body.username());
     }
 
+    @Operation(summary = "Accetta una richiesta di amicizia")
     @PostMapping("/requests/{requestId}/accept")
     public Map<String, Object> accept(@CurrentUser UserPrincipal principal, @PathVariable UUID requestId) {
         return friendService.accept(principal.getId(), requestId);
     }
 
     /** Toglie l'amico, rifiuta la sua richiesta o annulla la propria. */
+    @Operation(summary = "Toglie un amico o una richiesta",
+            description = "Toglie l'amico, rifiuta la sua richiesta o annulla la propria.")
     @DeleteMapping("/{userId}")
     public Map<String, Object> remove(@CurrentUser UserPrincipal principal, @PathVariable UUID userId) {
         friendService.remove(principal.getId(), userId);
         return Map.of("removed", true);
     }
 
+    @Operation(summary = "Messaggi privati con un amico")
     @GetMapping("/{userId}/messages")
     public List<Map<String, Object>> thread(@CurrentUser UserPrincipal principal, @PathVariable UUID userId) {
         return friendService.thread(principal.getId(), userId);
     }
 
+    @Operation(summary = "Manda un messaggio privato")
     @PostMapping("/{userId}/messages")
     public Map<String, Object> send(@CurrentUser UserPrincipal principal, @PathVariable UUID userId, @RequestBody MessageDto body) {
         return friendService.send(principal.getId(), userId, body.text());

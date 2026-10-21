@@ -35,6 +35,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import com.capstone.vinyldex.config.OpenApiConfig.Tags;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 
 /**
  * Immagine delle carte EA FC 27: una carta in stile Ultimate Team disegnata qui, in SVG.
@@ -47,6 +51,7 @@ import java.util.concurrent.TimeUnit;
  * Essendo un'immagine normale funziona ovunque: collezione, dettaglio, carta 3D, pacchetti e
  * il canvas dell'hotel. Stesso dominio del backend, quindi niente problemi di CORS.
  */
+@Tag(name = Tags.CARTE, description = Tags.CARTE_INFO)
 @RestController
 @RequestMapping("/api")
 public class FcCardArtController {
@@ -119,6 +124,9 @@ public class FcCardArtController {
     }
 
     /** id e' il code pubblico della carta, come in GET /api/cards/{id}. */
+    @Operation(summary = "Immagine SVG di una carta EA FC 27",
+            description = "Carta in stile Ultimate Team disegnata dal server. id è il code pubblico della carta.")
+    @SecurityRequirements
     @GetMapping(value = "/cards/{id}/fc-card.svg")
     public ResponseEntity<byte[]> card(@PathVariable String id) {
         Card card = cardRepository.findByCode(id)

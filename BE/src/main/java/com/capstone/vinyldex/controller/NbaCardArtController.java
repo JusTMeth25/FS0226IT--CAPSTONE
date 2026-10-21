@@ -26,6 +26,10 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import com.capstone.vinyldex.config.OpenApiConfig.Tags;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 
 /**
  * Carte NBA disegnate dal server, in SVG, nello stile della serie da cui vengono: Donruss Optic
@@ -35,6 +39,7 @@ import java.util.concurrent.TimeUnit;
  * Nessun logo ufficiale: solo forme, colori e la foto del giocatore da cdn.nba.com, incorporata
  * come data URI (un SVG usato come immagine non puo' caricare risorse esterne).
  */
+@Tag(name = Tags.CARTE, description = Tags.CARTE_INFO)
 @RestController
 @RequestMapping("/api")
 public class NbaCardArtController {
@@ -87,6 +92,9 @@ public class NbaCardArtController {
     }
 
     /** id e' il code pubblico della carta, come in GET /api/cards/{id}. */
+    @Operation(summary = "Immagine SVG di una carta NBA",
+            description = "Carta disegnata dal server nello stile della sua serie. id è il code pubblico della carta.")
+    @SecurityRequirements
     @GetMapping(value = "/cards/{id}/nba-card.svg")
     public ResponseEntity<byte[]> card(@PathVariable String id) {
         Card card = cardRepository.findByCode(id)

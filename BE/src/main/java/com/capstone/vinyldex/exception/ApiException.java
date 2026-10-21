@@ -4,8 +4,8 @@ import org.springframework.http.HttpStatus;
 
 /**
  * Errore applicativo con il codice testuale che il frontend gia' conosce
- * (es. "insufficient_gold"): il corpo della risposta resta {"error": "<code>"},
- * identico a quello che restituiva il backend Express.
+ * (es. "insufficient_gold"): il corpo della risposta e' sempre {"error": "<code>"},
+ * e il frontend sceglie il messaggio da mostrare in base al codice.
  */
 public class ApiException extends RuntimeException {
 

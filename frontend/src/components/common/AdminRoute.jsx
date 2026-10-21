@@ -5,8 +5,8 @@ import EmptyState from './EmptyState.jsx';
 
 /**
  * Guardia per il pannello Admin: richiede utente autenticato con ruolo ADMIN.
- * Il campo `role` arriverà dal backend in Fase 2 (schema Prisma User.role);
- * finché non è presente, l'accesso viene negato in modo esplicito (fail-closed).
+ * Il ruolo arriva dal backend nel profilo dell'utente (`user.role`): senza ruolo ADMIN,
+ * o se il campo manca, l'accesso viene negato in modo esplicito (fail-closed).
  */
 export default function AdminRoute() {
   const { isAuthenticated, loading, user } = useAuth();

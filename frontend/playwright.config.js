@@ -5,7 +5,7 @@ import { defineConfig } from '@playwright/test';
  *
  * Servono il backend Spring (con il suo database) e il frontend in esecuzione:
  *   cd BE && ./mvnw spring-boot:run
- *   cd frontend && npm run e2e
+ *   cd frontend && npm run test:e2e   (oppure npm run e2e)
  * `npm run e2e` avvia da solo il server di sviluppo di Vite se non e' gia' acceso.
  * Per provare un altro indirizzo: E2E_BASE_URL=http://localhost:5199 npm run e2e
  * Si usa il Chrome installato (channel "chrome"): niente browser da scaricare.

@@ -21,11 +21,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import com.capstone.vinyldex.config.OpenApiConfig.Tags;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * Pannello admin dell'hotel (solo ruolo ADMIN, come tutto /api/admin): eventi a orario creati
  * senza toccare il codice, asta a comando, moderazione della chat e annunci.
  */
+@Tag(name = Tags.ADMIN, description = Tags.ADMIN_INFO)
 @RestController
 @RequestMapping("/api/admin/hotel")
 public class AdminHotelController {
@@ -60,6 +64,7 @@ public class AdminHotelController {
 
     // ---- eventi
 
+    @Operation(summary = "Eventi a orario dell'hotel")
     @GetMapping("/events")
     public Map<String, Object> listEvents() {
         Map<String, Object> result = new LinkedHashMap<>();
@@ -71,6 +76,7 @@ public class AdminHotelController {
         return result;
     }
 
+    @Operation(summary = "Crea un evento a orario dell'hotel")
     @PostMapping("/events")
     @Transactional
     public Map<String, Object> createEvent(@RequestBody EventDto body) {
@@ -94,6 +100,7 @@ public class AdminHotelController {
         return listEvents();
     }
 
+    @Operation(summary = "Attiva o sospende un evento dell'hotel")
     @PostMapping("/events/{id}/toggle")
     public Map<String, Object> toggleEvent(@PathVariable UUID id) {
         jdbc.update("UPDATE hotel_custom_events SET active = NOT active WHERE id = ?", id);
@@ -101,6 +108,7 @@ public class AdminHotelController {
         return listEvents();
     }
 
+    @Operation(summary = "Elimina un evento dell'hotel")
     @DeleteMapping("/events/{id}")
     public Map<String, Object> deleteEvent(@PathVariable UUID id) {
         jdbc.update("DELETE FROM hotel_custom_events WHERE id = ?", id);
@@ -110,16 +118,19 @@ public class AdminHotelController {
 
     // ---- asta
 
+    @Operation(summary = "Stato dell'asta dell'hotel")
     @GetMapping("/auction")
     public Map<String, Object> auction() {
         return auctions.overview();
     }
 
+    @Operation(summary = "Avvia un'asta")
     @PostMapping("/auction")
     public Map<String, Object> startAuction(@RequestBody AuctionDto body) {
         return auctions.startNow(body.card(), body.startBid(), body.minutes());
     }
 
+    @Operation(summary = "Annulla l'asta in corso")
     @PostMapping("/auction/cancel")
     public Map<String, Object> cancelAuction() {
         return auctions.cancel();
@@ -127,6 +138,7 @@ public class AdminHotelController {
 
     // ---- moderazione
 
+    @Operation(summary = "Ultimi messaggi della chat dell'hotel")
     @GetMapping("/chat")
     public Map<String, Object> chat() {
         List<Map<String, Object>> muted = registry.muted().entrySet().stream().map(e -> {
@@ -139,6 +151,7 @@ public class AdminHotelController {
         return Map.of("messages", registry.recentChat(), "muted", muted);
     }
 
+    @Operation(summary = "Silenzia un utente nella chat")
     @PostMapping("/users/{userId}/mute")
     public Map<String, Object> mute(@PathVariable UUID userId, @RequestBody MuteDto body) {
         int minutes = Math.max(1, Math.min(24 * 60, body.minutes()));
@@ -148,6 +161,7 @@ public class AdminHotelController {
         return chat();
     }
 
+    @Operation(summary = "Toglie il silenzio a un utente")
     @PostMapping("/users/{userId}/unmute")
     public Map<String, Object> unmute(@PathVariable UUID userId) {
         registry.unmute(userId);
@@ -157,6 +171,7 @@ public class AdminHotelController {
     }
 
     /** Annuncio a tutto l'hotel (compare a tutti come avviso). */
+    @Operation(summary = "Annuncio a tutto l'hotel")
     @PostMapping("/announce")
     public Map<String, Object> announce(@RequestBody AnnounceDto body) {
         if (body.text() == null || body.text().isBlank()) throw ApiException.badRequest("announce_empty");

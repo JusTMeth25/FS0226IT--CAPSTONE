@@ -20,6 +20,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
+import com.capstone.vinyldex.config.OpenApiConfig.Tags;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 
 /**
  * Ripropone dal nostro dominio l'immagine di una carta importata da una fonte esterna.
@@ -31,6 +35,7 @@ import java.util.concurrent.TimeUnit;
  * L'URL da scaricare non arriva mai dalla richiesta: viene letto dalla carta salvata nel database.
  * Cosi' l'endpoint non puo' essere usato per far chiamare al server indirizzi arbitrari.
  */
+@Tag(name = Tags.CARTE, description = Tags.CARTE_INFO)
 @RestController
 @RequestMapping("/api")
 public class CardImageController {
@@ -56,6 +61,9 @@ public class CardImageController {
     }
 
     /** id e' il code pubblico della carta, come in GET /api/cards/{id}. */
+    @Operation(summary = "Immagine di una carta importata",
+            description = "Ripropone dal nostro dominio l'immagine della fonte esterna, così il frontend la può usare anche in WebGL. id è il code pubblico della carta.")
+    @SecurityRequirements
     @GetMapping("/cards/{id}/image")
     public ResponseEntity<byte[]> getCardImage(@PathVariable String id) {
         Card card = cardRepository.findByCode(id)

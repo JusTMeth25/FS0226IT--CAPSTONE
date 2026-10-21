@@ -8,7 +8,7 @@ import { HALF_W } from '../iso.js';
 
 /**
  * Auto sportive del quartiere con i modelli 3D di Sketchfab (frontend/public/models/cars, scaricati
- * da BE/scripts/sketchfab_cars.py, licenza CC Attribution: i crediti sono in credits.json).
+ * da tools/sketchfab_cars.py, licenza CC Attribution: i crediti sono in credits.json).
  *
  * La stanza e' disegnata in 2D: ogni modello si rende una volta sola, con una camera ortografica
  * alla stessa angolazione dell'hotel (dimetrica 2:1), in 16 direzioni. Per ogni direzione due

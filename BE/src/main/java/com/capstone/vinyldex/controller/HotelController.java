@@ -15,8 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 import java.util.UUID;
+import com.capstone.vinyldex.config.OpenApiConfig.Tags;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /** Profili dei giocatori come li mostra la scheda dell'hotel. */
+@Tag(name = Tags.HOTEL, description = Tags.HOTEL_INFO)
 @RestController
 @RequestMapping("/api/hotel")
 public class HotelController {
@@ -29,6 +33,8 @@ public class HotelController {
     }
 
     /** Classifica della gara rock per canzone, difficolta' e strumento. */
+    @Operation(summary = "Classifica della gara rock",
+            description = "Per canzone, difficoltà e strumento.")
     @org.springframework.web.bind.annotation.GetMapping("/rock-scores")
     public java.util.Map<String, Object> rockScores(@org.springframework.web.bind.annotation.RequestParam String song,
                                                     @org.springframework.web.bind.annotation.RequestParam String difficulty,
@@ -48,12 +54,14 @@ public class HotelController {
     }
 
     /** Incarichi degli NPC di oggi, con le carte del giocatore che vanno bene. */
+    @Operation(summary = "Incarichi degli NPC di oggi")
     @GetMapping("/quests")
     public Map<String, Object> quests(@CurrentUser UserPrincipal principal) {
         return questService.quests(principal.getId());
     }
 
     /** Consegna una carta per un incarico: { "card": "codice" }. */
+    @Operation(summary = "Consegna una carta per un incarico")
     @PostMapping("/quests/{index}")
     public Map<String, Object> deliver(@CurrentUser UserPrincipal principal, @PathVariable int index,
                                        @RequestBody Map<String, String> body) {
@@ -61,6 +69,7 @@ public class HotelController {
     }
 
     /** Il tutorial dell'hotel e' gia' stato visto? La guida si presenta solo alla prima visita. */
+    @Operation(summary = "Il tutorial dell'hotel è già stato visto?")
     @GetMapping("/tutorial")
     public Map<String, Object> tutorial(@CurrentUser UserPrincipal principal) {
         boolean done = userRepository.findById(principal.getId()).map(u -> u.isHotelTutorialDone()).orElse(true);
@@ -68,6 +77,7 @@ public class HotelController {
     }
 
     /** Tutorial finito (o saltato): non si ripresenta piu'. */
+    @Operation(summary = "Segna il tutorial come visto")
     @PostMapping("/tutorial")
     @Transactional
     public Map<String, Object> tutorialDone(@CurrentUser UserPrincipal principal) {
@@ -76,17 +86,20 @@ public class HotelController {
     }
 
     /** Distintivo da mostrare accanto al nome nell'hotel: { "code": "set-..." }, null per toglierlo. */
+    @Operation(summary = "Distintivo accanto al nome")
     @PutMapping("/badge")
     public Map<String, Object> wearBadge(@CurrentUser UserPrincipal principal, @RequestBody Map<String, String> body) {
         return socialService.wear(principal.getId(), body == null ? null : body.get("code"));
     }
 
     /** Carte sopra la testa dell'avatar: { "cards": ["codice", ...] } al massimo tre, [] per l'automatico. */
+    @Operation(summary = "Carte sopra la testa dell'avatar")
     @PutMapping("/top-cards")
     public Map<String, Object> topCards(@CurrentUser UserPrincipal principal, @RequestBody Map<String, java.util.List<String>> body) {
         return socialService.chooseTopCards(principal.getId(), body == null ? null : body.get("cards"));
     }
 
+    @Operation(summary = "Scheda di un giocatore nell'hotel")
     @GetMapping("/profile/{userId}")
     public Map<String, Object> profile(@CurrentUser UserPrincipal principal, @PathVariable UUID userId) {
         return socialService.profile(principal.getId(), userId);

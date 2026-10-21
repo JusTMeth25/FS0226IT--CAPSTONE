@@ -1,7 +1,7 @@
 import CardTile from '../card/CardTile.jsx';
 import '../../styles/home/shelf.css';
 
-/** Traguardi dell'album in percentuale: gli stessi di AlbumProgress. */
+/** Traguardi dell'album in percentuale. */
 const MILESTONES = [25, 50, 75, 100];
 
 const intFmt = new Intl.NumberFormat('it-IT');

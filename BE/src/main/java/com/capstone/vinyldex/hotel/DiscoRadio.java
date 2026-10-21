@@ -12,7 +12,7 @@ import java.util.Map;
 
 /**
  * La musica vera della Disco: i set dei DJ (resources/music/djs.json, preparato da
- * BE/scripts/disco_djs.py) con le anteprime ufficiali di 30 secondi di Apple Music (iTunes Search
+ * tools/disco_djs.py) con le anteprime ufficiali di 30 secondi di Apple Music (iTunes Search
  * API). Ogni DJ e' un personaggio ispirato a un DJ o a un cantante vero e suona i brani
  * dell'artista a cui e' ispirato; finito il suo set alla consolle sale il DJ successivo.
  *

@@ -14,8 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import com.capstone.vinyldex.config.OpenApiConfig.Tags;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /** Mostra delle collezioni: esposizione della settimana e voti. */
+@Tag(name = Tags.HOTEL, description = Tags.HOTEL_INFO)
 @RestController
 @RequestMapping("/api/hotel/gallery")
 public class GalleryController {
@@ -29,16 +33,19 @@ public class GalleryController {
     public record ExhibitDto(List<String> cards) {
     }
 
+    @Operation(summary = "Mostra delle collezioni della settimana")
     @GetMapping
     public Map<String, Object> overview(@CurrentUser UserPrincipal principal) {
         return galleryService.overview(principal.getId());
     }
 
+    @Operation(summary = "Sceglie le carte da esporre")
     @PutMapping
     public Map<String, Object> exhibit(@CurrentUser UserPrincipal principal, @RequestBody ExhibitDto body) {
         return galleryService.exhibit(principal.getId(), body.cards());
     }
 
+    @Operation(summary = "Vota l'esposizione di un giocatore")
     @PostMapping("/{userId}/vote")
     public Map<String, Object> vote(@CurrentUser UserPrincipal principal, @PathVariable UUID userId) {
         return galleryService.vote(principal.getId(), userId);

@@ -38,5 +38,6 @@ build/
 .env.*
 !.env.example
 
-# Dump di Supabase generato da scripts/migrate-from-supabase.sh (contiene dati utente)
-scripts/supabase-dump.sql
+# Dump di database fatti a mano (contengono dati utente)
+*.dump
+scripts/*.sql

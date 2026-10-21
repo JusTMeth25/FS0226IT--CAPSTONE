@@ -1224,7 +1224,7 @@ function hashDot(x, y) {
  * Quartiere: il viale (orizzontale) e la via (verticale) si incrociano al centro della stanza,
  * con i marciapiedi, le strisce pedonali e le linee di mezzeria. Le quattro zone fra le strade:
  * piazze lastricate in alto (i negozi), il parco a sinistra in basso, i prati delle ville a destra.
- * Le stesse misure le usa BE/scripts/hotel_rooms.py per mettere negozi e ville.
+ * Le stesse misure le usa tools/hotel_rooms.py per mettere negozi e ville.
  */
 export function streetPlan(layout) {
   let x1 = 0; let y1 = 0;
@@ -1311,7 +1311,7 @@ FLOOR_FACTORIES.street = (layout) => {
 };
 
 /**
- * Citta' del Quartiere (BE/scripts/hotel_rooms.py, CITY_ROWS e CITY_COL): quattro viali
+ * Citta' del Quartiere (tools/hotel_rooms.py, CITY_ROWS e CITY_COL): quattro viali
  * orizzontali larghi 4 caselle, una via verticale fra il primo e l'ultimo, marciapiedi, la fila dei
  * palazzi sopra ogni viale, giardini fra un viale e la fila dopo, la piazza in alto e le ville in
  * fondo, nei lotti con la siepe.

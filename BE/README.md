@@ -1,12 +1,11 @@
-# VinylDex — Backend Spring Boot
+# ⚙️ VinylDex — Backend Spring Boot
 
-API REST del capstone. Ha sostituito il backend Node/Express/Prisma mantenendone la stessa
-superficie HTTP, percio' il frontend non ha richiesto modifiche. Il codice precedente resta
-nella storia di git.
+API REST e WebSocket dell'hotel: tutta la logica di gioco di VinylDex.
 
 - **Spring Boot 4.1.1** su **Java 25**
-- **PostgreSQL** locale (`FS0226IT-CAPSTONE`), schema gestito da **Flyway**
-- **Spring Security** con JWT stateless (jjwt), password BCrypt
+- **PostgreSQL**, schema gestito da **Flyway**
+- **Spring Security** con JWT stateless (jjwt) in cookie HttpOnly o Bearer, password BCrypt
+- **WebSocket** per l'hotel in tempo reale, **springdoc-openapi** per la documentazione
 
 ---
 
@@ -24,7 +23,7 @@ nella storia di git.
 
 ```bash
 # 1. Creare il database (da pgAdmin oppure da riga di comando)
-createdb -U postgres -E UTF8 "FS0226IT-CAPSTONE"
+createdb -U postgres -E UTF8 vinyldex
 
 # 2. Impostare i segreti
 cp .env.example .env    # poi compilare DB_PASSWORD e JWT_SECRET
@@ -46,8 +45,7 @@ gitignorato.
 
 Le due variabili obbligatorie sono `DB_PASSWORD` e `JWT_SECRET`. `JWT_SECRET` deve
 misurare almeno 32 byte: l'applicazione si rifiuta di partire se e' piu corto.
-E' lo stesso segreto che usava il backend Node, cosi' i token gia emessi sono rimasti
-validi durante il passaggio.
+Cambiarlo invalida tutti i token gia' emessi.
 
 L'elenco completo sta in `.env.example`.
 
@@ -85,121 +83,76 @@ src/main/java/com/capstone/vinyldex/
 
 ## Database
 
-Lo schema e definito in `src/main/resources/db/migration/V1__init_schema.sql` e applicato
-da Flyway all'avvio. Hibernate e in modalita `validate`: non genera DDL, ma segnala subito
-se entita e tabelle divergono.
+Lo schema nasce da `src/main/resources/db/migration/V1__init_schema.sql` ed evolve con le migrazioni
+successive (86 in tutto), applicate da Flyway all'avvio. Hibernate e' in modalita' `validate`: non genera DDL,
+ma segnala subito se entita' e tabelle divergono.
 
-Per cambiare lo schema si aggiunge un nuovo file `V2__...sql`. Non si modifica mai una
-migrazione gia applicata: Flyway confronta il checksum e rifiuta di partire.
+Per cambiare lo schema si aggiunge un nuovo file `V<n>__descrizione.sql`. Non si modifica mai una migrazione
+gia' applicata: Flyway confronta il checksum e rifiuta di partire.
 
-### Migrazione dei dati da Supabase (gia' eseguita)
-
-Il travaso dal vecchio database Supabase e' stato completato: 20 tabelle, 2099 righe,
-conteggi identici fra origine e destinazione. Gli hash BCrypt sono arrivati invariati da
-bcryptjs, quindi gli account esistenti funzionano con la stessa password.
-
-Gli script restano in `scripts/` come riferimento, per ripetere l'operazione su un'altra
-macchina o per ripartire da un backup:
-
-```bash
-export SUPABASE_DATABASE_URL="..."   # stringa in modalita' Session, porta 5432
-export PGPASSWORD="..."              # password postgres locale
-
-./scripts/migrate-from-supabase.sh            # crea il DB, scarica il dump, lo mette in "legacy"
-./mvnw spring-boot:run                        # Flyway crea lo schema nuovo, poi fermare
-psql -U postgres -d "FS0226IT-CAPSTONE" -v ON_ERROR_STOP=1 -f scripts/import-legacy-data.sql
-```
-
-`import-legacy-data.sql` traduce i nomi Prisma (`"User"`, `"passwordHash"`) in quelli
-snake_case dello schema nuovo, e in coda stampa un confronto riga per riga fra origine e
-destinazione. Quando i conteggi coincidono si elimina lo schema di appoggio:
-
-```bash
-psql -U postgres -d "FS0226IT-CAPSTONE" -c "DROP SCHEMA legacy CASCADE;"
-```
-
-Attenzione: `pg_dump` non funziona con il pooler Supabase in modalita' Transaction
-(porta 6543). Serve la stringa in modalita' Session, porta 5432.
+---
 
 ## Endpoint
 
-### Pubblici
-| Metodo | Percorso | Descrizione |
-|---|---|---|
-| GET | `/health` | Stato applicazione e database |
-| POST | `/api/auth/register` | Registrazione |
-| POST | `/api/auth/login` | Accesso |
-| GET | `/api/cards/{code}` | Dettaglio carta |
-| GET | `/api/packs` | Pacchetti (con token: anche quelli regalati) |
-| GET | `/api/market/listings` | Inserzioni attive |
-| GET | `/api/events` | Eventi in corso |
-| GET | `/api/leaderboard` | Classifica (`?type=collection\|gold\|battles`) |
+Tutti gli endpoint REST sono documentati con **OpenAPI 3** (springdoc), raggruppati per area:
 
-### Autenticati
-| Metodo | Percorso | Descrizione |
-|---|---|---|
-| GET | `/api/auth/profile` | Profilo corrente |
-| PATCH | `/api/auth/avatar` | Cambio avatar |
-| GET | `/api/collection` | Catalogo con stato di possesso |
-| POST | `/api/collection/{code}/favorite` | Preferito on/off |
-| POST | `/api/open-pack` | Apertura pacchetto |
-| POST | `/api/market/list` | Metti in vendita |
-| POST | `/api/market/buy` | Acquista |
-| DELETE | `/api/market/listings/{id}` | Ritira inserzione |
-| POST | `/api/trades` | Proponi scambio |
-| GET | `/api/trades/incoming` · `/outgoing` | Scambi |
-| POST | `/api/trades/{id}/accept` · `/reject` · `/cancel` | Esito scambio |
-| GET | `/api/missions` | Missioni con progresso |
-| POST | `/api/missions/{code}/claim` | Riscuoti ricompensa |
-| POST | `/api/missions/daily-login/claim` | Bonus giornaliero |
-| POST | `/api/battles/reward` | Ricompensa di battaglia |
+- Swagger UI: `http://localhost:4000/api/docs` (online: https://vinyldex.duckdns.org/api/docs)
+- Specifica JSON: `/api/docs/openapi.json`
 
-### Solo amministratori (`ROLE_ADMIN`)
-`/api/admin/**` — utenti, carte, pacchetti, missioni, eventi, log, import.
-`/api/ai/**` — generazione immagini.
+Pubblici, senza login: `/health`, registrazione, accesso e recupero password, catalogo delle carte, pacchetti,
+inserzioni del mercato, eventi, classifica e documentazione. Tutto il resto richiede la sessione.
+`/api/admin/**` e `/api/ai/**` sono riservati al ruolo `ADMIN`.
 
-> **Differenza rispetto al backend Node:** `/api/ai/generate-batch` era raggiungibile da
-> chiunque. Qui richiede il ruolo amministratore, perche ogni chiamata consuma credito
-> OpenAI a pagamento.
+L'hotel in tempo reale usa il WebSocket `/ws/hotel`: il protocollo dei messaggi e' descritto in testa a
+`hotel/HotelSocketHandler.java`.
+
+### Autenticazione
+
+- **Sito:** il login risponde con il cookie `vinyldex_session` (`HttpOnly`, `Secure`, `SameSite=Strict`). Le
+  richieste che modificano dati fatte col cookie devono avere l'intestazione `X-VinylDex-Client`
+  (protezione CSRF).
+- **App nativa e prove da Swagger:** login con `X-VinylDex-Client: native`, che restituisce il token nel corpo,
+  poi `Authorization: Bearer <token>`.
 
 ### Formato degli errori
 
-Sempre `{"error": "<codice>"}`, con gli stessi codici del backend Node
-(`insufficient_gold`, `card_not_found`, `cooldown`, `forbidden`, …), cosi il frontend
-non richiede modifiche.
+Sempre `{"error": "<codice>"}` (`insufficient_gold`, `card_not_found`, `cooldown`,
+`forbidden`, …): il frontend sceglie il messaggio da mostrare in base al codice.
 
 ---
 
 ## Import di carte esterne
 
-Nove fonti: Pokemon TCG, Scryfall, YGOPRODeck, One Piece, Digimon, Lorcana, Riftbound,
-Gundam, Dragon Ball.
+Ventitre fonti, una classe per fonte in `importer/sources/`: Pokemon TCG (anche Giappone e promo), Scryfall
+(Magic), YGOPRODeck (Yu-Gi-Oh!), One Piece, Digimon, Lorcana, Riftbound, Gundam, Dragon Ball, Weiss Schwarz,
+Vanguard, Shadowverse, Union Arena, NIKKE, hololive, WIXOSS, Grand Archive, Cyberpunk, NBA ed EA FC 27.
 
 `POST /api/admin/import/{fonte}` con corpo facoltativo `{ "limit": 100, "page": 3 }`.
 
-Quando possibile la rarita non viene presa da quella dichiarata dall'editore ma dedotta dal
-prezzo di mercato reale, con soglie calibrate per fonte (vedi `PriceRarityMapper`): una carta
-da 300 dollari diventa `legendary` qualunque simbolo porti stampato.
+Quando possibile la rarita' non viene presa da quella dichiarata dall'editore ma dedotta dal prezzo di mercato
+reale, con soglie calibrate per fonte (vedi `PriceRarityMapper`): una carta da 300 dollari diventa `legendary`
+qualunque simbolo porti stampato.
 
-Se una API non risponde, l'import non fallisce: salva un paio di carte segnaposto disattivate
-e restituisce `usedFallback: true` con il motivo. Le carte segnaposto restano `is_active = false`,
-quindi non escono mai dai pacchetti veri.
+Se una API non risponde, l'import non fallisce: salva un paio di carte segnaposto disattivate e restituisce
+`usedFallback: true` con il motivo. Le carte segnaposto restano `is_active = false`, quindi non escono mai dai
+pacchetti veri.
 
-Aggiungere una fonte significa scrivere una classe che estende `AbstractCardImporter`:
-Spring la registra da sola, senza toccare controller o servizi.
+Aggiungere una fonte significa scrivere una classe che estende `AbstractCardImporter`: Spring la registra da
+sola, senza toccare controller o servizi.
 
 ---
 
 ## Test
 
 ```bash
-./mvnw test
+./mvnw test      # test unitari e di integrazione
+./mvnw verify    # in piu' il report di copertura JaCoCo in target/site/jacoco/index.html
 ```
 
-I test di logica pura (livelli, JWT, soglie di rarita) girano sempre. Il test di avvio del
-contesto richiede un database: gira se esiste `BE/.env` oppure se `DB_PASSWORD` e impostata
-nell'ambiente, altrimenti viene saltato, cosi la suite resta verde su una macchina appena
-clonata.
+I test di logica pura (livelli, JWT, soglie di rarita', freno ai tentativi, casino'...) girano sempre. Quelli di
+integrazione usano un vero PostgreSQL: girano se esiste `BE/.env` o se le credenziali del database sono nelle
+variabili d'ambiente, altrimenti vengono saltati, cosi' la suite resta verde su una macchina appena clonata.
+In GitHub Actions girano tutti, con un PostgreSQL di servizio (vedi `.github/workflows/ci.yml`).
 
 ---
 

@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
  *   contiene i dati in JSON (__NEXT_DATA__), 100 giocatori per pagina. Non ha ne' icone ne' prezzi;
  * - FutDB (futdb.app), un'API gratuita con chiave (FUTDB_API_KEY): prezzi veri. Si usa chiedendo
  *   l'import con query "futdb";
- * - un elenco fisso nel progetto (resources/fc27/cards.json, generato da scripts/fc27_cards.py):
+ * - un elenco fisso nel progetto (resources/fc27/cards.json, generato da tools/fc27_cards.py):
  *   i primi 100 della classifica EA piu' le icone, sempre disponibile anche senza rete.
  *
  * I siti dei prezzi (FUTBIN, FUT.GG) bloccano le letture automatiche: senza FutDB il prezzo in

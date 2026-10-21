@@ -51,6 +51,14 @@
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 
+		<!-- Documentazione delle API: OpenAPI 3 in /api/docs/openapi.json e Swagger UI in /api/docs.
+		     La serie 3.x di springdoc e' quella per Spring Boot 4. -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>3.1.1</version>
+		</dependency>
+
 		<!-- JWT -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
@@ -139,6 +147,28 @@
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
+			</plugin>
+			<!-- Copertura dei test con JaCoCo: l'agente parte coi test, il report finisce in
+			     target/site/jacoco/ (index.html, jacoco.xml) con "mvnw verify". -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.15</version>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

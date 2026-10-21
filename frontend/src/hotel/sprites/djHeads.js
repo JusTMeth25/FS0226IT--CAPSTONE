@@ -7,7 +7,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 
 /**
  * Caschi dei DJ della Disco (parte "d" del codice aspetto): modelli 3D di Sketchfab (licenza CC
- * Attribution, crediti in public/models/djs/credits.json, scaricati da BE/scripts/sketchfab_djs.py).
+ * Attribution, crediti in public/models/djs/credits.json, scaricati da tools/sketchfab_djs.py).
  *
  * Gli avatar sono disegnati in 2D, di tre quarti (il viso guarda a destra) e di spalle: ogni
  * casco si rende una volta sola in queste due viste e si incolla al posto della testa. Finche' il

@@ -1,15 +1,24 @@
 import { test, expect } from '@playwright/test';
-import { loginAs, registerUser } from './helpers.js';
+import { authenticate, loginAs, registerUser, skipFirstRunNotices } from './helpers.js';
 
 test.describe('VinylDex', () => {
   test('registrazione dalla pagina di accesso e arrivo in home', async ({ page }) => {
     const username = `pw_${Math.random().toString(36).slice(2, 8)}`;
+    await skipFirstRunNotices(page);
     await page.goto('/#/register');
     await page.locator('#auth-username').fill(username);
     await page.locator('#auth-reg-email').fill(`${username}@test.local`);
     await page.locator('#auth-reg-pass').fill('Password123!');
     await page.getByRole('button', { name: 'Crea Account' }).click();
     await expect(page.locator('.home-hero-title')).toContainText(username);
+    // Sessione nel cookie HttpOnly: in localStorage resta solo il segnale, mai il token.
+    const stored = await page.evaluate(() => ({
+      session: localStorage.getItem('vinyldex_session'),
+      token: localStorage.getItem('vinyldex_token')
+    }));
+    expect(stored).toEqual({ session: '1', token: null });
+    const cookies = await page.context().cookies();
+    expect(cookies.find((c) => c.name === 'vinyldex_session')?.httpOnly).toBe(true);
   });
 
   test('home: benvenuto, numeri e scorciatoie', async ({ page, request }) => {
@@ -56,8 +65,7 @@ test.describe('VinylDex', () => {
 
   test('giro guidato alla prima visita dei pacchetti', async ({ page, request }) => {
     const user = await registerUser(request);
-    await page.goto('/');
-    await page.evaluate(({ token }) => localStorage.setItem('vinyldex_token', token), user);
+    await authenticate(page, user);
     await page.goto('/#/packs');
     await page.reload();
     await expect(page.locator('.page-tour-tip')).toContainText('I tuoi gold');
@@ -68,6 +76,17 @@ test.describe('VinylDex', () => {
     await page.reload();
     await expect(page.locator('.pity-bar')).toBeVisible();
     await expect(page.locator('.page-tour')).toHaveCount(0);
+  });
+
+  test('avviso sulla fotosensibilità al primo avvio: "Continua" lo chiude per sempre', async ({ page }) => {
+    await page.goto('/#/login');
+    const notice = page.getByRole('dialog', { name: /avviso sulla fotosensibilità/i });
+    await expect(notice).toBeVisible();
+    await notice.getByRole('button', { name: 'Continua' }).click();
+    await expect(notice).toHaveCount(0);
+    await page.reload();
+    await expect(page.locator('#auth-username, input').first()).toBeVisible();
+    await expect(notice).toHaveCount(0);
   });
 
   test('PWA: manifest e service worker disponibili', async ({ request }) => {

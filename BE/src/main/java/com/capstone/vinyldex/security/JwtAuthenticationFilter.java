@@ -28,8 +28,7 @@ import java.util.Set;
  *
  * Un token assente o non valido non interrompe la catena: la richiesta prosegue senza
  * autenticazione e sono le regole di SecurityConfig a decidere se respingerla. Serve agli
- * endpoint pubblici che mostrano dati in piu' all'utente loggato, cioe' l'equivalente di
- * optionalCurrentUser nel vecchio backend Node.
+ * endpoint pubblici che mostrano dati in piu' all'utente loggato (autenticazione facoltativa).
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

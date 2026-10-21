@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import com.capstone.vinyldex.config.OpenApiConfig.Tags;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 
 /** Endpoint di contorno: eventi, classifiche e ricompense di battaglia. */
 @RestController
@@ -38,23 +42,33 @@ public class GameController {
         this.battleService = battleService;
     }
 
+    @Tag(name = Tags.EVENTI, description = Tags.EVENTI_INFO)
+    @Operation(summary = "Eventi attivi")
+    @SecurityRequirements
     @GetMapping("/events")
     public Map<String, List<EventDto>> events() {
         return Map.of("events", eventService.listActive());
     }
 
     /** Classifica di un gioco (carte diverse possedute) con il premio settimanale. */
+    @Tag(name = Tags.CLASSIFICA, description = Tags.CLASSIFICA_INFO)
+    @Operation(summary = "Classifica di un gioco con il premio settimanale")
     @GetMapping("/leaderboard/games")
     public Map<String, Object> gameLeaderboard(@RequestParam(required = false) String source) {
         return gameLeaderboardService.leaderboard(source);
     }
 
+    @Tag(name = Tags.CLASSIFICA, description = Tags.CLASSIFICA_INFO)
+    @Operation(summary = "Classifica generale")
+    @SecurityRequirements
     @GetMapping("/leaderboard")
     public Map<String, List<LeaderboardEntryDto>> leaderboard(
             @RequestParam(required = false, defaultValue = "collection") String type) {
         return Map.of("entries", leaderboardService.getLeaderboard(type));
     }
 
+    @Tag(name = Tags.BATTAGLIE, description = Tags.BATTAGLIE_INFO)
+    @Operation(summary = "Riscuote la ricompensa di una battaglia")
     @PostMapping("/battles/reward")
     public BattleService.BattleRewardResult battleReward(@CurrentUser UserPrincipal principal,
                                                          @Valid @RequestBody GameRequests.BattleRewardRequest request) {

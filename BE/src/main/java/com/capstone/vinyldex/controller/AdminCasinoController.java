@@ -15,8 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
+import com.capstone.vinyldex.config.OpenApiConfig.Tags;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /** Incassi del casino: il gestore (admin) vede la cassa del banco e la riscuote dalla cassaforte del Caveau. */
+@Tag(name = Tags.ADMIN, description = Tags.ADMIN_INFO)
 @RestController
 @RequestMapping("/api/admin/casino")
 @PreAuthorize("hasRole('ADMIN')")
@@ -33,12 +37,15 @@ public class AdminCasinoController {
     public record WithdrawRequest(String currency, Long amount) {
     }
 
+    @Operation(summary = "Cassa del banco del casinò")
     @GetMapping("/bank")
     public Map<String, Object> bank() {
         return bank.view();
     }
 
     /** {"currency": "gold" | "chips", "amount": n} — senza amount (o 0) si riscuote tutto. */
+    @Operation(summary = "Riscuote gli incassi del casinò",
+            description = "Si riscuote solo stando nel Caveau dell'hotel. Senza amount (o con 0) si ritira tutto.")
     @PostMapping("/bank/withdraw")
     public Map<String, Object> withdraw(@CurrentUser UserPrincipal principal, @RequestBody WithdrawRequest request) {
         // Si riscuote solo dalla cassaforte, stando nel Caveau dell'hotel.

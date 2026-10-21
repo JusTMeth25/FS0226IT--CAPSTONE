@@ -1,0 +1,115 @@
+# Integrazione continua: test del backend Spring (con Postgres vero, per i test di integrazione)
+# e lint, test unitari e build del frontend React.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Un nuovo push sullo stesso ramo (o sulla stessa pull request) annulla la run ancora in corso.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (Maven verify + JaCoCo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: BE
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: vinyldex_test
+          POSTGRES_USER: vinyldex
+          POSTGRES_PASSWORD: vinyldex_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vinyldex -d vinyldex_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      # Con DB_PASSWORD presente partono anche i test di integrazione
+      # (VinylDexApplicationTests#credenzialiDatabasePresenti); Flyway crea lo schema all'avvio.
+      DB_URL: jdbc:postgresql://localhost:5432/vinyldex_test
+      DB_USERNAME: vinyldex
+      DB_PASSWORD: vinyldex_ci
+      # Solo per i test: HS256 vuole almeno 32 byte (JwtService).
+      JWT_SECRET: ci-only-jwt-secret-not-used-anywhere-else-0123456789abcdef
+      JWT_EXPIRES_IN: 7d
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Java 25 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+          cache-dependency-path: BE/pom.xml
+
+      - name: Test e verifica
+        run: |
+          chmod +x mvnw
+          ./mvnw -B verify
+
+      - name: Report JaCoCo
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: BE/target/site/jacoco/
+          if-no-files-found: warn
+
+      - name: Report dei test (solo se falliscono)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: BE/target/surefire-reports/
+          if-no-files-found: ignore
+
+  frontend:
+    name: Frontend (lint, test, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Dipendenze
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test unitari
+        run: npm test
+
+      - name: Build
+        run: npm run build

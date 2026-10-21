@@ -13,8 +13,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.capstone.vinyldex.config.OpenApiConfig.Tags;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /** Negozio dell'hotel: oltre ai mobili, ricompra le carte che hanno un prezzo di mercato. */
+@Tag(name = Tags.MERCATO, description = Tags.MERCATO_INFO)
 @RestController
 @RequestMapping("/api/shop")
 public class ShopController {
@@ -32,11 +36,14 @@ public class ShopController {
     }
 
     /** Le carte che il negozio compra, con quanto offre per ognuna e i gold ancora ricavabili oggi. */
+    @Operation(summary = "Offerte del negozio per le proprie carte",
+            description = "Le carte che il negozio compra, quanto offre per ognuna e i gold ancora ricavabili oggi.")
     @GetMapping("/buyback")
     public CardBuybackService.Quotes quotes(@CurrentUser UserPrincipal principal) {
         return buybackService.quotes(principal.getId());
     }
 
+    @Operation(summary = "Vende una carta al negozio")
     @PostMapping("/buyback")
     public CardBuybackService.Sale sell(@CurrentUser UserPrincipal principal, @Valid @RequestBody SellRequest request) {
         return buybackService.sell(principal.getId(), request.cardId(), request.quantity());

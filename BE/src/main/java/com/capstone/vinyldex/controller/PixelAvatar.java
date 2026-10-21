@@ -8,7 +8,7 @@ import java.util.Map;
  *
  * Mezzobusto frontale su una griglia 24x24: testa grande, contorno scuro, maglia con i colori
  * della nazionale. L'aspetto (pelle, capelli, barba) viene da metadata.look, scritto a mano per le
- * icone in scripts/fc27_cards.py; senza look si ricava dal nome, sempre uguale per lo stesso giocatore.
+ * icone in tools/fc27_cards.py; senza look si ricava dal nome, sempre uguale per lo stesso giocatore.
  *
  * Esce un frammento SVG (un &lt;svg&gt; annidato) da mettere nel riquadro della foto.
  */

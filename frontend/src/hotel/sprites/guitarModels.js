@@ -9,7 +9,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 /**
  * Chitarre del Rock Store con i modelli 3D dei controller veri di Guitar Hero e Rock Band
  * (Sketchfab, licenza CC Attribution, crediti in public/models/guitars/credits.json, scaricati da
- * BE/scripts/sketchfab_guitars.py).
+ * tools/sketchfab_guitars.py).
  *
  * Alcuni file contengono piu' varianti dello stesso controller: per ogni chitarra si tengono solo
  * le mesh scelte. Il modello si raddrizza da solo (manico in alto, faccia verso chi guarda) e si
