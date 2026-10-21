@@ -5,6 +5,7 @@ import RevealSpark from '../common/RevealSpark.jsx';
 import CardTile, { RarityBadge } from '../card/CardTile.jsx';
 import CardHero from '../card/CardHero.jsx';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock.js';
+import { useAccessibility } from '../../hooks/useAccessibility.js';
 import RevealStage from '../fx/RevealStage.jsx';
 import RarityAnnounce from '../fx/RarityAnnounce.jsx';
 import PackVerdict from '../fx/PackVerdict.jsx';
@@ -103,6 +104,9 @@ export default function PackOpeningFlow({ packId, cards, actions = [], onSummary
   // Nell'hotel lo stile Phantom e' spento, tranne nell'apertura dei pacchetti (HotelPackOpening lo chiede).
   const phantomPage = usePhantomSkin();
   const phantom = phantomProp ?? phantomPage;
+  // Modalita' sicura (fotosensibilita'): niente lampo bianco allo strappo ne' scheggia rossa che
+  // attraversa la carta. La stella dietro le epiche e le leggendarie resta.
+  const { safe } = useAccessibility();
 
   const [phase, setPhase] = useState('opening');
   const [revealIndex, setRevealIndex] = useState(0);
@@ -236,7 +240,7 @@ export default function PackOpeningFlow({ packId, cards, actions = [], onSummary
               >
                 {boxImage && <img className="pack-tear-img" src={boxImage} alt="" style={{ objectPosition: 'right center' }} draggable={false} />}
               </div>
-              <div className={`pack-tear-flash ${torn ? 'pack-tear-flash-burst' : ''}`} style={torn ? undefined : { opacity: dragProgress * 0.9 }} />
+              <div className={`pack-tear-flash ${torn && !safe ? 'pack-tear-flash-burst' : ''}`} style={safe ? { opacity: torn ? 0 : dragProgress * 0.4, transition: torn ? 'opacity 0.6s ease-out' : undefined } : (torn ? undefined : { opacity: dragProgress * 0.9 })} />
             </div>
           }>
             <PackTear3D
@@ -287,13 +291,13 @@ export default function PackOpeningFlow({ packId, cards, actions = [], onSummary
               <>
                 {/* Scheggia magenta che attraversa la carta mentre arriva, e una stella dietro le
                     epiche e le leggendarie: il colpo di scena prima ancora di leggerla. */}
-                <m.span
+                {!safe && <m.span
                   className="p5-reveal-slash"
                   aria-hidden="true"
                   initial={{ x: '-140%' }}
                   animate={{ x: '140%', transitionEnd: { visibility: 'hidden' } }}
                   transition={{ duration: 0.3, ease: [0.7, 0, 0.3, 1] }}
-                />
+                />}
                 {(currentCard.rarity === 'epic' || currentCard.rarity === 'legendary') && (
                   <m.span
                     className="p5-reveal-star"

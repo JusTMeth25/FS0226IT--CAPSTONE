@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect } from 'react';
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import { LazyMotion, MotionConfig, domAnimation } from 'motion/react';
 import PageWipe from './components/phantom/PageWipe.jsx';
 import AppLayout from './components/layout/AppLayout.jsx';
@@ -14,6 +14,9 @@ import HomePage from './pages/HomePage.jsx';
 import AuthPage from './pages/AuthPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 import LoadingSpinner from './components/common/LoadingSpinner.jsx';
+import PhotosensitivityNotice from './components/common/PhotosensitivityNotice.jsx';
+import { useAuth } from './hooks/useAuth.js';
+import { useAccessibility } from './hooks/useAccessibility.js';
 
 // Le pagine si scaricano quando si aprono (la Home e l'accesso subito): il primo caricamento e'
 // piu' leggero. L'attesa la mostra il Suspense del layout, attorno alla pagina.
@@ -34,6 +37,7 @@ const FusionPage = lazy(() => import('./pages/FusionPage.jsx'));
 const WishlistPage = lazy(() => import('./pages/WishlistPage.jsx'));
 const StatsPage = lazy(() => import('./pages/StatsPage.jsx'));
 const BinderPage = lazy(() => import('./pages/BinderPage.jsx'));
+const AccessibilityPage = lazy(() => import('./pages/AccessibilityPage.jsx'));
 // L'hotel ha un motore grafico tutto suo: si scarica solo quando ci si entra.
 const HotelPage = lazy(() => import('./pages/HotelPage.jsx'));
 
@@ -52,13 +56,30 @@ function usePhantomSkin(pathname) {
   return !inHotel;
 }
 
+/**
+ * Cornice delle pagine aperte a tutti (per ora l'accessibilita'): con l'account dentro il layout
+ * normale, senza account da sola a tutto schermo come la pagina di accesso.
+ */
+function PublicLayout() {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) return <LoadingSpinner label="Verifica sessione…" />;
+  if (isAuthenticated) return <AppLayout />;
+  return (
+    <main id="app-view" className="app-main public-main" role="main">
+      <Suspense fallback={<LoadingSpinner />}><Outlet /></Suspense>
+    </main>
+  );
+}
+
 export default function App() {
   const location = useLocation();
   const phantom = usePhantomSkin(location.pathname);
+  const { safe } = useAccessibility();
   return (
-    // Motion leggero (solo le animazioni del DOM) e spento con "riduci animazioni".
+    // Motion leggero (solo le animazioni del DOM), spento con "riduci animazioni" del sistema
+    // e sempre con la modalita' sicura per l'epilessia.
     <LazyMotion features={domAnimation} strict>
-    <MotionConfig reducedMotion="user">
+    <MotionConfig reducedMotion={safe ? 'always' : 'user'}>
       {phantom && <PageWipe path={location.pathname} />}
       {/* Sfondo animato a livello di applicazione e non dentro la shell: cosi' copre anche
           la pagina di accesso, che ora sta fuori dal layout per occupare tutto lo schermo. */}
@@ -67,6 +88,8 @@ export default function App() {
       <ClickSpark />
       {/* Controller Xbox e PlayStation: navigazione, puntatore e tastiera a schermo, su ogni pagina. */}
       <GamepadLayer />
+      {/* Avviso sui lampi di luce al primo avvio, prima ancora dell'accesso. */}
+      <PhotosensitivityNotice />
 
       <Routes>
         {/* Fuori dal layout: niente barra laterale, barra superiore o navigazione in basso.
@@ -75,6 +98,11 @@ export default function App() {
         <Route path="register" element={<AuthPage />} />
         <Route path="forgot-password" element={<AuthPage />} />
         <Route path="reset-password" element={<AuthPage />} />
+
+        {/* Aperta anche senza account: modalita' sicura e colori si scelgono prima di entrare. */}
+        <Route element={<PublicLayout />}>
+          <Route path="accessibility" element={<AccessibilityPage />} />
+        </Route>
 
         {/* Per giocare serve un account: non esiste piu' una modalita' ospite.
             ProtectedRoute avvolge l'intero layout, quindi ogni pagina interna e'

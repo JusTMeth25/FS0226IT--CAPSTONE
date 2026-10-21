@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { m } from 'motion/react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { useSound } from '../hooks/useSound.js';
 import { HOME_MODELS, modelSrc, pickHomeModel } from '../data/homeModels.js';
@@ -412,6 +412,10 @@ export default function AuthPage() {
             )}
           </div>
         )}
+        {/* Modalita' sicura, daltonismo e contrasto si scelgono anche prima di avere un account. */}
+        <p className="auth-switch auth-a11y-link">
+          <Link to="/accessibility" className="auth-switch-link"><i className="ph ph-wheelchair" aria-hidden="true" /> Accessibilità</Link>
+        </p>
         </m.div>
       </section>
     </main>

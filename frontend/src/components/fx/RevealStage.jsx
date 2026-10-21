@@ -1,5 +1,6 @@
 import { getRarityColor } from '../../utils/cardUtils.js';
 import { useReducedMotion } from '../../hooks/useReducedMotion.js';
+import { useAccessibility } from '../../hooks/useAccessibility.js';
 
 /**
  * Palcoscenico dietro alla carta rivelata.
@@ -21,6 +22,8 @@ const TIERS = {
 
 export default function RevealStage({ rarity, children }) {
   const reduced = useReducedMotion();
+  // Modalita' sicura (fotosensibilita'): niente lampo e niente scossa, i raggi restano.
+  const { safe } = useAccessibility();
   const tier = TIERS[rarity] || TIERS.common;
   const color = getRarityColor(rarity);
 
@@ -29,14 +32,14 @@ export default function RevealStage({ rarity, children }) {
   const classes = [
     'reveal-stage',
     `reveal-stage-${rarity}`,
-    !reduced && tier.shake ? 'reveal-stage-shake' : ''
+    !reduced && !safe && tier.shake ? 'reveal-stage-shake' : ''
   ].filter(Boolean).join(' ');
 
   return (
     <div className={classes} style={{ '--rarity-color': color, '--glow-strength': tier.glow }}>
       {!reduced && tier.rays && <span className="reveal-stage-rays" aria-hidden="true" />}
       <span className="reveal-stage-glow" aria-hidden="true" />
-      {!reduced && tier.flash && <span className="reveal-stage-flash" aria-hidden="true" />}
+      {!reduced && !safe && tier.flash && <span className="reveal-stage-flash" aria-hidden="true" />}
       <div className="reveal-stage-content">{children}</div>
     </div>
   );

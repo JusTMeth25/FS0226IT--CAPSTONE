@@ -1,4 +1,6 @@
 import { BASE_URL } from '../services/apiClient.js';
+import { getAccessibility } from '../services/accessibility.js';
+import { RARITY_PALETTES } from './rarityPalettes.js';
 /**
  * Utilità pure per la rappresentazione di una carta (rarità, stelle, punteggio).
  * Le carte sono semplici oggetti dati (non classi), coerenti col DTO restituito dal backend.
@@ -76,6 +78,9 @@ export function cardFinish(card) {
 }
 
 export function getRarityColor(rarity) {
+  // Modalita' daltonismo attiva: colori della sua palette (le rarita' sconosciute valgono comune).
+  const palette = RARITY_PALETTES[getAccessibility().cvd];
+  if (palette) return palette[RARITIES[rarity] ? rarity : 'common'];
   return getRarityData(rarity).color;
 }
 

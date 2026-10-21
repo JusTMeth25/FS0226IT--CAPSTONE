@@ -1,0 +1,176 @@
+/* ==========================================================================
+   Accessibilita': colori per il daltonismo (data-cvd su <html>, da services/accessibility.js).
+   rg = rosso-verde (protanopia, deuteranopia), by = blu-giallo (tritanopia), mono = scala di grigi.
+   ========================================================================== */
+
+/* ---------- Palette (le stesse di utils/rarityPalettes.js) ----------
+   Rarita': distinguibili fra loro anche nella simulazione della deficienza (Machado 2009) e
+   leggibili su fondo scuro (contrasto >= 4.5:1). Stato: --cvd-ok (successo, accettato, su,
+   occupato), --cvd-ko (errore, rifiutato, giu'), --cvd-pend (in attesa); le varianti -ink per
+   il testo su tasselli chiari, -solid per i fondi pieni (col loro colore del testo). */
+:root[data-cvd="rg"] {
+  --rarity-common: #868686;
+  --rarity-uncommon: #C0FFE5;
+  --rarity-rare: #88D0FF;
+  --rarity-epic: #6670E8;
+  --rarity-legendary: #FFF23E;
+  --rarity-mythic: #F63000;
+  --cvd-ok: #56B4E9;
+  --cvd-ko: #E8771F;
+  --cvd-pend: #FFF3A0;
+  --cvd-ok-ink: #005A9C;
+  --cvd-ko-ink: #9A4400;
+  --cvd-ok-solid: #005A9C;
+  --cvd-ok-solid-text: #fff;
+  --cvd-ko-solid: #9A4400;
+  --cvd-ko-solid-text: #fff;
+}
+:root[data-cvd="by"] {
+  --rarity-common: #878787;
+  --rarity-uncommon: #A5FFB1;
+  --rarity-rare: #087BF1;
+  --rarity-epic: #FF3DF5;
+  --rarity-legendary: #FFE300;
+  --rarity-mythic: #F70000;
+  --cvd-ok: #7FFFD4;
+  --cvd-ko: #FF5C5C;
+  --cvd-pend: #FFB0E0;
+  --cvd-ok-ink: #004D40;
+  --cvd-ko-ink: #D32F2F;
+  --cvd-ok-solid: #004D40;
+  --cvd-ok-solid-text: #fff;
+  --cvd-ko-solid: #D32F2F;
+  --cvd-ko-solid-text: #fff;
+}
+/* Scala di grigi: conta solo la luminosita', a passi uguali (comune la piu' scura, leggendaria
+   la piu' chiara); successo chiaro, errore scuro. */
+:root[data-cvd="mono"] {
+  --rarity-common: #7B7B7B;
+  --rarity-uncommon: #8E8E8E;
+  --rarity-rare: #A4A4A4;
+  --rarity-epic: #BDBDBD;
+  --rarity-legendary: #FAFAFA;
+  --rarity-mythic: #DADADA;
+  --cvd-ok: #F2F2F2;
+  --cvd-ko: #8C8C8C;
+  --cvd-pend: #BDBDBD;
+  --cvd-ok-ink: #000;
+  --cvd-ko-ink: #6B6B6B;
+  --cvd-ok-solid: #F2F2F2;
+  --cvd-ok-solid-text: #000;
+  --cvd-ko-solid: #4D4D4D;
+  --cvd-ko-solid-text: #fff;
+}
+
+/* ---------- Bagliori delle carte: dalle variabili invece degli rgba fissi ---------- */
+:root[data-cvd] .card-rarity-common { box-shadow: 0 0 10px color-mix(in srgb, var(--rarity-common) 25%, transparent); }
+:root[data-cvd] .card-rarity-uncommon { box-shadow: 0 0 12px color-mix(in srgb, var(--rarity-uncommon) 30%, transparent); }
+:root[data-cvd] .card-rarity-rare { box-shadow: 0 0 15px color-mix(in srgb, var(--rarity-rare) 30%, transparent); }
+:root[data-cvd] .card-rarity-epic { box-shadow: 0 0 20px color-mix(in srgb, var(--rarity-epic) 40%, transparent); }
+:root[data-cvd] .card-rarity-legendary { box-shadow: 0 0 16px color-mix(in srgb, var(--rarity-legendary) 30%, transparent); animation-name: cvdLegendaryPulse; }
+:root[data-cvd] .card-rarity-legendary .card-rarity-badge {
+  background: linear-gradient(135deg, var(--rarity-legendary), color-mix(in srgb, var(--rarity-legendary) 75%, #000));
+}
+
+:root[data-cvd] :is(.card-full-image, .pack-reveal-card).card-rarity-common { box-shadow: 0 0 0 3px var(--rarity-common), 0 0 18px 2px color-mix(in srgb, var(--rarity-common) 55%, transparent); }
+:root[data-cvd] :is(.card-full-image, .pack-reveal-card).card-rarity-uncommon { box-shadow: 0 0 0 3px var(--rarity-uncommon), 0 0 20px 2px color-mix(in srgb, var(--rarity-uncommon) 60%, transparent); }
+:root[data-cvd] :is(.card-full-image, .pack-reveal-card).card-rarity-rare { box-shadow: 0 0 0 3px var(--rarity-rare), 0 0 24px 3px color-mix(in srgb, var(--rarity-rare) 65%, transparent); }
+:root[data-cvd] :is(.card-full-image, .pack-reveal-card).card-rarity-epic { box-shadow: 0 0 0 3px var(--rarity-epic), 0 0 28px 3px color-mix(in srgb, var(--rarity-epic) 70%, transparent); }
+:root[data-cvd] :is(.card-full-image, .pack-reveal-card).card-rarity-legendary { animation-name: cvdLegendaryPulseRing; }
+:root[data-cvd] .perf-lite .card-full-image.card-rarity-legendary { box-shadow: 0 0 0 3px var(--rarity-legendary), 0 0 18px 2px color-mix(in srgb, var(--rarity-legendary) 45%, transparent); }
+
+:root[data-cvd] .pack-reveal-card.card-rarity-common .pack-reveal-card-inner { box-shadow: 0 0 15px color-mix(in srgb, var(--rarity-common) 35%, transparent); }
+:root[data-cvd] .pack-reveal-card.card-rarity-uncommon .pack-reveal-card-inner { box-shadow: 0 0 15px color-mix(in srgb, var(--rarity-uncommon) 30%, transparent); }
+:root[data-cvd] .pack-reveal-card.card-rarity-rare .pack-reveal-card-inner { box-shadow: 0 0 20px color-mix(in srgb, var(--rarity-rare) 40%, transparent); }
+:root[data-cvd] .pack-reveal-card.card-rarity-epic .pack-reveal-card-inner { box-shadow: 0 0 25px color-mix(in srgb, var(--rarity-epic) 50%, transparent); }
+:root[data-cvd] .pack-reveal-card.card-rarity-legendary .pack-reveal-card-inner { box-shadow: 0 0 16px color-mix(in srgb, var(--rarity-legendary) 35%, transparent); animation-name: cvdRevealLegendaryGlow; }
+
+@keyframes cvdLegendaryPulse {
+  0%, 100% { box-shadow: 0 0 12px color-mix(in srgb, var(--rarity-legendary) 25%, transparent); }
+  50% { box-shadow: 0 0 22px color-mix(in srgb, var(--rarity-legendary) 45%, transparent); }
+}
+@keyframes cvdLegendaryPulseRing {
+  0%, 100% { box-shadow: 0 0 0 3px var(--rarity-legendary), 0 0 14px 2px color-mix(in srgb, var(--rarity-legendary) 35%, transparent); }
+  50% { box-shadow: 0 0 0 3px var(--rarity-legendary), 0 0 24px 3px color-mix(in srgb, var(--rarity-legendary) 55%, transparent); }
+}
+@keyframes cvdRevealLegendaryGlow {
+  0%, 100% { box-shadow: 0 0 12px color-mix(in srgb, var(--rarity-legendary) 30%, transparent); }
+  50% { box-shadow: 0 0 22px color-mix(in srgb, var(--rarity-legendary) 50%, transparent); }
+}
+
+/* ---------- Gemma della rarita' sulle carte a immagine intera ----------
+   Di solito la rarita' la dice solo il colore del bordo: nelle modalita' daltonismo compare
+   anche la gemma (forma diversa per ogni rarita'), in alto a destra nelle mini-carte. */
+.card-rarity-badge.card-rarity-badge-cvd { display: none; }
+:root[data-cvd] .card-rarity-badge.card-rarity-badge-cvd { display: flex; z-index: 3; background: rgba(0, 0, 0, 0.6); }
+:root[data-cvd] .card-full-image > .card-rarity-badge-cvd { left: auto; right: var(--space-sm); }
+:root[data-cvd] .card-hero-full > .card-rarity-badge-cvd { top: var(--space-md); left: var(--space-md); width: 30px; height: 30px; }
+:root[data-cvd] .card-hero-full > .card-rarity-badge-cvd .card-rarity-icon { width: 22px; height: 22px; }
+
+/* ---------- Colori di stato (rosso/verde) ---------- */
+:root[data-cvd] .auth-message-error { color: var(--cvd-ko) !important; }
+:root[data-cvd] .auth-message-success { color: var(--cvd-ok) !important; }
+/* Nel tema Phantom i messaggi sono tasselli: nero per l'errore, bianco per il successo. */
+:root[data-cvd][data-skin="phantom"] :is(.sp-page, .sa) .auth-message-error { color: #fff !important; border-left-color: var(--cvd-ko) !important; }
+:root[data-cvd][data-skin="phantom"] :is(.sp-page, .sa) .auth-message-success { color: var(--p5-black, #07040f) !important; border-left-color: var(--cvd-ok-ink) !important; }
+
+/* Stato degli scambi (anche col tema Phantom dell'hotel). */
+:root[data-cvd] .hotel-trade-status.status-pending { background: color-mix(in srgb, var(--cvd-pend) 18%, transparent) !important; color: var(--cvd-pend) !important; }
+:root[data-cvd] .hotel-trade-status.status-accepted { background: color-mix(in srgb, var(--cvd-ok) 20%, transparent) !important; color: var(--cvd-ok) !important; }
+:root[data-cvd] :is(.hotel-trade-status.status-rejected, .hotel-trade-status.status-cancelled) { background: color-mix(in srgb, var(--cvd-ko) 18%, transparent) !important; color: var(--cvd-ko) !important; }
+:root[data-cvd][data-shell="phantom"] .hotel-page .hotel-trade-status.status-pending { background: var(--cvd-pend) !important; color: #000 !important; }
+:root[data-cvd][data-shell="phantom"] .hotel-page .hotel-trade-status.status-accepted { background: var(--cvd-ok-solid) !important; color: var(--cvd-ok-solid-text) !important; }
+:root[data-cvd][data-shell="phantom"] .hotel-page :is(.hotel-trade-status.status-rejected, .hotel-trade-status.status-cancelled) { background: var(--cvd-ko-solid) !important; color: var(--cvd-ko-solid-text) !important; }
+
+/* Hotel: stanze occupate, amici e membri del club online. */
+:root[data-cvd] .hotel-room-occupancy.busy { background: var(--cvd-ok-solid) !important; color: var(--cvd-ok-solid-text) !important; box-shadow: none !important; }
+:root[data-cvd] .friends-list li.online { box-shadow: inset 4px 0 0 var(--cvd-ok) !important; }
+:root[data-cvd] .club-members li.online strong::after { color: var(--cvd-ok) !important; }
+
+/* Battaglie: vinte e perse (il tema Phantom usa gia' fondo pieno contro nero). */
+:root[data-cvd]:not([data-skin="phantom"]) .battle-history-win { background: color-mix(in srgb, var(--cvd-ok) 20%, transparent) !important; color: var(--cvd-ok) !important; }
+:root[data-cvd]:not([data-skin="phantom"]) .battle-history-loss { background: color-mix(in srgb, var(--cvd-ko) 20%, transparent) !important; color: var(--cvd-ko) !important; }
+
+/* Borsa dell'hotel, storico dei prezzi delle carte, forma dei cavalli: su e giu'. */
+:root[data-cvd] :is(small, b, span).up { color: var(--cvd-ok) !important; }
+:root[data-cvd] :is(small, b, span).down { color: var(--cvd-ko) !important; }
+:root[data-cvd][data-shell="phantom"] .hotel-page .stock-row.active .up { color: var(--cvd-ok-ink) !important; }
+:root[data-cvd][data-shell="phantom"] .hotel-page .stock-row.active .down { color: var(--cvd-ko-ink) !important; }
+:root[data-cvd] .stock-row.active { border-color: var(--cvd-ok); }
+:root[data-cvd]:not([data-shell="phantom"]) .stock-row.active { background: color-mix(in srgb, var(--cvd-ok) 12%, transparent); }
+:root[data-cvd] .stock-ranges button.active { background: var(--cvd-ok-solid); border-color: var(--cvd-ok-solid); color: var(--cvd-ok-solid-text); }
+:root[data-cvd] .stock-buy { background: var(--cvd-ok-solid) !important; color: var(--cvd-ok-solid-text) !important; }
+:root[data-cvd] .stock-sell { background: var(--cvd-ko-solid) !important; color: var(--cvd-ko-solid-text) !important; }
+
+/* ---------- Anteprima delle rarita' (components/a11y/RarityPreview.jsx) ---------- */
+.a11y-rarity-preview {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+.a11y-rarity-preview-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "icon name" "swatch swatch" "hex hex";
+  align-items: center;
+  gap: 6px 8px;
+  padding: 10px 12px 12px;
+  background: #0d0820;
+  border-left: 4px solid var(--preview-color);
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  color: var(--preview-color);
+}
+.a11y-rarity-preview-icon { grid-area: icon; width: 24px; height: 24px; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6)); }
+.a11y-rarity-preview-name { grid-area: name; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.02em; overflow-wrap: normal; min-width: 0; hyphens: none; }
+.a11y-rarity-preview-swatch {
+  grid-area: swatch;
+  display: block;
+  height: 14px;
+  background: var(--preview-color);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+.a11y-rarity-preview-hex { grid-area: hex; font-size: 0.7rem; color: #c9c4dc; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+:root[data-skin="phantom"] .a11y-rarity-preview-name { font-family: var(--font-display, inherit); }

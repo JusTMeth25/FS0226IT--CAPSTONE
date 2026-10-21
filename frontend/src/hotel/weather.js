@@ -11,6 +11,8 @@
  * Le decorazioni sono solo grafica: non occupano caselle e non si cliccano.
  */
 
+import { isSafeMode } from '../services/accessibility.js';
+
 /** Pareti che stanno sempre all'aperto (giardino, spiaggia, quartiere). */
 const OUTDOOR_WALLS = new Set(['hedge', 'seaside', 'street']);
 /**
@@ -218,7 +220,8 @@ export function drawWeather(ctx, weather, state, width, height, now, reduced) {
       ctx.lineTo(d.x - 10 * slant, d.y - 10);
     });
     ctx.stroke();
-    if (c === 'storm') {
+    // Modalita' sicura (fotosensibilita'): niente lampi bianchi, resta solo la pioggia.
+    if (c === 'storm' && !isSafeMode()) {
       // Lampo ogni tanto: tutto bianco per un attimo.
       if (now - state.lastFlash > 6_000 && Math.random() < dt / 4_000) {
         state.lastFlash = now;

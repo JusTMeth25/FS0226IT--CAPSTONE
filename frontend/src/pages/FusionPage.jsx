@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { m } from 'motion/react';
 import { apiClient } from '../services/apiClient.js';
 import { useGame } from '../hooks/useGame.js';
+import { useAccessibility } from '../hooks/useAccessibility.js';
 import { getRarityColor, getRarityName, resolveCardImage } from '../utils/cardUtils.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.jsx';
 import PhantomTitle from '../components/phantom/PhantomTitle.jsx';
@@ -20,6 +21,8 @@ const ERRORS = {
  */
 export default function FusionPage() {
   const { refreshCollection } = useGame();
+  // Modalita' sicura (fotosensibilita'): niente lampo magenta che attraversa lo schermo.
+  const { safe } = useAccessibility();
   const [data, setData] = useState(null);
   const [rarity, setRarity] = useState(null);
   const [picked, setPicked] = useState([]);
@@ -109,8 +112,8 @@ export default function FusionPage() {
       {result && (
         // Fusione riuscita: lampo magenta in diagonale, poi la carta nuova arriva ruotando sulla stella.
         <div className="fusion-result" role="status" key={result.card.id} style={{ '--rarity-color': getRarityColor(result.card.rarity) }}>
-          <m.span className="cx-fuse-flash" aria-hidden="true" initial={{ x: '-120%' }} animate={{ x: '120%' }}
-            transition={{ duration: 0.28, ease: [0.7, 0, 0.3, 1] }} />
+          {!safe && <m.span className="cx-fuse-flash" aria-hidden="true" initial={{ x: '-120%' }} animate={{ x: '120%' }}
+            transition={{ duration: 0.28, ease: [0.7, 0, 0.3, 1] }} />}
           <m.div className="cx-fuse-card" initial={{ scale: 0.4, rotate: -24, opacity: 0 }} animate={{ scale: 1, rotate: -4, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 460, damping: 20, delay: 0.12 }}>
             <StarBurst size={170} fill="var(--neon-magenta)" stroke="#fff" className="cx-fuse-star" />

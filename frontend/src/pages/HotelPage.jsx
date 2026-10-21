@@ -6,6 +6,8 @@ import { useHotel } from '../hotel/hotel-context.js';
 import { furniApi } from '../services/furniApi.js';
 import { tradeApi } from '../services/tradeApi.js';
 import { roomApi } from '../services/roomApi.js';
+import { isSafeMode, setAccessibility } from '../services/accessibility.js';
+import { useAccessibility } from '../hooks/useAccessibility.js';
 import { WEATHER_ICONS, isOutdoor } from '../hotel/weather.js';
 import HotelCanvas from '../hotel/ui/HotelCanvas.jsx';
 import ChatBar from '../hotel/ui/ChatBar.jsx';
@@ -73,6 +75,8 @@ import '../hotel/phantom/hotel-phantom-shops.css';
 import '../hotel/phantom/hotel-phantom-games.css';
 // Minigiochi su telefono: tutto in uno schermo, comandi sempre visibili.
 import '../hotel/phantom/hotel-minigame-phone.css';
+// Modalita' sicura per la fotosensibilita': spegne i lampeggi dei fogli di stile dell'hotel.
+import '../hotel/a11y-hotel.css';
 
 /** L'Arena: solo qui si gioca contro gli NPC sfidanti. */
 const ARENA_ID = '00000000-0000-0000-0000-00000000a002';
@@ -236,6 +240,9 @@ const STATUS_LABELS = {
  * La pagina tiene lo stato "da pannello" (stanza, presenti, mobili, pannelli aperti). Tutto
  * cio' che cambia a ogni fotogramma (camminate, fumetti, luci) lo gestisce il motore del canvas.
  */
+
+/** Feste con luci che lampeggiano (vedi HotelEngine.drawPartyLights e drawDiscoBall): solo per queste l'avviso. */
+const FLASHING_PARTIES = new Set(['rock', 'neon', 'disco']);
 export default function HotelPage() {
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
@@ -409,6 +416,22 @@ export default function HotelPage() {
     noticeTimer.current = setTimeout(() => setNotice(null), 4000);
   }, []);
 
+  // Avvertenza sui lampi (feste, temporale, Disco e Rock): una volta per stanza o per gioco in
+  // questa sessione, solo a chi non ha gia' la modalita' sicura. Non blocca niente e sparisce da sola.
+  const { safe: safeMode } = useAccessibility();
+  const [flashWarn, setFlashWarn] = useState(false);
+  const flashWarned = useRef(new Set());
+  const flashWarnTimer = useRef(0);
+  const flashRoomRef = useRef(null);
+  const warnFlashes = useCallback((key) => {
+    if (isSafeMode() || flashWarned.current.has(key)) return;
+    flashWarned.current.add(key);
+    setFlashWarn(true);
+    clearTimeout(flashWarnTimer.current);
+    flashWarnTimer.current = setTimeout(() => setFlashWarn(false), 12_000);
+  }, []);
+  useEffect(() => () => clearTimeout(flashWarnTimer.current), []);
+
   const onMessage = useCallback((message) => {
     canvasRef.current?.handle(message);
     switch (message.type) {
@@ -420,6 +443,9 @@ export default function HotelPage() {
         // Cambiando stanza le sfide in arrivo o in attesa decadono (il server le ha gia' annullate).
         setPvp((p) => (p && (p.stage === 'incoming' || p.stage === 'sent') ? null : p));
         setRoom(message.room);
+        flashRoomRef.current = message.room || null;
+        if (FLASHING_PARTIES.has(message.party?.theme) && message.party.endsAt > Date.now()) warnFlashes(`party:${message.room?.id}`);
+        if (message.weather?.condition === 'storm' && isOutdoor(message.room)) warnFlashes(`storm:${message.room?.id}`);
         setPeople(Object.fromEntries(message.users.map((u) => [u.id, u])));
         setItems(Object.fromEntries((message.items || []).map((i) => [i.id, i])));
         setJukebox({ track: message.jukebox?.track ?? -1, radio: message.jukebox?.radio || null, queue: message.jukebox?.queue || null, station: message.jukebox?.station || null, booth: !!message.jukebox?.booth });
@@ -437,6 +463,7 @@ export default function HotelPage() {
         setBuildMode(false);
         break;
       case 'not_in_room':
+        flashRoomRef.current = null;
         setRoom(null);
         setPanel((current) => current || 'navigator');
         break;
@@ -616,6 +643,7 @@ export default function HotelPage() {
         break;
       }
       case 'minigame_start':
+        if (message.game === 'disco' || message.game === 'rock') warnFlashes(`game:${message.game}`);
         setMinigame({ ...message, key: Date.now() });
         setMinigameResult(null);
         setPanel(null);
@@ -651,6 +679,10 @@ export default function HotelPage() {
         break;
       case 'weather':
         setWeather(message);
+        if (message.condition === 'storm' && flashRoomRef.current && isOutdoor(flashRoomRef.current)) warnFlashes(`storm:${flashRoomRef.current.id}`);
+        break;
+      case 'party_theme':
+        if (FLASHING_PARTIES.has(message.theme) && flashRoomRef.current) warnFlashes(`party:${flashRoomRef.current.id}`);
         break;
       case 'dm':
         setLastDm(message);
@@ -851,7 +883,7 @@ export default function HotelPage() {
       default:
         break;
     }
-  }, [showNotice, sound, refreshUser, refreshCollection, refreshPacks, send, panel]);
+  }, [showNotice, warnFlashes, sound, refreshUser, refreshCollection, refreshPacks, send, panel]);
 
   // Iscrizione ai messaggi dell'hotel finche' la pagina e' aperta. La connessione resta del
   // provider: uscendo si resta nella stanza, segnati come assenti; tornando si chiede lo stato
@@ -1360,6 +1392,16 @@ export default function HotelPage() {
         )}
         <div className="sr-only" aria-live="polite">{notice}</div>
         {notice && <div className="hotel-notice" role="status" aria-hidden="true">{notice}</div>}
+        {flashWarn && !safeMode && (
+          <div className="hotel-flash-warn" role="status">
+            <i className="ph-fill ph-warning" aria-hidden="true" />
+            <span>Qui ci sono luci che lampeggiano. Se sei sensibile ai lampi attiva la modalità sicura.</span>
+            <button type="button" className="btn btn-primary btn-small" onClick={() => { setAccessibility({ safe: true }); setFlashWarn(false); }}>Attiva</button>
+            <button type="button" className="hotel-flash-warn-close" aria-label="Chiudi l'avviso" onClick={() => setFlashWarn(false)}>
+              <i className="ph-bold ph-x" aria-hidden="true" />
+            </button>
+          </div>
+        )}
 
         {placement && (
           <div className="hotel-placement-bar" role="status">

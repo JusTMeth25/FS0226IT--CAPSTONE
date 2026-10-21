@@ -48,7 +48,8 @@ const MORE_ITEMS = [
   { to: '/fusion', label: 'Fusione', icon: 'ph-flask' },
   { to: '/events', label: 'Eventi', icon: 'ph-calendar-star' },
   { to: '/leaderboard', label: 'Classifica', icon: 'ph-trophy' },
-  { to: '/news', label: 'Novità', icon: 'ph-megaphone' }
+  { to: '/news', label: 'Novità', icon: 'ph-megaphone' },
+  { to: '/accessibility', label: 'Accessibilità', icon: 'ph-wheelchair' }
 ];
 
 /**

@@ -23,7 +23,8 @@ const NAV_ITEMS = [
   { to: '/battle', label: 'Battaglie', icon: 'ph-sword' },
   { to: '/hotel', label: 'Hotel', icon: 'ph-buildings' },
   { to: '/profile', label: 'Profilo', icon: 'ph-user-circle' },
-  { to: '/news', label: 'Novità', icon: 'ph-megaphone' }
+  { to: '/news', label: 'Novità', icon: 'ph-megaphone' },
+  { to: '/accessibility', label: 'Accessibilità', icon: 'ph-wheelchair' }
 ];
 
 /** Navigazione desktop (≥992px): a mobile/tablet la sostituisce interamente BottomNav. */

@@ -6,6 +6,7 @@ import { getTier } from './rarityTiers.js';
 import { coverScale } from './holoMaterial.js';
 import { useSafeTexture } from './textures.js';
 import { useDocumentVisible } from './useThreeEnabled.js';
+import { isSafeMode } from '../../services/accessibility.js';
 import ConfettiBurst from './ConfettiBurst.jsx';
 import VinylDisc from './VinylDisc.jsx';
 
@@ -106,6 +107,9 @@ function PackScene({ packImage, packRarity, bestRarity, dragProgress, dragging, 
     const since = tornAt.current === null ? 0 : t - tornAt.current;
     const burst = MathUtils.clamp(since / 0.9, 0, 1);
     const eased = 1 - (1 - burst) ** 3;
+    // Modalita' sicura (fotosensibilita'): all'apertura niente lampo bianco, niente picco del
+    // bagliore e dei raggi, niente scossa; le due meta' si aprono lo stesso.
+    const safe = isSafeMode();
 
     // A riposo il pacchetto fluttua e guarda verso il puntatore; mentre lo strappi sta fermo.
     const idle = !dragging && !torn;
@@ -134,25 +138,25 @@ function PackScene({ packImage, packRarity, bestRarity, dragProgress, dragging, 
     const glow = glowRef.current;
     if (glow) {
       glow.scale.set(0.12 + p * 1.1 + eased * 5, 1 + p * 0.3 + eased * 1.5, 1);
-      glow.material.uniforms.uOpacity.value = p * 1.1 + (torn ? (1 - burst) * 2.2 : 0);
+      glow.material.uniforms.uOpacity.value = p * 1.1 + (torn && !safe ? (1 - burst) * 2.2 : 0);
     }
 
     const rays = raysRef.current;
     if (rays) {
       rays.visible = tier.rays;
       rays.material.uniforms.uTime.value = t;
-      rays.material.uniforms.uOpacity.value = torn ? Math.max(0, 1.4 - since * 0.7) : p * 0.5;
+      rays.material.uniforms.uOpacity.value = torn ? (safe ? Math.max(0, 0.5 - since * 0.25) : Math.max(0, 1.4 - since * 0.7)) : p * 0.5;
       rays.scale.setScalar(1 + eased * 0.8);
     }
 
     const flash = flashRef.current;
     if (flash) {
-      flash.material.uniforms.uOpacity.value = torn && tier.shake > 0 ? Math.max(0, 1 - since / 0.4) * 1.2 : 0;
+      flash.material.uniforms.uOpacity.value = torn && !safe && tier.shake > 0 ? Math.max(0, 1 - since / 0.4) * 1.2 : 0;
       flash.scale.setScalar(0.6 + Math.min(1, since / 0.4) * 1.2);
     }
 
     // Scossa della camera all'apertura (epic e leggendarie) e leggero avvicinamento mentre strappi.
-    const shake = torn ? tier.shake * Math.max(0, 1 - since / 0.8) : 0;
+    const shake = torn && !safe ? tier.shake * Math.max(0, 1 - since / 0.8) : 0;
     state.camera.position.set(
       (Math.random() - 0.5) * shake,
       (Math.random() - 0.5) * shake,

@@ -14,6 +14,9 @@ import './styles/holo-finish.css'
 // Stile Phantom (Persona 5) per tutto il sito tranne l'hotel: dopo gli altri, cosi' vince.
 import './styles/phantom/phantom.css'
 import './styles/phantom/phantom-shell.css'
+// Accessibilita' (modalita' sicura, alto contrasto, daltonismo): per ultime, cosi' vincono.
+import './styles/a11y.css'
+import './styles/a11y-cvd.css'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { GameProvider } from './context/GameContext.jsx'
@@ -21,10 +24,12 @@ import { SoundProvider } from './context/SoundContext.jsx'
 import { initNativeApp } from './services/nativeInit.js'
 import { registerServiceWorker } from './services/pwa.js'
 import { applyPerfMode } from './utils/perfMode.js'
+import { applyAccessibility } from './services/accessibility.js'
 import { handleSpotifyCallback } from './hotel/spotify.js'
 import { installImageFallback } from './utils/imageFallback.js'
 
 applyPerfMode()
+applyAccessibility()
 installImageFallback()
 initNativeApp()
 registerServiceWorker()

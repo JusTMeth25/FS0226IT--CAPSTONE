@@ -4,9 +4,9 @@ import GradedSlab from './GradedSlab.jsx';
 import HoloLayers from './HoloLayers.jsx';
 
 /** Gemma SVG piccola (no testo): la rarità estesa resta disponibile via title/tooltip. */
-export function RarityBadge({ rarity, style }) {
+export function RarityBadge({ rarity, style, className = '' }) {
   return (
-    <span className="card-rarity-badge" title={getRarityName(rarity)} style={style}>
+    <span className={`card-rarity-badge${className ? ` ${className}` : ''}`} title={getRarityName(rarity)} style={style}>
       <img className="card-rarity-icon" src={getRarityIcon(rarity)} alt="" />
     </span>
   );
@@ -52,6 +52,8 @@ export default function CardTile({ card, quantity, onClick }) {
       >
         <img src={resolveCardImage(card)} alt={card.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }} />
         <HoloLayers />
+        {/* Gemma della rarita' sopra l'immagine: visibile solo nelle modalita' daltonismo (a11y-cvd.css). */}
+        <RarityBadge rarity={card.rarity} className="card-rarity-badge-cvd" />
         {quantity > 1 && <span className="card-quantity-badge" style={{ position: 'absolute', bottom: 8, right: 8, zIndex: 2 }}>×{quantity}</span>}
         {card.foil > 0 && <span className="foil-badge" title={`${card.foil} copie olografiche`}>Olo{card.foil > 1 ? ` ×${card.foil}` : ''}</span>}
         {card.firstEdition && <span className="first-edition-tag" title="Prima edizione numerata">#{card.firstEdition}/10</span>}

@@ -3,6 +3,7 @@ import { useReducedMotion } from './useReducedMotion.js';
 
 const PANEL_SELECTOR = '.glass-panel';
 const REVEALED = 'fx-revealed';
+let nextObserverId = 0;
 
 /**
  * Aggiunge due effetti a tutti i pannelli di vetro dell'applicazione:
@@ -30,6 +31,9 @@ export function useSurfaceFx(containerRef, routeKey) {
     // ---- Comparsa allo scroll -------------------------------------------
 
     let observer = null;
+    // Ogni esecuzione dell'effetto ha il suo osservatore: un pannello si riosserva se l'ultimo
+    // che lo seguiva era di un'esecuzione precedente.
+    const observerId = (nextObserverId += 1);
 
     if (!reduced && typeof IntersectionObserver !== 'undefined') {
       observer = new IntersectionObserver(
@@ -51,15 +55,22 @@ export function useSurfaceFx(containerRef, routeKey) {
 
     const enhance = () => {
       container.querySelectorAll(PANEL_SELECTOR).forEach((panel, index) => {
-        if (panel.dataset.fx === '1') return;
-        panel.dataset.fx = '1';
-
-        if (!reduced && observer) {
-          // Piccolo sfalsamento fra pannelli vicini: entrano a cascata invece che in blocco.
-          panel.style.setProperty('--fx-delay', `${Math.min(index, 6) * 60}ms`);
-          panel.classList.add('fx-reveal');
-          observer.observe(panel);
+        // Si salta solo un pannello gia' comparso. Uno preparato ma non ancora comparso va
+        // osservato di nuovo: quando l'effetto riparte (React in sviluppo lo esegue due volte,
+        // e riparte se cambia "riduci animazioni") l'osservatore vecchio e' stato scollegato, e
+        // senza questo il pannello restava trasparente per sempre (pagina che sembra vuota).
+        if (panel.classList.contains(REVEALED)) return;
+        if (reduced || !observer) {
+          panel.classList.remove('fx-reveal');
+          return;
         }
+        if (panel.dataset.fx === String(observerId)) return;
+        panel.dataset.fx = String(observerId);
+
+        // Piccolo sfalsamento fra pannelli vicini: entrano a cascata invece che in blocco.
+        panel.style.setProperty('--fx-delay', `${Math.min(index, 6) * 60}ms`);
+        panel.classList.add('fx-reveal');
+        observer.observe(panel);
       });
     };
 

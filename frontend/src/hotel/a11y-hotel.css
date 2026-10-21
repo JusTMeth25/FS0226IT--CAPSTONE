@@ -1,0 +1,90 @@
+/*
+  Modalita' sicura (epilessia e fotosensibilita') per i fogli di stile dell'hotel: niente luci che
+  lampeggiano a scatti, niente sfondi che pulsano a tempo, niente schermo che cambia colore. Le
+  animazioni di movimento (note che salgono, cavalli, dadi, rulli) restano. La parte disegnata
+  sul canvas (temporale, feste, piste da ballo) controlla isSafeMode() in JavaScript.
+  L'attributo data-a11y-safe su <html> lo mette services/accessibility.js.
+*/
+
+/* Timer degli ultimi secondi: resta evidenziato, ma fermo (niente lampeggio col bianco). */
+:root[data-a11y-safe] .hotel-page .pvp-timer.urgent,
+:root[data-a11y-safe][data-shell="phantom"] .hotel-page .hotel-panel:not(.casino-panel) .pvp-timer.urgent {
+  animation: none;
+}
+
+/* Riquadro del tutorial: bordo giallo fisso invece di quello che pulsa. */
+:root[data-a11y-safe] .hotel-page .tutorial-highlight { animation: none; }
+
+/* Gara di ballo: la fila di luci sopra la pista non si accende a scatti a ritmo, resta soffusa. */
+:root[data-a11y-safe] .mg-disco-floor span,
+:root[data-a11y-safe] .mg-disco-floor span.on {
+  background: hsl(calc(var(--c) * 60 + 320) 45% 32%);
+  box-shadow: none;
+  transition: none;
+}
+
+/* Colpo a segno sulle corsie dei minigiochi: tinta leggera che entra ed esce piano. */
+:root[data-a11y-safe] .mg-disco-lane,
+:root[data-a11y-safe] .mg-lane,
+:root[data-a11y-safe] .mg-karaoke-lane,
+:root[data-a11y-safe] .mg-target {
+  transition: background 0.35s ease;
+}
+:root[data-a11y-safe] .mg-disco-lane.hit { background: color-mix(in srgb, var(--lane) 12%, transparent); }
+:root[data-a11y-safe] .mg-disco-lane.hit .mg-disco-target { filter: none; }
+:root[data-a11y-safe] .mg-lane.hit { background: rgba(34, 211, 238, 0.12); }
+:root[data-a11y-safe] .mg-karaoke-lane.hit { background: rgba(236, 72, 153, 0.14); }
+:root[data-a11y-safe] .mg-target.hit { background: rgba(34, 197, 94, 0.15); }
+
+/* Casino': linea vincente, riga della tabella dei premi e "manca uno" del Bingo accesi fermi. */
+:root[data-a11y-safe] .slot-payline.lit,
+:root[data-a11y-safe] .casino-paytable tr.hit,
+:root[data-a11y-safe] .bingo-one {
+  animation: none;
+}
+:root[data-a11y-safe] .slot-payline.lit { box-shadow: 0 0 6px var(--gold-light); }
+
+/* Schermo "trip": niente arcobaleno che gira su tutta la stanza, solo un po' di colore in piu'. */
+:root[data-a11y-safe] .hotel-stage.fx-trip .hotel-canvas { animation: none; filter: saturate(1.4); }
+
+/* Avvertenza sui lampi quando si entra in una festa, nel temporale o si avvia Disco e Rock. */
+.hotel-flash-warn {
+  position: absolute;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  padding: 8px 10px 8px 14px;
+  border-radius: 12px;
+  border: 1px solid #facc15;
+  background: rgba(10, 7, 22, 0.94);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.hotel-flash-warn > i { color: #facc15; font-size: 1.1rem; flex: none; }
+.hotel-flash-warn .btn { flex: none; }
+.hotel-flash-warn-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+.hotel-flash-warn-close:hover,
+.hotel-flash-warn-close:focus-visible { background: rgba(255, 255, 255, 0.12); }
+@media (max-width: 600px) {
+  .hotel-flash-warn { flex-wrap: wrap; top: 48px; }
+  .hotel-flash-warn span { flex: 1 1 180px; }
+}

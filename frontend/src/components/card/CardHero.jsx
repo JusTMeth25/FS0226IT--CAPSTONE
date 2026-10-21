@@ -1,5 +1,6 @@
 import { getRarityCSSClass, getRarityColor, getRarityIcon, getRarityName, getTotalScore, resolveCardImage } from '../../utils/cardUtils.js';
 import CardHoloFrame from './CardHoloFrame.jsx';
+import { RarityBadge } from './CardTile.jsx';
 
 const STAT_DEFS = [
   { key: 'fans', label: 'Fans', icon: 'ph-users-three', color: 'var(--neon-purple)' },
@@ -65,6 +66,8 @@ export default function CardHero({ card, quantity = 1, hideArt = false }) {
       <CardHoloFrame rarity={card.rarity} card={card} className={`card-hero card-hero-full ${rarityClass}`}>
         <img className="card-hero-art" src={resolveCardImage(card)} alt={card.name} />
         <HoloLayers />
+        {/* Gemma della rarita': visibile solo nelle modalita' daltonismo (a11y-cvd.css). */}
+        <RarityBadge rarity={card.rarity} className="card-rarity-badge-cvd" />
         {quantity > 1 && <span className="card-hero-qty-badge">×{quantity}</span>}
       </CardHoloFrame>
     );

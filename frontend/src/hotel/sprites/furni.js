@@ -3,6 +3,7 @@ import { drawBuilding } from './cityBuildings.js';
 import { bake, createCanvas, shade } from './pixel.js';
 import { getRarityColor, resolveCardImage } from '../../utils/cardUtils.js';
 import { BASE_URL } from '../../services/apiClient.js';
+import { isSafeMode } from '../../services/accessibility.js';
 
 /**
  * Mobili in pixel art stile Habbo, disegnati da codice come gli avatar.
@@ -2602,6 +2603,8 @@ const ANIMATIONS = {
   elevator: { period: 1000, steps: 4 }
 };
 const DANCE_COLORS = 6;
+/** Mobili con luci che si alternano piu' di ~3 volte al secondo: fermi in modalita' sicura. */
+const SAFE_STILL = new Set(['dj_booth', 'dance_contest', 'rock_stage', 'guitar_duel', 'drum_duel', 'karaoke_stage', 'jukebox', 'arcade', 'bingo_table']);
 
 // Garage di casa: stessa pedana della concessionaria per ogni auto.
 [5, 6, 7, 8, 9].forEach((ride) => { DRAW[`showcar_${ride}`] = DRAW.car_display; });
@@ -2611,7 +2614,10 @@ const DANCE_COLORS = 6;
  * furniSprite per ottenere proprio quel disegno. Due piastrelle dello stesso colore
  * condividono lo sprite.
  */
-export function animationState(item, now, { playing = false, still = false } = {}) {
+export function animationState(item, now, { playing = false, still: stillOption = false } = {}) {
+  // Modalita' sicura (fotosensibilita'): le piste e le pedane che lampeggiano a tempo restano
+  // accese ferme. Le altre animazioni (acqua, fuoco, pesci...) continuano.
+  const still = stillOption || (isSafeMode() && (item.type === 'dance_tile' || item.type === 'fever_tile' || SAFE_STILL.has(item.type)));
   if (item.type === 'dance_tile') {
     if (!playing) return { key: 'off', now: 0, colorIndex: -1 };
     const step = still ? 0 : Math.floor(now / 400);

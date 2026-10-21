@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { m, useReducedMotion } from 'motion/react';
+import { useAccessibility } from '../../hooks/useAccessibility.js';
 
 /**
  * Tendina diagonale al cambio di pagina, come le transizioni dei menu di P5: una scheggia
  * magenta e una nera attraversano lo schermo in un lampo. Solo decorativa (non blocca i clic) e
- * spenta con "riduci animazioni". Non parte al primo caricamento.
+ * spenta con "riduci animazioni" e con la modalita' sicura (un lampo magenta a tutto schermo).
+ * Non parte al primo caricamento.
  */
 export default function PageWipe({ path }) {
-  const reduce = useReducedMotion();
+  const { safe } = useAccessibility();
+  const reduce = useReducedMotion() || safe;
   const [prevPath, setPrevPath] = useState(path);
   const [run, setRun] = useState(0);
 

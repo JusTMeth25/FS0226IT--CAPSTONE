@@ -17,6 +17,7 @@ import { BALL_COLORS } from './ui/billiards.jsx';
 import { playSfx, volumeAt } from './sfx.js';
 import { PET_H, PET_SOUND, PET_W, petSprite } from './sprites/pet.js';
 import { BADGE_H, BADGE_W, drawBadge } from './sprites/badge.js';
+import { isSafeMode } from '../services/accessibility.js';
 
 /** Di quanti pixel base si alza chi e' seduto su una sedia o un divano, rispetto al pavimento. */
 const SEAT_LIFT = 7 * DETAIL;
@@ -2038,6 +2039,8 @@ export class HotelEngine {
     const cy = sy / n;
     const spin = this.reducedMotion ? 0 : now / 1400;
     const music = this.jukeboxOn;
+    // Modalita' sicura: le macchie di luce girano lo stesso ma piu' tenui, le tesserine non luccicano.
+    const safe = isSafeMode();
     ctx.save();
     if (music) {
       // Macchie di luce che girano sulla pista, dentro il rettangolo delle piastrelle.
@@ -2053,7 +2056,7 @@ export class HotelEngine {
         const w = (9 + (i % 3) * 3) * scale;
         const color = colors[i % colors.length];
         const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, w);
-        glow.addColorStop(0, `rgba(${color}, 0.55)`);
+        glow.addColorStop(0, `rgba(${color}, ${safe ? 0.3 : 0.55})`);
         glow.addColorStop(1, `rgba(${color}, 0)`);
         ctx.fillStyle = glow;
         ctx.beginPath();
@@ -2111,7 +2114,7 @@ export class HotelEngine {
       const cols = Math.max(2, Math.round((half * 2) / cell));
       const w = (half * 2) / cols;
       for (let col = 0; col < cols; col += 1) {
-        const k = Math.sin(col * 1.9 + row * 1.3 + spin * 6);
+        const k = Math.sin(col * 1.9 + row * 1.3 + (safe ? 0 : spin * 6));
         if (k > 0.55) ctx.fillStyle = `rgba(255, 255, 255, ${0.35 + (k - 0.55) * 1.4})`;
         else if (k < -0.6) ctx.fillStyle = 'rgba(20, 18, 40, 0.35)';
         else continue;
@@ -2128,7 +2131,7 @@ export class HotelEngine {
     }
     ctx.restore();
     // Scintilla che si accende a tratti.
-    if (!this.reducedMotion && Math.floor(now / 350) % 3 === 0) drawSparkle(ctx, ball.x + R * 0.4, ball.y - R * 0.45, Math.max(1, Math.round(scale * 1.5)));
+    if (!this.reducedMotion && !safe && Math.floor(now / 350) % 3 === 0) drawSparkle(ctx, ball.x + R * 0.4, ball.y - R * 0.45, Math.max(1, Math.round(scale * 1.5)));
     ctx.restore();
   }
 
@@ -2182,6 +2185,9 @@ export class HotelEngine {
     const W = this.cssWidth;
     const H = this.cssHeight;
     const calm = this.reducedMotion;
+    // Modalita' sicura (fotosensibilita'): niente flash bianchi ne' bagliori che pulsano, i fasci
+    // e i coriandoli continuano a muoversi.
+    const safe = isSafeMode();
     ctx.save();
     if (theme === 'rock') {
       ctx.globalCompositeOperation = 'lighter';
@@ -2199,13 +2205,13 @@ export class HotelEngine {
         ctx.lineTo(x + 6, 0);
         ctx.fill();
       }
-      if (!calm && Math.floor(now / 250) % 8 === 0) {
+      if (!calm && !safe && Math.floor(now / 250) % 8 === 0) {
         ctx.fillStyle = 'rgba(255,255,255,0.07)';
         ctx.fillRect(0, 0, W, H);
       }
     } else if (theme === 'neon') {
       ctx.globalCompositeOperation = 'lighter';
-      const k = calm ? 0.5 : 0.5 + Math.sin(now / 600) * 0.5;
+      const k = calm || safe ? 0.5 : 0.5 + Math.sin(now / 600) * 0.5;
       [['rgba(236,72,153,', 0, 0], ['rgba(34,211,238,', W, H], ['rgba(139,92,246,', W, 0], ['rgba(34,211,238,', 0, H]].forEach(([c, x, y], i) => {
         const g = ctx.createRadialGradient(x, y, 0, x, y, Math.max(W, H) * 0.55);
         g.addColorStop(0, `${c}${(i % 2 ? 1 - k : k) * 0.3})`);

@@ -1,0 +1,226 @@
+/* ==========================================================================
+   Accessibilita': modalita' sicura (epilessia/fotosensibilita') e alto contrasto.
+   Le scelte arrivano da services/accessibility.js come attributi su <html>:
+   data-a11y-safe e data-contrast="high". Importato per ultimo in main.jsx.
+   ========================================================================== */
+
+/* ==========================================================================
+   Modalita' sicura
+   --------------------------------------------------------------------------
+   Si spengono solo i lampi e i bagliori che pulsano (le animazioni che alternano la luce),
+   non tutte le animazioni: comparse, scorrimenti e rotazioni lente restano. Ogni effetto
+   resta fermo in uno stato leggibile (alone statico e piu' tenue invece di niente). Le
+   animazioni di Motion le riduce MotionConfig (App.jsx), i canvas leggono isSafeMode().
+   ========================================================================== */
+
+/* Tendina tra le pagine: una scheggia magenta a tutto schermo in mezzo secondo. */
+:root[data-a11y-safe] .p5-wipe { display: none !important; }
+
+/* ---------- Apertura dei pacchetti ---------- */
+/* Lampo bianco all'apparire della carta e quello allo strappo della bustina: via del tutto. */
+:root[data-a11y-safe] .reveal-stage-flash,
+:root[data-a11y-safe] .pack-tear-flash-burst { display: none !important; }
+/* Alone della rarita' che si gonfia e raggi che girano: fermi e piu' tenui. */
+:root[data-a11y-safe] .reveal-stage-glow { animation: none !important; opacity: calc(var(--glow-strength, 0.3) * 0.7) !important; }
+:root[data-a11y-safe] .reveal-stage-rays { animation: none !important; opacity: 0.25 !important; }
+/* Scossa delle leggendarie: con i raggi fermi il tremolio da solo disturba e basta. */
+:root[data-a11y-safe] .reveal-stage-shake { animation: none !important; }
+/* La carta migliore della bustina: alone fisso invece della pulsazione. */
+:root[data-a11y-safe] .pack-reveal-slot-best::before { animation: none !important; opacity: 0.6; }
+/* Scritta "Apertura..." che pulsa di opacita'. */
+:root[data-a11y-safe] .pack-opening-text { animation: none !important; opacity: 1; }
+
+/* ---------- Carte leggendarie, olografiche, foil ---------- */
+/* Bagliore oro che pulsa attorno alle leggendarie: resta l'alone fermo gia' dichiarato. */
+:root[data-a11y-safe] .card-rarity-legendary,
+:root[data-a11y-safe] .pack-reveal-card.card-rarity-legendary .pack-reveal-card-inner { animation: none !important; }
+:root[data-a11y-safe] .card-full-image.card-rarity-legendary,
+:root[data-a11y-safe] .pack-reveal-card.card-rarity-legendary {
+  animation: none !important;
+  box-shadow: 0 0 0 3px var(--rarity-legendary), 0 0 14px 2px rgba(255, 215, 0, 0.35);
+}
+/* Scintille che si accendono e si spengono sulle carte: puntini fermi. */
+:root[data-a11y-safe] .card-sparkle { animation: none !important; opacity: 0.6; transform: none; }
+/* Arcobaleno foil che scorre in color-dodge (luce forte a strisce): fermo al centro. */
+:root[data-a11y-safe] .is-foil::after { animation: none !important; background-position: 50% 50% !important; }
+/* Finiture olografiche: seguono il puntatore, ma in color-dodge muovendo la carta danno
+   lampi di luce. Si tengono, molto piu' tenui. */
+:root[data-a11y-safe] .card-holo-foil { opacity: calc(var(--holo-opacity, 0) * 0.3) !important; }
+:root[data-a11y-safe] .card-holo-glare { opacity: calc(var(--holo-opacity, 0) * 0.25) !important; }
+
+/* ---------- Bottoni, titoli, avvisi ---------- */
+/* Riflesso bianco che attraversa il bottone al passaggio del puntatore. */
+:root[data-a11y-safe] :is(.btn-primary, .btn-gold):hover::before { animation: none !important; }
+/* Testo con la striscia bianca che scorre e titoli a gradiente che "respirano": fermi. */
+:root[data-a11y-safe] .shiny-text { animation: none !important; background-position: 50% 0; }
+:root[data-a11y-safe] .text-gradient { animation: none !important; background-size: 100% 100%; }
+/* Bagliore che gira attorno al pacchetto piu' caro: fermo e tenue. */
+:root[data-a11y-safe] .star-border-glow { animation: none !important; opacity: 0.35; }
+/* Pacchetto gratis pronto: bordo oro e pallino che pulsano. */
+:root[data-a11y-safe] .free-pack-notice,
+:root[data-a11y-safe] .free-pack-notice .pulse-dot { animation: none !important; }
+/* Monete che arrivano: lampo oro sulla pillola dell'oro. */
+:root[data-a11y-safe] .gold-pill-hit { animation: none !important; }
+/* Pagine del raccoglitore in caricamento: segnaposto fermo invece del lampeggio. */
+:root[data-a11y-safe] .binder-sheet.loading .binder-pocket { animation: none !important; opacity: 0.7; }
+/* Fusione: le carte che si fondono si illuminano a scatti (brightness 1,6 avanti e indietro). */
+:root[data-a11y-safe] .fusion-slot.melting { animation: none !important; filter: none; }
+
+/* ---------- Battaglie e coppe ---------- */
+:root[data-a11y-safe] .battle-vs-label,
+:root[data-a11y-safe] .cup-live,
+:root[data-a11y-safe] .cup-dot { animation: none !important; opacity: 1; }
+
+/* ---------- Hotel e casino' ---------- */
+/* Timer delle sfide negli ultimi secondi: oro e bianco a scatti ogni mezzo secondo. Resta oro. */
+:root[data-a11y-safe] .pvp-timer.urgent,
+:root[data-a11y-safe] .hotel-page .hotel-panel .pvp-timer.urgent { animation: none !important; }
+/* Strumento indicato dal tutorial: alone che pulsa. Resta l'anello fermo. */
+:root[data-a11y-safe] .tutorial-highlight,
+:root[data-a11y-safe] .hotel-page .tutorial-highlight { animation: none !important; }
+/* Casino': linea vincente delle slot, riga della tabella pagamenti e "Uno!" del bingo
+   lampeggiano a scatti (piu' di due volte al secondo). Restano accesi e fermi. */
+:root[data-a11y-safe] .slot-payline.lit,
+:root[data-a11y-safe] .casino-paytable tr.hit,
+:root[data-a11y-safe] .bingo-one { animation: none !important; opacity: 1; }
+
+/* ==========================================================================
+   Alto contrasto
+   --------------------------------------------------------------------------
+   Si ridefiniscono i token (testi, linee, retino) invece di riscrivere ogni elemento: i colori
+   del brand (magenta, viola, oro, ciano) restano quelli. Testi secondari almeno 7:1 sul fondo
+   notte, testi tenui almeno 4.5:1, niente retino a punti dietro le scritte, bordi netti.
+   ========================================================================== */
+:root[data-contrast="high"],
+:root[data-contrast="high"][data-skin="phantom"],
+:root[data-contrast="high"][data-shell="phantom"] {
+  --text-primary: #ffffff;
+  --text-secondary: #dcdcea;
+  --text-muted: #b9b9d0;
+  --border-color: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-bg: rgba(10, 14, 36, 0.96);
+  --p5-ink-soft: #ebe7f6;
+  --p5-line: rgba(255, 255, 255, 0.5);
+  --p5-halftone: none;
+  --p5-halftone-red: none;
+  --p5-stripes: none;
+}
+/* I token dell'hotel stanno sulla pagina e sui pannelli: si ridefiniscono li'. */
+:root[data-contrast="high"] .hotel-page {
+  --hpx-ink-soft: #ebe7f6 !important;
+  --hpx-halftone: none !important;
+}
+:root[data-contrast="high"] .hotel-panel,
+:root[data-contrast="high"] .hotel-page .hotel-panel {
+  --hp-text: #ffffff !important;
+  --hp-muted: #ddd6fb !important;
+  --hp-line: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Pannelli Phantom: il filo sfumato diventa un bordo pieno, magenta verso il bianco. */
+:root[data-contrast="high"][data-skin="phantom"] .glass-panel::before {
+  background:
+    linear-gradient(var(--p5-panel), var(--p5-panel)) padding-box,
+    linear-gradient(135deg, var(--neon-magenta), #ffffff) border-box !important;
+  border-width: 2px !important;
+}
+:root[data-contrast="high"]:not([data-skin="phantom"]) .glass-panel { border-width: 2px; }
+
+/* Focus: anello ciano di 3px su tutto quello che si raggiunge con tastiera o controller.
+   Nell'hotel i bottoni tagliati con clip-path hanno l'anello dentro (hotel-phantom.css):
+   un contorno esterno verrebbe tagliato, quindi li' si lascia il loro. */
+:root[data-contrast="high"] :is(a, button, [tabindex], input, select, textarea, summary):not(.hotel-page *):focus-visible {
+  outline: 3px solid var(--neon-cyan) !important;
+  outline-offset: 3px !important;
+}
+
+/* Bottoni secondari: fondo pieno invece del solo contorno, cosi' si staccano dallo sfondo. */
+/* (Phantom e hotel hanno gia' un fondo nel ::before o nero pieno: qui solo le pagine classiche.) */
+:root[data-contrast="high"]:not([data-skin="phantom"]) .btn-secondary:not(.hotel-page *) { background: #1b1240; color: #ffffff; border-color: #ffffff; }
+:root[data-contrast="high"][data-skin="phantom"] .btn-secondary::before {
+  background:
+    linear-gradient(#1b1240, #1b1240) padding-box,
+    linear-gradient(#ffffff, #ffffff) border-box;
+}
+:root[data-contrast="high"][data-skin="phantom"] .btn-secondary:hover:not(:disabled)::before { background: #ffffff; }
+
+/* Etichette dei filtri e testi piccoli in maiuscolo: piu' chiari e un filo piu' pesanti. */
+:root[data-contrast="high"] .filter-label { color: var(--text-secondary); font-weight: 700; }
+
+/* ==========================================================================
+   Avvertenza sulla fotosensibilita' al primo avvio (PhotosensitivityNotice)
+   Sta qui e non in un foglio della pagina: si apre su qualunque indirizzo.
+   ========================================================================== */
+.a11y-notice {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(5, 3, 18, 0.86);
+  overflow-y: auto;
+}
+.a11y-notice-card {
+  position: relative;
+  isolation: isolate;
+  width: min(520px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px 22px 22px;
+  color: #ffffff;
+  filter: drop-shadow(8px 8px 0 var(--neon-magenta));
+}
+/* Lastra nera tagliata con il filo bianco, come le altre finestre Phantom. */
+.a11y-notice-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+  background:
+    linear-gradient(#0d0820, #0d0820) padding-box,
+    linear-gradient(135deg, #ffffff, var(--neon-magenta)) border-box;
+  border: 2px solid transparent;
+}
+.a11y-notice-card h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display, system-ui, sans-serif);
+  font-weight: 900;
+  font-stretch: 75%;
+  font-size: 1.5rem;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+.a11y-notice-card h2 i { color: var(--neon-gold); font-size: 1.6rem; flex: 0 0 auto; }
+.a11y-notice-card p { margin: 0; color: #e6e2f2; font-size: 0.98rem; line-height: 1.5; }
+.a11y-notice-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+.a11y-notice-actions .btn { flex: 1 1 200px; min-height: 48px; justify-content: center; }
+.a11y-notice-link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  color: var(--neon-cyan);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.a11y-notice-link:hover { color: #ffffff; }
+.a11y-notice :is(a, button):focus-visible { outline: 3px solid var(--neon-cyan); outline-offset: 3px; }
+/* Telefono in orizzontale: poca altezza, la finestra si stringe e scorre se serve. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .a11y-notice { place-items: start center; }
+  .a11y-notice-card { gap: 10px; padding: 16px 18px; }
+  .a11y-notice-card h2 { font-size: 1.2rem; }
+}
+
+/* Link all'accessibilita' in fondo al modulo di accesso. */
+.auth-a11y-link { text-align: center; }
+.auth-a11y-link a { gap: 6px; }

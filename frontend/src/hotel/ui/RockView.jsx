@@ -6,6 +6,7 @@ import { findCardById } from '../../data/cards.js';
 import { resolveCardImage } from '../../utils/cardUtils.js';
 import { ROCK_LEGENDS, rivalLive } from './rockLegends.js';
 import { DIFFICULTIES, SONGS, multOf } from './rockSongs.js';
+import { isSafeMode } from '../../services/accessibility.js';
 
 /**
  * Schermate della gara rock (rockGame.jsx): scelta della canzone, tastiera in prospettiva su
@@ -174,6 +175,9 @@ function drawScene(ctx, s) {
   const diff = DIFFICULTIES[s.diff];
   const t = s.t;
   const beatPhase = ((t % s.beat) + s.beat) % s.beat / s.beat;
+  // Modalita' sicura (fotosensibilita'): la fiammata sul tasto e' tenue e senza bianco, il conto
+  // alla rovescia non pulsa a tempo.
+  const safe = isSafeMode();
 
   // Palco: fondo scuro con i fasci di luce che si muovono a tempo.
   const bg = ctx.createLinearGradient(0, 0, 0, H);
@@ -293,8 +297,8 @@ function drawScene(ctx, s) {
     if (since >= 0 && since < 260) {
       const k = 1 - since / 260;
       const flame = ctx.createRadialGradient(x, y - 20, 2, x, y - 20, 50);
-      flame.addColorStop(0, `rgba(255,255,220,${0.9 * k})`);
-      flame.addColorStop(0.4, `rgba(251,146,60,${0.7 * k})`);
+      flame.addColorStop(0, safe ? `rgba(251,146,60,${0.3 * k})` : `rgba(255,255,220,${0.9 * k})`);
+      flame.addColorStop(0.4, `rgba(251,146,60,${(safe ? 0.2 : 0.7) * k})`);
       flame.addColorStop(1, 'rgba(239,68,68,0)');
       ctx.fillStyle = flame;
       ctx.beginPath();
@@ -432,7 +436,7 @@ function drawScene(ctx, s) {
   ctx.textAlign = 'center';
   if (t < 0) {
     ctx.font = '900 64px "Trebuchet MS", sans-serif';
-    ctx.fillStyle = `rgba(255,255,255,${0.4 + 0.6 * (1 - beatPhase)})`;
+    ctx.fillStyle = safe ? 'rgba(255,255,255,0.9)' : `rgba(255,255,255,${0.4 + 0.6 * (1 - beatPhase)})`;
     ctx.fillText(String(Math.ceil(-t / s.beat)), W / 2, 190);
   }
   s.popups.forEach((p, i) => {
