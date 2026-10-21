@@ -235,6 +235,14 @@
 
 /* ---------- Footer ---------- */
 :root[data-shell="phantom"] #app-footer { border-top: 2px solid rgba(236, 72, 153, 0.4); background: transparent; }
+/* Donazioni: bottone a scheggia come gli altri secondari, ma piccolo e in fondo alla pagina. */
+:root[data-shell="phantom"] .footer-donate {
+  border: 0; border-radius: 0; background: #000; box-shadow: inset 0 0 0 2px var(--neon-magenta);
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  font-family: var(--font-display); font-stretch: 85%; text-transform: uppercase; letter-spacing: 0.06em;
+}
+:root[data-shell="phantom"] .footer-donate:hover { background: var(--neon-magenta); }
+:root[data-shell="phantom"] .footer-donate:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--neon-cyan); }
 
 @media (prefers-reduced-motion: reduce) {
   :root[data-shell="phantom"] .sidebar .nav-link,

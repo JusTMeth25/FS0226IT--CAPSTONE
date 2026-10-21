@@ -10,7 +10,8 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 /**
- * Email del sito (per ora il reset della password), via SMTP di Brevo.
+ * Email del sito (per ora il reset della password), via SMTP di Brevo. Il contenuto lo preparano i
+ * modelli Thymeleaf di MailTemplates, nello stile del sito.
  *
  * Si spediscono in un thread a parte: la risposta all'utente non aspetta il server SMTP, e cosi'
  * non si capisce dai tempi se un'email e' registrata. Senza MAIL_HOST (sviluppo locale) non parte
@@ -38,6 +39,11 @@ public class MailService {
 
     public boolean configured() {
         return !host.isEmpty() && !from.isEmpty() && sender.getIfAvailable() != null;
+    }
+
+    /** Spedisce un'email preparata dai modelli Thymeleaf (MailTemplates). */
+    public void send(String to, MailTemplates.Rendered mail) {
+        send(to, mail.subject(), mail.text(), mail.html());
     }
 
     /** Spedisce l'email in un thread a parte; gli errori finiscono nel log, mai all'utente. */

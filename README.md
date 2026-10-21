@@ -12,6 +12,7 @@ battaglie online, mercato fra giocatori e oltre 140.000 carte da più di 20 gioc
 [![CI](https://github.com/JusTMeth25/FS0226IT--CAPSTONE/actions/workflows/ci.yml/badge.svg)](https://github.com/JusTMeth25/FS0226IT--CAPSTONE/actions/workflows/ci.yml)
 [![Sito online](https://img.shields.io/badge/sito-online-ec4899?logo=googlechrome&logoColor=white)](https://vinyldex.duckdns.org)
 [![API Docs](https://img.shields.io/badge/API%20Docs-Swagger-85EA2D?logo=swagger&logoColor=black)](https://vinyldex.duckdns.org/api/docs)
+[![Sostieni VinylDex](https://img.shields.io/badge/Sostieni-PayPal-00457C?logo=paypal&logoColor=white)](https://paypal.me/lorenzomelis25)
 <br />
 ![Java](https://img.shields.io/badge/Java-25-ED8B00?logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F?logo=springboot&logoColor=white)
@@ -45,6 +46,7 @@ battaglie online, mercato fra giocatori e oltre 140.000 carte da più di 20 gioc
 - [📦 Deploy](#-deploy)
 - [📱 App mobile](#-app-mobile)
 - [🗂️ Struttura del repository](#️-struttura-del-repository)
+- [☕ Sostieni il progetto](#-sostieni-il-progetto)
 - [💖 Ringraziamento speciale](#-ringraziamento-speciale)
 - [⚖️ Note legali](#️-note-legali)
 
@@ -229,7 +231,7 @@ UPDATE users SET role = 'ADMIN' WHERE email = 'tua@email.it';
 
 | Suite | Comando | Cosa copre |
 |---|---|---|
-| ☕ **Backend** | `cd BE && ./mvnw verify` | **290 test** unitari e di integrazione (JUnit 5, Spring Boot Test). Report di copertura JaCoCo in `BE/target/site/jacoco/`. |
+| ☕ **Backend** | `cd BE && ./mvnw verify` | **294 test** unitari e di integrazione (JUnit 5, Spring Boot Test). Report di copertura JaCoCo in `BE/target/site/jacoco/`. |
 | ⚛️ **Frontend** | `cd frontend && npm test` | **147 test** unitari e di componenti (Vitest, Testing Library, jsdom). Copertura: `npm run test:coverage`. |
 | 🎭 **End-to-end** | `cd frontend && npm run test:e2e` | Percorsi completi nel browser (Playwright), con backend e frontend avviati. |
 | 🧹 **Lint** | `cd frontend && npm run lint` | ESLint con le regole di React Hooks. |
@@ -349,6 +351,17 @@ Servono Android Studio e/o Xcode. Il login nativo con Google e Apple si configur
 - 🃏 I dati delle carte dei giochi di terzi vengono da API e archivi pubblici (Pokémon TCG API, Scryfall,
   YGOPRODeck, TCGCSV, OPTCG API, Lorcana API, apitcg.com, Riftcodex, FUTDB e altri): ogni importatore sta in
   `BE/src/main/java/com/capstone/vinyldex/importer/sources/`.
+
+## ☕ Sostieni il progetto
+
+VinylDex è gratuito e senza pubblicità. Se ti piace e vuoi aiutarmi a tenere acceso il server, puoi offrirmi un
+caffè: ogni contributo, anche piccolo, va nei costi di hosting e nello sviluppo di nuove funzionalità. 🙌
+
+<p align="center">
+  <a href="https://paypal.me/lorenzomelis25"><img src="https://img.shields.io/badge/Dona%20con-PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white" alt="Dona con PayPal" /></a>
+</p>
+
+Le donazioni sono volontarie e non danno vantaggi nel gioco.
 
 ## 💖 Ringraziamento speciale
 

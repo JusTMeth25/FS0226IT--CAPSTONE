@@ -121,6 +121,20 @@ Sempre `{"error": "<codice>"}` (`insufficient_gold`, `card_not_found`, `cooldown
 
 ---
 
+## Email
+
+Le email (link per reimpostare la password, avviso di password cambiata) nascono dai modelli **Thymeleaf** in
+`src/main/resources/templates/mail/`. Ognuna ha una versione HTML nello stile "Phantom" del sito e una solo
+testo. La cornice comune sta in `layout.html`, e `service/MailTemplates.java` le prepara. Partono via SMTP (Brevo)
+da `MailService`. Senza `MAIL_HOST` il testo finisce nel log del backend, comodo per provare in locale.
+
+Per aggiungere un'email:
+1. crea `nome.html` e `nome.txt`;
+2. includi la cornice con `th:replace="~{mail/layout.html :: page(~{::preheader}, ~{::content})}"`;
+3. spediscila con `mail.send(to, templates.render("nome", oggetto, titolo, variabili))`.
+
+---
+
 ## Import di carte esterne
 
 Ventitre fonti, una classe per fonte in `importer/sources/`: Pokemon TCG (anche Giappone e promo), Scryfall

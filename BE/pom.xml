@@ -50,6 +50,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
+		<!-- Modelli delle email (Thymeleaf): solo il motore, senza le viste web. -->
+		<dependency>
+			<groupId>org.thymeleaf</groupId>
+			<artifactId>thymeleaf</artifactId>
+		</dependency>
 
 		<!-- Documentazione delle API: OpenAPI 3 in /api/docs/openapi.json e Swagger UI in /api/docs.
 		     La serie 3.x di springdoc e' quella per Spring Boot 4. -->

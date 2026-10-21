@@ -44,18 +44,21 @@ public class PasswordResetService {
     private final JdbcTemplate jdbc;
     private final PasswordEncoder encoder;
     private final MailService mail;
+    private final MailTemplates templates;
     private final String appUrl;
     private final Duration validity;
     private final SecureRandom random = new SecureRandom();
     private final Map<String, Deque<Instant>> byIp = new ConcurrentHashMap<>();
 
     public PasswordResetService(UserRepository users, JdbcTemplate jdbc, PasswordEncoder encoder, MailService mail,
+                                MailTemplates templates,
                                 @Value("${vinyldex.app.url:http://localhost:5173}") String appUrl,
                                 @Value("${vinyldex.password-reset.minutes:30}") long minutes) {
         this.users = users;
         this.jdbc = jdbc;
         this.encoder = encoder;
         this.mail = mail;
+        this.templates = templates;
         this.appUrl = appUrl.replaceAll("/+$", "");
         this.validity = Duration.ofMinutes(minutes);
     }
@@ -80,31 +83,8 @@ public class PasswordResetService {
                 user.getId(), SecretBox.sha256(token), Timestamp.from(now.plus(validity)), ip);
 
         String link = appUrl + "/#/reset-password?token=" + token;
-        long minutes = validity.toMinutes();
-        mail.send(user.getEmail(), "Reimposta la password di VinylDex",
-                """
-                Ciao %s,
-
-                qualcuno (speriamo tu) ha chiesto di reimpostare la password del tuo account VinylDex.
-                Per sceglierne una nuova apri questo link entro %d minuti:
-
-                %s
-
-                Se non sei stato tu, ignora questa email: la password resta quella di prima.
-                """.formatted(user.getUsername(), minutes, link),
-                """
-                <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;color:#1f2937">
-                  <h2 style="color:#7c3aed">VinylDex</h2>
-                  <p>Ciao <b>%s</b>,</p>
-                  <p>qualcuno (speriamo tu) ha chiesto di reimpostare la password del tuo account.
-                     Il link vale %d minuti e si usa una volta sola.</p>
-                  <p style="text-align:center;margin:28px 0">
-                    <a href="%s" style="background:#7c3aed;color:#fff;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:bold">Scegli la nuova password</a>
-                  </p>
-                  <p style="font-size:12px;color:#6b7280">Se il pulsante non funziona copia questo indirizzo nel browser:<br>%s</p>
-                  <p style="font-size:12px;color:#6b7280">Se non sei stato tu, ignora questa email: la password resta quella di prima.</p>
-                </div>
-                """.formatted(escape(user.getUsername()), minutes, link, link));
+        mail.send(user.getEmail(), templates.render("reset-password", "Reimposta la password di VinylDex", "Nuova password",
+                Map.of("username", user.getUsername(), "link", link, "minutes", validity.toMinutes())));
     }
 
     /** Imposta la password nuova col token del link. */
@@ -126,22 +106,8 @@ public class PasswordResetService {
                 Timestamp.from(now), user.getId());
         jdbc.update("delete from trusted_devices where user_id = ?", user.getId());
 
-        mail.send(user.getEmail(), "La password di VinylDex e' cambiata",
-                """
-                Ciao %s,
-
-                la password del tuo account VinylDex e' stata appena cambiata e sei uscito da tutti i dispositivi.
-                Se non sei stato tu, chiedi subito un nuovo link da "Non ricordo la password" e scrivici.
-                """.formatted(user.getUsername()),
-                """
-                <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;color:#1f2937">
-                  <h2 style="color:#7c3aed">VinylDex</h2>
-                  <p>Ciao <b>%s</b>,</p>
-                  <p>la password del tuo account e' stata appena cambiata e sei uscito da tutti i dispositivi.</p>
-                  <p style="font-size:12px;color:#6b7280">Se non sei stato tu, chiedi subito un nuovo link da
-                     "Non ricordo la password" e scrivici.</p>
-                </div>
-                """.formatted(escape(user.getUsername())));
+        mail.send(user.getEmail(), templates.render("password-changed", "La password di VinylDex è cambiata", "Password cambiata",
+                Map.of("username", user.getUsername(), "forgotUrl", appUrl + "/#/forgot-password")));
     }
 
     private void limitIp(String ip) {
@@ -153,9 +119,5 @@ public class PasswordResetService {
             if (times.size() >= PER_IP) throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "too_many_requests");
             times.addLast(now);
         }
-    }
-
-    private static String escape(String s) {
-        return s == null ? "" : s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 }

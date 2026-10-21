@@ -14,6 +14,7 @@ import PageTour from '../common/PageTour.jsx';
 import { useFreePackNotifier } from '../../hooks/useFreePackNotifier.js';
 import RotatePrompt from './RotatePrompt.jsx';
 import { applyOrientation, onOrientationPref } from '../../services/orientation.js';
+import { DONATE_URL } from '../../data/links.js';
 
 export default function AppLayout() {
   const location = useLocation();
@@ -67,6 +68,12 @@ export default function AppLayout() {
           <footer id="app-footer">
             <div className="footer-inner">
               <small>VinylDex — Contenuti originali</small>
+              {DONATE_URL && (
+                <a className="footer-donate" href={DONATE_URL} target="_blank" rel="noopener noreferrer">
+                  <i className="ph-fill ph-paypal-logo" aria-hidden="true" /> Sostieni VinylDex
+                  <span className="sr-only"> (si apre PayPal in una nuova scheda)</span>
+                </a>
+              )}
               <small className="app-footer-credits">
                 Progetto didattico non ufficiale. Le carte importate e i relativi marchi appartengono ai
                 rispettivi proprietari (Pokémon, Wizards of the Coast, Konami, Bandai, Disney, Riot Games).
