@@ -1629,6 +1629,26 @@ button.hotel-badge:hover:not(:disabled) { transform: translateY(-2px) scale(1.08
   .lux-mirror { padding: 4px; }
   .lux-guitar { width: 64px; height: 76px; }
 }
+
+/* Telefoni (anche in orizzontale): il cartellino della stanza diventa una riga sola e la radio
+   una barra sottile con copertina piccola, solo il titolo e i comandi, cosi' la stanza resta visibile. */
+@media (max-width: 760px), (orientation: landscape) and (max-height: 520px) {
+  .hotel-room-info {
+    flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 6px;
+    padding: 3px 8px; font-size: 0.66rem; max-width: min(calc(100% - 16px), 420px);
+  }
+  .hotel-room-info strong { font-size: 0.78rem; }
+  .hotel-weather { margin-top: 0; font-size: 0.66rem; }
+  .hotel-room-info-actions { flex-basis: 100%; gap: 4px; margin-top: 3px; }
+  .hotel-like, .hotel-now-playing { font-size: 0.66rem; padding: 2px 6px; }
+  .hotel-radio { flex-wrap: nowrap; gap: 4px; padding: 2px 6px; border-radius: 999px; max-width: 100%; }
+  .hotel-radio img { width: 22px; height: 22px; border-radius: 4px; }
+  .hotel-radio-text { flex: 1 1 auto; }
+  .hotel-radio-text small { display: none; }
+  .hotel-radio-apple { font-size: 0; padding: 3px 5px; }
+  .hotel-radio-apple i { font-size: 0.8rem; }
+  .hotel-radio button { padding: 3px 4px; font-size: 0.85rem; }
+}
 @media (max-width: 640px) {
   .lux-item-actions { flex-wrap: wrap; min-width: 0; }
   .lux-item-actions .btn { flex: 1 1 auto; min-width: 0; padding-left: 8px; padding-right: 8px; }

@@ -568,6 +568,10 @@
 @media (max-width: 600px) {
   :root[data-shell="phantom"] .hotel-page .hotel-room-info > strong { font-size: 0.88rem; }
 }
+@media (max-width: 760px), (orientation: landscape) and (max-height: 520px) {
+  :root[data-shell="phantom"] .hotel-page .hotel-room-info { padding: 3px 16px 4px 10px; }
+  :root[data-shell="phantom"] .hotel-page .hotel-room-info > strong { font-size: 0.8rem; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   :root[data-shell="phantom"] .hotel-page .hotel-tool { transition: none; }
