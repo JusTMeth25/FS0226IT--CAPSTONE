@@ -124,7 +124,7 @@ public class OpenApiConfig {
         public static final String AMICI = "Amici";
         public static final String AMICI_INFO = "Amicizie e messaggi privati fra giocatori";
         public static final String AUTH = "Autenticazione";
-        public static final String AUTH_INFO = "Registrazione, accesso (email, Google, Apple), password dimenticata e verifica in due passaggi";
+        public static final String AUTH_INFO = "Registrazione, accesso (email, Google), password dimenticata e verifica in due passaggi";
         public static final String BATTAGLIE = "Battaglie";
         public static final String BATTAGLIE_INFO = "Avversari, squadre e ricompense delle battaglie";
         public static final String BORSA = "Borsa";

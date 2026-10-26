@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 /**
- * Verifica gli ID token (JWT firmati RS256) che Google e Apple danno all'app dopo il login:
+ * Verifica gli ID token (JWT firmati RS256) che Google da' all'app dopo il login:
  * firma con le chiavi pubbliche del fornitore, emittente, destinatario (i nostri client id) e
  * scadenza. Solo dopo si puo' credere a "sub" ed "email".
  */

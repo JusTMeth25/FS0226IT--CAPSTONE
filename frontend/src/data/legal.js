@@ -21,7 +21,7 @@ export const LEGAL_PAGES = {
         title: 'Quali dati raccogliamo',
         items: [
           'Account: username, email e password (salvata solo come hash bcrypt, mai in chiaro).',
-          'Accesso con Google o Apple, se lo usi: l’identificativo dell’account e l’email che il servizio ci comunica.',
+          'Accesso con Google, se lo usi: l’identificativo dell’account e l’email che il servizio ci comunica.',
           'Verifica in due passaggi, se la attivi: il segreto cifrato sul server e i dispositivi che scegli di ricordare.',
           'Dati di gioco: collezione, gold di gioco, scambi, battaglie, missioni, stanze e arredi dell’hotel, amicizie.',
           'Indirizzo IP: usato per frenare i tentativi di accesso ripetuti e salvato con le richieste di cambio password.',
@@ -43,7 +43,7 @@ export const LEGAL_PAGES = {
           'Oracle Cloud: il server su cui gira il sito e il database.',
           'Brevo: l’invio delle email di servizio.',
           'OpenRouter: le risposte dei personaggi dell’hotel. Riceve il tuo username, i messaggi che rivolgi al personaggio e i nomi dei giocatori nella stanza.',
-          'Google e Apple: solo se scegli di accedere con loro.',
+          'Google: solo se scegli di accedere con Google.',
           'Apple Music e Spotify: copertine e anteprime dei brani della radio; i link si aprono sui loro siti.',
           'PayPal: solo se clicchi su “Sostieni VinylDex”, e lì vale la privacy di PayPal.'
         ]

@@ -114,7 +114,7 @@ export default function AuthPage() {
     setMessage(null);
     const res = await socialLogin(provider, () => socialSignIn(provider, socialConfig));
     setSubmitting(false);
-    outcome(res, provider === 'google' ? 'Accesso con Google non riuscito.' : 'Accesso con Apple non riuscito.');
+    outcome(res, 'Accesso con Google non riuscito.');
   }
 
   async function handleTwoFactor(e) {
@@ -408,11 +408,6 @@ export default function AuthPage() {
             {providers.includes('google') && (
               <button type="button" className="auth-social-btn google" onClick={() => handleSocial('google')} disabled={submitting}>
                 <i className="ph-fill ph-google-logo" /> Continua con Google
-              </button>
-            )}
-            {providers.includes('apple') && (
-              <button type="button" className="auth-social-btn apple" onClick={() => handleSocial('apple')} disabled={submitting}>
-                <i className="ph-fill ph-apple-logo" /> Continua con Apple
               </button>
             )}
           </div>

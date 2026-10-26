@@ -71,7 +71,7 @@ class SocialTwoFactorIntegrationTest {
     @Test
     @DisplayName("Google crea l'account, poi la verifica in due passaggi vale solo sui dispositivi nuovi")
     void fullFlow() {
-        social.useVerifiers(new IdTokenVerifier(Set.of("https://accounts.google.com"), kid -> keys.getPublic()), null);
+        social.useVerifier(new IdTokenVerifier(Set.of("https://accounts.google.com"), kid -> keys.getPublic()));
 
         // Primo accesso: account nuovo, username dal nome senza accenti, accesso diretto.
         AuthResponse first = google(null);

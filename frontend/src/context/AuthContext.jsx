@@ -50,7 +50,7 @@ export function AuthProvider({ children }) {
 
   const login = useCallback((email, password) => finish(() => authApi.login(email, password)), [finish]);
   const register = useCallback((username, email, password) => finish(() => authApi.register(username, email, password)), [finish]);
-  /** {@code signIn} apre Google o Apple e restituisce { idToken, name }, oppure null se annullato. */
+  /** {@code signIn} apre l'accesso con Google e restituisce { idToken, name }, oppure null se annullato. */
   const socialLogin = useCallback((provider, signIn) => finish(async () => {
     const got = await signIn();
     return got ? authApi.social(provider, got.idToken, got.name) : null;

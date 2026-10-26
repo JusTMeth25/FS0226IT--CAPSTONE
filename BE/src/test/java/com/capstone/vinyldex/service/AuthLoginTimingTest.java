@@ -67,7 +67,7 @@ class AuthLoginTimingTest {
     }
 
     @Test
-    @DisplayName("Account senza password (solo Google/Apple): stesso confronto, stesso errore")
+    @DisplayName("Account senza password (solo Google): stesso confronto, stesso errore")
     void socialOnlyAccount() {
         User user = new User();
         user.setEmail("social@example.com");

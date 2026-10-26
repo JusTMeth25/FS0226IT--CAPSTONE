@@ -48,7 +48,7 @@ public class AuthService {
         this.dummyHash = passwordEncoder.encode(UUID.randomUUID().toString());
     }
 
-    /** Verifica in due passaggi e accesso con Google/Apple: facoltativi come il guardaroba, per i test fatti a mano. */
+    /** Verifica in due passaggi e accesso con Google: facoltativi come il guardaroba, per i test fatti a mano. */
     private TwoFactorService twoFactor;
     private SocialLoginService social;
 
@@ -110,7 +110,7 @@ public class AuthService {
         return complete(user, request.deviceToken());
     }
 
-    /** Accesso con Google o Apple: stesso esito del login con password, secondo passaggio compreso. */
+    /** Accesso con Google: stesso esito del login con password, secondo passaggio compreso. */
     @Transactional
     public AuthResponse socialLogin(AuthRequests.SocialLoginRequest request) {
         if (social == null) throw ApiException.badRequest("provider_disabled");

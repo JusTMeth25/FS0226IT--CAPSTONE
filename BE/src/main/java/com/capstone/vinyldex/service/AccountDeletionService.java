@@ -20,8 +20,8 @@ import java.util.UUID;
  * create con le prime migrazioni no: carte, pacchetti, mercato, scambi, movimenti dei gold e
  * missioni si cancellano qui a mano, prima dell'utente, nella stessa transazione.
  *
- * Conferma: lo username scritto per intero, la password (non per chi e' entrato solo con Google o
- * Apple, che una password non ce l'ha) e il codice della verifica in due passaggi se e' attiva.
+ * Conferma: lo username scritto per intero, la password (non per chi e' entrato solo con Google,
+ * che una password non ce l'ha) e il codice della verifica in due passaggi se e' attiva.
  * Gli admin non si eliminano da qui: restano legati ai prelievi della banca del casino'.
  */
 @Service
@@ -60,7 +60,7 @@ public class AccountDeletionService {
         userRepository.delete(user);
     }
 
-    /** Account creato con Google o Apple: ha un'identita' collegata e la password e' casuale. */
+    /** Account creato con Google: ha un'identita' collegata e la password e' casuale. */
     private boolean socialOnly(UUID userId) {
         Integer linked = jdbc.queryForObject("select count(*) from user_identities where user_id = ?", Integer.class, userId);
         return linked != null && linked > 0;

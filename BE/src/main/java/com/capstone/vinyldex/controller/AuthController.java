@@ -127,7 +127,7 @@ public class AuthController {
     /** Elimina l'account e tutti i suoi dati, poi cancella il cookie di sessione. */
     @Tag(name = Tags.AUTH, description = Tags.AUTH_INFO)
     @Operation(summary = "Elimina il proprio account e tutti i dati",
-            description = "Serve lo username per intero, la password (tranne per gli account creati con Google o Apple) "
+            description = "Serve lo username per intero, la password (tranne per gli account creati con Google) "
                     + "e il codice della verifica in due passaggi se e' attiva. Non si torna indietro.")
     @PostMapping("/delete-account")
     public ResponseEntity<Map<String, Boolean>> deleteAccount(@CurrentUser UserPrincipal principal,
@@ -145,9 +145,9 @@ public class AuthController {
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookies.clear()).body(Map.of("loggedOut", true));
     }
 
-    /** Fornitori di accesso attivi (Google, Apple) e i client id pubblici per i pulsanti. */
+    /** Fornitori di accesso attivi (Google) e i client id pubblici per i pulsanti. */
     @Tag(name = Tags.AUTH, description = Tags.AUTH_INFO)
-    @Operation(summary = "Fornitori di accesso attivi (Google, Apple)")
+    @Operation(summary = "Fornitori di accesso attivi (Google)")
     @SecurityRequirements
     @GetMapping("/providers")
     public Map<String, Object> providers() {
@@ -155,7 +155,7 @@ public class AuthController {
     }
 
     @Tag(name = Tags.AUTH, description = Tags.AUTH_INFO)
-    @Operation(summary = "Accesso con Google o Apple")
+    @Operation(summary = "Accesso con Google")
     @SecurityRequirements
     @PostMapping("/social")
     public ResponseEntity<AuthResponse> social(@Valid @RequestBody AuthRequests.SocialLoginRequest request,

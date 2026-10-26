@@ -100,7 +100,7 @@ export default function TwoFactorPanel({ onChange }) {
         Verifica in due passaggi: <b className={status.enabled ? 'on' : 'off'}>{status.enabled ? 'attiva' : 'spenta'}</b>
       </p>
       <p className="twofa-hint">
-        Dopo la password (o Google e Apple) serve anche il codice a 6 cifre di un&apos;app di autenticazione, ma solo su un
+        Dopo la password (o Google) serve anche il codice a 6 cifre di un&apos;app di autenticazione, ma solo su un
         dispositivo nuovo. Un dispositivo verificato resta fidato per {days} giorni, che ripartono a ogni accesso.
       </p>
 

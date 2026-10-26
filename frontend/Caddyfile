@@ -27,7 +27,7 @@
 
 	# Intestazioni di sicurezza.
 	# - Content-Security-Policy: gli script vengono solo da qui e dai pochi servizi usati davvero
-	#   (Spotify Web Playback SDK, accesso con Apple); niente script in linea ne' eval, quindi un
+	#   (Spotify Web Playback SDK); niente script in linea ne' eval, quindi un
 	#   testo maligno finito in pagina non puo' eseguire codice ('wasm-unsafe-eval' ammette solo
 	#   WebAssembly, per i modelli 3D compressi). Immagini e audio da qualsiasi
 	#   https (le carte arrivano da molti siti). connect-src ammette blob: e data:, perche' i
@@ -40,7 +40,7 @@
 		Referrer-Policy "strict-origin-when-cross-origin"
 		X-Frame-Options "DENY"
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://sdk.scdn.co https://appleid.cdn-apple.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' blob: data: wss://{host} https://api.spotify.com https://accounts.spotify.com https://itunes.apple.com https://www.googleapis.com https://appleid.apple.com; frame-src https://sdk.scdn.co https://accounts.google.com https://appleid.apple.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self' https://appleid.apple.com; frame-ancestors 'none'"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://sdk.scdn.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' blob: data: wss://{host} https://api.spotify.com https://accounts.spotify.com https://itunes.apple.com https://www.googleapis.com; frame-src https://sdk.scdn.co https://accounts.google.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 		-Server
 	}
 }

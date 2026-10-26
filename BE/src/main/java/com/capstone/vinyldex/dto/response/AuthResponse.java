@@ -3,7 +3,7 @@ package com.capstone.vinyldex.dto.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
- * Risposta di register, login e accesso con Google o Apple.
+ * Risposta di register, login e accesso con Google.
  *
  * Di solito: profilo piu' token da salvare lato client. Con la verifica in due passaggi attiva e un
  * dispositivo non ancora fidato arriva invece {@code twoFactorRequired} con un {@code challenge}

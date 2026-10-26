@@ -22,7 +22,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Verifica in due passaggi: dopo la password (o Google/Apple) serve il codice a 6 cifre dell'app
+ * Verifica in due passaggi: dopo la password (o Google) serve il codice a 6 cifre dell'app
  * di autenticazione, ma solo sui dispositivi nuovi.
  *
  * Un dispositivo che ha superato il secondo passaggio diventa "fidato" per {@code trustDays}

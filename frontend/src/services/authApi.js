@@ -64,7 +64,7 @@ export const authApi = {
   async resetPassword(token, password) {
     return apiClient.post('/auth/reset-password', { token, password });
   },
-  /** Google/Apple attivi sul server, con i client id pubblici. */
+  /** Google attivo sul server, con i client id pubblici. */
   async providers() {
     return apiClient.get('/auth/providers');
   },

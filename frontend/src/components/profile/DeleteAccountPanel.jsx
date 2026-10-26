@@ -5,7 +5,7 @@ import { authApi, authErrorText } from '../../services/authApi.js';
 
 /**
  * "Elimina account" in fondo al profilo: cancella l'account e tutti i dati (vedi la pagina Privacy).
- * Si conferma scrivendo lo username, la password (vuota per chi entra solo con Google o Apple) e,
+ * Si conferma scrivendo lo username, la password (vuota per chi entra solo con Google) e,
  * se e' attiva, il codice della verifica in due passaggi. Gli admin non lo vedono.
  */
 export default function DeleteAccountPanel() {
@@ -50,7 +50,7 @@ export default function DeleteAccountPanel() {
           <label className="filter-label" htmlFor="del-username">Per confermare scrivi il tuo username: <b>{user.username}</b></label>
           <input className="ai-input" id="del-username" name="username" value={form.username} onChange={update}
             autoComplete="off" autoCapitalize="none" spellCheck={false} required />
-          <label className="filter-label" htmlFor="del-password">Password (lascia vuoto se entri solo con Google o Apple)</label>
+          <label className="filter-label" htmlFor="del-password">Password (lascia vuoto se entri solo con Google)</label>
           <input className="ai-input" id="del-password" name="password" type="password" value={form.password} onChange={update}
             autoComplete="current-password" />
           {user.twoFactorEnabled && (

@@ -23,7 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Accesso con Google e con Apple (dal browser, dall'app Android e dall'app iOS).
+ * Accesso con Google (dal browser, dall'app Android e dall'app iOS).
  *
  * L'app ottiene dal fornitore un ID token firmato; qui se ne verifica la firma e si cerca l'account
  * collegato a quell'identita'. Al primo accesso si collega l'account VinylDex con la stessa email
@@ -35,45 +35,29 @@ import java.util.concurrent.ThreadLocalRandom;
 public class SocialLoginService {
 
     public static final String GOOGLE = "google";
-    public static final String APPLE = "apple";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JdbcTemplate jdbc;
     private final String googleWebClientId;
     private final String googleIosClientId;
-    private final String appleServiceId;
-    private final String appleBundleId;
-    private final boolean appleIos;
-    private final String appleRedirectUrl;
     private IdTokenVerifier google = new IdTokenVerifier(Set.of("https://accounts.google.com", "accounts.google.com"),
             IdTokenVerifier.jwks("https://www.googleapis.com/oauth2/v3/certs"));
-    private IdTokenVerifier apple = new IdTokenVerifier(Set.of("https://appleid.apple.com"),
-            IdTokenVerifier.jwks("https://appleid.apple.com/auth/keys"));
 
     @Autowired
     public SocialLoginService(UserRepository userRepository, PasswordEncoder passwordEncoder, JdbcTemplate jdbc,
                               @Value("${vinyldex.auth.google.web-client-id:}") String googleWebClientId,
-                              @Value("${vinyldex.auth.google.ios-client-id:}") String googleIosClientId,
-                              @Value("${vinyldex.auth.apple.service-id:}") String appleServiceId,
-                              @Value("${vinyldex.auth.apple.bundle-id:com.vinyldex.app}") String appleBundleId,
-                              @Value("${vinyldex.auth.apple.ios-enabled:false}") boolean appleIos,
-                              @Value("${vinyldex.auth.apple.redirect-url:}") String appleRedirectUrl) {
+                              @Value("${vinyldex.auth.google.ios-client-id:}") String googleIosClientId) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jdbc = jdbc;
         this.googleWebClientId = googleWebClientId.trim();
         this.googleIosClientId = googleIosClientId.trim();
-        this.appleServiceId = appleServiceId.trim();
-        this.appleBundleId = appleBundleId.trim();
-        this.appleIos = appleIos;
-        this.appleRedirectUrl = appleRedirectUrl.trim();
     }
 
-    /** Per i test: verificatori con chiavi locali invece di quelle vere di Google e Apple. */
-    void useVerifiers(IdTokenVerifier google, IdTokenVerifier apple) {
+    /** Per i test: verificatore con chiavi locali invece di quelle vere di Google. */
+    void useVerifier(IdTokenVerifier google) {
         this.google = google;
-        this.apple = apple;
     }
 
     /** Cosa serve al frontend per mostrare i pulsanti; null = fornitore spento. Nessun segreto qui. */
@@ -85,13 +69,6 @@ public class SocialLoginService {
             g.put("iosClientId", googleIosClientId.isEmpty() ? null : googleIosClientId);
             out.put(GOOGLE, g);
         }
-        if (!appleServiceId.isEmpty() || appleIos) {
-            Map<String, Object> a = new LinkedHashMap<>();
-            a.put("serviceId", appleServiceId.isEmpty() ? null : appleServiceId);
-            a.put("redirectUrl", appleRedirectUrl.isEmpty() ? null : appleRedirectUrl);
-            a.put("ios", appleIos);
-            out.put(APPLE, a);
-        }
         return out;
     }
 
@@ -101,23 +78,19 @@ public class SocialLoginService {
             // Android e web danno token per il client web; iOS per il suo client.
             if (!googleWebClientId.isEmpty()) list.add(googleWebClientId);
             if (!googleIosClientId.isEmpty()) list.add(googleIosClientId);
-        } else if (APPLE.equals(provider)) {
-            // Dal browser il destinatario e' il Services ID, dall'app iOS il bundle id.
-            if (!appleServiceId.isEmpty()) list.add(appleServiceId);
-            if (appleIos && !appleBundleId.isEmpty()) list.add(appleBundleId);
         }
         return list;
     }
 
     /**
      * Account VinylDex per questo ID token: quello gia' collegato, quello con la stessa email
-     * verificata (che viene collegato) oppure uno nuovo. {@code name} e' il nome che Apple manda
-     * solo al primo accesso, usato per scegliere lo username.
+     * verificata (che viene collegato) oppure uno nuovo. {@code name}, se c'e', serve a
+     * scegliere lo username.
      */
     public User authenticate(String provider, String idToken, String name) {
         List<String> aud = audiences(provider);
         if (aud.isEmpty()) throw ApiException.badRequest("provider_disabled");
-        Claims claims = (GOOGLE.equals(provider) ? google : apple).verify(idToken, aud);
+        Claims claims = google.verify(idToken, aud);
         if (claims == null) throw ApiException.unauthorized("invalid_social_token");
 
         String subject = claims.getSubject();

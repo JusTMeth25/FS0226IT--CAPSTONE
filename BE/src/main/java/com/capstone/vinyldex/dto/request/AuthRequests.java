@@ -61,10 +61,10 @@ public final class AuthRequests {
         }
     }
 
-    /** Accesso con Google o Apple: l'ID token avuto dal fornitore e, solo da Apple al primo accesso, il nome. */
+    /** Accesso con Google: l'ID token avuto dal fornitore e, facoltativo, il nome per scegliere lo username. */
     public record SocialLoginRequest(
             @NotBlank(message = "missing_fields")
-            @Pattern(regexp = "google|apple", message = "provider_disabled")
+            @Pattern(regexp = "google", message = "provider_disabled")
             String provider,
             @NotBlank(message = "missing_fields") @Size(max = 8000) String idToken,
             @Size(max = 100) String name,
@@ -85,7 +85,7 @@ public final class AuthRequests {
     ) {
     }
 
-    /** Elimina account: username per intero, password (non per chi usa solo Google o Apple), codice se c'e' la 2FA. */
+    /** Elimina account: username per intero, password (non per chi usa solo Google), codice se c'e' la 2FA. */
     public record DeleteAccountRequest(
             @NotBlank(message = "missing_fields") @Size(max = 50) String username,
             @Size(max = 100) String password,

@@ -65,7 +65,7 @@ battaglie online, mercato fra giocatori e oltre 140.000 carte da più di 20 gioc
 | 🎮 | **Minigiochi** | 21 minigiochi: bowling, canestro, biliardo, golf, rock band, karaoke, disco, kart, pesca e altri. Poi il casinò (roulette, blackjack, poker, slot, bingo, corse dei cavalli) con fiches. |
 | 💱 | **Economia** | Mercato fra giocatori, scambi con proposte e controproposte, scambi con gli NPC, borsa con titoli dei giochi, banchetti nell'hotel. Solo **gold** di gioco, nessun denaro reale. |
 | 🎯 | **Progressione** | Livelli e XP, missioni giornaliere, eventi a orario, classifiche, carta del giorno, club. |
-| 👤 | **Account** | Registrazione, accesso con **Google e Apple**, verifica in due passaggi (TOTP), dispositivi fidati, recupero della password via email. |
+| 👤 | **Account** | Registrazione, accesso con **Google**, verifica in due passaggi (TOTP), dispositivi fidati, recupero della password via email. |
 | 🛠️ | **Pannello admin** | Gestione di utenti, carte, pacchetti, eventi e moderazione della chat. |
 | ♿ | **Accessibilità** | Modalità sicura per l'epilessia, colori per il daltonismo, alto contrasto, navigazione da tastiera e **controller**. |
 
@@ -104,7 +104,7 @@ battaglie online, mercato fra giocatori e oltre 140.000 carte da più di 20 gioc
 | 🎨 **Frontend** | React 19, Vite, React Router 7, Motion, Three.js + React Three Fiber, Canvas 2D (motore dell'hotel), Phosphor Icons, PWA con service worker |
 | ⚙️ **Backend** | Java 25, Spring Boot 4.1, Spring Security, Spring Data JPA (Hibernate), WebSocket, Flyway, JJWT, springdoc-openapi |
 | 🗄️ **Database** | PostgreSQL 18, con lo schema versionato da 86 migrazioni Flyway |
-| 📱 **Mobile** | Capacitor 8 (iOS e Android), login nativo con Google e Apple |
+| 📱 **Mobile** | Capacitor 8 (iOS e Android), login nativo con Google |
 | 🧪 **Test** | JUnit 5 + Spring Boot Test (unitari e di integrazione), JaCoCo, Vitest + Testing Library, Playwright |
 | 🚀 **Infrastruttura** | Docker Compose, Caddy (HTTPS automatico, Content-Security-Policy), GitHub Actions, Brevo (email) |
 
@@ -125,7 +125,7 @@ flowchart LR
         DB[("🗄️ PostgreSQL<br/>Flyway")]
     end
 
-    EXT["🌍 Servizi esterni<br/>API delle carte · Google / Apple<br/>Brevo · Spotify · OpenRouter"]
+    EXT["🌍 Servizi esterni<br/>API delle carte · Google<br/>Brevo · Spotify · OpenRouter"]
 
     WEB -- "HTTPS + cookie HttpOnly" --> CADDY
     APP -- "HTTPS + Bearer JWT" --> CADDY
@@ -186,7 +186,7 @@ DB_PASSWORD=la-password-del-tuo-utente-postgres
 JWT_SECRET=una-stringa-casuale-di-almeno-32-caratteri   # openssl rand -hex 48
 ```
 
-Tutte le altre chiavi (API delle carte, Google/Apple, email, Spotify, NPC con intelligenza artificiale) sono
+Tutte le altre chiavi (API delle carte, Google, email, Spotify, NPC con intelligenza artificiale) sono
 **facoltative**. Senza, quelle funzioni restano spente o usano dati di riserva. L'elenco completo, commentato,
 sta in [`BE/.env.example`](BE/.env.example).
 
@@ -231,7 +231,7 @@ UPDATE users SET role = 'ADMIN' WHERE email = 'tua@email.it';
 
 | Suite | Comando | Cosa copre |
 |---|---|---|
-| ☕ **Backend** | `cd BE && ./mvnw verify` | **294 test** unitari e di integrazione (JUnit 5, Spring Boot Test). Report di copertura JaCoCo in `BE/target/site/jacoco/`. |
+| ☕ **Backend** | `cd BE && ./mvnw verify` | **296 test** unitari e di integrazione (JUnit 5, Spring Boot Test). Report di copertura JaCoCo in `BE/target/site/jacoco/`. |
 | ⚛️ **Frontend** | `cd frontend && npm test` | **147 test** unitari e di componenti (Vitest, Testing Library, jsdom). Copertura: `npm run test:coverage`. |
 | 🎭 **End-to-end** | `cd frontend && npm run test:e2e` | Percorsi completi nel browser (Playwright), con backend e frontend avviati. |
 | 🧹 **Lint** | `cd frontend && npm run lint` | ESLint con le regole di React Hooks. |
@@ -324,7 +324,7 @@ npm run cap:sync
 npm run cap:open:android   # oppure cap:open:ios su macOS
 ```
 
-Servono Android Studio e/o Xcode. Il login nativo con Google e Apple si configura con le chiavi descritte in
+Servono Android Studio e/o Xcode. Il login nativo con Google si configura con le chiavi descritte in
 `BE/.env.example`.
 
 ---

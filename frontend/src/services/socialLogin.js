@@ -2,13 +2,11 @@ import { Capacitor } from '@capacitor/core';
 import { SocialLogin } from '@capgo/capacitor-social-login';
 
 /**
- * Accesso con Google e Apple tramite @capgo/capacitor-social-login: nel browser usa le librerie
- * web di Google e Apple, nell'app Android il selettore di account di sistema, nell'app iOS i
- * fogli nativi. Il risultato e' sempre un ID token che il backend verifica.
+ * Accesso con Google tramite @capgo/capacitor-social-login: nel browser usa la libreria web di
+ * Google, nell'app Android il selettore di account di sistema, nell'app iOS il foglio nativo. Il risultato e' sempre un ID token che il backend verifica.
  *
- * Quali pulsanti mostrare dipende da cosa e' configurato sul server e dalla piattaforma:
- * - Google: web e Android col client web, iOS solo col client iOS (serve anche l'URL scheme);
- * - Apple: web col Services ID, iOS se attivo; su Android no (richiederebbe un redirect dal server).
+ * Il pulsante compare se il server ha il client id giusto per la piattaforma: web e Android col
+ * client web, iOS solo col client iOS (serve anche l'URL scheme).
  */
 
 let ready = null;
@@ -21,8 +19,6 @@ export function availableProviders(config) {
   const out = [];
   const g = config?.google;
   if (g && (p === 'ios' ? g.iosClientId : g.webClientId)) out.push('google');
-  const a = config?.apple;
-  if (a && ((p === 'web' && a.serviceId) || (p === 'ios' && a.ios))) out.push('apple');
   return out;
 }
 
@@ -35,11 +31,6 @@ function init(config) {
     options.google = platform() === 'ios'
       ? { iOSClientId: config.google.iosClientId, iOSServerClientId: config.google.webClientId || undefined }
       : { webClientId: config.google.webClientId };
-  }
-  if (config.apple) {
-    options.apple = platform() === 'ios'
-      ? { clientId: 'com.vinyldex.app', redirectUrl: '' }
-      : { clientId: config.apple.serviceId, redirectUrl: config.apple.redirectUrl || window.location.origin };
   }
   ready = SocialLogin.initialize(options).catch((err) => {
     ready = null;
@@ -62,7 +53,7 @@ export async function socialSignIn(provider, config) {
   try {
     const { result } = await SocialLogin.login({
       provider,
-      options: { scopes: provider === 'apple' ? ['email', 'name'] : ['email', 'profile'] }
+      options: { scopes: ['email', 'profile'] }
     });
     if (!result?.idToken) throw new Error('missing_id_token');
     const prof = result.profile || {};
