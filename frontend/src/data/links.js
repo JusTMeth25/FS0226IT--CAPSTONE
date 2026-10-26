@@ -6,3 +6,13 @@
  * dati di pagamento. Con null il bottone nel pie' di pagina non compare.
  */
 export const DONATE_URL = 'https://paypal.me/lorenzomelis25';
+
+/** Contatto del titolare per privacy, segnalazioni e richieste sui dati (pagine legali). */
+export const CONTACT_EMAIL = 'lorenzo.melis@yahoo.it';
+
+/** Pagine legali, nel pie' di pagina e sotto il modulo di accesso. */
+export const LEGAL_LINKS = [
+  { to: '/privacy', label: 'Privacy' },
+  { to: '/cookie', label: 'Cookie' },
+  { to: '/termini', label: 'Termini' }
+];

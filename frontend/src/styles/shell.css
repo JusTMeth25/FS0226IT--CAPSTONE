@@ -201,6 +201,11 @@
 .app-main { flex: 1; width: 100%; padding: var(--space-md); padding-bottom: calc(var(--bottom-nav-h) + var(--space-md) + var(--safe-bottom)); }
 .footer-inner { padding: var(--space-md) var(--space-md); padding-bottom: calc(var(--space-md) + var(--safe-bottom)); text-align: center; color: var(--text-muted); font-size: 0.8rem; }
 .app-footer-credits { display: block; margin-top: 4px; font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; }
+/* Link alle pagine legali: in fila, con area di tocco ampia. */
+.footer-legal { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0 4px; margin-top: 6px; font-size: 0.75rem; }
+.footer-legal a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; color: var(--text-secondary); font-weight: 700; }
+.footer-legal a:hover { color: var(--text-primary); }
+.footer-legal span { padding: 0 10px; }
 .footer-donate {
   display: flex; width: fit-content; align-items: center; gap: 6px; min-height: 44px; margin: 8px auto 4px; padding: 0 16px;
   border: 1px solid rgba(236, 72, 153, 0.55); border-radius: var(--radius-md); color: var(--text-primary);

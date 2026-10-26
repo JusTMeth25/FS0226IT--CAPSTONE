@@ -1,0 +1,22 @@
+/* ==========================================================================
+   Pagine legali (LegalPage): privacy, cookie, termini. Prefisso legal-.
+   Pannelli ed elenchi riusano quelli della pagina Accessibilita' (a11y-).
+   ========================================================================== */
+
+.legal-updated { margin: 4px 0 0; font-size: 0.8rem; color: var(--text-muted); }
+.legal-panel p { margin: 0; line-height: 1.55; }
+.legal-panel a { color: var(--neon-cyan); font-weight: 700; overflow-wrap: anywhere; }
+
+.legal-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.legal-tab {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px;
+  font-weight: 800; text-decoration: none; color: #fff;
+  background: #000; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+}
+.legal-tab:hover { box-shadow: inset 0 0 0 2px #fff; }
+.legal-tab.is-active { background: var(--p5-red, #e60012); box-shadow: inset 0 0 0 2px #fff; }
+.legal-tab:focus-visible { outline: 3px solid var(--neon-cyan); outline-offset: 2px; }
+:root[data-skin="phantom"] .legal-tab {
+  font-family: var(--font-display); font-stretch: 85%; text-transform: uppercase;
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+}

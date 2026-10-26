@@ -9,6 +9,7 @@ import AnimatedNumber from '../components/fx/AnimatedNumber.jsx';
 import PhotoGallery from '../components/common/PhotoGallery.jsx';
 import InstallApp from '../components/common/InstallApp.jsx';
 import TwoFactorPanel from '../components/profile/TwoFactorPanel.jsx';
+import DeleteAccountPanel from '../components/profile/DeleteAccountPanel.jsx';
 import PhantomTitle from '../components/phantom/PhantomTitle.jsx';
 import '../styles/pages/social-phantom.css';
 import '../styles/pages/social-account.css';
@@ -112,6 +113,7 @@ export default function ProfilePage() {
       <TwoFactorPanel onChange={refreshUser} />
       <InstallApp />
       <PhotoGallery />
+      <DeleteAccountPanel />
     </section>
   );
 }

@@ -9,6 +9,7 @@ import com.capstone.vinyldex.security.ClientIp;
 import com.capstone.vinyldex.security.CurrentUser;
 import com.capstone.vinyldex.security.LoginThrottle;
 import com.capstone.vinyldex.security.UserPrincipal;
+import com.capstone.vinyldex.service.AccountDeletionService;
 import com.capstone.vinyldex.service.AuthService;
 import com.capstone.vinyldex.service.PasswordResetService;
 import com.capstone.vinyldex.service.TwoFactorService;
@@ -40,6 +41,7 @@ public class AuthController {
     private final LoginThrottle throttle;
 
     private PasswordResetService passwordReset;
+    private AccountDeletionService accountDeletion;
 
     public AuthController(AuthService authService, AuthCookies cookies, LoginThrottle throttle) {
         this.authService = authService;
@@ -50,6 +52,11 @@ public class AuthController {
     @org.springframework.beans.factory.annotation.Autowired
     void setPasswordReset(PasswordResetService passwordReset) {
         this.passwordReset = passwordReset;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    void setAccountDeletion(AccountDeletionService accountDeletion) {
+        this.accountDeletion = accountDeletion;
     }
 
     /** Manda il link per reimpostare la password: risponde sempre ok, che l'email esista o no. */
@@ -115,6 +122,18 @@ public class AuthController {
         }
         throttle.success(ip, request.email());
         return session(HttpStatus.OK, response, http);
+    }
+
+    /** Elimina l'account e tutti i suoi dati, poi cancella il cookie di sessione. */
+    @Tag(name = Tags.AUTH, description = Tags.AUTH_INFO)
+    @Operation(summary = "Elimina il proprio account e tutti i dati",
+            description = "Serve lo username per intero, la password (tranne per gli account creati con Google o Apple) "
+                    + "e il codice della verifica in due passaggi se e' attiva. Non si torna indietro.")
+    @PostMapping("/delete-account")
+    public ResponseEntity<Map<String, Boolean>> deleteAccount(@CurrentUser UserPrincipal principal,
+                                                              @Valid @RequestBody AuthRequests.DeleteAccountRequest request) {
+        accountDeletion.delete(principal.getId(), request.username(), request.password(), request.code());
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookies.clear()).body(Map.of("deleted", true));
     }
 
     /** Esce: cancella il cookie di sessione (l'app nativa butta via il suo token da sola). */

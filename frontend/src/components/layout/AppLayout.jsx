@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Suspense } from 'react';
-import { useLocation, Outlet } from 'react-router-dom';
+import { Link, useLocation, Outlet } from 'react-router-dom';
 import LoadingSpinner from '../common/LoadingSpinner.jsx';
 import Sidebar from './Sidebar.jsx';
 import Topbar from './Topbar.jsx';
@@ -14,7 +14,7 @@ import PageTour from '../common/PageTour.jsx';
 import { useFreePackNotifier } from '../../hooks/useFreePackNotifier.js';
 import RotatePrompt from './RotatePrompt.jsx';
 import { applyOrientation, onOrientationPref } from '../../services/orientation.js';
-import { DONATE_URL } from '../../data/links.js';
+import { DONATE_URL, LEGAL_LINKS } from '../../data/links.js';
 
 export default function AppLayout() {
   const location = useLocation();
@@ -80,6 +80,10 @@ export default function AppLayout() {
                 Dati e foto EA SPORTS FC™ 27: EA SPORTS FC Player Ratings, © Electronic Arts Inc. Non affiliato
                 né approvato da Electronic Arts.
               </small>
+              <nav className="footer-legal" aria-label="Note legali">
+                {LEGAL_LINKS.map((l) => <Link key={l.to} to={l.to}>{l.label}</Link>)}
+                <span>© 2026 JusTMeth25</span>
+              </nav>
             </div>
           </footer>
         </div>

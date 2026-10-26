@@ -224,3 +224,7 @@
 /* Link all'accessibilita' in fondo al modulo di accesso. */
 .auth-a11y-link { text-align: center; }
 .auth-a11y-link a { gap: 6px; }
+.auth-a11y-link { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+/* Avviso sotto il modulo di registrazione con i link a termini e privacy. */
+.auth-legal-note { margin: 0; font-size: 0.78rem; line-height: 1.45; color: #d9d4ea; }
+.auth-legal-note a { color: var(--neon-cyan); font-weight: 700; }

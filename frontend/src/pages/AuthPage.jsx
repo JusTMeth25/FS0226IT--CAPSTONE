@@ -10,6 +10,7 @@ import { availableProviders, prepareSocial, socialSignIn } from '../services/soc
 import '../styles/pages/social-phantom.css';
 import '../styles/pages/social-auth.css';
 import { isValidEmail } from '../utils/validation.js';
+import { LEGAL_LINKS } from '../data/links.js';
 
 const snap = { type: 'spring', stiffness: 520, damping: 28 };
 
@@ -35,7 +36,7 @@ export default function AuthPage() {
   const [newPassword, setNewPassword] = useState({ password: '', confirm: '' });
   const [resetDone, setResetDone] = useState(false);
   const [form, setForm] = useState({ username: '', email: '', password: '' });
-  const [message, setMessage] = useState(null);
+  const [message, setMessage] = useState(() => (location.state?.deleted ? { type: 'success', text: 'Account eliminato con tutti i suoi dati. Ciao!' } : null));
   const [submitting, setSubmitting] = useState(false);
   // Verifica in due passaggi: challenge del server mentre si aspetta il codice a 6 cifre.
   const [challenge, setChallenge] = useState(null);
@@ -391,6 +392,10 @@ export default function AuthPage() {
                 <label className="filter-label" htmlFor="auth-reg-pass">Password</label>
                 <input className="ai-input" id="auth-reg-pass" name="password" type="password" value={form.password} onChange={updateField} required />
               </div>
+              <p className="auth-legal-note">
+                Creando un account accetti i <Link to="/termini">Termini di servizio</Link> e
+                l&apos;<Link to="/privacy">informativa sulla privacy</Link>.
+              </p>
               <button type="submit" className="btn btn-primary auth-submit" disabled={submitting}>Crea Account</button>
               {message && <div className={`auth-message auth-message-${message.type}`}>{message.text}</div>}
             </form>
@@ -415,6 +420,7 @@ export default function AuthPage() {
         {/* Modalita' sicura, daltonismo e contrasto si scelgono anche prima di avere un account. */}
         <p className="auth-switch auth-a11y-link">
           <Link to="/accessibility" className="auth-switch-link"><i className="ph ph-wheelchair" aria-hidden="true" /> Accessibilità</Link>
+          {LEGAL_LINKS.map((l) => <Link key={l.to} to={l.to} className="auth-switch-link">{l.label}</Link>)}
         </p>
         </m.div>
       </section>

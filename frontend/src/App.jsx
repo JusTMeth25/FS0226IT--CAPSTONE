@@ -38,6 +38,7 @@ const WishlistPage = lazy(() => import('./pages/WishlistPage.jsx'));
 const StatsPage = lazy(() => import('./pages/StatsPage.jsx'));
 const BinderPage = lazy(() => import('./pages/BinderPage.jsx'));
 const AccessibilityPage = lazy(() => import('./pages/AccessibilityPage.jsx'));
+const LegalPage = lazy(() => import('./pages/LegalPage.jsx'));
 // L'hotel ha un motore grafico tutto suo: si scarica solo quando ci si entra.
 const HotelPage = lazy(() => import('./pages/HotelPage.jsx'));
 
@@ -57,7 +58,7 @@ function usePhantomSkin(pathname) {
 }
 
 /**
- * Cornice delle pagine aperte a tutti (per ora l'accessibilita'): con l'account dentro il layout
+ * Cornice delle pagine aperte a tutti (accessibilita', privacy, cookie, termini): con l'account dentro il layout
  * normale, senza account da sola a tutto schermo come la pagina di accesso.
  */
 function PublicLayout() {
@@ -102,6 +103,10 @@ export default function App() {
         {/* Aperta anche senza account: modalita' sicura e colori si scelgono prima di entrare. */}
         <Route element={<PublicLayout />}>
           <Route path="accessibility" element={<AccessibilityPage />} />
+          {/* Privacy, cookie e termini: si leggono prima di creare l'account. */}
+          <Route path="privacy" element={<LegalPage page="privacy" />} />
+          <Route path="cookie" element={<LegalPage page="cookie" />} />
+          <Route path="termini" element={<LegalPage page="termini" />} />
         </Route>
 
         {/* Per giocare serve un account: non esiste piu' una modalita' ospite.

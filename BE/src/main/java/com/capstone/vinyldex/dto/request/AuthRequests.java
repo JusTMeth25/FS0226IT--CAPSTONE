@@ -85,6 +85,14 @@ public final class AuthRequests {
     ) {
     }
 
+    /** Elimina account: username per intero, password (non per chi usa solo Google o Apple), codice se c'e' la 2FA. */
+    public record DeleteAccountRequest(
+            @NotBlank(message = "missing_fields") @Size(max = 50) String username,
+            @Size(max = 100) String password,
+            @Size(max = 20) String code
+    ) {
+    }
+
     public record ForgetDevicesRequest(@Size(max = 200) String deviceToken) {
     }
 

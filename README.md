@@ -378,6 +378,10 @@ Konami, Bandai, Bushiroad, Disney, Riot Games, Electronic Arts, NBA…). Il prog
 
 Codice © 2026 JusTMeth25, tutti i diritti riservati: vedi [`LICENSE`](LICENSE).
 
+Sul sito ci sono le pagine [Privacy](https://vinyldex.duckdns.org/#/privacy), [Cookie](https://vinyldex.duckdns.org/#/cookie)
+e [Termini di servizio](https://vinyldex.duckdns.org/#/termini), raggiungibili anche senza account (testi in
+`frontend/src/data/legal.js`).
+
 <div align="center">
 
 Fatto con ❤️, ☕ e tanta musica 🎶

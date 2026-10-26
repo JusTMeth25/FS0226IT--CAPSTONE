@@ -20,7 +20,10 @@ const AUTH_ERRORS = {
   too_many_attempts: 'Troppi tentativi: riprova fra qualche minuto.',
   invalid_email: 'Email non valida.',
   missing_fields: 'Compila tutti i campi.',
-  invalid_input: 'Controlla i campi: qualcosa non va.'
+  invalid_input: 'Controlla i campi: qualcosa non va.',
+  invalid_password: 'Password non corretta.',
+  delete_username_mismatch: 'Lo username non corrisponde: scrivilo uguale, maiuscole comprese.',
+  admin_cannot_delete: 'Un account admin non si elimina da qui.'
 };
 
 export function authErrorText(err, fallback = 'Qualcosa è andato storto.') {
@@ -84,6 +87,11 @@ export const authApi = {
     disable: (code) => apiClient.post('/auth/2fa/disable', { code }),
     backupCodes: (code) => apiClient.post('/auth/2fa/backup-codes', { code }),
     forgetOtherDevices: () => apiClient.post('/auth/2fa/forget-devices', { deviceToken: getDeviceToken() })
+  },
+  /** Elimina l'account e tutti i dati; il server cancella anche il cookie di sessione. */
+  async deleteAccount(username, password, code) {
+    await apiClient.post('/auth/delete-account', { username, password: password || null, code: code || null });
+    setToken(null);
   },
   /** Esce: il server cancella il cookie di sessione; anche se non risponde, qui si dimentica tutto. */
   async logout() {

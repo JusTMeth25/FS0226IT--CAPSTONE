@@ -246,3 +246,10 @@
   .trade-columns { grid-template-columns: 1fr; }
   .trade-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); max-height: 420px; }
 }
+
+/* Elimina account (DeleteAccountPanel): bordo rosso, campi in colonna. */
+.delete-account-panel { border-left: 4px solid #ff4d6d; }
+.delete-account-panel a { color: var(--neon-cyan); font-weight: 700; }
+.delete-account-start { align-self: flex-start; min-height: 44px; }
+.delete-account-form { display: flex; flex-direction: column; gap: 8px; }
+.delete-account-form .ai-input { min-height: 44px; }
