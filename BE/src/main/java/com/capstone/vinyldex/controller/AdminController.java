@@ -7,6 +7,7 @@ import com.capstone.vinyldex.importer.ImportResult;
 import com.capstone.vinyldex.importer.ImportService;
 import com.capstone.vinyldex.security.CurrentUser;
 import com.capstone.vinyldex.security.UserPrincipal;
+import com.capstone.vinyldex.service.AccountDeletionService;
 import com.capstone.vinyldex.service.AdminService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -36,10 +37,16 @@ public class AdminController {
 
     private final AdminService adminService;
     private final ImportService importService;
+    private AccountDeletionService accountDeletion;
 
     public AdminController(AdminService adminService, ImportService importService) {
         this.adminService = adminService;
         this.importService = importService;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    void setAccountDeletion(AccountDeletionService accountDeletion) {
+        this.accountDeletion = accountDeletion;
     }
 
     // ------------------------------------------------------------------ utenti
@@ -61,6 +68,15 @@ public class AdminController {
     @PostMapping("/users/{id}/unban")
     public Map<String, PublicUserDto> unban(@PathVariable UUID id) {
         return Map.of("user", adminService.setBanned(id, false, null));
+    }
+
+    @Operation(summary = "Elimina un utente e tutti i suoi dati",
+            description = "Serve lo username per conferma. Non si eliminano se stessi, gli altri admin e gli NPC.")
+    @PostMapping("/users/{id}/delete")
+    public Map<String, Boolean> deleteUser(@CurrentUser UserPrincipal principal, @PathVariable UUID id,
+                                           @Valid @RequestBody AdminRequests.DeleteUserRequest request) {
+        accountDeletion.deleteByAdmin(principal.getId(), id, request.username());
+        return Map.of("deleted", true);
     }
 
     @Operation(summary = "Imposta i gold di un utente")

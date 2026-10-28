@@ -91,6 +91,59 @@ function UserGoldEditor({ user, onSaved }) {
   );
 }
 
+const DELETE_ERRORS = {
+  delete_username_mismatch: 'Lo username non corrisponde.',
+  admin_cannot_delete: 'Un admin non si elimina da qui.',
+  npc_cannot_delete: 'I personaggi dell’hotel non si eliminano.',
+  cannot_delete_self: 'Non puoi eliminare il tuo account da qui.'
+};
+
+/**
+ * "Elimina" nella riga di un utente: si apre una conferma in linea dove va scritto lo username,
+ * poi il server cancella l'account con tutti i dati (come "Elimina account" del profilo).
+ */
+function DeleteUserButton({ user, onDeleted }) {
+  const [open, setOpen] = useState(false);
+  const [typed, setTyped] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function confirm(e) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await adminApi.deleteUser(user.id, typed.trim());
+      await onDeleted();
+    } catch (err) {
+      setError(DELETE_ERRORS[err?.code] || err?.message || 'Eliminazione non riuscita.');
+      setBusy(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <button className="btn btn-small btn-secondary admin-delete-btn" onClick={() => setOpen(true)}>
+        <i className="ph ph-trash" aria-hidden="true" /> Elimina
+      </button>
+    );
+  }
+  return (
+    <form className="admin-delete-confirm" onSubmit={confirm}>
+      <label htmlFor={`del-${user.id}`}>Scrivi <b>{user.username}</b> per eliminarlo con tutti i dati</label>
+      <input id={`del-${user.id}`} className="ai-input" value={typed} onChange={(e) => setTyped(e.target.value)}
+        autoComplete="off" autoCapitalize="none" spellCheck={false} autoFocus />
+      <span className="admin-delete-actions">
+        <button type="submit" className="btn btn-small btn-secondary admin-delete-btn" disabled={busy || typed.trim() !== user.username}>
+          {busy ? 'Elimino…' : 'Elimina per sempre'}
+        </button>
+        <button type="button" className="btn btn-small btn-secondary" onClick={() => { setOpen(false); setTyped(''); setError(null); }} disabled={busy}>Annulla</button>
+      </span>
+      {error && <span className="admin-gold-error" role="alert">{error}</span>}
+    </form>
+  );
+}
+
 function UsersTab() {
   return (
     <Resource
@@ -116,6 +169,7 @@ function UsersTab() {
                       <button className="btn btn-small btn-secondary" onClick={async () => { await (u.banned ? adminApi.unbanUser(u.id) : adminApi.banUser(u.id)); reload(); }}>
                         {u.banned ? 'Sblocca' : 'Banna'}
                       </button>
+                      {u.role !== 'ADMIN' && <DeleteUserButton user={u} onDeleted={reload} />}
                     </td>
                   </tr>
                 ))}

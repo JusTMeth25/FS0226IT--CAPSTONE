@@ -9,6 +9,8 @@ export const adminApi = {
   async getUsers() { return apiClient.get('/admin/users'); },
   async banUser(userId) { return apiClient.post(`/admin/users/${userId}/ban`); },
   async unbanUser(userId) { return apiClient.post(`/admin/users/${userId}/unban`); },
+  /** Elimina l'utente e tutti i suoi dati; lo username serve come conferma. */
+  async deleteUser(userId, username) { return apiClient.post(`/admin/users/${userId}/delete`, { username }); },
   async setUserGold(userId, gold) { return apiClient.patch(`/admin/users/${userId}/gold`, { gold }); },
   async giveCard(userId, cardId, quantity) { return apiClient.post(`/admin/users/${userId}/cards`, { cardId, quantity }); },
 

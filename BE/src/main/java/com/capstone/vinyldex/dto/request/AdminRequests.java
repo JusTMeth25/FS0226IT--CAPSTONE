@@ -21,6 +21,10 @@ public final class AdminRequests {
     public record BanRequest(String reason) {
     }
 
+    /** Eliminazione di un utente dal pannello: lo username scritto per intero, per conferma. */
+    public record DeleteUserRequest(@NotBlank(message = "missing_fields") @jakarta.validation.constraints.Size(max = 50) String username) {
+    }
+
     /** Carta da dare a un utente dal pannello admin, con quante copie (1-99). */
     public record GiveCardRequest(
             @NotNull(message = "invalid_card") UUID cardId,

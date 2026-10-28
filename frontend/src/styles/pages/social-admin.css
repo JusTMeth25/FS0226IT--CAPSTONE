@@ -195,3 +195,14 @@
 :root[data-skin="phantom"] .admin-page .casino-bank-actions input { height: 44px; border-radius: 0; }
 :root[data-skin="phantom"] .admin-page .casino-bank-where { color: var(--p5-ink); }
 :root[data-skin="phantom"] .admin-page .casino-bank-where i { color: var(--p5-gold); }
+
+/* Elimina utente: bottone rosso e conferma in linea con lo username da scrivere. */
+:root[data-skin="phantom"] .admin-page .admin-delete-btn { color: #ff8fa3; }
+:root[data-skin="phantom"] .admin-page .admin-delete-confirm { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; min-width: 0; max-width: 280px; }
+:root[data-skin="phantom"] .admin-page .admin-delete-confirm label { font-size: 0.78rem; color: var(--p5-ink-soft); overflow-wrap: anywhere; }
+:root[data-skin="phantom"] .admin-page .admin-delete-confirm .ai-input { min-height: 44px; }
+:root[data-skin="phantom"] .admin-page .admin-delete-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+:root[data-skin="phantom"] .admin-page .admin-delete-actions .btn + .btn { margin-left: 0; }
+/* Con la conferma aperta la cella va a capo: "Banna" sopra, la conferma sotto a tutta larghezza. */
+:root[data-skin="phantom"] .admin-page .admin-table td:has(.admin-delete-confirm) { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: flex-start; gap: 6px; }
+:root[data-skin="phantom"] .admin-page .admin-table td:has(.admin-delete-confirm) .admin-delete-confirm { flex: 1 1 100%; max-width: 380px; margin-top: 0; text-align: left; }

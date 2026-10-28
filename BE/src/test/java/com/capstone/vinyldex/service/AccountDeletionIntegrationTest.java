@@ -79,4 +79,34 @@ class AccountDeletionIntegrationTest {
             jdbc.update("delete from users where id in (?, ?)", id, other);
         }
     }
+
+    @Test
+    @DisplayName("Dal pannello admin: serve lo username, mai se stessi, un altro admin o un NPC")
+    void adminDeletes() {
+        UUID admin = register("dla_");
+        UUID target = register("dlt_");
+        UUID otherAdmin = register("dlb_");
+        try {
+            jdbc.update("update users set role = 'ADMIN' where id in (?, ?)", admin, otherAdmin);
+            String name = users.findById(target).orElseThrow().getUsername();
+            String adminName = users.findById(otherAdmin).orElseThrow().getUsername();
+            UUID npc = jdbc.queryForObject("select id from users where is_npc limit 1", UUID.class);
+            String npcName = users.findById(npc).orElseThrow().getUsername();
+
+            assertEquals("cannot_delete_self", assertThrows(ApiException.class, () -> deletion.deleteByAdmin(admin, admin, "x")).getMessage());
+            assertEquals("admin_cannot_delete", assertThrows(ApiException.class, () -> deletion.deleteByAdmin(admin, otherAdmin, adminName)).getMessage());
+            assertEquals("npc_cannot_delete", assertThrows(ApiException.class, () -> deletion.deleteByAdmin(admin, npc, npcName)).getMessage());
+            assertEquals("delete_username_mismatch", assertThrows(ApiException.class, () -> deletion.deleteByAdmin(admin, target, "altro")).getMessage());
+            assertTrue(users.existsById(target));
+
+            deletion.deleteByAdmin(admin, target, name);
+            assertFalse(users.existsById(target));
+            assertTrue(users.existsById(npc), "l'NPC resta");
+        } finally {
+            for (String table : new String[]{"user_wallet_transactions", "user_missions", "user_pack_credits", "user_cards"}) {
+                jdbc.update("delete from " + table + " where user_id in (?, ?, ?)", admin, target, otherAdmin);
+            }
+            jdbc.update("delete from users where id in (?, ?, ?)", admin, target, otherAdmin);
+        }
+    }
 }
