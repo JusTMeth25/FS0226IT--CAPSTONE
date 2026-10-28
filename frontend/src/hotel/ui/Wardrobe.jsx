@@ -19,7 +19,7 @@ const NAMES = { b: BODIES, h: HAIR_STYLES, hc: HAIR_COLOR_NAMES, sh: SHIRT_NAMES
 const SHORT_HAIR = [0, 1, 4, 9];
 const LONG_HAIR = 2;
 
-export default function Wardrobe({ look, onClose, onSaved }) {
+export default function Wardrobe({ look, welcome = false, onClose, onSaved }) {
   const [parts, setParts] = useState(() => parseLook(look));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -85,11 +85,17 @@ export default function Wardrobe({ look, onClose, onSaved }) {
   }
 
   return (
-    <div className="hotel-panel hotel-wardrobe" role="dialog" aria-label="Guardaroba">
+    <div className={`hotel-panel hotel-wardrobe${welcome ? ' is-welcome' : ''}`} role="dialog" aria-label={welcome ? 'Crea il tuo personaggio' : 'Guardaroba'}>
       <header className="hotel-panel-header">
-        <h3><i className="ph-fill ph-t-shirt" /> Guardaroba</h3>
+        <h3><i className="ph-fill ph-t-shirt" /> {welcome ? 'Crea il tuo personaggio' : 'Guardaroba'}</h3>
         <button type="button" className="hotel-panel-close" onClick={onClose} aria-label="Chiudi"><i className="ph ph-x" /></button>
       </header>
+      {welcome && (
+        <p className="hotel-panel-hint hotel-wardrobe-welcome">
+          Benvenuto nell&apos;hotel! Scegli corporatura, capelli e vestiti: gli altri ti vedranno così. Potrai cambiare
+          look quando vuoi dal pulsante Guardaroba.
+        </p>
+      )}
 
       <div className="hotel-wardrobe-body">
         <div className="hotel-wardrobe-stage">
@@ -134,10 +140,17 @@ export default function Wardrobe({ look, onClose, onSaved }) {
 
       {error && <p className="hotel-panel-error">{error}</p>}
       <footer className="hotel-panel-footer">
-        <button type="button" className="btn btn-secondary" onClick={onClose}>Annulla</button>
-        <button type="button" className="btn btn-primary" onClick={save} disabled={saving || draft === look}>
-          <i className="ph-fill ph-floppy-disk" /> {saving ? 'Salvataggio…' : 'Salva aspetto'}
-        </button>
+        <button type="button" className="btn btn-secondary" onClick={onClose}>{welcome ? 'Più tardi' : 'Annulla'}</button>
+        {/* Alla prima visita il look di partenza si puo' anche tenere: il bottone chiude e basta. */}
+        {welcome && draft === look ? (
+          <button type="button" className="btn btn-primary" onClick={onClose}>
+            <i className="ph-fill ph-check" /> Va bene così
+          </button>
+        ) : (
+          <button type="button" className="btn btn-primary" onClick={save} disabled={saving || draft === look}>
+            <i className="ph-fill ph-floppy-disk" /> {saving ? 'Salvataggio…' : 'Salva aspetto'}
+          </button>
+        )}
       </footer>
     </div>
   );

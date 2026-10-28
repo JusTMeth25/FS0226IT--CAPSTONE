@@ -549,6 +549,27 @@
 :root[data-shell="phantom"] .hotel-page .hotel-wardrobe-body { align-items: flex-start; }
 :root[data-shell="phantom"] .hotel-page .hotel-wardrobe-stage { align-self: flex-start; position: sticky; top: 0; padding-bottom: 34px; }
 
+/* Testata, benvenuto e "Salva aspetto" restano sempre a vista: scorrono solo camerino e righe
+   (prima su telefono e tablet il bottone per salvare finiva sotto, da cercare scorrendo). */
+:root[data-shell="phantom"] .hotel-page .hotel-wardrobe { overflow: hidden; }
+:root[data-shell="phantom"] .hotel-page .hotel-wardrobe-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+:root[data-shell="phantom"] .hotel-page .hotel-wardrobe > .hotel-panel-footer { flex: 0 0 auto; }
+:root[data-shell="phantom"] .hotel-page .hotel-wardrobe-welcome { flex: 0 0 auto; margin: 0; padding: 8px 12px 0; line-height: 1.4; color: var(--hpx-ink-soft, #c9c4dc); }
+
+/* Telefono in verticale: camerino basso e fermo in cima, le righe scorrono sotto. */
+@media (max-width: 600px) and (orientation: portrait) {
+  :root[data-shell="phantom"] .hotel-page .hotel-wardrobe-stage {
+    width: 100%; justify-content: center; padding: 6px 6px 22px; z-index: 1;
+  }
+  :root[data-shell="phantom"] .hotel-page .hotel-wardrobe-stage > * { height: 104px; width: auto; }
+  :root[data-shell="phantom"] .hotel-page .hotel-wardrobe-welcome { font-size: 0.74rem; padding: 6px 10px 0; }
+  :root[data-shell="phantom"] .hotel-page .hotel-wardrobe-body { padding: 8px; gap: 8px; }
+}
+/* Telefono in orizzontale: poco spazio in altezza, il benvenuto sta su una riga corta. */
+@media (orientation: landscape) and (max-height: 520px) {
+  :root[data-shell="phantom"] .hotel-page .hotel-wardrobe-welcome { font-size: 0.72rem; padding: 4px 10px 0; }
+}
+
 /* Schermi larghi (computer): pannello un po' piu' largo e righe compatte su una riga sola,
    etichetta a sinistra e valore fra le frecce a destra, entrambi interi. Il pannello torna
    basso come prima invece di raddoppiare l'altezza con le etichette sopra. */

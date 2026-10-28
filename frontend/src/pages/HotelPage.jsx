@@ -243,6 +243,15 @@ const STATUS_LABELS = {
 
 /** Feste con luci che lampeggiano (vedi HotelEngine.drawPartyLights e drawDiscoBall): solo per queste l'avviso. */
 const FLASHING_PARTIES = new Set(['rock', 'neon', 'disco']);
+/** Guardaroba della prima visita gia' mostrato a questo utente su questo dispositivo. */
+const firstLookKey = (userId) => `vinyldex_first_look_${userId || 'anon'}`;
+function firstLookSeen(userId) {
+  try { return localStorage.getItem(firstLookKey(userId)) === '1'; } catch { return false; }
+}
+function markFirstLookSeen(userId) {
+  try { localStorage.setItem(firstLookKey(userId), '1'); } catch { /* senza localStorage vale il tutorial del server */ }
+}
+
 export default function HotelPage() {
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
@@ -285,6 +294,11 @@ export default function HotelPage() {
   const [giftTo, setGiftTo] = useState('');
   /** Tutorial della prima visita: si chiede al server se e' gia' stato visto. */
   const [tutorial, setTutorial] = useState(false);
+  /**
+   * Prima visita (tutorial non ancora visto): appena si entra in una stanza si apre il guardaroba
+   * per creare il proprio personaggio, poi parte il tutorial. 'pending' = da aprire, 'open' = aperto.
+   */
+  const [firstLook, setFirstLook] = useState(null);
   /** Amici: messaggi e richieste non ancora visti, ultimo messaggio privato arrivato. */
   const [friendsUnread, setFriendsUnread] = useState(0);
   const [lastDm, setLastDm] = useState(null);
@@ -328,9 +342,27 @@ export default function HotelPage() {
   }, [eventsVersion]);
   useEffect(() => {
     let cancelled = false;
-    hotelApi.tutorial().then((res) => { if (!cancelled && !res.done) setTutorial(true); }).catch(() => {});
+    hotelApi.tutorial().then((res) => {
+      if (cancelled || res.done) return;
+      setTutorial(true);
+      setFirstLook('pending');
+    }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
+  // Aggiornati durante il render (non in un effetto): entrati nella prima stanza si apre il
+  // guardaroba; chiuso il guardaroba (salvato o no) si passa al tutorial.
+  // Una volta sola: se si esce prima di finire il tutorial, il guardaroba non si riapre.
+  if (firstLook === 'pending' && room) {
+    if (firstLookSeen(user?.id)) {
+      setFirstLook(null);
+    } else {
+      setFirstLook('open');
+      setPanel('wardrobe');
+    }
+  } else if (firstLook === 'open' && panel !== 'wardrobe') {
+    setFirstLook(null);
+    markFirstLookSeen(user?.id);
+  }
   const [placement, setPlacement] = useState(null);
   const [inventoryVersion, setInventoryVersion] = useState(0);
   const [whisperTo, setWhisperTo] = useState(null);
@@ -1270,7 +1302,7 @@ export default function HotelPage() {
         )}
         {room && football && <MatchBar match={match} me={me} clockOffset={clockOffset} send={send} />}
         {room && <EventBanner events={liveEvents} onOpen={() => setPanel('events')} />}
-        {tutorial && room && (
+        {tutorial && room && !firstLook && (
           <HotelTutorial onDone={() => { setTutorial(false); hotelApi.tutorialDone().catch(() => {}); }} />
         )}
 
@@ -1551,6 +1583,7 @@ export default function HotelPage() {
         {panel === 'wardrobe' && (
           <Wardrobe
             look={myLook}
+            welcome={firstLook === 'open'}
             onClose={() => setPanel(null)}
             onSaved={() => {
               send({ type: 'refresh_profile' });
